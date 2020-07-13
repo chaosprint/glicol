@@ -1,0 +1,40 @@
+{
+  "name": "quaver-rs",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@material-ui/core": "^4.3.1",
+    "@material-ui/icons": "^4.2.1",
+    "ace-builds": "^1.4.9",
+    "fs": "^0.0.1-security",
+    "node-bwf-wav-file-reader": "^1.0.3",
+    "react": "^16.8.6",
+    "react-ace": "^8.1.0",
+    "react-dom": "^16.8.6",
+    "react-scripts": "3.0.1",
+    "tone": "^13.8.25",
+    "wav": "^1.0.2",
+    "wavefile": "^11.0.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
