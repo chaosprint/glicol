@@ -10,7 +10,11 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
+
 lazy_static = "1.2.0"
 pest = "2.0"
 pest_derive = "2.0"
-dasp =  {version = "0.11", features = ["slice", "interpolate", "signal", "interpolate-linear"] }
+dasp_graph = "0.11.0"
+dasp_signal = "0.11.0"
+dasp_slice = "0.11.0"
+petgraph = "*"

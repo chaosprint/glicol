@@ -5,7 +5,8 @@ extern crate pest_derive;
 #[macro_use]
 extern crate lazy_static;
 
-use std::{sync::Mutex, collections::HashMap, slice::from_raw_parts_mut};
+use std::sync::{Mutex, Arc};
+use std::{collections::HashMap, slice::from_raw_parts_mut};
 
 use pest::Parser;
 #[derive(Parser)]
@@ -13,13 +14,16 @@ use pest::Parser;
 pub struct QParser;
 
 mod engine;
-use engine::{QuaverSignal, Event, QuaverLoop};
-use engine::instrument::{Sampler, QuaverFunction};
+// use engine::{QuaverSignal, Event, QuaverLoop};
+// use engine::instrument::{Sampler, QuaverFunction};
 // instrument::Oscillator,
 // use engine::effect::LPF;
 
-use dasp::{signal};
-use dasp::signal::Signal;
+// use dasp::{signal};
+// use dasp::signal::Signal;
+use engine::SinOsc;
+use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNode, BoxedNodeSend};
+
 
 #[no_mangle] // to send buffer to JS
 pub extern "C" fn alloc(size: usize) -> *mut f32 {
@@ -46,9 +50,11 @@ pub extern "C" fn alloc_uint32array(length: usize) -> *mut f32 {
 }
 
 lazy_static! {
-    static ref ENGINE: Mutex<engine::Engine> = Mutex::new(engine::Engine::new());
+    static ref ENGINE:Arc<Mutex<engine::Engine>> = Arc::new(Mutex::new(engine::Engine::new()));
+    // static ref ENGINE:Mutex<engine::Engine> = Mutex::new(engine::Engine::new());
 }
 
+// Mutex<engine::Engine>
 #[no_mangle]
 pub extern "C" fn process(out_ptr: *mut f32, size: usize) {
     let mut engine = ENGINE.lock().unwrap();
@@ -101,7 +107,7 @@ pub extern "C" fn create_new_track(
     for line in lines.into_inner() {
 
         let mut ref_name = "~";
-        let mut func_chain = Vec::<Box<dyn Signal<Frame=f64> + 'static + Send>>::new(); // init Chain
+        // let mut func_chain = Vec::<Box<dyn Signal<Frame=f64> + 'static + Send>>::new(); // init Chain
 
         // match line.as_rule() {
         //     Rule::line => {
@@ -121,15 +127,28 @@ pub extern "C" fn create_new_track(
                             "sin" => {
                                 let mut paras = inner_rules.next().unwrap().into_inner();
                                 let freq = paras.next().unwrap().as_str().parse::<f64>().unwrap();
-                                let sig = signal::rate(48000.0).const_hz(freq).sine();
-                                func_chain.push(Box::new(sig));
+
+                                let sin_osc = SinOsc::new(freq);
+                                // let s_node = engine.graph.add_node(NodeData::new1(BoxedNode::new(Box::new(sin_osc))));
+                                let s_node = engine.graph.add_node(NodeData::new1(BoxedNodeSend::new(sin_osc)));
+
+                                engine.node.push(s_node);
+
+                                // let sig = SinOsc::new(freq);
+                                // Add some nodes and edges...
+                                // engine.graph.add_node(NodeData::new(sig, Vec::<Buffer>::new()));
+
+                                // here we need to examine freq, if it is number, then make a consthz
+                                // if it is ref, make a hz modulation
+                                // let sig = signal::rate(48000.0).const_hz(freq).sine();
+                                // func_chain.push(Box::new(SinOsc::new(freq)));
 
                             },
                             "mul" => {
                                 
                             },
                             "loop" => {
-                                let mut q_loop = QuaverLoop::new();
+                                // let mut q_loop = QuaverLoop::new();
 
                                 let mut paras = inner_rules
                                 .next().unwrap().into_inner();
@@ -157,12 +176,12 @@ pub extern "C" fn create_new_track(
                                             let d = note.as_str().parse::<i32>().unwrap() as f64;
                                             let pitch = 2.0f64.powf((d - 69.0) / 12.0) * 440.0;
 
-                                            let mut event = Event::new();
-                                            event.relative_time = seq_shift + note_shift;
-                                            event.pitch = pitch;
+                                            // let mut event = Event::new();
+                                            // event.relative_time = seq_shift + note_shift;
+                                            // event.pitch = pitch;
 
                                             // better to push a events, right?
-                                            q_loop.events.push(event);
+                                            // q_loop.events.push(event);
                                         }
                                         shift += 1;
                                     }
@@ -194,7 +213,7 @@ pub extern "C" fn create_new_track(
                 _ => unreachable!()
             }
         }
-        engine.chains.insert(ref_name.to_string(), func_chain); // sig: sig_chain
+        // engine.chains.insert(ref_name.to_string(), func_chain); // sig: sig_chain
     };
     // engine.phase = 0;
 }

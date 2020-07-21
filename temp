@@ -1,0 +1,8 @@
+uuid = {version = "0.8.1", features = ["v4"]}
+rand = "0.7"
+rand_distr = "0.2"
+num = "0.2"
+libmath = "0.2.1"
+crossbeam = "0.7"
+approx = "0.3"
+dasp =  {version = "0.11", features = ["slice", "interpolate", "signal", "interpolate-linear"] }
