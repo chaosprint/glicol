@@ -51,7 +51,7 @@ impl Node for Mul {
         if inputs.len() > 0 {
             let buf = &mut inputs[0].buffers();
             output[0] = buf[0].clone();
-            // output[0].iter_mut().for_each(|s| *s = *s * self.mul as f32);
+            output[0].iter_mut().for_each(|s| *s = *s * self.mul as f32);
         }
 
         // output[0] = buf;
@@ -99,9 +99,25 @@ impl Engine {
     fn generate_wave_buf(&mut self, size:usize) -> [f32; 128] {
         let mut output: [f32; 128] = [0.0; 128];
 
+        for (_ref_name, node) in self.nodes.clone() {
+            self.processor.process(&mut self.graph, node);
+            let b = &self.graph[node].buffers[0];
+            for i in 0..64 {
+                output[i] = b[i]
+            }
+        }
+
+        for (_ref_name, node) in self.nodes.clone() {
+            self.processor.process(&mut self.graph, node);
+            let b = &self.graph[node].buffers[0];
+            for i in 64..128 {
+                output[i] = b[i-64]
+            }
+        }
+
         
 
-        // if self.node.len() > 0 {
+        // if self.nodes.len() > 0 {
         //     let n = self.node.len() - 1;
             // for n in self.node.clone() {
             // self.processor.process(&mut self.graph, self.node[n]);

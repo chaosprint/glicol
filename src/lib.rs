@@ -127,11 +127,15 @@ pub extern "C" fn create_new_track(
                         match name {
                             "sin" => {
                                 let mut paras = inner_rules.next().unwrap().into_inner();
+
+                                // parsing 200 will cause error, 200.0 is fine.
                                 let freq = paras.next().unwrap().as_str().parse::<f64>().unwrap();
 
                                 let sin_osc = SinOsc::new(freq);
                                 // let s_node = engine.graph.add_node(NodeData::new1(BoxedNode::new(Box::new(sin_osc))));
                                 let sin_node = engine.graph.add_node(NodeData::new1(BoxedNodeSend::new(sin_osc)));
+                                // engine.graph.add_node(NodeData::new1(BoxedNodeSend::new( Mul::new(0.5))));
+                                
 
                                 engine.nodes.insert(ref_name.to_string(), sin_node);
                                 node_vec.insert(0, sin_node);
