@@ -21,9 +21,9 @@ mod engine;
 
 // use dasp::{signal};
 // use dasp::signal::Signal;
-use engine::SinOsc;
+use engine::{SinOsc, Mul};
 use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNode, BoxedNodeSend};
-
+use petgraph::graph::{NodeIndex};
 
 #[no_mangle] // to send buffer to JS
 pub extern "C" fn alloc(size: usize) -> *mut f32 {
@@ -120,6 +120,7 @@ pub extern "C" fn create_new_track(
                     ref_name = element.as_str();
                 },
                 Rule::chain => {
+                    let mut node_vec = Vec::<NodeIndex>::new();
                     for func in element.into_inner() {
                         let mut inner_rules = func.into_inner();
                         let name: &str = inner_rules.next().unwrap().as_str();
@@ -130,9 +131,10 @@ pub extern "C" fn create_new_track(
 
                                 let sin_osc = SinOsc::new(freq);
                                 // let s_node = engine.graph.add_node(NodeData::new1(BoxedNode::new(Box::new(sin_osc))));
-                                let s_node = engine.graph.add_node(NodeData::new1(BoxedNodeSend::new(sin_osc)));
+                                let sin_node = engine.graph.add_node(NodeData::new1(BoxedNodeSend::new(sin_osc)));
 
-                                engine.node.push(s_node);
+                                engine.nodes.insert(ref_name.to_string(), sin_node);
+                                node_vec.insert(0, sin_node);
 
                                 // let sig = SinOsc::new(freq);
                                 // Add some nodes and edges...
@@ -145,7 +147,18 @@ pub extern "C" fn create_new_track(
 
                             },
                             "mul" => {
+                                let mut paras = inner_rules.next().unwrap().into_inner();
+                                let mul = paras.next().unwrap().as_str().parse::<f64>().unwrap();
+                                let mul_node = engine.graph.add_node(NodeData::new1(BoxedNodeSend::new( Mul::new(mul))));
+
+                                if node_vec.len() > 0 {
+                                    engine.graph.add_edge(node_vec[0], mul_node, ());
+                                }
                                 
+                                engine.nodes.insert(ref_name.to_string(), mul_node);
+                                node_vec.insert(0, mul_node);
+                                // engine.node.push(mul_node);
+                                // node_vec.push(mul_node);
                             },
                             "loop" => {
                                 // let mut q_loop = QuaverLoop::new();
@@ -187,7 +200,6 @@ pub extern "C" fn create_new_track(
                                     }
                                     compound_index += 1;
                                 }
-                                // 直接推送到大列表中，反正都要用到
                                 // func_chain.functions.push(Box::new(q_loop));
                             },
                             "sampler" => {
@@ -208,6 +220,13 @@ pub extern "C" fn create_new_track(
                             },
                             _ => unreachable!()
                         }
+                        // create the edge here
+                        // if node_vec.len() == 2 {
+                        //     engine.graph.add_edge(node_vec[0], node_vec[1], ());
+                        //     node_vec.clear();
+                        // }
+                       
+
                     }
                 },
                 _ => unreachable!()

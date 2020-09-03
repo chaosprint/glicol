@@ -33,13 +33,42 @@ impl Node for SinOsc {
     }
 }
 
+pub struct Mul {
+    pub mul: f64
+}
+
+impl Mul {
+    pub fn new(mul: f64) -> Mul {
+        Mul { mul }
+    }
+}
+
+impl Node for Mul {
+    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+
+        // assert_eq!(inputs.len(), 1);
+        // output = ;
+        if inputs.len() > 0 {
+            let buf = &mut inputs[0].buffers();
+            output[0] = buf[0].clone();
+            // output[0].iter_mut().for_each(|s| *s = *s * self.mul as f32);
+        }
+
+        // output[0] = buf;
+        // for o in output {
+        //     // buf[0]
+        //     o.silence();
+        // }
+    }
+}
+
 pub struct Engine {
     // pub chains: HashMap<String, Vec<Box<dyn Node + 'static + Send >>>,
     pub phase: usize,
     pub graph: petgraph::Graph<NodeData<BoxedNodeSend>, (), petgraph::Directed, u32>,
     pub processor: dasp_graph::Processor<petgraph::graph::DiGraph<NodeData<BoxedNodeSend>, (), u32>>,
     // pub synth: Synth,
-    pub node: Vec<NodeIndex>,
+    pub nodes: HashMap<String, NodeIndex>,
     pub sr: f32,
     pub bpm: f32,
 }
@@ -60,7 +89,7 @@ impl Engine {
             // chains: HashMap::<String, Vec<Box<dyn Node + 'static + Send >>>::new(), // a hashmap of Box<AsFunc>
             graph: g,
             processor: p,
-            node: Vec::new(),
+            nodes: HashMap::new(),
             phase: 0,
             sr: 44100.0,
             bpm: 120.0,
@@ -70,21 +99,30 @@ impl Engine {
     fn generate_wave_buf(&mut self, size:usize) -> [f32; 128] {
         let mut output: [f32; 128] = [0.0; 128];
 
-        for n in self.node.clone() {
-            self.processor.process(&mut self.graph, n);
-            let b = &self.graph[n].buffers[0];
-            for i in 0..64 {
-                output[i] += b[i]
-            }
-        }
+        
 
-        for n in self.node.clone() {
-            self.processor.process(&mut self.graph, n);
-            let b = &self.graph[n].buffers[0];
-            for i in 64..128 {
-                output[i] += b[i-64]
-            }
-        }
+        // if self.node.len() > 0 {
+        //     let n = self.node.len() - 1;
+            // for n in self.node.clone() {
+            // self.processor.process(&mut self.graph, self.node[n]);
+            // let b = &self.graph[self.node[n]].buffers[0];
+    
+            // for i in 0..64 {
+            //     output[i] = b[i]
+            // }
+            // }
+    
+            // for n in self.node.clone() {
+            // self.processor.process(&mut self.graph, self.node[n]);
+            // let b = &self.graph[self.node[n]].buffers[0];
+    
+            // for i in 64..128 {
+            //     output[i] = b[i-64]
+            // }
+    
+            // }
+        // }
+
 
         // for i in 0..size {
             // let original_chains = self.chains.clone();

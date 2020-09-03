@@ -9,8 +9,8 @@ import sampleList from './samples.json';
 // import { render } from "react-dom";
 import AceEditor from "react-ace";
 
-import "ace-builds/src-noconflict/mode-quaver";
-import "ace-builds/src-noconflict/theme-quaver-night";
+import "ace-builds/src-noconflict/mode-javascript";
+import "ace-builds/src-noconflict/theme-github";
 
 export default function App() {
 
@@ -127,8 +127,8 @@ export default function App() {
         {/* </AppBar> */}
 
         <AceEditor
-          mode="quaver"
-          theme="tomorrow-night"
+          mode="javascript"
+          theme="github"
           fontSize = {18}
           width = "800px"
           fontFamily = "Inconsolata"
