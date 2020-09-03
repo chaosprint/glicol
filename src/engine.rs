@@ -36,29 +36,36 @@ impl Node for SinOsc {
 pub struct Mul {
     pub mul: f64
 }
-
 impl Mul {
     pub fn new(mul: f64) -> Mul {
         Mul { mul }
     }
 }
-
 impl Node for Mul {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
-
-        // assert_eq!(inputs.len(), 1);
-        // output = ;
         if inputs.len() > 0 {
             let buf = &mut inputs[0].buffers();
             output[0] = buf[0].clone();
             output[0].iter_mut().for_each(|s| *s = *s * self.mul as f32);
         }
+    }
+}
 
-        // output[0] = buf;
-        // for o in output {
-        //     // buf[0]
-        //     o.silence();
-        // }
+pub struct Add {
+    pub add: f64
+}
+impl Add {
+    pub fn new(add: f64) -> Add {
+        Add { add }
+    }
+}
+impl Node for Add {
+    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+        if inputs.len() > 0 {
+            let buf = &mut inputs[0].buffers();
+            output[0] = buf[0].clone();
+            output[0].iter_mut().for_each(|s| *s = *s + self.add as f32);
+        }
     }
 }
 

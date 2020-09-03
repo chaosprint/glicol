@@ -21,7 +21,7 @@ mod engine;
 
 // use dasp::{signal};
 // use dasp::signal::Signal;
-use engine::{SinOsc, Mul};
+use engine::{SinOsc, Mul, Add};
 use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNode, BoxedNodeSend};
 use petgraph::graph::{NodeIndex};
 
@@ -136,7 +136,6 @@ pub extern "C" fn create_new_track(
                                 let sin_node = engine.graph.add_node(NodeData::new1(BoxedNodeSend::new(sin_osc)));
                                 // engine.graph.add_node(NodeData::new1(BoxedNodeSend::new( Mul::new(0.5))));
                                 
-
                                 engine.nodes.insert(ref_name.to_string(), sin_node);
                                 node_vec.insert(0, sin_node);
 
@@ -152,15 +151,49 @@ pub extern "C" fn create_new_track(
                             },
                             "mul" => {
                                 let mut paras = inner_rules.next().unwrap().into_inner();
-                                let mul = paras.next().unwrap().as_str().parse::<f64>().unwrap();
-                                let mul_node = engine.graph.add_node(NodeData::new1(BoxedNodeSend::new( Mul::new(mul))));
+                                // let mul = paras.next().unwrap().as_str().parse::<f64>().unwrap();
+                                let mul = paras.next().unwrap().as_str().parse::<f64>();
+
+                                if mul.is_ok() {
+                                    let mul_node = engine.graph.add_node(NodeData::new1(BoxedNodeSend::new( Mul::new(mul.unwrap()))));
+
+                                    if node_vec.len() > 0 {
+                                        engine.graph.add_edge(node_vec[0], mul_node, ());
+                                    }
+                                    
+                                    engine.nodes.insert(ref_name.to_string(), mul_node);
+                                    node_vec.insert(0, mul_node);
+                                } else { // may be a ref
+
+                                    // still need to add this
+                                    let mul_node = engine.graph.add_node(NodeData::new1(BoxedNodeSend::new( 
+                                        Mul::new(
+                                            mul.unwrap()
+                                        )
+                                    )));
+                                };
+
+                                // match mul {
+                                //     Ok(val) => {
+
+                                //     },
+                                //     Err(why) => {}
+                                // }
+
+                                // engine.node.push(mul_node);
+                                // node_vec.push(mul_node);
+                            },
+                            "add" => {
+                                let mut paras = inner_rules.next().unwrap().into_inner();
+                                let add = paras.next().unwrap().as_str().parse::<f64>().unwrap();
+                                let add_node = engine.graph.add_node(NodeData::new1(BoxedNodeSend::new( Add::new(add))));
 
                                 if node_vec.len() > 0 {
-                                    engine.graph.add_edge(node_vec[0], mul_node, ());
+                                    engine.graph.add_edge(node_vec[0], add_node, ());
                                 }
                                 
-                                engine.nodes.insert(ref_name.to_string(), mul_node);
-                                node_vec.insert(0, mul_node);
+                                engine.nodes.insert(ref_name.to_string(), add_node);
+                                node_vec.insert(0, add_node);
                                 // engine.node.push(mul_node);
                                 // node_vec.push(mul_node);
                             },
