@@ -1,5 +1,5 @@
 const exampleCode =
-"~aa: sin 200"
+"~aa: sin 200.0 >> mul 0.3"
 // "~bd: loop 60 >> sampler \\bd"
 // `~bd: loop 60 >> sampler \\bd
 

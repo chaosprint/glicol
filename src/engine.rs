@@ -103,7 +103,7 @@ impl Engine {
             self.processor.process(&mut self.graph, node);
             let b = &self.graph[node].buffers[0];
             for i in 0..64 {
-                output[i] = b[i]
+                output[i] += b[i]
             }
         }
 
@@ -111,7 +111,7 @@ impl Engine {
             self.processor.process(&mut self.graph, node);
             let b = &self.graph[node].buffers[0];
             for i in 64..128 {
-                output[i] = b[i-64]
+                output[i] += b[i-64]
             }
         }
 
