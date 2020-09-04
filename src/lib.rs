@@ -152,26 +152,36 @@ pub extern "C" fn create_new_track(
                             "mul" => {
                                 let mut paras = inner_rules.next().unwrap().into_inner();
                                 // let mul = paras.next().unwrap().as_str().parse::<f64>().unwrap();
-                                let mul = paras.next().unwrap().as_str().parse::<f64>();
+                                // let mul = paras.next().unwrap().as_str().parse::<f64>();
+                                let mul = paras.next().unwrap().as_str().to_string();
+                                // if mul.is_ok() {
 
-                                if mul.is_ok() {
-                                    let mul_node = engine.graph.add_node(NodeData::new1(BoxedNodeSend::new( Mul::new(mul.unwrap()))));
+                                let mul_node = engine.graph.add_node(NodeData::new1(BoxedNodeSend::new( Mul::new(mul.clone()))));
 
-                                    if node_vec.len() > 0 {
-                                        engine.graph.add_edge(node_vec[0], mul_node, ());
-                                    }
-                                    
-                                    engine.nodes.insert(ref_name.to_string(), mul_node);
-                                    node_vec.insert(0, mul_node);
-                                } else { // may be a ref
+                                if node_vec.len() > 0 {
+                                    engine.graph.add_edge(node_vec[0], mul_node, ());
+                                }
+                                
+                                engine.nodes.insert(ref_name.to_string(), mul_node);
+                                node_vec.insert(0, mul_node);
+
+                                let is_ref = !mul.parse::<f64>().is_ok();
+
+                                
+
+                                if is_ref {
+                                    let mod_node = engine.nodes[mul.as_str()];
+                                    engine.graph.add_edge(mod_node, mul_node, ());
+                                }
+                                // } else { // may be a ref
 
                                     // still need to add this
-                                    let mul_node = engine.graph.add_node(NodeData::new1(BoxedNodeSend::new( 
-                                        Mul::new(
-                                            mul.unwrap()
-                                        )
-                                    )));
-                                };
+                                    // let mul_node = engine.graph.add_node(NodeData::new1(BoxedNodeSend::new(
+                                    //     Mul::new(
+                                    //         mul.unwrap()
+                                    //     )
+                                    // )));
+                                // };
 
                                 // match mul {
                                 //     Ok(val) => {

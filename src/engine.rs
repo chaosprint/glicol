@@ -34,19 +34,35 @@ impl Node for SinOsc {
 }
 
 pub struct Mul {
-    pub mul: f64
+    pub mul: String
 }
 impl Mul {
-    pub fn new(mul: f64) -> Mul {
+    pub fn new(mul: String) -> Mul {
         Mul { mul }
     }
 }
 impl Node for Mul {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
-        if inputs.len() > 0 {
-            let buf = &mut inputs[0].buffers();
-            output[0] = buf[0].clone();
-            output[0].iter_mut().for_each(|s| *s = *s * self.mul as f32);
+
+        let num = self.mul.parse::<f64>();
+        if num.is_ok() {
+            if inputs.len() > 0 {
+                let buf = &mut inputs[0].buffers();
+                output[0] = buf[0].clone(); // write
+                output[0].iter_mut().for_each(|s| *s = *s * num.clone().unwrap() as f32);
+            }
+        } else {
+            if inputs.len() > 1 {
+                let buf = &mut inputs[0].buffers();
+                let mod_buf = &mut inputs[1].buffers();
+                output[0] = buf[0].clone();
+
+                for i in 0..output[0].len() {
+                    output[0][i] *= mod_buf[0][i];
+                    // output[0].iter_mut().for_each(|s| *s = *s * 0.9 as f32);
+                }
+                
+            }
         }
     }
 }
@@ -106,19 +122,23 @@ impl Engine {
     fn generate_wave_buf(&mut self, size:usize) -> [f32; 128] {
         let mut output: [f32; 128] = [0.0; 128];
 
-        for (_ref_name, node) in self.nodes.clone() {
+        for (ref_name, node) in self.nodes.clone() {
             self.processor.process(&mut self.graph, node);
-            let b = &self.graph[node].buffers[0];
-            for i in 0..64 {
-                output[i] += b[i]
-            }
+            if ref_name.contains("~") {
+                let b = &self.graph[node].buffers[0];
+                for i in 0..64 {
+                    output[i] += b[i]
+                }
+            } 
         }
 
-        for (_ref_name, node) in self.nodes.clone() {
+        for (ref_name, node) in self.nodes.clone() {
             self.processor.process(&mut self.graph, node);
-            let b = &self.graph[node].buffers[0];
-            for i in 64..128 {
-                output[i] += b[i-64]
+            if ref_name.contains("~") {
+                let b = &self.graph[node].buffers[0];
+                for i in 64..128 {
+                    output[i] += b[i-64]
+                }
             }
         }
 

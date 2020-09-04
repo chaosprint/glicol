@@ -1,5 +1,8 @@
-const exampleCode =
-"~aa: sin 200.0 >> mul 0.3"
+const exampleCode = 
+`&cc: sin 1.0 >> mul 0.5 >> add 0.5
+
+~aa: sin 200.0 >> mul &cc`
+
 // "~bd: loop 60 >> sampler \\bd"
 // `~bd: loop 60 >> sampler \\bd
 
