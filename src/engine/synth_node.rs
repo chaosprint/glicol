@@ -7,20 +7,12 @@ pub struct Sampler {
     pub sig: Vec< Box<dyn Signal<Frame=[f32;1]> + 'static + Send>>,
     // pub sig: Box<dyn Signal<Frame=[f32;1]> + Send>,
     pub samples: &'static[f32],
-    // pub length: u32,
 }
 
 impl Sampler {
     pub fn new(samples: &'static[f32]) -> Self {
-        // let f: &[[f32;1]] = samples.to_frame_slice().unwrap();
-        // let mut source = signal::from_iter(f.iter().cloned());
-        // let a = source.next();
-        // let b = source.next();
-        // let interp = Linear::new(a, b);
-        // let s = source.scale_hz(interp, 1.5 );
         Self {
             sig: Vec::new(),
-            // sig: Box::new(s)
             samples
         }
     }
@@ -75,7 +67,7 @@ impl Looper {
                 let relative_pitch = event.1;
 
                 // bpm should be somewhere here
-                if i % 44100 == (relative_time * 88200.0) as usize {
+                if i % 88200 == (relative_time * 88200.0) as usize {
                     // this it the sampler to trigger
                     output = relative_pitch as f32;
                 }

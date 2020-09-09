@@ -191,8 +191,6 @@ impl Engine {
                                     // node_vec.push(mul_node);
                                 },
                                 "loop" => {
-                                    // let mut q_loop = QuaverLoop::new();
-
                                     let mut events = Vec::<(f64, f64)>::new();
 
                                     let mut paras = inner_rules
@@ -205,7 +203,6 @@ impl Engine {
 
                                     for compound in seq.into_inner() {
                                         let mut shift = 0;
-                
                                         // calculate the length of seq
                                         let compound_vec: Vec<pest::iterators::Pair<Rule>> = 
                                         compound.clone().into_inner().collect();

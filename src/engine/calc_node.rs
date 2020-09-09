@@ -36,7 +36,6 @@ impl Node for Mul {
     }
 }
 
-
 pub struct Add {
     pub add: f64
 }

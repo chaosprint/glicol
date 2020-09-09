@@ -1,7 +1,6 @@
 use dasp_signal::{self as signal, Signal};
 use dasp_graph::{Buffer, Input, Node};
 
-
 pub struct SinOsc {
     // pub freq: f64,
     // pub sig: Sine<ConstHz>
@@ -25,7 +24,6 @@ impl Node for SinOsc {
         }
     }
 }
-
 
 pub struct Impulse {
     sig: Box<dyn Signal<Frame=f32> + Send>,
