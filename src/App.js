@@ -41,8 +41,9 @@ export default function App() {
     console.log(sampleList)
   }, []);
 
-  const mySamples = ["909", "ab", "insect", "bd", "jazz", "dr",
-  "moog", "gtr", "sax", "can", "sf", "fm", "808ht", "808lt", "808hc"]
+  // const mySamples = ["909", "ab", "insect", "bd", "jazz", "dr",
+  // "moog", "gtr", "sax", "can", "sf", "fm", "808ht", "808lt", "808hc"]
+  const mySamples = ["bd", "fm"]
 
   const loadSamples = async () => {
     // var sample;
@@ -55,8 +56,8 @@ export default function App() {
         try {
           let sound = sampleList[key][0];
 
-          // let u = 'https://raw.githubusercontent.com/chaosprint/Dirt-Samples/master/' + key + '/' + sound
-          let u = "./samples/" + key + '/' + sound
+          let u = 'https://raw.githubusercontent.com/chaosprint/Dirt-Samples/master/' + key + '/' + sound
+          // let u = "./samples/" + key + '/' + sound
           let myRequest = new Request(u);
           await fetch(myRequest).then(response => response.arrayBuffer())
           .then(arrayBuffer => {

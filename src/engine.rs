@@ -1,25 +1,28 @@
 use std::{collections::HashMap, iter::Cloned, slice::Iter};
 
-use dasp_signal::{self as signal, Signal, Sine, ConstHz};
-use dasp_slice::add_in_place;
-// use dasp::interpolate::linear::Linear;
+use dasp_signal::{self as signal, Signal, Sine, ConstHz, GenMut};
+use dasp_slice::{add_in_place, ToFrameSlice};
+// use dasp::slice::;
+use dasp_interpolate::linear::Linear;
 // use dasp_signal::{self as signal, Signal, FromIterator, interpolate::linear::Linear, interpolate::Converter};
 // use dasp_interpolate::linear::Linear;
 use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNode, BoxedNodeSend};
+use std::f64::consts::PI;
 
 use petgraph;
 use petgraph::graph::{NodeIndex};
 
 pub struct SinOsc {
     // pub freq: f64,
-    pub sig: Sine<ConstHz>
+    // pub sig: Sine<ConstHz>
+    pub sig: Box<dyn Signal<Frame=f64> + Send>,
 }
 
 impl SinOsc {
     pub fn new(freq: f64) -> SinOsc {
-        let sig = signal::rate(48000.0).const_hz(freq).sine();
+        let sig = signal::rate(44100.0).const_hz(freq).sine();
         SinOsc {
-            sig: sig
+            sig: Box::new(sig)
         }
     }
 }
@@ -55,9 +58,10 @@ impl Node for Mul {
             if inputs.len() > 1 {
                 let buf = &mut inputs[0].buffers();
                 let mod_buf = &mut inputs[1].buffers();
-                output[0] = buf[0].clone();
-
-                for i in 0..output[0].len() {
+                // output[0] = buf[0].clone();
+                output[0].clone_from_slice(&buf[0]);
+                // for i in 0..output[0].len() {
+                for i in 0..64 {
                     output[0][i] *= mod_buf[0][i];
                     // output[0].iter_mut().for_each(|s| *s = *s * 0.9 as f32);
                 }
@@ -84,6 +88,98 @@ impl Node for Add {
         }
     }
 }
+
+
+pub struct Sampler {
+    pub sig: Vec< Box<dyn Signal<Frame=[f32;1]> + 'static + Send>>,
+    // pub sig: Box<dyn Signal<Frame=[f32;1]> + Send>,
+    pub samples: &'static[f32],
+    // pub length: u32,
+}
+
+impl Sampler {
+    pub fn new(samples: &'static[f32]) -> Self {
+        // let f: &[[f32;1]] = samples.to_frame_slice().unwrap();
+        // let mut source = signal::from_iter(f.iter().cloned());
+        // let a = source.next();
+        // let b = source.next();
+        // let interp = Linear::new(a, b);
+        // let s = source.scale_hz(interp, 1.5 );
+        Self {
+            sig: Vec::new(),
+            // sig: Box::new(s)
+            samples
+        }
+    }
+}
+
+impl Node for Sampler {
+    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+        output[0].silence();
+        if inputs.len() > 0 {
+            // the input of sampler should be a pitch, and series of 0
+            let input_buf = &mut inputs[0].buffers();
+
+            for i in 0..64 {
+                if input_buf[0][i] > 0.0 {
+                    // do it every sample, will it be too expensive?
+                    let f: &[[f32;1]] = self.samples.to_frame_slice().unwrap();
+                    // let s = signal::from_iter(f.iter().cloned());
+                    let mut source = signal::from_iter(f.iter().cloned());
+                    let a = source.next();
+                    let b = source.next();
+                    let interp = Linear::new(a, b);
+                    let s = source.scale_hz(interp, input_buf[0][i] as f64);
+                    // as f64 /2.0_f64.powf((60.0-69.0)/12.0)/440.0;
+                    self.sig.push(Box::new(s));
+                }
+                // for i in 0..output[0].len() {
+                for v in &mut self.sig {
+                    if !v.is_exhausted() {
+                        output[0][i] += v.next()[0];
+                    }                   
+                }
+            }
+        }
+    }
+}
+
+pub struct Impulse {
+    sig: Box<dyn Signal<Frame=f32> + Send>,
+    // sig: GenMut<(dyn Signal<Frame=f32> + 'static + Sized), f32>
+}
+
+impl Impulse {
+    pub fn new(freq: f64) -> Impulse {
+        let p = (44100.0 / freq) as usize;
+        let mut i: usize = 0;
+        let s = signal::gen_mut(move || {
+
+            let imp = (i % p == 0) as u8;
+            // i = ;
+            i += 1;
+            imp as f32
+            // let time = i as f64 / 44100.0;
+            // (2.0 * PI * time * freq).sin()
+        });
+        // let mut s = 
+        // let mut i:u32 = 0;
+
+        Self {
+            sig: Box::new(s)
+        }
+    }
+}
+
+impl Node for Impulse {
+    fn process(&mut self, _inputs: &[Input], output: &mut [Buffer]) {
+        for o in output {
+            o.iter_mut().for_each(|s| *s = self.sig.next() as f32);
+        }
+        // output[0].iter_mut().for_each(|s| *s = self.sig.next());
+    }
+}
+
 
 pub struct Engine {
     // pub chains: HashMap<String, Vec<Box<dyn Node + 'static + Send >>>,

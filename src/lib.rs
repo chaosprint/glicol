@@ -21,7 +21,7 @@ mod engine;
 
 // use dasp::{signal};
 // use dasp::signal::Signal;
-use engine::{SinOsc, Mul, Add};
+use engine::{SinOsc, Mul, Add, Impulse, Sampler};
 use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNode, BoxedNodeSend};
 use petgraph::graph::{NodeIndex};
 
@@ -167,10 +167,13 @@ pub extern "C" fn create_new_track(
 
                                 let is_ref = !mul.parse::<f64>().is_ok();
 
-                                
-
                                 if is_ref {
-                                    let mod_node = engine.nodes[mul.as_str()];
+                                    if !engine.nodes.contains_key(mul.as_str()) {
+                                        // panic if this item not existed
+                                        // TODO: move it to a lazy function
+                                        // engine.nodes.insert(mul.as_str().to_string(), mul_node);
+                                    }                                    
+                                    let mod_node = engine.nodes[mul.as_str()]; 
                                     engine.graph.add_edge(mod_node, mul_node, ());
                                 }
                                 // } else { // may be a ref
@@ -252,6 +255,17 @@ pub extern "C" fn create_new_track(
                             "sampler" => {
                                 let mut paras = inner_rules.next().unwrap().into_inner();
                                 let symbol = paras.next().unwrap().as_str();
+
+                                let sampler_node = engine.graph.add_node(
+                                    NodeData::new1(BoxedNodeSend::new( Sampler::new(samples_dict[symbol])))
+                                );
+
+                                if node_vec.len() > 0 {
+                                    engine.graph.add_edge(node_vec[0], sampler_node, ());
+                                }
+                                
+                                engine.nodes.insert(ref_name.to_string(), sampler_node);
+                                node_vec.insert(0, sampler_node);
                                 // sig.ins.push(
                                 //     Box::new(
                                 //         Sampler::new(samples_dict[symbol].clone())
@@ -260,6 +274,20 @@ pub extern "C" fn create_new_track(
                                 // func_chain.functions.push(
                                 //     Box::new(Sampler::new(samples_dict[symbol].clone()))
                                 // );
+                            },
+                            "imp" => {
+                                let mut paras = inner_rules.next().unwrap().into_inner();
+                                let imp = paras.next().unwrap().as_str().parse::<f64>().unwrap();
+                                let imp_node = engine.graph.add_node(
+                                    NodeData::new1(BoxedNodeSend::new( Impulse::new(imp)))
+                                );
+
+                                if node_vec.len() > 0 {
+                                    engine.graph.add_edge(node_vec[0], imp_node, ());
+                                }
+                                
+                                engine.nodes.insert(ref_name.to_string(), imp_node);
+                                node_vec.insert(0, imp_node);
                             },
                             "lpf" => {
                             },

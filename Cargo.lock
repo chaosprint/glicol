@@ -256,6 +256,7 @@ name = "quaver"
 version = "0.1.0"
 dependencies = [
  "dasp_graph 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "dasp_interpolate 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "dasp_signal 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "dasp_slice 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",

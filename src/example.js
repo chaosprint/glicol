@@ -1,7 +1,9 @@
 const exampleCode = 
-`&cc: sin 1.0 >> mul 0.5 >> add 0.5
+`~aa: imp 1.0 >> mul 1.0 >> sampler \\bd`
 
-~aa: sin 200.0 >> mul &cc`
+// `&cc: sin 1.0 >> mul 0.5 >> add 0.5
+
+// ~aa: sin 200.0 >> mul &cc`
 
 // "~bd: loop 60 >> sampler \\bd"
 // `~bd: loop 60 >> sampler \\bd
