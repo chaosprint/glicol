@@ -8,8 +8,6 @@ extern crate lazy_static;
 use std::sync::{Mutex, Arc};
 use std::{slice::from_raw_parts_mut};
 
-
-
 mod engine;
 // use engine::{QuaverSignal, Event, QuaverLoop};
 // use engine::instrument::{Sampler, QuaverFunction};
