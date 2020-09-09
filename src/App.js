@@ -41,9 +41,9 @@ export default function App() {
     console.log(sampleList)
   }, []);
 
-  // const mySamples = ["909", "ab", "insect", "bd", "jazz", "dr",
-  // "moog", "gtr", "sax", "can", "sf", "fm", "808ht", "808lt", "808hc"]
-  const mySamples = ["bd", "fm"]
+  const mySamples = ["909", "ab", "insect", "bd", "jazz", "dr",
+  "moog", "gtr", "sax", "can", "sf", "fm", "808ht", "808lt", "808hc"]
+  // const mySamples = ["bd", "fm"]
 
   const loadSamples = async () => {
     // var sample;
