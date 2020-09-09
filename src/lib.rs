@@ -21,7 +21,7 @@ mod engine;
 
 // use dasp::{signal};
 // use dasp::signal::Signal;
-use engine::{SinOsc, Mul, Add, Impulse, Sampler};
+use engine::{SinOsc, Mul, Add, Impulse, Sampler, Looper};
 use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNode, BoxedNodeSend};
 use petgraph::graph::{NodeIndex};
 
@@ -213,6 +213,8 @@ pub extern "C" fn create_new_track(
                             "loop" => {
                                 // let mut q_loop = QuaverLoop::new();
 
+                                let mut events = Vec::<(f64, f64)>::new();
+
                                 let mut paras = inner_rules
                                 .next().unwrap().into_inner();
 
@@ -237,10 +239,11 @@ pub extern "C" fn create_new_track(
                                             shift as f64 / seq_by_space.len() as f64;
             
                                             let d = note.as_str().parse::<i32>().unwrap() as f64;
-                                            let pitch = 2.0f64.powf((d - 69.0) / 12.0) * 440.0;
-
+                                            let relative_pitch = 2.0f64.powf((d - 60.0)/12.0);
+                                            let relative_time = seq_shift + note_shift;
+                                            events.push((relative_time, relative_pitch));
                                             // let mut event = Event::new();
-                                            // event.relative_time = seq_shift + note_shift;
+                                           
                                             // event.pitch = pitch;
 
                                             // better to push a events, right?
@@ -250,6 +253,18 @@ pub extern "C" fn create_new_track(
                                     }
                                     compound_index += 1;
                                 }
+
+                                let looper_node = engine.graph.add_node(
+                                    NodeData::new1(BoxedNodeSend::new( Looper::new(events)))
+                                );
+
+                                if node_vec.len() > 0 {
+                                    engine.graph.add_edge(node_vec[0], looper_node, ());
+                                }
+                                
+                                engine.nodes.insert(ref_name.to_string(), looper_node);
+                                node_vec.insert(0, looper_node);
+
                                 // func_chain.functions.push(Box::new(q_loop));
                             },
                             "sampler" => {

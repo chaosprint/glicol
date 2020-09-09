@@ -150,21 +150,14 @@ pub struct Impulse {
 }
 
 impl Impulse {
-    pub fn new(freq: f64) -> Impulse {
+    pub fn new(freq: f64) -> Self {
         let p = (44100.0 / freq) as usize;
         let mut i: usize = 0;
         let s = signal::gen_mut(move || {
-
             let imp = (i % p == 0) as u8;
-            // i = ;
             i += 1;
             imp as f32
-            // let time = i as f64 / 44100.0;
-            // (2.0 * PI * time * freq).sin()
         });
-        // let mut s = 
-        // let mut i:u32 = 0;
-
         Self {
             sig: Box::new(s)
         }
@@ -172,6 +165,46 @@ impl Impulse {
 }
 
 impl Node for Impulse {
+    fn process(&mut self, _inputs: &[Input], output: &mut [Buffer]) {
+        for o in output {
+            o.iter_mut().for_each(|s| *s = self.sig.next() as f32);
+        }
+        // output[0].iter_mut().for_each(|s| *s = self.sig.next());
+    }
+}
+
+pub struct Looper {
+    sig: Box<dyn Signal<Frame=f32> + Send>,
+    // sig: GenMut<(dyn Signal<Frame=f32> + 'static + Sized), f32>
+}
+
+impl Looper {
+    pub fn new(events: Vec<(f64, f64)>) -> Self {
+        // let p = (44100.0 / 10.0) as usize;
+        let mut i: usize = 0;
+        let s = signal::gen_mut(move || {
+            let mut output: f32 = 0.0;
+
+            for event in &events {
+                let relative_time = event.0;
+                let relative_pitch = event.1;
+
+                if i % 44100 == (relative_time * 44100.0) as usize {
+                    // this it the sampler to trigger
+                    output = relative_pitch as f32;
+                }
+            }
+            // let imp = (i % p == 0) as u8;
+            i += 1;
+            output
+        });
+        Self {
+            sig: Box::new(s)
+        }
+    }
+}
+
+impl Node for Looper {
     fn process(&mut self, _inputs: &[Input], output: &mut [Buffer]) {
         for o in output {
             o.iter_mut().for_each(|s| *s = self.sig.next() as f32);
