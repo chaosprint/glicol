@@ -49,7 +49,6 @@ impl Node for Sampler {
     }
 }
 
-
 pub struct Looper {
     sig: Box<dyn Signal<Frame=f32> + Send>,
     // sig: GenMut<(dyn Signal<Frame=f32> + 'static + Sized), f32>
