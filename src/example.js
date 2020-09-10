@@ -1,10 +1,15 @@
 const exampleCode = 
-// `~aa: sin 220.0`
+
 `~aa: loop 60 >> sampler \\bd
 
-~bb: loop _ 60 >> sampler \\jazz
+~bb: loop 60 64 67 72 >> sampler \\bass`
 
-~cc: loop _ 80 _70 75__70 >> sampler \\can`
+// `~aa: sin 220.0`
+// `~aa: loop 60 >> sampler \\bd
+
+// ~bb: loop _ 60 >> sampler \\jazz
+
+// ~cc: loop _ 80 _70 75__70 >> sampler \\can`
 // `~aa: imp 1.0 >> mul 1.0 >> sampler \\bd`
 
 // `&cc: sin 1.0 >> mul 0.5 >> add 0.5

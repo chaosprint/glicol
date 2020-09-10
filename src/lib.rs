@@ -9,17 +9,6 @@ use std::sync::{Mutex, Arc};
 use std::{slice::from_raw_parts_mut};
 
 mod engine;
-// use engine::{QuaverSignal, Event, QuaverLoop};
-// use engine::instrument::{Sampler, QuaverFunction};
-// instrument::Oscillator,
-// use engine::effect::LPF;
-
-// use dasp::{signal};
-// use dasp::signal::Signal;
-// use engine::{SinOsc, Mul, Add, Impulse, Sampler, Looper};
-// use dasp_graph::{NodeData, BoxedNodeSend};
-// Buffer, Input, Node, , BoxedNode 
-// use petgraph::graph::{NodeIndex};
 
 #[no_mangle] // to send buffer to JS
 pub extern "C" fn alloc(size: usize) -> *mut f32 {
@@ -58,7 +47,7 @@ pub extern "C" fn process(out_ptr: *mut f32, size: usize) {
 }
 
 #[no_mangle]
-pub extern "C" fn create_new_track(
+pub extern "C" fn run(
     arr_ptr: *mut u8, length: usize,
     samples_ptr: *mut *mut f32, samples_len: usize,
     lengths_ptr: *mut *mut usize, lengths_len: usize,
@@ -95,6 +84,17 @@ pub extern "C" fn create_new_track(
     engine.code = quaver_code.to_string();
     engine.update = true;
 
-        // engine.chains.insert(ref_name.to_string(), func_chain); // sig: sig_chain
-    // engine.phase = 0;
+}
+
+#[no_mangle]
+pub extern "C" fn update(arr_ptr: *mut u8, length: usize) {
+    let mut engine = ENGINE.lock().unwrap();
+    // assert!(engine.elapsed_samples > 44100, "update clock is starting from zero");
+
+    // read the code from the text editor
+    let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
+    let quaver_code = std::str::from_utf8(encoded).unwrap();
+    // push the code to engine
+    engine.code = quaver_code.to_string();
+    engine.update = true;
 }

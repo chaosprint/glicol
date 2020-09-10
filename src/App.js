@@ -41,8 +41,8 @@ export default function App() {
     console.log(sampleList)
   }, []);
 
-  const mySamples = ["909", "ab", "insect", "bd", "jazz", "dr",
-  "moog", "gtr", "sax", "can", "sf", "fm", "808ht", "808lt", "808hc"]
+  const mySamples = ["909", "ab", "insect", "bd", "jazz", "casio",
+  "bass", "gtr", "sax", "can", "sf", "fm", "808ht", "808lt", "808hc"]
   // const mySamples = ["bd", "fm"]
 
   const loadSamples = async () => {
@@ -95,7 +95,17 @@ export default function App() {
     actx.current.resume()
     console.log(codeRef.current)
     try {
-      node.current.port.postMessage({type: "new_track", value: encoder.encode(codeRef.current)})
+      node.current.port.postMessage({type: "run", value: encoder.encode(codeRef.current)})
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const handleUpdate = () => {
+    actx.current.resume()
+    console.log(codeRef.current)
+    try {
+      node.current.port.postMessage({type: "update", value: encoder.encode(codeRef.current)})
     } catch (e) {
       console.log(e)
     }
@@ -141,6 +151,10 @@ export default function App() {
             name: 'Run', //name for the key binding.
             bindKey: {win: 'Ctrl-Enter', mac: 'Command-Enter'}, //key combination used for the command.
             exec: handleRun  //function to execute when keys are pressed.
+          }, {   // commands is array of key bindings.
+            name: 'Update', //name for the key binding.
+            bindKey: {win: 'Shift-Enter', mac: 'Shift-Enter'}, //key combination used for the command.
+            exec: handleUpdate  //function to execute when keys are pressed.
           }]}
         />,
         {/* <Button

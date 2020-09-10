@@ -71,11 +71,11 @@ class QuaverEngine extends AudioWorkletProcessor {
                     this._outPtr,
                     this._size
                 )
-            } else if (e.data.type === "new_track") {
+            } else if (e.data.type === "run") {
 
                 console.log("samplePtr, Length", samplePtr, sampleLength)
 
-                // the code as Uint8 to parse
+                // the code as Uint8 to parse; e.data.value == the code
                 let length = e.data.value.byteLength
                 let myWasmArrayPtr = this._wasm.exports.alloc_uint8array(length);
                 let myWasmArray = new Uint8Array(this._wasm.exports.memory.buffer, myWasmArrayPtr, length);
@@ -87,13 +87,23 @@ class QuaverEngine extends AudioWorkletProcessor {
                 let nameInfo = allocUint32Array(nameArr, this._wasm.exports.alloc_uint32array, this._wasm.exports.memory.buffer)
                 let nameLenInfo = allocUint32Array(nameLenArr, this._wasm.exports.alloc_uint32array, this._wasm.exports.memory.buffer)
 
-                this._wasm.exports.create_new_track(
+                this._wasm.exports.run(
                     myWasmArrayPtr, length, 
                     sampleInfo.ptr, sampleInfo.len,
                     lengthInfo.ptr, lengthInfo.len,
                     nameInfo.ptr, nameInfo.len,
                     nameLenInfo.ptr, nameLenInfo.len
                 )              
+            } else if (e.data.type === "update") {
+
+                // the code as Uint8 to parse
+                let length = e.data.value.byteLength
+                let myWasmArrayPtr = this._wasm.exports.alloc_uint8array(length);
+                let myWasmArray = new Uint8Array(this._wasm.exports.memory.buffer, myWasmArrayPtr, length);
+                myWasmArray.set(e.data.value);
+
+                // for updating, no need to pass in samples
+                this._wasm.exports.update(myWasmArrayPtr, length)         
             }
         }
     }

@@ -77,7 +77,7 @@ impl Engine {
     }
 
     fn parse(&mut self) {
-        self.update = false;
+
         // parse the code
         let lines = QParser::parse(Rule::block, self.code.as_str())
         .expect("unsuccessful parse")
@@ -287,10 +287,17 @@ impl Engine {
     fn generate_wave_buf(&mut self, _size:usize) -> [f32; 128] {
         let mut output: [f32; 128] = [0.0; 128];
 
-        // (60.0 / self.bpm * 4.0 * 44100.0) as usize
-        if self.update && self.elapsed_samples % ((60.0 / self.bpm * 4.0 * 44100.0) as usize) < 128 {
+        let is_near_bar_end = (self.elapsed_samples + 128) % 88200 < 128  ;
+
+        // may be too time consuming?
+        if self.update && is_near_bar_end {
+            self.update = false;
+            self.nodes.clear();
+            self.graph.clear();
             self.parse();
         }
+
+        // (60.0 / self.bpm * 4.0 * 44100.0) as usize
         // we should see if we can update it
         for (ref_name, node) in &self.nodes {
             self.processor.process(&mut self.graph, *node);
@@ -298,7 +305,7 @@ impl Engine {
                 let b = &self.graph[*node].buffers[0];
                 for i in 0..64 {
                     output[i] += b[i];
-                    self.elapsed_samples += 1;
+                    // no clock += 1 here...
                 }
             }
         }
@@ -309,10 +316,12 @@ impl Engine {
                 let b = &self.graph[*node].buffers[0];
                 for i in 64..128 {
                     output[i] += b[i-64];
-                    self.elapsed_samples += 1;
+                    
                 }
             }
         }
+
+        self.elapsed_samples += 128;
 
         output
     }
