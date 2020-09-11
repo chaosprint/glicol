@@ -74,7 +74,7 @@ impl Node for EnvPerc {
                 // if self.pos < 441 {
                 //     output[0][i] = self.pos as f32 / 441.0 * buf[0][i];
                 // } else if self.pos < 44541 {
-                //     output[0][i] = (1.0 - (self.pos - 441) as f32 / 48000.0) * buf[0][i];
+                //     output[0][i] = (1.0 - (self.pos - 441) as f32 / 44100.0) * buf[0][i];
                 // } else {
                 //     output[0][i] = 0.0
                 // }

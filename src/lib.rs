@@ -89,7 +89,7 @@ pub extern "C" fn run(
 #[no_mangle]
 pub extern "C" fn update(arr_ptr: *mut u8, length: usize) {
     let mut engine = ENGINE.lock().unwrap();
-    // assert!(engine.elapsed_samples > 48000, "update clock is starting from zero");
+    // assert!(engine.elapsed_samples > 44100, "update clock is starting from zero");
 
     // read the code from the text editor
     let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };

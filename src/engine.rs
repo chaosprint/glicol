@@ -15,7 +15,8 @@ pub struct QParser;
 // use dasp_interpolate::linear::Linear;
 // {Buffer, Input, Node, {
 use dasp_graph::{NodeData, BoxedNodeSend};
-// use dasp_signal::{self as signal, Signal, FromIterator, interpolate::linear::Linear, interpolate::Converter};
+// use dasp_signal::{self as signal, Signal, FromIterator,
+    // interpolate::linear::Linear, interpolate::Converter};
 // use dasp_interpolate::linear::Linear;
 // BoxedNode
 // use std::f64::consts::PI;
@@ -66,14 +67,15 @@ impl Engine {
         // let box_g = Box::new(g);
 
         Engine {
-            // chains: HashMap::<String, Vec<Box<dyn Node + 'static + Send >>>::new(), // a hashmap of Box<AsFunc>
+            // chains: HashMap::<String, Vec<Box<dyn Node + 'static + Send >>>::new(), 
+            // a hashmap of Box<AsFunc>
             graph: g,
             processor: p,
             code: String::from(""),
             samples_dict: HashMap::new(),
             nodes: HashMap::new(),
             elapsed_samples: 0,
-            sr: 48000,
+            sr: 44100,
             bpm: 120.0,
             update: false,
         }
@@ -90,8 +92,8 @@ impl Engine {
         for line in lines.into_inner() {
 
             let mut ref_name = "~";
-            // let mut func_chain = Vec::<Box<dyn Signal<Frame=f64> + 'static + Send>>::new(); // init Chain
-
+            // let mut func_chain = Vec::<Box<dyn Signal<Frame=f64> + 'static + Send>>::new();
+            // init Chain
             // match line.as_rule() {
             //     Rule::line => {
             let inner_rules = line.into_inner();
@@ -109,37 +111,36 @@ impl Engine {
                             let name: &str = inner_rules.next().unwrap().as_str();
                             match name {
                                 "sin" => {
-                                    let mut paras = inner_rules.next().unwrap().into_inner();
+                                    // let mut paras = inner_rules.next().unwrap().into_inner();
+
+                                    let freq = inner_rules.next().unwrap().as_str().to_string();
 
                                     // parsing 200 will cause error, 200.0 is fine.
-                                    let freq = paras.next().unwrap().as_str().parse::<f64>().unwrap();
+                                    // let freq = paras.next().unwrap().as_str().parse::<f64>().unwrap();
+                                    // let freq = paras.next().unwrap().as_str().to_string();
 
-                                    let sin_osc = SinOsc::new(freq, 0.0);
-                                    // let s_node = engine.graph.add_node(NodeData::new1(BoxedNode::new(Box::new(sin_osc))));
-                                    let sin_node = self.graph.add_node(NodeData::new1(BoxedNodeSend::new(sin_osc)));
-                                    // engine.graph.add_node(NodeData::new1(BoxedNodeSend::new( Mul::new(0.5))));
+                                    let sin_node = self.graph.add_node(
+                                        NodeData::new1(BoxedNodeSend::new(SinOsc::new(freq.clone(), 0.0))));
+                                    // engine.graph.add_node(
+                                        // NodeData::new1(BoxedNodeSend::new( Mul::new(0.5))));
                                     
                                     self.nodes.insert(ref_name.to_string(), sin_node);
                                     node_vec.insert(0, sin_node);
 
-                                    // let sig = SinOsc::new(freq);
-                                    // Add some nodes and edges...
-                                    // engine.graph.add_node(NodeData::new(sig, Vec::<Buffer>::new()));
-
-                                    // here we need to examine freq, if it is number, then make a consthz
-                                    // if it is ref, make a hz modulation
-                                    // let sig = signal::rate(48000.0).const_hz(freq).sine();
-                                    // func_chain.push(Box::new(SinOsc::new(freq)));
+                                    if !freq.parse::<f64>().is_ok() {
+                                        if self.nodes.contains_key(freq.as_str()) {
+                                            let mod_node = self.nodes[freq.as_str()]; 
+                                            self.graph.add_edge(mod_node, sin_node, ());
+                                        }                                      
+                                    }
 
                                 },
                                 "mul" => {
                                     let mut paras = inner_rules.next().unwrap().into_inner();
-                                    // let mul = paras.next().unwrap().as_str().parse::<f64>().unwrap();
-                                    // let mul = paras.next().unwrap().as_str().parse::<f64>();
                                     let mul = paras.next().unwrap().as_str().to_string();
-                                    // if mul.is_ok() {
 
-                                    let mul_node = self.graph.add_node(NodeData::new1(BoxedNodeSend::new( Mul::new(mul.clone()))));
+                                    let mul_node = self.graph.add_node(
+                                        NodeData::new1(BoxedNodeSend::new( Mul::new(mul.clone()))));
 
                                     if node_vec.len() > 0 {
                                         self.graph.add_edge(node_vec[0], mul_node, ());
@@ -148,41 +149,22 @@ impl Engine {
                                     self.nodes.insert(ref_name.to_string(), mul_node);
                                     node_vec.insert(0, mul_node);
 
-                                    let is_ref = !mul.parse::<f64>().is_ok();
-
-                                    if is_ref {
-                                        if !self.nodes.contains_key(mul.as_str()) {
-                                            // panic if this item not existed
-                                            // TODO: move it to a lazy function
-                                            // engine.nodes.insert(mul.as_str().to_string(), mul_node);
-                                        }                                    
-                                        let mod_node = self.nodes[mul.as_str()]; 
-                                        self.graph.add_edge(mod_node, mul_node, ());
+                                    // panic if this item not existed
+                                    // TODO: move it to a lazy function
+                                    // engine.nodes.insert(mul.as_str().to_string(), mul_node);
+                                    if !mul.parse::<f64>().is_ok() {
+                                        if self.nodes.contains_key(mul.as_str()) {
+                                            let mod_node = self.nodes[mul.as_str()]; 
+                                            self.graph.add_edge(mod_node, mul_node, ());
+                                        }                              
                                     }
-                                    // } else { // may be a ref
 
-                                        // still need to add this
-                                        // let mul_node = engine.graph.add_node(NodeData::new1(BoxedNodeSend::new(
-                                        //     Mul::new(
-                                        //         mul.unwrap()
-                                        //     )
-                                        // )));
-                                    // };
-
-                                    // match mul {
-                                    //     Ok(val) => {
-
-                                    //     },
-                                    //     Err(why) => {}
-                                    // }
-
-                                    // engine.node.push(mul_node);
-                                    // node_vec.push(mul_node);
                                 },
                                 "add" => {
                                     let mut paras = inner_rules.next().unwrap().into_inner();
                                     let add = paras.next().unwrap().as_str().parse::<f64>().unwrap();
-                                    let add_node = self.graph.add_node(NodeData::new1(BoxedNodeSend::new( Add::new(add))));
+                                    let add_node = self.graph.add_node(
+                                        NodeData::new1(BoxedNodeSend::new( Add::new(add))));
 
                                     if node_vec.len() > 0 {
                                         self.graph.add_edge(node_vec[0], add_node, ());
@@ -246,7 +228,8 @@ impl Engine {
                                     let symbol = paras.next().unwrap().as_str();
 
                                     let sampler_node = self.graph.add_node(
-                                        NodeData::new1(BoxedNodeSend::new( Sampler::new(self.samples_dict[symbol])))
+                                        NodeData::new1(BoxedNodeSend::new(
+                                            Sampler::new(self.samples_dict[symbol])))
                                     );
 
                                     if node_vec.len() > 0 {
@@ -317,7 +300,7 @@ impl Engine {
             self.parse();
         }
 
-        // (60.0 / self.bpm * 4.0 * 48000.0) as usize
+        // (60.0 / self.bpm * 4.0 * 44100.0) as usize
         // we should see if we can update it
         for (ref_name, node) in &self.nodes {
         
@@ -334,7 +317,10 @@ impl Engine {
         for (ref_name, node) in &self.nodes {
             
             if ref_name.contains("~") {
+
+                 // this line should be here, otherwise double process fx
                 self.processor.process(&mut self.graph, *node);
+
                 let b = &self.graph[*node].buffers[0];
                 for i in 64..128 {
                     output[i] += b[i-64]; 

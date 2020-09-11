@@ -17,6 +17,8 @@ impl Node for Mul {
             if inputs.len() > 0 {
                 let buf = &mut inputs[0].buffers();
                 output[0] = buf[0].clone(); // write
+
+                // can we avoid this clone?
                 output[0].iter_mut().for_each(|s| *s = *s * num.clone().unwrap() as f32);
             }
         } else {
