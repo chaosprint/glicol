@@ -23,14 +23,9 @@ impl Node for Mul {
             if inputs.len() > 1 {
                 let buf = &mut inputs[0].buffers();
                 let mod_buf = &mut inputs[1].buffers();
-                // output[0] = buf[0].clone();
-                output[0].clone_from_slice(&buf[0]);
-                // for i in 0..output[0].len() {
                 for i in 0..64 {
-                    output[0][i] *= mod_buf[0][i];
-                    // output[0].iter_mut().for_each(|s| *s = *s * 0.9 as f32);
+                    output[0][i] = mod_buf[0][i] * buf[0][i];
                 }
-                
             }
         }
     }

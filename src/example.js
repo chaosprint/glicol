@@ -3,9 +3,9 @@ const exampleCode =
 // `~aa: sin 220.0 >> perc_env 0.1 0.1`
 // perc_env 0.01 0.9
 
-`&aa: imp 1.0 >> env_perc 0.01 0.1
+`&aa: imp 0.5 >> env_perc 0.01 1.0
 
-~aa: sin 100.0 >> mul &aa`
+~aa: sin 1000.0 >> mul &aa`
 
 
 // `~aa: loop 60 >> sampler \\bd

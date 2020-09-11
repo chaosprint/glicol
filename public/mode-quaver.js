@@ -20,14 +20,14 @@ ace.define("ace/mode/quaver_highlight_rules", ["require", "exports", "module", "
     
     `sawtooth|square|triangle|
     |sin_synth|saw_synth|squ_synth|tri_synth|sampler|
-    |membrane|pluck|brown|white|pink|
+    |membrane|pluck|brown|white|pink|imp|
     |metalphone|fm_synth|lfo|sin_lfo|tri_lfo|saw_lfo|squ_lfo|
     |pwm|sin_osc|squ_osc|saw_osc|tri_osc|sin|saw|squ|
     |pink_noise|brown_noise|white_noise`
 
     var storageModifiers = "";
     var keywordOperators = ">>|->|="
-    var builtinConstants = "lpf|hpf|reverb|pingpong|amp|jcreverb|freeverb|delay|pan|adsr"
+    var builtinConstants = "lpf|hpf|reverb|pingpong|amp|jcreverb|freeverb|delay|pan|adsr|env_perc"
     var keywordMapper = this.$keywords = this.createKeywordMapper({
         "keyword.control" : keywordControls,
         "storage.type" : storageType,

@@ -73,7 +73,7 @@ impl Engine {
             samples_dict: HashMap::new(),
             nodes: HashMap::new(),
             elapsed_samples: 0,
-            sr: 44100,
+            sr: 48000,
             bpm: 120.0,
             update: false,
         }
@@ -114,7 +114,7 @@ impl Engine {
                                     // parsing 200 will cause error, 200.0 is fine.
                                     let freq = paras.next().unwrap().as_str().parse::<f64>().unwrap();
 
-                                    let sin_osc = SinOsc::new(freq);
+                                    let sin_osc = SinOsc::new(freq, 0.0);
                                     // let s_node = engine.graph.add_node(NodeData::new1(BoxedNode::new(Box::new(sin_osc))));
                                     let sin_node = self.graph.add_node(NodeData::new1(BoxedNodeSend::new(sin_osc)));
                                     // engine.graph.add_node(NodeData::new1(BoxedNodeSend::new( Mul::new(0.5))));
@@ -317,26 +317,27 @@ impl Engine {
             self.parse();
         }
 
-        // (60.0 / self.bpm * 4.0 * 44100.0) as usize
+        // (60.0 / self.bpm * 4.0 * 48000.0) as usize
         // we should see if we can update it
         for (ref_name, node) in &self.nodes {
-            self.processor.process(&mut self.graph, *node);
+        
             if ref_name.contains("~") {
+                self.processor.process(&mut self.graph, *node);
                 let b = &self.graph[*node].buffers[0];
                 for i in 0..64 {
                     output[i] += b[i];
-                    // no clock += 1 here...
+                    // no clock += 1 here as num of nodes is not fixed
                 }
             }
         }
 
         for (ref_name, node) in &self.nodes {
-            self.processor.process(&mut self.graph, *node);
+            
             if ref_name.contains("~") {
+                self.processor.process(&mut self.graph, *node);
                 let b = &self.graph[*node].buffers[0];
                 for i in 64..128 {
-                    output[i] += b[i-64];
-                    
+                    output[i] += b[i-64]; 
                 }
             }
         }

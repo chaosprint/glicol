@@ -56,7 +56,7 @@ pub struct Looper {
 
 impl Looper {
     pub fn new(events: Vec<(f64, f64)>) -> Self {
-        // let p = (44100.0 / 10.0) as usize;
+        // let p = (48000.0 / 10.0) as usize;
         let mut i: usize = 0;
         let s = signal::gen_mut(move || {
             let mut output: f32 = 0.0;
