@@ -25,11 +25,14 @@ use petgraph::graph::{NodeIndex};
 
 mod calc_node;
 mod osc_node;
-mod synth_node;
+mod sampler_node;
+mod env_node;
+
 
 use osc_node::{SinOsc, Impulse};
 use calc_node::{Add, Mul};
-use synth_node::{Sampler, Looper};
+use sampler_node::{Sampler, Looper};
+use env_node::EnvPerc;
 
 
 pub struct Engine {
@@ -267,7 +270,24 @@ impl Engine {
                                     self.nodes.insert(ref_name.to_string(), imp_node);
                                     node_vec.insert(0, imp_node);
                                 },
-                                "lpf" => {
+                                "env_perc" => {
+                                    // let mut paras = inner_rules.next().unwrap().into_inner();
+                                    let attack = inner_rules.next().unwrap().as_str().parse::<f64>().unwrap();
+                                    let decay = inner_rules.next().unwrap().as_str().parse::<f64>().unwrap();
+                                    // .unwrap().as_str().parse::<f64>().unwrap();
+
+                                    let env_node = self.graph.add_node(
+                                        NodeData::new1(BoxedNodeSend::new(
+                                            EnvPerc::new(attack, decay, 0, 1.0)))
+                                    );
+
+                                    if node_vec.len() > 0 {
+                                        self.graph.add_edge(node_vec[0], env_node, ());
+                                    }
+                                    
+                                    self.nodes.insert(ref_name.to_string(), env_node);
+                                    node_vec.insert(0, env_node);
+
                                 },
                                 _ => unreachable!()
                             }

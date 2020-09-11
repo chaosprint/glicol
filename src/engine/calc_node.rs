@@ -5,8 +5,8 @@ pub struct Mul {
     pub mul: String
 }
 impl Mul {
-    pub fn new(mul: String) -> Mul {
-        Mul { mul }
+    pub fn new(mul: String) -> Self {
+        Self { mul }
     }
 }
 impl Node for Mul {
@@ -40,8 +40,8 @@ pub struct Add {
     pub add: f64
 }
 impl Add {
-    pub fn new(add: f64) -> Add {
-        Add { add }
+    pub fn new(add: f64) -> Self {
+        Self { add }
     }
 }
 impl Node for Add {
