@@ -132,7 +132,7 @@ impl Engine {
                                     // let freq = paras.next().unwrap().as_str().to_string();
 
                                     let sin_node = self.graph.add_node(
-                                        NodeData::new1(BoxedNodeSend::new(SinOsc::new(freq.clone(), 0.0))));
+                                        NodeData::new1(BoxedNodeSend::new(SinOsc::new(freq.clone(), 0.0, 0.0))));
                                     // engine.graph.add_node(
                                         // NodeData::new1(BoxedNodeSend::new( Mul::new(0.5))));
                                     

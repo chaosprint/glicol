@@ -6,13 +6,14 @@ pub struct SinOsc {
     // pub sig: Sine<ConstHz>
     freq: String,
     phase: f64,
+    diff: f64,
     // pub sig: Box<dyn Signal<Frame=f64> + Send>,
 }
 
 impl SinOsc {
-    pub fn new(freq: String, phase: f64) -> Self {
+    pub fn new(freq: String, phase: f64, diff: f64,) -> Self {
         // let sig = signal::rate(44100.0).const_hz(freq).sine();
-        Self { freq, phase }
+        Self { freq, phase, diff }
     }
 }
 
@@ -41,7 +42,12 @@ impl Node for SinOsc {
                 for i in 0..64 {
                     // output[0][i] = (2.0*std::f32::consts::PI*mod_buf[0][i]/44100.0).sin();
                     output[0][i] = (self.phase * 2.0 * std::f64::consts::PI).sin() as f32;
-                    self.phase += mod_buf[0][i] as f64 / 44100.0;
+
+                    if mod_buf[0][i] != 0.0 { // doesn't make sense to have 0 freq
+                        self.diff = mod_buf[0][i] as f64 / 44100.0;
+                        
+                    }
+                    self.phase += self.diff;
                     // self.phase += 440.0 / 44100.0;
                     if self.phase > 1.0 {
                         self.phase -= 1.0

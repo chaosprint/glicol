@@ -1,11 +1,10 @@
 const exampleCode = 
 
-`&fm: sin 30.0 >> mul 100.0 >> add 200.0
+// `&fm: sin 30.0 >> mul 100.0 >> add 200.0
 
-&am: sin 1.0 >> mul 0.3 >> add 0.5
+// &am: sin 1.0 >> mul 0.3 >> add 0.5
 
-~aa: sin &fm >> mul &am`
-
+// ~aa: sin &fm >> mul &am`
 
 // `~aa: sin 220.0 >> perc_env 0.1 0.1`
 // perc_env 0.01 0.9
@@ -18,17 +17,17 @@ const exampleCode =
 
 // ~bb: loop 60 64 67 72 >> sampler \\bass`
 
-// `~aa: loop 60 60 60 60 >> sampler \\bd
+`~aa: loop 60 60 60 60 >> sampler \\bd
 
-// ~bb: loop 60 _67 _62 _65 >> sampler \\bass
+~bb: loop 60 _67 _62 _65 >> sampler \\bass
 
-// ~cc: loop _ _75 80 60 70 ___80 __75 >> sampler \\can
+~cc: loop _ _75 80 60 70 ___80 __75 >> sampler \\can
 
-// &dd: sin 1.0 >> mul 0.3 >> add 0.5
+&dd: sin 1.0 >> mul 0.3 >> add 0.5
 
-// ~dd: loop 62 67 _58 64 62 _67 _58 64 >> sampler \\808hc >> mul &dd
+~dd: loop 62 67 _58 64 62 _67 _58 64 >> sampler \\808hc >> mul &dd
 
-// ~ee: loop _ 60 _ 60 >> sampler \\jazz`
+~ee: loop _ 60 _ 60 >> sampler \\jazz`
 
 // `~aa: sin 220.0`
 // `~aa: loop 60 >> sampler \\bd
