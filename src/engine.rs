@@ -111,9 +111,21 @@ impl Engine {
                             let name: &str = inner_rules.next().unwrap().as_str();
                             match name {
                                 "sin" => {
-                                    // let mut paras = inner_rules.next().unwrap().into_inner();
+                                    let mut paras = inner_rules.next().unwrap().into_inner();
 
-                                    let freq = inner_rules.next().unwrap().as_str().to_string();
+                                    // paras -> reference -> string
+                                    // paras -> float -> string
+                                    let freq: String = paras.next().unwrap().as_str().to_string()
+                                    .chars().filter(|c| !c.is_whitespace()).collect();
+                                    // let freq = match paras.next().unwrap().as_str().parse::<f64>() {
+                                    //     Ok(val) => {val.to_string()},
+                                    //     Err(_) => {
+                                    //         paras.next().unwrap().into_inner().next().unwrap().as_str().to_string()
+                                    //     }
+                                    // };
+                                    // if !freq.as_str().to_string().parse::<f64>().is_ok() {
+                                    //     freq = freq.into_inner().next().unwrap().as_str().to_string();
+                                    // }
 
                                     // parsing 200 will cause error, 200.0 is fine.
                                     // let freq = paras.next().unwrap().as_str().parse::<f64>().unwrap();
@@ -128,16 +140,18 @@ impl Engine {
                                     node_vec.insert(0, sin_node);
 
                                     if !freq.parse::<f64>().is_ok() {
+                                        assert!(self.nodes.contains_key(freq.as_str()));
                                         if self.nodes.contains_key(freq.as_str()) {
                                             let mod_node = self.nodes[freq.as_str()]; 
                                             self.graph.add_edge(mod_node, sin_node, ());
-                                        }                                      
+                                        }                              
                                     }
 
                                 },
                                 "mul" => {
                                     let mut paras = inner_rules.next().unwrap().into_inner();
-                                    let mul = paras.next().unwrap().as_str().to_string();
+                                    let mul: String = paras.next().unwrap().as_str().to_string()
+                                    .chars().filter(|c| !c.is_whitespace()).collect();
 
                                     let mul_node = self.graph.add_node(
                                         NodeData::new1(BoxedNodeSend::new( Mul::new(mul.clone()))));

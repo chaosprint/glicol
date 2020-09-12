@@ -18,23 +18,31 @@ impl SinOsc {
 
 impl Node for SinOsc {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
-
+        
         let freq = self.freq.parse::<f64>();
         if freq.is_ok() {
             for i in 0..64 {
                 output[0][i] = (self.phase * 2.0 * std::f64::consts::PI).sin() as f32;
                 self.phase += freq.clone().unwrap() / 44100.0;
+                // self.phase += 220.0 / 44100.0;
                 if self.phase > 1.0 {
                     self.phase -= 1.0
                 }
             }
         } else {
-            if inputs.len() > 1 {
-                // let buf = &mut inputs[0].buffers();
+            // assert!(inputs.len() == 1);
+            
+            // why here is always 0
+            if inputs.len() > 0 {
+                // panic!();
+                    // let buf = &mut inputs[0].buffers();
                 let mod_buf = &mut inputs[0].buffers();
+                // panic!();
                 for i in 0..64 {
+                    // output[0][i] = (2.0*std::f32::consts::PI*mod_buf[0][i]/44100.0).sin();
                     output[0][i] = (self.phase * 2.0 * std::f64::consts::PI).sin() as f32;
                     self.phase += mod_buf[0][i] as f64 / 44100.0;
+                    // self.phase += 440.0 / 44100.0;
                     if self.phase > 1.0 {
                         self.phase -= 1.0
                     }
@@ -42,8 +50,6 @@ impl Node for SinOsc {
                 }
             }
         }
-        
-
             // o.iter_mut().for_each(|s| *s = self.sig.next() as f32);
         // }
     }

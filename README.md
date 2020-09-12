@@ -1,5 +1,7 @@
 This project is written with React Hooks + WebAssembly + AudioWorklet.
 
+Be sure you have ```node.js```, ```yarn``` and ```cargo``` installed.
+
 1. ```yarn```
 
 2. ```bash ./build.sh```

@@ -252,7 +252,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "quaver"
+name = "quaverseries-rs"
 version = "0.1.0"
 dependencies = [
  "dasp_graph 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
