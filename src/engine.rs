@@ -117,25 +117,10 @@ impl Engine {
                                     // paras -> float -> string
                                     let freq: String = paras.next().unwrap().as_str().to_string()
                                     .chars().filter(|c| !c.is_whitespace()).collect();
-                                    // let freq = match paras.next().unwrap().as_str().parse::<f64>() {
-                                    //     Ok(val) => {val.to_string()},
-                                    //     Err(_) => {
-                                    //         paras.next().unwrap().into_inner().next().unwrap().as_str().to_string()
-                                    //     }
-                                    // };
-                                    // if !freq.as_str().to_string().parse::<f64>().is_ok() {
-                                    //     freq = freq.into_inner().next().unwrap().as_str().to_string();
-                                    // }
-
-                                    // parsing 200 will cause error, 200.0 is fine.
-                                    // let freq = paras.next().unwrap().as_str().parse::<f64>().unwrap();
-                                    // let freq = paras.next().unwrap().as_str().to_string();
 
                                     let sin_node = self.graph.add_node(
                                         NodeData::new1(BoxedNodeSend::new(SinOsc::new(freq.clone(), 0.0, 0.0))));
-                                    // engine.graph.add_node(
-                                        // NodeData::new1(BoxedNodeSend::new( Mul::new(0.5))));
-                                    
+
                                     self.nodes.insert(ref_name.to_string(), sin_node);
                                     node_vec.insert(0, sin_node);
 
@@ -186,8 +171,6 @@ impl Engine {
                                     
                                     self.nodes.insert(ref_name.to_string(), add_node);
                                     node_vec.insert(0, add_node);
-                                    // engine.node.push(mul_node);
-                                    // node_vec.push(mul_node);
                                 },
                                 "loop" => {
                                     let mut events = Vec::<(f64, f64)>::new();
@@ -234,8 +217,6 @@ impl Engine {
                                     
                                     self.nodes.insert(ref_name.to_string(), looper_node);
                                     node_vec.insert(0, looper_node);
-
-                                    // func_chain.functions.push(Box::new(q_loop));
                                 },
                                 "sampler" => {
                                     let mut paras = inner_rules.next().unwrap().into_inner();
@@ -286,13 +267,21 @@ impl Engine {
                                     node_vec.insert(0, env_node);
 
                                 },
-                                _ => unreachable!()
+                                _ => {
+                                    if name.contains("&") {
+                                        let key: String = name.to_string()
+                                        .chars().filter(|c| !c.is_whitespace()).collect();
+
+                                        let this_node = self.nodes[key.as_str()];
+                                       
+                                        if node_vec.len() > 0 {
+                                            self.graph.add_edge(node_vec[0], this_node, ());
+                                        }
+                                        self.nodes.insert(ref_name.to_string(), this_node);
+                                        node_vec.insert(0, this_node);
+                                    }
+                                }
                             }
-                            // create the edge here
-                            // if node_vec.len() == 2 {
-                            //     engine.graph.add_edge(node_vec[0], node_vec[1], ());
-                            //     node_vec.clear();
-                            // }
                         }
                     },
                     _ => unreachable!()
