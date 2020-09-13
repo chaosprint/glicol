@@ -28,11 +28,13 @@ mod calc_node;
 mod osc_node;
 mod sampler_node;
 mod env_node;
+mod control_node;
 
 
 use osc_node::{SinOsc, Impulse};
 use calc_node::{Add, Mul};
-use sampler_node::{Sampler, Looper};
+use sampler_node::{Sampler};
+use control_node::{Sequencer, Speed};
 use env_node::EnvPerc;
 
 
@@ -208,7 +210,7 @@ impl Engine {
                                     }
 
                                     let looper_node = self.graph.add_node(
-                                        NodeData::new1(BoxedNodeSend::new( Looper::new(events)))
+                                        NodeData::new1(BoxedNodeSend::new( Sequencer::new(events, 1.0)))
                                     );
 
                                     if node_vec.len() > 0 {
@@ -248,6 +250,18 @@ impl Engine {
                                     self.nodes.insert(ref_name.to_string(), imp_node);
                                     node_vec.insert(0, imp_node);
                                 },
+                                "speed" => {
+                                    let mut paras = inner_rules.next().unwrap().into_inner();
+                                    let speed = paras.next().unwrap().as_str().parse::<f32>().unwrap();
+                                    let this_node = self.graph.add_node(
+                                        NodeData::new1(BoxedNodeSend::new( Speed {speed: speed } ))
+                                    );
+                                    if node_vec.len() > 0 {
+                                        self.graph.add_edge(node_vec[0], this_node, ());
+                                    }
+                                    self.nodes.insert(ref_name.to_string(), this_node);
+                                    node_vec.insert(0, this_node);
+                                }
                                 "env_perc" => {
                                     // let mut paras = inner_rules.next().unwrap().into_inner();
                                     let attack = inner_rules.next().unwrap().as_str().parse::<f64>().unwrap();

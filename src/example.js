@@ -1,12 +1,14 @@
 const exampleCode = 
 
-`&trigger: loop 60 58 _67 _62
+// `~aa: loop 60 >> sampler \\bd`
 
-&env: &trigger >> env_perc 0.01 0.1 >> mul 0.5
+// `&trigger: loop 60 58 _67 _62
 
-&pitch: &trigger >> mul 200.0
+// &env: &trigger >> env_perc 0.01 0.1 >> mul 0.5
 
-~lead: sin &pitch >> mul &env`
+// &pitch: &trigger >> mul 200.0
+
+// ~lead: sin &pitch >> mul &env`
 
 // `&part: sin 440 >> mul 0.5
 
@@ -29,17 +31,17 @@ const exampleCode =
 
 // ~bb: loop 60 64 67 72 >> sampler \\bass`
 
-// `~aa: loop 60 60 60 60 >> sampler \\bd
+`~aa: loop 60 60 60 60 >> sampler \\bd
 
-// ~bb: loop 60 _67 _62 _65 >> sampler \\bass
+~bb: loop 60 _67 _62 _65 >> sampler \\bass
 
-// ~cc: loop _ _75 80 60 70 ___80 __75 >> sampler \\can
+~cc: loop _ _75 80 60 70 ___80 __75 >> sampler \\can
 
-// &dd: sin 1.0 >> mul 0.3 >> add 0.5
+&dd: sin 1.0 >> mul 0.3 >> add 0.5
 
-// ~dd: loop 62 67 _58 64 62 _67 _58 64 >> sampler \\808hc >> mul &dd
+~dd: loop 62 67 _58 64 62 _67 _58 64 >> sampler \\808hc >> mul &dd
 
-// ~ee: loop _ 60 _ 60 >> sampler \\jazz`
+~ee: loop _ 60 _ 60 >> sampler \\jazz`
 
 // `~aa: sin 220.0`
 // `~aa: loop 60 >> sampler \\bd
@@ -47,6 +49,7 @@ const exampleCode =
 // ~bb: loop _ 60 >> sampler \\jazz
 
 // ~cc: loop _ 80 _70 75__70 >> sampler \\can`
+
 // `~aa: imp 1.0 >> mul 1.0 >> sampler \\bd`
 
 // `&cc: sin 1.0 >> mul 0.5 >> add 0.5

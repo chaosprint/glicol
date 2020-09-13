@@ -66,6 +66,7 @@ impl Looper {
                 let relative_pitch = event.1;
 
                 // bpm should be somewhere here
+                // 88200 -> bpm 120 -> one_bar_length = 2 second
                 if i % 88200 == (relative_time * 88200.0) as usize {
                     // this it the sampler to trigger
                     output = relative_pitch as f32;
@@ -83,6 +84,7 @@ impl Looper {
 
 impl Node for Looper {
     fn process(&mut self, _inputs: &[Input], output: &mut [Buffer]) {
+        // self.onebarlength = ?
         for o in output {
             o.iter_mut().for_each(|s| *s = self.sig.next() as f32);
         }
