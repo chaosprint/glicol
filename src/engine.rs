@@ -1,26 +1,11 @@
 use std::{collections::HashMap};
-// , iter::Cloned, slice::Iter
 
 use pest::Parser;
 #[derive(Parser)]
 #[grammar = "quaver.pest"]
 pub struct QParser;
 
-
-// add_in_place, 
-// use dasp::slice::;
-// , Sine, ConstHz, GenMut
-// use dasp_signal::{self as signal, Signal};
-// use dasp_slice::{ToFrameSlice};
-// use dasp_interpolate::linear::Linear;
-// {Buffer, Input, Node, {
 use dasp_graph::{NodeData, BoxedNodeSend};
-// use dasp_signal::{self as signal, Signal, FromIterator,
-    // interpolate::linear::Linear, interpolate::Converter};
-// use dasp_interpolate::linear::Linear;
-// BoxedNode
-// use std::f64::consts::PI;
-
 use petgraph;
 use petgraph::graph::{NodeIndex};
 
@@ -29,7 +14,6 @@ mod osc_node;
 mod sampler_node;
 mod env_node;
 mod control_node;
-
 
 use osc_node::{SinOsc, Impulse};
 use calc_node::{Add, Mul};

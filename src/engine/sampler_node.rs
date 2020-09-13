@@ -54,8 +54,9 @@ pub struct Looper {
     // sig: GenMut<(dyn Signal<Frame=f32> + 'static + Sized), f32>
 }
 
+#[allow(dead_code)]
 impl Looper {
-    pub fn new(events: Vec<(f64, f64)>) -> Self {
+    fn new(events: Vec<(f64, f64)>) -> Self {
         // let p = (44100.0 / 10.0) as usize;
         let mut i: usize = 0;
         let s = signal::gen_mut(move || {
