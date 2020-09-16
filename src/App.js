@@ -29,7 +29,7 @@ export default function App() {
     await actx.current.audioWorklet.addModule('worklet/engine.js')
 
     node.current = new AudioWorkletNode(actx.current, 'quaver-engine')
-    fetch('wasm/quaverseries_rs.wasm')
+    fetch('wasm/quaverseries_wasm.wasm')
     .then(response => response.arrayBuffer())
     .then(arrayBuffer => node.current.port.postMessage({type: "load", obj: arrayBuffer}))
     node.current.connect(actx.current.destination)

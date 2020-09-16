@@ -1,17 +1,15 @@
 [package]
-name = "quaverseries-rs"
+name = "quaverseries-wasm"
 version = "0.1.0"
-repository = "https://github.com/chaosprint/quaverseries-rs"
 authors = ["chaosprint <chaosprint@gmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-#[lib]
-#crate-type = ["cdylib"]
+[lib]
+crate-type = ["cdylib"]
 
 [dependencies]
-
 lazy_static = "1.2.0"
 pest = "2.0"
 pest_derive = "2.0"
