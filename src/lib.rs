@@ -98,3 +98,9 @@ pub extern "C" fn update(arr_ptr: *mut u8, length: usize) {
     engine.code = quaver_code.to_string();
     engine.update = true;
 }
+
+// test
+pub fn gen_next_buffer(code: String) -> [f32; 64] {
+    println!("{}", code);
+    [0.0; 64]
+}
