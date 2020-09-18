@@ -4,36 +4,35 @@ use dasp_graph::{Buffer, Input, Node};
 pub struct SinOsc {
     // pub freq: f64,
     // pub sig: Sine<ConstHz>
-    freq: String,
-    phase: f64,
-    diff: f64,
+    freq: f32,
+    phase: f32,
+    diff: f32,
+    has_mod: bool
     // pub sig: Box<dyn Signal<Frame=f64> + Send>,
 }
 
 impl SinOsc {
-    pub fn new(freq: String, phase: f64, diff: f64,) -> Self {
-        // let sig = signal::rate(44100.0).const_hz(freq).sine();
-        Self { freq, phase, diff }
+    pub fn new(freq: String, phase: f32, diff: f32) -> Self {
+        if freq.parse::<f32>().is_ok() {
+            return Self { 
+                freq: freq.parse::<f32>().unwrap(),
+                phase, diff, has_mod: false 
+            }
+        } else {
+            return Self { 
+                freq: 0.0,
+                phase, diff, has_mod: true 
+            }
+        }
+        
     }
 }
 
 impl Node for SinOsc {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
         
-        let freq = self.freq.parse::<f64>();
-        if freq.is_ok() {
-            for i in 0..64 {
-                output[0][i] = (self.phase * 2.0 * std::f64::consts::PI).sin() as f32;
-                self.phase += freq.clone().unwrap() / 44100.0;
-                // self.phase += 220.0 / 44100.0;
-                if self.phase > 1.0 {
-                    self.phase -= 1.0
-                }
-            }
-        } else {
-            // assert!(inputs.len() == 1);
-            
-            // why here is always 0
+        // let freq = self.freq.parse::<f32>();
+        if self.has_mod {
             if inputs.len() > 0 {
                 // panic!();
                     // let buf = &mut inputs[0].buffers();
@@ -41,23 +40,29 @@ impl Node for SinOsc {
                 // panic!();
                 for i in 0..64 {
                     // output[0][i] = (2.0*std::f32::consts::PI*mod_buf[0][i]/44100.0).sin();
-                    output[0][i] = (self.phase * 2.0 * std::f64::consts::PI).sin() as f32;
+                    output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
 
                     if mod_buf[0][i] != 0.0 { // doesn't make sense to have 0 freq
-                        self.diff = mod_buf[0][i] as f64 / 44100.0;
-                        
+                        self.diff = mod_buf[0][i] / 44100.0;    
                     }
                     self.phase += self.diff;
                     // self.phase += 440.0 / 44100.0;
                     if self.phase > 1.0 {
                         self.phase -= 1.0
                     }
-                    // output[0][i] = mod_buf[0][i] * buf[0][i];
+                }
+            }
+        } else {
+
+            for i in 0..64 {
+                output[0][i] = self.phase.sin();
+                self.phase += self.freq / 44100.0 * 2.0 * std::f32::consts::PI;
+                // self.phase += 220.0 / 44100.0;
+                if self.phase > 2.0 * std::f32::consts::PI {
+                    self.phase -= 2.0 * std::f32::consts::PI
                 }
             }
         }
-            // o.iter_mut().for_each(|s| *s = self.sig.next() as f32);
-        // }
     }
 }
 

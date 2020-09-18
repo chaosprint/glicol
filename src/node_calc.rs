@@ -2,24 +2,28 @@
 use dasp_graph::{Buffer, Input, Node};
 
 pub struct Mul {
-    pub mul: String
+    pub mul: f32,
+    has_mod: bool
 }
 impl Mul {
     pub fn new(mul: String) -> Self {
-        Self { mul }
+        let para = mul.parse::<f32>();
+        if para.is_ok() {
+            Self {mul: para.unwrap(), has_mod: false}
+        } else {
+            Self {mul: 0.0, has_mod: true}
+        }
     }
 }
 impl Node for Mul {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
 
-        let num = self.mul.parse::<f64>();
-        if num.is_ok() {
+        if !self.has_mod {
             if inputs.len() > 0 {
-                let buf = &mut inputs[0].buffers();
-                output[0] = buf[0].clone(); // write
-
-                // can we avoid this clone?
-                output[0].iter_mut().for_each(|s| *s = *s * num.clone().unwrap() as f32);
+                // let buf = &mut inputs[0].buffers();
+                // output[0] = buf[0].clone();
+                output[0] = inputs[0].buffers()[0].clone();
+                output[0].iter_mut().for_each(|s| *s = *s * self.mul as f32);
             }
         } else {
             if inputs.len() > 1 {
@@ -44,8 +48,7 @@ impl Add {
 impl Node for Add {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
         if inputs.len() > 0 {
-            let buf = &mut inputs[0].buffers();
-            output[0] = buf[0].clone();
+            output[0] = inputs[0].buffers()[0].clone();
             output[0].iter_mut().for_each(|s| *s = *s + self.add as f32);
         }
     }
