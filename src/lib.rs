@@ -1,6 +1,6 @@
-extern crate pest;
-#[macro_use]
-extern crate pest_derive;
+// extern crate pest;
+// #[macro_use]
+// extern crate pest_derive;
 
 #[macro_use]
 extern crate lazy_static;
@@ -8,7 +8,9 @@ extern crate lazy_static;
 use std::sync::{Mutex, Arc};
 use std::{slice::from_raw_parts_mut};
 
-mod engine;
+// mod engine;
+extern crate quaverseries_rs;
+use quaverseries_rs::Engine;
 
 #[no_mangle] // to send buffer to JS
 pub extern "C" fn alloc(size: usize) -> *mut f32 {
@@ -35,7 +37,7 @@ pub extern "C" fn alloc_uint32array(length: usize) -> *mut f32 {
 }
 
 lazy_static! {
-    static ref ENGINE:Arc<Mutex<engine::Engine>> = Arc::new(Mutex::new(engine::Engine::new()));
+    static ref ENGINE:Arc<Mutex<Engine>> = Arc::new(Mutex::new(Engine::new()));
     // static ref ENGINE:Mutex<engine::Engine> = Mutex::new(engine::Engine::new());
 }
 
@@ -43,7 +45,12 @@ lazy_static! {
 #[no_mangle]
 pub extern "C" fn process(out_ptr: *mut f32, size: usize) {
     let mut engine = ENGINE.lock().unwrap();
-    engine.process(out_ptr, size);
+    let wave_buf = engine.gen_next_buf_128(); // hard coded
+    let out_buf: &mut [f32] = unsafe { std::slice::from_raw_parts_mut(out_ptr, size) };
+    for i in 0..size {
+        out_buf[i] = wave_buf[i] as f32
+    };
+    // engine.process(out_ptr, size);
 }
 
 #[no_mangle]
@@ -81,9 +88,8 @@ pub extern "C" fn run(
     let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
     let quaver_code = std::str::from_utf8(encoded).unwrap();
     // push the code to engine
-    engine.code = quaver_code.to_string();
-    engine.update = true;
-
+    engine.set_code(quaver_code.to_string());
+    engine.update();
 }
 
 #[no_mangle]
@@ -95,12 +101,6 @@ pub extern "C" fn update(arr_ptr: *mut u8, length: usize) {
     let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
     let quaver_code = std::str::from_utf8(encoded).unwrap();
     // push the code to engine
-    engine.code = quaver_code.to_string();
-    engine.update = true;
-}
-
-// test
-pub fn gen_next_buffer(code: String) -> [f32; 64] {
-    println!("{}", code);
-    [0.0; 64]
+    engine.set_code(quaver_code.to_string());
+    engine.update();
 }

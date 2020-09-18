@@ -18,3 +18,4 @@ dasp_signal = "0.11.0"
 dasp_slice = "0.11.0"
 dasp_interpolate = { version = "*", features = ["linear"] }
 petgraph = "*"
+quaverseries-rs = { path = "../quaverseries-rs" }
