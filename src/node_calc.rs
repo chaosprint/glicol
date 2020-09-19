@@ -38,18 +38,18 @@ impl Node for Mul {
 }
 
 pub struct Add {
-    pub add: f64
+    pub increament: f64
 }
 impl Add {
-    pub fn new(add: f64) -> Self {
-        Self { add }
+    pub fn new(increament: f64) -> Self {
+        Self { increament }
     }
 }
 impl Node for Add {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
         if inputs.len() > 0 {
             output[0] = inputs[0].buffers()[0].clone();
-            output[0].iter_mut().for_each(|s| *s = *s + self.add as f32);
+            output[0].iter_mut().for_each(|s| *s = *s + self.increament as f32);
         }
     }
 }

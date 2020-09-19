@@ -14,12 +14,14 @@ use dasp_graph::{NodeData, BoxedNodeSend};
 use petgraph;
 use petgraph::graph::{NodeIndex};
 
+mod node_adc;
 mod node_calc;
 mod node_osc;
 mod node_sampler;
 mod node_env;
 mod node_control;
 
+use node_adc::{Adc};
 use node_osc::{SinOsc, Impulse};
 use node_calc::{Add, Mul};
 use node_sampler::{Sampler};
@@ -29,10 +31,11 @@ use node_env::EnvPerc;
 pub struct Engine {
     // pub chains: HashMap<String, Vec<Box<dyn Node + 'static + Send >>>,
     pub elapsed_samples: usize,
-    graph: petgraph::Graph<NodeData<BoxedNodeSend>, (), petgraph::Directed, u32>,
+    pub graph: petgraph::Graph<NodeData<BoxedNodeSend>, (), petgraph::Directed, u32>,
     // pub graph_: Box<petgraph::Graph<NodeData<BoxedNodeSend>, (), petgraph::Directed, u32>>,
     processor: dasp_graph::Processor<petgraph::graph::DiGraph<NodeData<BoxedNodeSend>, (), u32>>,
     // pub synth: Synth,
+    pub adc_nodes: Vec<NodeIndex>,
     audio_nodes: HashMap<String, NodeIndex>,
     control_nodes: HashMap<String, NodeIndex>,
     pub samples_dict: HashMap<String, &'static[f32]>,
@@ -58,6 +61,9 @@ impl Engine {
         let p = Processor::with_capacity(max_nodes);
         // let box_g = Box::new(g);
 
+        // let this_node = g.add_node(
+        // NodeData::new1(BoxedNodeSend::new( Adc {} )));
+
         Engine {
             // chains: HashMap::<String, Vec<Box<dyn Node + 'static + Send >>>::new(), 
             // a hashmap of Box<AsFunc>
@@ -65,12 +71,13 @@ impl Engine {
             processor: p,
             code: "".to_string(),
             samples_dict: HashMap::new(),
+            adc_nodes: Vec::new(),
             audio_nodes: HashMap::new(),
             control_nodes: HashMap::new(),
             elapsed_samples: 0,
             sr: 44100,
             bpm: 120.0,
-            update: true,
+            update: false,
             // buffer: [0.0; 128],
         }
     }
@@ -291,6 +298,27 @@ impl Engine {
                                     node_vec.insert(0, this_node);
 
                                 },
+                                "adc" => {
+                                    let mut paras = inner_rules.next().unwrap().into_inner();
+
+                                    // paras -> reference -> string
+                                    // paras -> float -> string
+                                    let para_str: String = paras.next().unwrap().as_str().to_string()
+                                    .chars().filter(|c| !c.is_whitespace()).collect();
+                                    let chan = para_str.parse::<usize>().unwrap();
+                                    let this_node = self.adc_nodes[chan-1];
+
+                                    if node_vec.len() > 0 {
+                                        self.graph.add_edge(node_vec[0], this_node, ());
+                                    }
+
+                                    self.control_nodes.insert(ref_name.to_string(), this_node);
+                                    node_vec.insert(0, this_node);
+
+                                    // this node is alread in the graph, somewhere, but not connected
+                                    // 
+
+                                },
                                 _ => {
                                     if name.contains("&") {
                                         let key: String = name.to_string()
@@ -312,6 +340,20 @@ impl Engine {
                     _ => unreachable!()
                 }
             }
+        }
+    }
+
+    pub fn make_adc_node(&mut self, chan:usize) {
+        for _ in 0..chan {
+            let index = self.graph.add_node( NodeData::new1(BoxedNodeSend::new( Adc {} )));
+            self.adc_nodes.push(index);
+        }
+    }
+
+    pub fn set_adc_node_buffer(&mut self, index: usize, array: &[f32]) {
+        // , _chan: u8, _frame: u16, _interleave: bool
+        for i in 0..64 {
+            self.graph[(self.adc_nodes[index])].buffers[0][i] = array[i];
         }
     }
 
@@ -351,8 +393,8 @@ impl Engine {
         for (_ref_name, node) in &self.audio_nodes {
             self.processor.process(&mut self.graph, *node);
             let b = &self.graph[*node].buffers[0];
-            for i in 64..128 {
-                output[i] += b[i-64]; 
+            for i in 0..64 {
+                output[i+64] += b[i]; 
             }
         }
         self.elapsed_samples += 128;

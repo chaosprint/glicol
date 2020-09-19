@@ -91,6 +91,5 @@ impl Node for Impulse {
         for o in output {
             o.iter_mut().for_each(|s| *s = self.sig.next() as f32);
         }
-        // output[0].iter_mut().for_each(|s| *s = self.sig.next());
     }
 }
