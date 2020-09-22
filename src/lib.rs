@@ -50,7 +50,7 @@ pub extern "C" fn process(out_ptr: *mut f32, size: usize) {
     for i in 0..size {
         out_buf[i] = wave_buf[i] as f32
     };
-    // engine.process(out_ptr, size);
+    // engine.process128(out_ptr, size);s
 }
 
 #[no_mangle]
