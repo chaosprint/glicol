@@ -14,19 +14,14 @@ use dasp_graph::{NodeData, BoxedNodeSend};
 use petgraph;
 use petgraph::graph::{NodeIndex};
 
-mod node_adc;
-mod node_calc;
-mod node_osc;
-mod node_sampler;
-mod node_env;
-mod node_control;
+mod node;
 
-use node_adc::{Adc};
-use node_osc::{SinOsc, Impulse};
-use node_calc::{Add, Mul};
-use node_sampler::{Sampler};
-use node_control::{Sequencer, Speed};
-use node_env::EnvPerc;
+use node::adc::{Adc, AdcSource};
+use node::oscillator::{SinOsc, Impulse};
+use node::calc::{Add, Mul};
+use node::sampler::{Sampler};
+use node::control::{Sequencer, Speed};
+use node::envelope::EnvPerc;
 
 pub struct Engine {
     // pub chains: HashMap<String, Vec<Box<dyn Node + 'static + Send >>>,
@@ -35,6 +30,7 @@ pub struct Engine {
     // pub graph_: Box<petgraph::Graph<NodeData<BoxedNodeSend>, (), petgraph::Directed, u32>>,
     processor: dasp_graph::Processor<petgraph::graph::DiGraph<NodeData<BoxedNodeSend>, (), u32>>,
     // pub synth: Synth,
+    pub adc_source_nodes: Vec<NodeIndex>,
     pub adc_nodes: Vec<NodeIndex>,
     audio_nodes: HashMap<String, NodeIndex>,
     control_nodes: HashMap<String, NodeIndex>,
@@ -71,6 +67,7 @@ impl Engine {
             processor: p,
             code: "".to_string(),
             samples_dict: HashMap::new(),
+            adc_source_nodes: Vec::new(),
             adc_nodes: Vec::new(),
             audio_nodes: HashMap::new(),
             control_nodes: HashMap::new(),
@@ -306,7 +303,7 @@ impl Engine {
                                     let para_str: String = paras.next().unwrap().as_str().to_string()
                                     .chars().filter(|c| !c.is_whitespace()).collect();
                                     let chan = para_str.parse::<usize>().unwrap();
-                                    let this_node = self.adc_nodes[chan-1];
+                                    let this_node = self.adc_nodes[chan];
 
                                     if node_vec.len() > 0 {
                                         self.graph.add_edge(node_vec[0], this_node, ());
@@ -347,13 +344,18 @@ impl Engine {
         for _ in 0..chan {
             let index = self.graph.add_node( NodeData::new1(BoxedNodeSend::new( Adc {} )));
             self.adc_nodes.push(index);
+            let source = self.graph.add_node( NodeData::new1(BoxedNodeSend::new( AdcSource {} )));
+            self.adc_source_nodes.push(source);
+            self.graph.add_edge(source, index, ());
         }
     }
 
-    pub fn set_adc_node_buffer(&mut self, index: usize, array: &[f32]) {
+    pub fn set_adc_node_buffer(&mut self, buf: &[f32], chan: usize, frame: usize, _interleave: bool) {
         // , _chan: u8, _frame: u16, _interleave: bool
-        for i in 0..64 {
-            self.graph[(self.adc_nodes[index])].buffers[0][i] = array[i];
+        for c in 0..chan {
+            for f in 0..frame {
+                self.graph[(self.adc_source_nodes[c])].buffers[0][f] = buf[c*frame+f];
+            }
         }
     }
 

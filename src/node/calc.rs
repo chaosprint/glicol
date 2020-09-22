@@ -1,4 +1,3 @@
-
 use dasp_graph::{Buffer, Input, Node};
 
 pub struct Mul {
