@@ -22,6 +22,7 @@ use node::calc::{Add, Mul};
 use node::sampler::{Sampler};
 use node::control::{Sequencer, Speed};
 use node::envelope::EnvPerc;
+use node::noise::Noise;
 
 pub struct Engine {
     // pub chains: HashMap<String, Vec<Box<dyn Node + 'static + Send >>>,
@@ -286,6 +287,22 @@ impl Engine {
                                     let this_node = self.graph.add_node(
                                         NodeData::new1(BoxedNodeSend::new(
                                             EnvPerc::new(attack, decay, 0, 1.0)))
+                                    );
+
+                                    if node_vec.len() > 0 {
+                                        self.graph.add_edge(node_vec[0], this_node, ());
+                                    }
+                                    self.audio_nodes.insert(ref_name.to_string(), this_node);
+                                    node_vec.insert(0, this_node);
+
+                                },
+                                "noiz" => {
+                                    let mut paras = inner_rules.next().unwrap().into_inner();
+                                    let _type = paras.next().unwrap().as_str();
+
+                                    let this_node = self.graph.add_node(
+                                        NodeData::new1(BoxedNodeSend::new(
+                                            Noise::new()))
                                     );
 
                                     if node_vec.len() > 0 {
