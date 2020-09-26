@@ -41,6 +41,25 @@ lazy_static! {
     // static ref ENGINE:Mutex<engine::Engine> = Mutex::new(engine::Engine::new());
 }
 
+#[no_mangle] // 64 f32 float // -> *mut [u8; 256] 
+pub extern fn process_u8(out_ptr: *mut u8) {
+    let mut engine = ENGINE.lock().unwrap();
+    // engine.set_code("~ss: sin 440".to_string());
+    // engine.update();
+    let buf = engine.gen_next_buf_64(); // float *const [f32; 64]
+    // let mut bytes: [u8; 256] = [0; 256];
+    let out_buf: &mut [u8] = unsafe { std::slice::from_raw_parts_mut(out_ptr, 256) };
+    for i in 0..64 {
+        // let b = 0.5_f32.to_le_bytes();
+        // assert!(buf[i] == 0.0);
+        let b = buf[i].to_le_bytes();
+        for j in 0..4 {
+            out_buf[i*4 + j] = b[j];
+        }
+    };
+    // &mut out_buf
+}
+
 // Mutex<engine::Engine>
 #[no_mangle]
 pub extern "C" fn process(out_ptr: *mut f32, size: usize) {
@@ -96,11 +115,20 @@ pub extern "C" fn run(
 pub extern "C" fn update(arr_ptr: *mut u8, length: usize) {
     let mut engine = ENGINE.lock().unwrap();
     // assert!(engine.elapsed_samples > 44100, "update clock is starting from zero");
-
     // read the code from the text editor
     let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
     let quaver_code = std::str::from_utf8(encoded).unwrap();
     // push the code to engine
     engine.set_code(quaver_code.to_string());
     engine.update();
+}
+
+#[no_mangle]
+pub extern "C" fn run_without_samples(arr_ptr: *mut u8, length: usize) {
+    let mut engine = ENGINE.lock().unwrap();
+    let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
+    let quaver_code = std::str::from_utf8(encoded).unwrap();
+    engine.set_code(quaver_code.to_string());
+    engine.update();
+    engine.parse();
 }
