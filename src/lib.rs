@@ -23,6 +23,7 @@ use node::sampler::{Sampler};
 use node::control::{Sequencer, Speed};
 use node::envelope::EnvPerc;
 use node::noise::Noise;
+use node::filter::{LPF, HPF};
 
 pub struct Engine {
     // pub chains: HashMap<String, Vec<Box<dyn Node + 'static + Send >>>,
@@ -311,6 +312,67 @@ impl Engine {
                                     self.audio_nodes.insert(ref_name.to_string(), this_node);
                                     node_vec.insert(0, this_node);
 
+                                },
+                                "lpf" => {
+                                    let mut paras = inner_rules.next().unwrap().into_inner();
+                                    let para_a: String = paras.next().unwrap().as_str().to_string()
+                                    .chars().filter(|c| !c.is_whitespace()).collect();
+
+                                    let this_node = self.graph.add_node(
+                                        NodeData::new1(BoxedNodeSend::new( LPF::new(para_a.clone(), 1.0))));
+
+                                    if node_vec.len() > 0 {
+                                        self.graph.add_edge(node_vec[0], this_node, ());
+                                    }
+                                
+                                    if ref_name.contains("~") {
+                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
+                                    } else {
+                                        self.control_nodes.insert(ref_name.to_string(), this_node);
+                                    }
+                                    
+                                    node_vec.insert(0, this_node);
+
+                                    // panic if this item not existed
+                                    // TODO: move it to a lazy function
+                                    // engine.nodes.insert(mul.as_str().to_string(), this_node);
+                                    if !para_a.parse::<f64>().is_ok() {
+                                        if self.control_nodes.contains_key(para_a.as_str()) {
+                                            let mod_node = self.control_nodes[para_a.as_str()]; 
+                                            self.graph.add_edge(mod_node, this_node, ());
+                                        }    
+                                    }
+                                },
+
+                                "hpf" => {
+                                    let mut paras = inner_rules.next().unwrap().into_inner();
+                                    let para_a: String = paras.next().unwrap().as_str().to_string()
+                                    .chars().filter(|c| !c.is_whitespace()).collect();
+
+                                    let this_node = self.graph.add_node(
+                                        NodeData::new1(BoxedNodeSend::new( HPF::new(para_a.clone(), 1.0))));
+
+                                    if node_vec.len() > 0 {
+                                        self.graph.add_edge(node_vec[0], this_node, ());
+                                    }
+                                
+                                    if ref_name.contains("~") {
+                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
+                                    } else {
+                                        self.control_nodes.insert(ref_name.to_string(), this_node);
+                                    }
+                                    
+                                    node_vec.insert(0, this_node);
+
+                                    // panic if this item not existed
+                                    // TODO: move it to a lazy function
+                                    // engine.nodes.insert(mul.as_str().to_string(), this_node);
+                                    if !para_a.parse::<f64>().is_ok() {
+                                        if self.control_nodes.contains_key(para_a.as_str()) {
+                                            let mod_node = self.control_nodes[para_a.as_str()]; 
+                                            self.graph.add_edge(mod_node, this_node, ());
+                                        }    
+                                    }
                                 },
                                 "adc" => {
                                     let mut paras = inner_rules.next().unwrap().into_inner();
