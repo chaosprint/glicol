@@ -34,8 +34,8 @@ pub struct Engine {
     // pub synth: Synth,
     pub adc_source_nodes: Vec<NodeIndex>,
     pub adc_nodes: Vec<NodeIndex>,
-    audio_nodes: HashMap<String, NodeIndex>,
-    control_nodes: HashMap<String, NodeIndex>,
+    pub audio_nodes: HashMap<String, NodeIndex>,
+    pub control_nodes: HashMap<String, NodeIndex>,
     pub samples_dict: HashMap<String, &'static[f32]>,
     // pub nodes_: HashMap<String, NodeIndex>,
     pub sr: u32,
@@ -99,7 +99,7 @@ impl Engine {
         // add function to Engine HashMap Function Chain Vec accordingly
         for line in lines.into_inner() {
 
-            let mut ref_name = "~";
+            let mut ref_name = "";
             // let mut func_chain = Vec::<Box<dyn Signal<Frame=f64> + 'static + Send>>::new();
             // init Chain
             // match line.as_rule() {
@@ -232,7 +232,11 @@ impl Engine {
                                     if node_vec.len() > 0 {
                                         self.graph.add_edge(node_vec[0], this_node, ());
                                     }
-                                    self.audio_nodes.insert(ref_name.to_string(), this_node);
+                                    if ref_name.contains("~") {
+                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
+                                    } else {
+                                        self.control_nodes.insert(ref_name.to_string(), this_node);
+                                    }
                                 
                                     node_vec.insert(0, this_node);
                                 },
@@ -248,7 +252,11 @@ impl Engine {
                                     if node_vec.len() > 0 {
                                         self.graph.add_edge(node_vec[0], this_node, ());
                                     }
-                                    self.audio_nodes.insert(ref_name.to_string(), this_node);
+                                    if ref_name.contains("~") {
+                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
+                                    } else {
+                                        self.control_nodes.insert(ref_name.to_string(), this_node);
+                                    }
                                     
                                     node_vec.insert(0, this_node);
                                 },
@@ -262,7 +270,11 @@ impl Engine {
                                     if node_vec.len() > 0 {
                                         self.graph.add_edge(node_vec[0], this_node, ());
                                     }
-                                    self.audio_nodes.insert(ref_name.to_string(), this_node);
+                                    if ref_name.contains("~") {
+                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
+                                    } else {
+                                        self.control_nodes.insert(ref_name.to_string(), this_node);
+                                    }
                                     node_vec.insert(0, this_node);
                                 },
                                 "speed" => {
@@ -275,7 +287,11 @@ impl Engine {
                                         self.graph.add_edge(node_vec[0], this_node, ());
                                     }
                                     
-                                    self.audio_nodes.insert(ref_name.to_string(), this_node);
+                                    if ref_name.contains("~") {
+                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
+                                    } else {
+                                        self.control_nodes.insert(ref_name.to_string(), this_node);
+                                    }
                                     
                                     node_vec.insert(0, this_node);
                                 }
@@ -293,7 +309,11 @@ impl Engine {
                                     if node_vec.len() > 0 {
                                         self.graph.add_edge(node_vec[0], this_node, ());
                                     }
-                                    self.audio_nodes.insert(ref_name.to_string(), this_node);
+                                    if ref_name.contains("~") {
+                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
+                                    } else {
+                                        self.control_nodes.insert(ref_name.to_string(), this_node);
+                                    }
                                     node_vec.insert(0, this_node);
 
                                 },
@@ -309,7 +329,11 @@ impl Engine {
                                     if node_vec.len() > 0 {
                                         self.graph.add_edge(node_vec[0], this_node, ());
                                     }
-                                    self.audio_nodes.insert(ref_name.to_string(), this_node);
+                                    if ref_name.contains("~") {
+                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
+                                    } else {
+                                        self.control_nodes.insert(ref_name.to_string(), this_node);
+                                    }
                                     node_vec.insert(0, this_node);
 
                                 },
@@ -400,12 +424,18 @@ impl Engine {
                                         let key: String = name.to_string()
                                         .chars().filter(|c| !c.is_whitespace()).collect();
 
-                                        let this_node = self.audio_nodes[key.as_str()];
+
+                                        // TODO: error handle
+                                        let this_node = self.control_nodes[key.as_str()];
                                        
                                         if node_vec.len() > 0 {
                                             self.graph.add_edge(node_vec[0], this_node, ());
                                         }
-                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
+                                        if ref_name.contains("~") {
+                                            self.audio_nodes.insert(ref_name.to_string(), this_node);
+                                        } else {
+                                            self.control_nodes.insert(ref_name.to_string(), this_node);
+                                        }
                                         
                                         node_vec.insert(0, this_node);
                                     }
