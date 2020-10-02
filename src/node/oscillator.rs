@@ -1,5 +1,7 @@
 use dasp_signal::{self as signal, Signal};
-use dasp_graph::{Buffer, Input, Node};
+use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNodeSend};
+use pest::iterators::Pairs;
+use super::super::Rule;
 
 pub struct SinOsc {
     // pub freq: f64,
@@ -12,19 +14,22 @@ pub struct SinOsc {
 }
 
 impl SinOsc {
-    pub fn new(freq: String, phase: f32, diff: f32) -> Self {
+    pub fn new(paras: &mut Pairs<Rule>) -> (NodeData<BoxedNodeSend>, Vec<String>) {
+        let mut paras = paras.next().unwrap().into_inner();
+        let freq: String = paras.next().unwrap().as_str().to_string()
+        .chars().filter(|c| !c.is_whitespace()).collect();
+
         if freq.parse::<f32>().is_ok() {
-            return Self { 
+            return (NodeData::new1(BoxedNodeSend::new(Self {
                 freq: freq.parse::<f32>().unwrap(),
-                phase, diff, has_mod: false 
-            }
+                phase: 0.0, diff: 0.0, has_mod: false 
+            })), vec![])
         } else {
-            return Self { 
+            return (NodeData::new1(BoxedNodeSend::new(Self { 
                 freq: 0.0,
-                phase, diff, has_mod: true 
-            }
+                phase:  0.0, diff: 0.0, has_mod: true 
+            })), vec![freq])
         }
-        
     }
 }
 
@@ -33,25 +38,23 @@ impl Node for SinOsc {
         
         // let freq = self.freq.parse::<f32>();
         if self.has_mod {
-            if inputs.len() > 0 {
-                // panic!();
-                    // let buf = &mut inputs[0].buffers();
-                let mod_buf = &mut inputs[0].buffers();
-                // panic!();
-                for i in 0..64 {
-                    // output[0][i] = (2.0*std::f32::consts::PI*mod_buf[0][i]/44100.0).sin();
-                    output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
+            assert_eq!(inputs.len(), 1);
+            assert!(inputs.len() > 0);
 
-                    if mod_buf[0][i] != 0.0 { // doesn't make sense to have 0 freq
-                        self.diff = mod_buf[0][i] / 44100.0;    
-                    }
-                    self.phase += self.diff;
-                    // self.phase += 440.0 / 44100.0;
-                    if self.phase > 1.0 {
-                        self.phase -= 1.0
-                    }
+            let mod_buf = &mut inputs[0].buffers();
+            for i in 0..64 {
+                output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
+
+                if mod_buf[0][i] != 0.0 { // doesn't make sense to have 0 freq
+                    self.diff = mod_buf[0][i] / 44100.0;    
+                }
+                self.phase += self.diff;
+                // self.phase += 440.0 / 44100.0;
+                if self.phase > 1.0 {
+                    self.phase -= 1.0
                 }
             }
+            // }
         } else {
 
             for i in 0..64 {
@@ -72,7 +75,13 @@ pub struct Impulse {
 }
 
 impl Impulse {
-    pub fn new(freq: f64) -> Self {
+    pub fn new(paras: &mut Pairs<Rule>) -> (NodeData<BoxedNodeSend>, Vec<String>) {
+        let para_a: String = paras.next().unwrap().as_str().to_string()
+        .chars().filter(|c| !c.is_whitespace()).collect();
+
+        assert!(para_a.parse::<f32>().is_ok(), "parameter not a float");
+
+        let freq = para_a.parse::<f32>().unwrap();
         let p = (44100.0 / freq) as usize;
         let mut i: usize = 0;
         let s = signal::gen_mut(move || {
@@ -80,9 +89,9 @@ impl Impulse {
             i += 1;
             imp as f32
         });
-        Self {
+        (NodeData::new1(BoxedNodeSend::new(Self {
             sig: Box::new(s)
-        }
+        })), vec![])
     }
 }
 

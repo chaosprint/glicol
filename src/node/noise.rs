@@ -1,15 +1,17 @@
 use dasp_graph::{Buffer, Input, Node};
 use dasp_signal::{self as signal, Signal};
+use super::super::{Pairs, Rule, NodeData, BoxedNodeSend};
 
 pub struct Noise {
     sig: Box<dyn Signal<Frame=f64> + Send>
 }
 impl Noise {
-    pub fn new() -> Self {
+    pub fn new(_paras: &mut Pairs<Rule>) -> (NodeData<BoxedNodeSend>, Vec<String>) {
+        // let mut paras = paras.next().unwrap().into_inner();
         let sig = signal::noise(0);
-        Self {
+        (NodeData::new1(BoxedNodeSend::new( Self {
             sig: Box::new(sig)
-        }
+        })), vec![])
     }
 }
 

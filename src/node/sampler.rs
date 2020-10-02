@@ -2,19 +2,33 @@ use dasp_signal::{self as signal, Signal};
 use dasp_slice::{ToFrameSlice};
 use dasp_interpolate::linear::Linear;
 use dasp_graph::{Buffer, Input, Node};
+use pest::iterators::Pairs;
+use super::super::{Rule, HashMap, NodeData, BoxedNodeSend};
 
 pub struct Sampler {
     pub sig: Vec< Box<dyn Signal<Frame=[f32;1]> + 'static + Send>>,
     // pub sig: Box<dyn Signal<Frame=[f32;1]> + Send>,
     pub samples: &'static[f32],
 }
-
+// samples: &'static[f32]
 impl Sampler {
-    pub fn new(samples: &'static[f32]) -> Self {
-        Self {
+    pub fn new(
+        paras: &mut Pairs<Rule>,
+        samples_dict: &HashMap<String, &'static[f32]>,
+    ) -> (NodeData<BoxedNodeSend>, Vec<String>) {
+
+        let mut paras = paras.next().unwrap().into_inner();
+        let para_a: String = paras.next().unwrap().as_str().to_string()
+        .chars().filter(|c| !c.is_whitespace()).collect();
+
+        let key = para_a;
+
+        let samples = samples_dict[&key];
+
+        (NodeData::new1(BoxedNodeSend::new(Self{
             sig: Vec::new(),
-            samples
-        }
+            samples: samples
+        })), vec![])
     }
 }
 
@@ -49,7 +63,8 @@ impl Node for Sampler {
     }
 }
 
-pub struct Looper {
+// discard
+struct Looper {
     sig: Box<dyn Signal<Frame=f32> + Send>,
     // sig: GenMut<(dyn Signal<Frame=f32> + 'static + Sized), f32>
 }

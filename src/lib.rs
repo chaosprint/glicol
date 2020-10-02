@@ -4,466 +4,226 @@ extern crate pest;
 #[macro_use]
 extern crate pest_derive;
 
-
 use pest::Parser;
+use pest::iterators::Pairs;
 #[derive(Parser)]
 #[grammar = "quaver.pest"]
 pub struct QParser;
 
-use dasp_graph::{NodeData, BoxedNodeSend};
-use petgraph;
-use petgraph::graph::{NodeIndex};
+use dasp_graph::{NodeData, BoxedNodeSend, Processor};
+use petgraph::{Graph, Directed};
+use petgraph::graph::{NodeIndex, DiGraph};
 
 mod node;
 
 use node::adc::{Adc, AdcSource};
 use node::oscillator::{SinOsc, Impulse};
-use node::calc::{Add, Mul};
+use node::operator::{Add, Mul};
 use node::sampler::{Sampler};
-use node::control::{Sequencer, Speed};
+use node::sequencer::{Sequencer, Speed};
 use node::envelope::EnvPerc;
 use node::noise::Noise;
+use node::pass::Pass;
 use node::filter::{LPF, HPF};
 
 pub struct Engine {
-    // pub chains: HashMap<String, Vec<Box<dyn Node + 'static + Send >>>,
     pub elapsed_samples: usize,
-    pub graph: petgraph::Graph<NodeData<BoxedNodeSend>, (), petgraph::Directed, u32>,
-    // pub graph_: Box<petgraph::Graph<NodeData<BoxedNodeSend>, (), petgraph::Directed, u32>>,
-    processor: dasp_graph::Processor<petgraph::graph::DiGraph<NodeData<BoxedNodeSend>, (), u32>>,
-    // pub synth: Synth,
+    pub graph: Graph<NodeData<BoxedNodeSend>, (), Directed, u32>,
+    processor: Processor<DiGraph<NodeData<BoxedNodeSend>, (), u32>>,
+    sidechains_list: Vec<(NodeIndex, String)>,
     pub adc_source_nodes: Vec<NodeIndex>,
     pub adc_nodes: Vec<NodeIndex>,
     pub audio_nodes: HashMap<String, NodeIndex>,
     pub control_nodes: HashMap<String, NodeIndex>,
     pub samples_dict: HashMap<String, &'static[f32]>,
-    // pub nodes_: HashMap<String, NodeIndex>,
     pub sr: u32,
     pub bpm: f64,
-    code: String,
-    // buffer: [f32; 128],
+    code: &'static str,
     update: bool,
 }
 
 impl Engine {
     pub fn new() -> Engine {
         // Chose a type of graph for audio processing.
-        type Graph = petgraph::Graph<NodeData<BoxedNodeSend>, (), petgraph::Directed, u32>;
+        type MyGraph = Graph<NodeData<BoxedNodeSend>, (), Directed, u32>;
         // Create a short-hand for our processor type.
-        type Processor = dasp_graph::Processor<Graph>;
-        // Create a graph and a processor with some suitable capacity to avoid dynamic allocation.
-        let max_nodes = 512; // if 1024, error, 512 is fine
-        let max_edges = 512;
-        let g = Graph::with_capacity(max_nodes, max_edges);
-        // let g_ = Graph::with_capacity(max_nodes, max_edges);
-        let p = Processor::with_capacity(max_nodes);
-        // let box_g = Box::new(g);
+        type MyProcessor = Processor<MyGraph>;
 
-        // let this_node = g.add_node(
-        // NodeData::new1(BoxedNodeSend::new( Adc {} )));
+        // Create a graph and a processor with some
+        // suitable capacity to avoid dynamic allocation
+        // if 1024, error in wasm, 512 is fine
+        let max_nodes = 512; 
+        let max_edges = 512;
+        let g = MyGraph::with_capacity(max_nodes, max_edges);
+        let p = MyProcessor::with_capacity(max_nodes);
 
         Engine {
-            // chains: HashMap::<String, Vec<Box<dyn Node + 'static + Send >>>::new(), 
-            // a hashmap of Box<AsFunc>
             graph: g,
             processor: p,
-            code: "".to_string(),
+            code: "",
             samples_dict: HashMap::new(),
             adc_source_nodes: Vec::new(),
             adc_nodes: Vec::new(),
+            sidechains_list: Vec::new(),
             audio_nodes: HashMap::new(),
             control_nodes: HashMap::new(),
             elapsed_samples: 0,
             sr: 44100,
             bpm: 120.0,
             update: false,
-            // buffer: [0.0; 128],
         }
+    }
+
+    pub fn reset(&mut self) {
+        self.elapsed_samples = 0;
+        self.update = false;
+        self.code = "";
+        // self.adc_nodes.clear();
+        self.control_nodes.clear();
+        self.audio_nodes.clear();
+        self.graph.clear();
     }
 
     pub fn update(&mut self) {
         self.update = true;
     }
 
-    pub fn set_code(&mut self, code: String) {
+    pub fn set_code(&mut self, code: &'static str) {
         self.code = code;
     }
 
-    pub fn parse(&mut self) {
+    pub fn handle_node(
+        &mut self,
+        name: &str,
+        mut paras: Pairs<Rule>,
+        current_ref_name: &'static str, 
+        previous_nodes: &mut Vec<NodeIndex>
+    ) {
 
-        // parse the code
-        let lines = QParser::parse(Rule::block, self.code.as_str())
+        // println!("name {}", name);
+        let (node_data, sidechains) = match name {
+            "sin" => SinOsc::new(&mut paras),
+            "mul" => Mul::new(&mut paras),
+            "add" => Add::new(&mut paras),
+            "imp" => Impulse::new(&mut paras),
+            "sampler" => Sampler::new(&mut paras, &self.samples_dict),
+            "loop" => Sequencer::new(&mut paras),
+            "speed" => Speed::new(&mut paras),
+            "env_perc" => EnvPerc::new(&mut paras),
+            "noiz" => Noise::new(&mut paras),
+            "lpf" => LPF::new(&mut paras),
+            "hpf" => HPF::new(&mut paras),
+            _ => Pass::new(name),
+            // panic!("cannot match a node")
+        };
+
+        let node_index = self.graph.add_node(node_data);
+
+        // connect to previous node
+        if previous_nodes.len() > 0 {
+            self.graph.add_edge(previous_nodes[0], node_index, ());
+        }
+
+        // we only process the last nodes of chains in the audio nodes vec
+        if current_ref_name.contains("~") {
+            self.audio_nodes.insert(current_ref_name.to_string(), node_index);
+        } else {
+            self.control_nodes.insert(current_ref_name.to_string(), node_index);
+        }
+
+        // println!("{:?}, {:?}", self.audio_nodes, self.control_nodes);
+
+        // prepare to be connected by the next node of the chain
+        previous_nodes.insert(0, node_index);
+
+        // lazy sidechain connection
+        for sidechain in sidechains.into_iter() {
+            self.sidechains_list.push((node_index, sidechain));
+        }
+    }
+
+    pub fn handle_edges(&mut self) {
+        // println!("{:?}", &self.sidechains_list);
+        for pair in &self.sidechains_list {
+            assert!(self.control_nodes.contains_key(&pair.1), 
+            "no such a control node");
+            let control_node = self.control_nodes[&pair.1];
+
+            // the order matters
+            // self.graph.add_edge( pair.0, control_node, ());
+            self.graph.add_edge(control_node, pair.0, ());
+        };
+    }
+
+    pub fn make_graph(&mut self) {
+        self.audio_nodes.clear();
+        self.control_nodes.clear();
+        self.graph.clear();
+
+        let lines = QParser::parse(Rule::block, self.code)
         .expect("unsuccessful parse")
         .next().unwrap();
+
+        let mut previous_nodes = Vec::<NodeIndex>::new();
+        let mut current_ref_name: &'static str = "";
 
         // add function to Engine HashMap Function Chain Vec accordingly
         for line in lines.into_inner() {
 
-            let mut ref_name = "";
-            // let mut func_chain = Vec::<Box<dyn Signal<Frame=f64> + 'static + Send>>::new();
-            // init Chain
-            // match line.as_rule() {
-            //     Rule::line => {
+            // self.ref_name;
             let inner_rules = line.into_inner();
-            // let mut func_vec = Vec::<Box<dyn QuaverFunction + 'static + Send>>::new();
-
             for element in inner_rules {
                 match element.as_rule() {
                     Rule::reference => {
-                        ref_name = element.as_str();
+                        current_ref_name = element.as_str();
                     },
                     Rule::chain => {
-                        let mut node_vec = Vec::<NodeIndex>::new();
+                        previous_nodes.clear();
+                        // change name to previous_nodes
+                        // let chain_info = (current_ref_name, previous_nodes);
+
                         for func in element.into_inner() {
                             let mut inner_rules = func.into_inner();
                             let name: &str = inner_rules.next().unwrap().as_str();
-                            match name {
-                                "sin" => {
-                                    let mut paras = inner_rules.next().unwrap().into_inner();
-
-                                    // paras -> reference -> string
-                                    // paras -> float -> string
-                                    let freq: String = paras.next().unwrap().as_str().to_string()
-                                    .chars().filter(|c| !c.is_whitespace()).collect();
-
-                                    let this_node = self.graph.add_node(
-                                        NodeData::new1(BoxedNodeSend::new(SinOsc::new(freq.clone(), 0.0, 0.0))));
-    
-                                    if ref_name.contains("~") {
-                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
-                                    } else {
-                                        self.control_nodes.insert(ref_name.to_string(), this_node);
-                                    }                                
-                                    node_vec.insert(0, this_node);
-
-                                    if !freq.parse::<f64>().is_ok() {
-                                        // assert!(self.control_nodes.contains_key(freq.as_str()));
-                                        if self.control_nodes.contains_key(freq.as_str()) {
-                                            let mod_node = self.control_nodes[freq.as_str()]; 
-                                            self.graph.add_edge(mod_node, this_node, ());
-                                        }                              
-                                    }
-                                },
-                                "mul" => {
-                                    let mut paras = inner_rules.next().unwrap().into_inner();
-                                    let mul: String = paras.next().unwrap().as_str().to_string()
-                                    .chars().filter(|c| !c.is_whitespace()).collect();
-
-                                    let this_node = self.graph.add_node(
-                                        NodeData::new1(BoxedNodeSend::new( Mul::new(mul.clone()))));
-
-                                    if node_vec.len() > 0 {
-                                        self.graph.add_edge(node_vec[0], this_node, ());
-                                    }
-                                
-                                    if ref_name.contains("~") {
-                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
-                                    } else {
-                                        self.control_nodes.insert(ref_name.to_string(), this_node);
-                                    }
-                                    
-                                    node_vec.insert(0, this_node);
-
-                                    // panic if this item not existed
-                                    // TODO: move it to a lazy function
-                                    // engine.nodes.insert(mul.as_str().to_string(), this_node);
-                                    if !mul.parse::<f64>().is_ok() {
-                                        if self.control_nodes.contains_key(mul.as_str()) {
-                                            let mod_node = self.control_nodes[mul.as_str()]; 
-                                            self.graph.add_edge(mod_node, this_node, ());
-                                        }                              
-                                    }
-                                },
-                                "add" => {
-                                    let mut paras = inner_rules.next().unwrap().into_inner();
-                                    let add = paras.next().unwrap().as_str().parse::<f64>().unwrap();
-                                    let this_node = self.graph.add_node(
-                                        NodeData::new1(BoxedNodeSend::new( Add::new(add))));
-
-                                    if node_vec.len() > 0 {
-                                        self.graph.add_edge(node_vec[0], this_node, ());
-                                    }
-                                    if ref_name.contains("~") {
-                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
-                                    } else {
-                                        self.control_nodes.insert(ref_name.to_string(), this_node);
-                                    }                                   
-                                    node_vec.insert(0, this_node);
-                                },
-                                "loop" => {
-                                    let mut events = Vec::<(f64, f64)>::new();
-
-                                    let mut paras = inner_rules
-                                    .next().unwrap().into_inner();
-
-                                    let seq = paras.next().unwrap();
-                                    let mut compound_index = 0;
-                                    let seq_by_space: Vec<pest::iterators::Pair<Rule>> = 
-                                    seq.clone().into_inner().collect();
-
-                                    for compound in seq.into_inner() {
-                                        let mut shift = 0;
-                                        // calculate the length of seq
-                                        let compound_vec: Vec<pest::iterators::Pair<Rule>> = 
-                                        compound.clone().into_inner().collect();
-                
-                                        for note in compound.into_inner() {
-                                            if note.as_str().parse::<i32>().is_ok() {
-                                                let seq_shift = 1.0 / seq_by_space.len() as f64 * 
-                                                compound_index as f64;
-                                                
-                                                let note_shift = 1.0 / compound_vec.len() as f64 *
-                                                shift as f64 / seq_by_space.len() as f64;
-                
-                                                let d = note.as_str().parse::<i32>().unwrap() as f64;
-                                                let relative_pitch = 2.0f64.powf((d - 60.0)/12.0);
-                                                let relative_time = seq_shift + note_shift;
-                                                events.push((relative_time, relative_pitch));
-                                            }
-                                            shift += 1;
-                                        }
-                                        compound_index += 1;
-                                    }
-
-                                    let this_node = self.graph.add_node(
-                                        NodeData::new1(BoxedNodeSend::new( Sequencer::new(events, 1.0)))
-                                    );
-
-                                    if node_vec.len() > 0 {
-                                        self.graph.add_edge(node_vec[0], this_node, ());
-                                    }
-                                    if ref_name.contains("~") {
-                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
-                                    } else {
-                                        self.control_nodes.insert(ref_name.to_string(), this_node);
-                                    }
-                                
-                                    node_vec.insert(0, this_node);
-                                },
-                                "sampler" => {
-                                    let mut paras = inner_rules.next().unwrap().into_inner();
-                                    let symbol = paras.next().unwrap().as_str();
-
-                                    let this_node = self.graph.add_node(
-                                        NodeData::new1(BoxedNodeSend::new(
-                                            Sampler::new(self.samples_dict[symbol])))
-                                    );
-
-                                    if node_vec.len() > 0 {
-                                        self.graph.add_edge(node_vec[0], this_node, ());
-                                    }
-                                    if ref_name.contains("~") {
-                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
-                                    } else {
-                                        self.control_nodes.insert(ref_name.to_string(), this_node);
-                                    }
-                                    
-                                    node_vec.insert(0, this_node);
-                                },
-                                "imp" => {
-                                    let mut paras = inner_rules.next().unwrap().into_inner();
-                                    let imp = paras.next().unwrap().as_str().parse::<f64>().unwrap();
-                                    let this_node = self.graph.add_node(
-                                        NodeData::new1(BoxedNodeSend::new( Impulse::new(imp)))
-                                    );
-
-                                    if node_vec.len() > 0 {
-                                        self.graph.add_edge(node_vec[0], this_node, ());
-                                    }
-                                    if ref_name.contains("~") {
-                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
-                                    } else {
-                                        self.control_nodes.insert(ref_name.to_string(), this_node);
-                                    }
-                                    node_vec.insert(0, this_node);
-                                },
-                                "speed" => {
-                                    let mut paras = inner_rules.next().unwrap().into_inner();
-                                    let speed = paras.next().unwrap().as_str().parse::<f32>().unwrap();
-                                    let this_node = self.graph.add_node(
-                                        NodeData::new1(BoxedNodeSend::new( Speed {speed: speed } ))
-                                    );
-                                    if node_vec.len() > 0 {
-                                        self.graph.add_edge(node_vec[0], this_node, ());
-                                    }
-                                    
-                                    if ref_name.contains("~") {
-                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
-                                    } else {
-                                        self.control_nodes.insert(ref_name.to_string(), this_node);
-                                    }
-                                    
-                                    node_vec.insert(0, this_node);
-                                }
-                                "env_perc" => {
-                                    // let mut paras = inner_rules.next().unwrap().into_inner();
-                                    let attack = inner_rules.next().unwrap().as_str().parse::<f64>().unwrap();
-                                    let decay = inner_rules.next().unwrap().as_str().parse::<f64>().unwrap();
-                                    // .unwrap().as_str().parse::<f64>().unwrap();
-
-                                    let this_node = self.graph.add_node(
-                                        NodeData::new1(BoxedNodeSend::new(
-                                            EnvPerc::new(attack, decay, 0, 1.0)))
-                                    );
-
-                                    if node_vec.len() > 0 {
-                                        self.graph.add_edge(node_vec[0], this_node, ());
-                                    }
-                                    if ref_name.contains("~") {
-                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
-                                    } else {
-                                        self.control_nodes.insert(ref_name.to_string(), this_node);
-                                    }
-                                    node_vec.insert(0, this_node);
-
-                                },
-                                "noiz" => {
-                                    let mut paras = inner_rules.next().unwrap().into_inner();
-                                    let _type = paras.next().unwrap().as_str();
-
-                                    let this_node = self.graph.add_node(
-                                        NodeData::new1(BoxedNodeSend::new(
-                                            Noise::new()))
-                                    );
-
-                                    if node_vec.len() > 0 {
-                                        self.graph.add_edge(node_vec[0], this_node, ());
-                                    }
-                                    if ref_name.contains("~") {
-                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
-                                    } else {
-                                        self.control_nodes.insert(ref_name.to_string(), this_node);
-                                    }
-                                    node_vec.insert(0, this_node);
-
-                                },
-                                "lpf" => {
-                                    let mut paras = inner_rules.next().unwrap().into_inner();
-                                    let para_a: String = paras.next().unwrap().as_str().to_string()
-                                    .chars().filter(|c| !c.is_whitespace()).collect();
-
-                                    let this_node = self.graph.add_node(
-                                        NodeData::new1(BoxedNodeSend::new( LPF::new(para_a.clone(), 1.0))));
-
-                                    if node_vec.len() > 0 {
-                                        self.graph.add_edge(node_vec[0], this_node, ());
-                                    }
-                                
-                                    if ref_name.contains("~") {
-                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
-                                    } else {
-                                        self.control_nodes.insert(ref_name.to_string(), this_node);
-                                    }
-                                    
-                                    node_vec.insert(0, this_node);
-
-                                    // panic if this item not existed
-                                    // TODO: move it to a lazy function
-                                    // engine.nodes.insert(mul.as_str().to_string(), this_node);
-                                    if !para_a.parse::<f64>().is_ok() {
-                                        if self.control_nodes.contains_key(para_a.as_str()) {
-                                            let mod_node = self.control_nodes[para_a.as_str()]; 
-                                            self.graph.add_edge(mod_node, this_node, ());
-                                        }    
-                                    }
-                                },
-
-                                "hpf" => {
-                                    let mut paras = inner_rules.next().unwrap().into_inner();
-                                    let para_a: String = paras.next().unwrap().as_str().to_string()
-                                    .chars().filter(|c| !c.is_whitespace()).collect();
-
-                                    let this_node = self.graph.add_node(
-                                        NodeData::new1(BoxedNodeSend::new( HPF::new(para_a.clone(), 1.0))));
-
-                                    if node_vec.len() > 0 {
-                                        self.graph.add_edge(node_vec[0], this_node, ());
-                                    }
-                                
-                                    if ref_name.contains("~") {
-                                        self.audio_nodes.insert(ref_name.to_string(), this_node);
-                                    } else {
-                                        self.control_nodes.insert(ref_name.to_string(), this_node);
-                                    }
-                                    
-                                    node_vec.insert(0, this_node);
-
-                                    // panic if this item not existed
-                                    // TODO: move it to a lazy function
-                                    // engine.nodes.insert(mul.as_str().to_string(), this_node);
-                                    if !para_a.parse::<f64>().is_ok() {
-                                        if self.control_nodes.contains_key(para_a.as_str()) {
-                                            let mod_node = self.control_nodes[para_a.as_str()]; 
-                                            self.graph.add_edge(mod_node, this_node, ());
-                                        }    
-                                    }
-                                },
-                                "adc" => {
-                                    let mut paras = inner_rules.next().unwrap().into_inner();
-
-                                    // paras -> reference -> string
-                                    // paras -> float -> string
-                                    let para_str: String = paras.next().unwrap().as_str().to_string()
-                                    .chars().filter(|c| !c.is_whitespace()).collect();
-                                    let chan = para_str.parse::<usize>().unwrap();
-                                    let this_node = self.adc_nodes[chan];
-
-                                    if node_vec.len() > 0 {
-                                        self.graph.add_edge(node_vec[0], this_node, ());
-                                    }
-
-                                    self.control_nodes.insert(ref_name.to_string(), this_node);
-                                    node_vec.insert(0, this_node);
-
-                                    // this node is alread in the graph, somewhere, but not connected
-                                    // 
-
-                                },
-                                _ => {
-                                    if name.contains("&") {
-                                        let key: String = name.to_string()
-                                        .chars().filter(|c| !c.is_whitespace()).collect();
-
-
-                                        // TODO: error handle
-                                        let this_node = self.control_nodes[key.as_str()];
-                                       
-                                        if node_vec.len() > 0 {
-                                            self.graph.add_edge(node_vec[0], this_node, ());
-                                        }
-                                        if ref_name.contains("~") {
-                                            self.audio_nodes.insert(ref_name.to_string(), this_node);
-                                        } else {
-                                            self.control_nodes.insert(ref_name.to_string(), this_node);
-                                        }
-                                        
-                                        node_vec.insert(0, this_node);
-                                    }
-                                }
-                            }
+                            // println!("{}", name);
+                            // let paras = inner_rules.next().unwrap().into_inner();
+                            // paras = { float | seq | symbol | reference | minichain }
+                            self.handle_node(name, inner_rules,
+                                current_ref_name, &mut previous_nodes);
                         }
                     },
-                    _ => unreachable!()
+                    _ => panic!("cannot match a grammar rule")
                 }
             }
         }
+        self.handle_edges();
     }
 
+    // for bela
     pub fn make_adc_node(&mut self, chan:usize) {
         for _ in 0..chan {
-            let index = self.graph.add_node( NodeData::new1(BoxedNodeSend::new( Adc {} )));
+            let index = self.graph.add_node(
+                NodeData::new1( BoxedNodeSend::new( Adc {} ) )
+            );
+
             self.adc_nodes.push(index);
-            let source = self.graph.add_node( NodeData::new1(BoxedNodeSend::new( AdcSource {} )));
+            let source = self.graph.add_node( 
+                NodeData::new1( BoxedNodeSend::new( AdcSource {} ) )
+            );
+
             self.adc_source_nodes.push(source);
             self.graph.add_edge(source, index, ());
         }
     }
 
-    pub fn set_adc_node_buffer(&mut self, buf: &[f32], chan: usize, frame: usize, _interleave: bool) {
+    pub fn set_adc_node_buffer(&mut self, buf: &[f32], chan: usize,
+        frame: usize, _interleave: bool) {
         // , _chan: u8, _frame: u16, _interleave: bool
         for c in 0..chan {
             for f in 0..frame {
-                self.graph[(self.adc_source_nodes[c])].buffers[0][f] = buf[c*frame+f];
+                self.graph[
+                    self.adc_source_nodes[c]
+                ].buffers[0][f] = buf[c*frame+f];
             }
         }
     }
@@ -472,12 +232,16 @@ impl Engine {
         // you just cannot use self.buffer
         let mut output: [f32; 64] = [0.0; 64];
         for (_ref_name, node) in &self.audio_nodes {
+            // print!("this should before process {:?}", self.graph.raw_edges());
+            // if self.graph.raw_edges().len() > 0 {
             self.processor.process(&mut self.graph, *node);
             let b = &self.graph[*node].buffers[0];
             for i in 0..64 {
                 output[i] += b[i];
-            }
+                }
+            // }
         }
+        self.elapsed_samples += 64;
         output
     }
 
@@ -489,11 +253,9 @@ impl Engine {
         // may be too time consuming?
         if self.update && is_near_bar_end {
             self.update = false;
-            self.audio_nodes.clear();
-            self.control_nodes.clear();
-            self.graph.clear();
-            self.parse();
+            self.make_graph();
         }
+
         for (_ref_name, node) in &self.audio_nodes {
             self.processor.process(&mut self.graph, *node);
             let b = &self.graph[*node].buffers[0];
@@ -511,12 +273,4 @@ impl Engine {
         self.elapsed_samples += 128;
         output
     }
-
-    // pub fn process(&mut self, out_ptr: *mut f32, size: usize) {
-    //     let wave_buf = self.gen_next_buf_128();
-    //     let out_buf: &mut [f32] = unsafe { std::slice::from_raw_parts_mut(out_ptr, size) };
-    //     for i in 0..size {
-    //         out_buf[i] = wave_buf[i] as f32
-    //     }
-    // }
 }
