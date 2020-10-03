@@ -25,6 +25,7 @@ use node::envelope::EnvPerc;
 use node::noise::Noise;
 use node::pass::Pass;
 use node::filter::{LPF, HPF};
+use node::map::{LinRange};
 
 pub struct Engine {
     pub elapsed_samples: usize,
@@ -108,13 +109,15 @@ impl Engine {
             "imp" => Impulse::new(&mut paras),
             "sampler" => Sampler::new(&mut paras, &self.samples_dict),
             "loop" => Sequencer::new(&mut paras),
+            "seq" => Sequencer::new(&mut paras),
             "speed" => Speed::new(&mut paras),
-            "env_perc" => EnvPerc::new(&mut paras),
+            "envperc" => EnvPerc::new(&mut paras),
             "noiz" => Noise::new(&mut paras),
             "lpf" => LPF::new(&mut paras),
             "hpf" => HPF::new(&mut paras),
             "saw" => Saw::new(&mut paras),
             "squ" => Square::new(&mut paras),
+            "linrange" => LinRange::new(&mut paras),
             _ => Pass::new(name),
             // panic!("cannot match a node")
         };

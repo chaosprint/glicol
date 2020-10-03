@@ -115,7 +115,7 @@ impl Saw {
         let is_float = para_a.parse::<f32>();
         let has_sidechain = !is_float.is_ok();
         let (freq, sidechain) = match has_sidechain {
-            true => (0.0,vec![para_a]),
+            true => (440.0, vec![para_a]),
             false => (is_float.unwrap(), vec![])
         };
 
@@ -135,8 +135,9 @@ impl Node for Saw {
                 let mod_buf = &mut inputs[0].buffers();
                 if mod_buf[0][i] != 0.0 {
                     self.freq = mod_buf[0][i];
-                }   
+                } 
             }
+            assert_ne!(self.freq, 0.0);
             let circle_len = (44100.0 / self.freq) as usize;
             output[0][i] = ((self.phase_n % circle_len) as f32 / circle_len as f32)*2.0-0.5;
             self.phase_n += 1;
@@ -158,7 +159,7 @@ impl Square {
         let is_float = para_a.parse::<f32>();
         let has_sidechain = !is_float.is_ok();
         let (freq, sidechain) = match has_sidechain {
-            true => (0.0,vec![para_a]),
+            true => (440.0, vec![para_a]),
             false => (is_float.unwrap(), vec![])
         };
 

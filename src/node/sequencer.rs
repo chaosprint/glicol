@@ -17,8 +17,8 @@ impl Sequencer {
         let mut sidechain_id = 0;
         let mut sidechain_lib = HashMap::<String, usize>::new();
         
+        // para -> seq -> compound -> note -> midi/ref/rest
         let mut paras = paras.next().unwrap().into_inner();
-
         let seq = paras.next().unwrap();
         let mut compound_index = 0;
         let seq_by_space: Vec<pest::iterators::Pair<Rule>> = 
@@ -55,6 +55,8 @@ impl Sequencer {
             compound_index += 1;
         }
 
+        println!("events {:?}", events);
+
         (NodeData::new1(BoxedNodeSend::new( Self {
             events: events,
             speed: 1.0,
@@ -72,6 +74,8 @@ impl Node for Sequencer {
         if inputs.len() > 0 {
             // speed input is set as [ f32, 0.0, 0.0 ... ], so it's identical
             // NOTE! inputs are in reverse order
+
+            // println!("input0 {} {}", inputs[0].buffers()[0][0],inputs[0].buffers()[0][1]);
             // println!("input0 {}, input1 {}, input2 {}", inputs[0].buffers()[0][0], 
             // inputs[1].buffers()[0][0], inputs[2].buffers()[0][0]);
             // println!("input0 {}, input1 {}, input2 {}", inputs[0].buffers()[0][1], 
@@ -83,6 +87,7 @@ impl Node for Sequencer {
             }
         }
 
+        // println!("speed {}", self.speed);
         // let relative_time = event.0;
         // let relative_pitch = event.1; a ratio for midi 60 freq
         let bar_length = 88200.0 / self.speed as f64;
@@ -104,6 +109,7 @@ impl Node for Sequencer {
 
                             let index = len - 1 - 
                             self.sidechain_lib[&event.1] - has_speed_input as usize;
+                            // println!("index {}", index);
                             inputs[index].buffers()[0][i]
                         }
                     };

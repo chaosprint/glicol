@@ -7,3 +7,4 @@ pub mod oscillator;
 pub mod sampler;
 pub mod noise;
 pub mod pass;
+pub mod map;
