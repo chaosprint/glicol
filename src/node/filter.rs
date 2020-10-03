@@ -15,6 +15,10 @@ pub struct LPF {
 impl LPF {
     pub fn new(paras: &mut Pairs<Rule>) -> (NodeData<BoxedNodeSend>, Vec<String>) {
 
+        // TODO: figure out paras handling
+        // let mut paras = paras.next().unwrap().into_inner();
+        // println!("paras {:?}", paras);
+
         let para_a: String = paras.next().unwrap().as_str().to_string()
         .chars().filter(|c| !c.is_whitespace()).collect();
 
@@ -22,6 +26,7 @@ impl LPF {
         .chars().filter(|c| !c.is_whitespace()).collect();
 
         // let cutoff = para_a.parse::<f32>();
+        
         let q = para_b.parse::<f32>().unwrap();
 
         let mut destination = Vec::<String>::new();

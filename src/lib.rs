@@ -17,7 +17,7 @@ use petgraph::graph::{NodeIndex, DiGraph};
 mod node;
 
 use node::adc::{Adc, AdcSource};
-use node::oscillator::{SinOsc, Impulse};
+use node::oscillator::{SinOsc, Impulse, Saw, Square};
 use node::operator::{Add, Mul};
 use node::sampler::{Sampler};
 use node::sequencer::{Sequencer, Speed};
@@ -78,7 +78,7 @@ impl Engine {
         self.elapsed_samples = 0;
         self.update = false;
         self.code = "";
-        // self.adc_nodes.clear();
+        self.sidechains_list.clear();
         self.control_nodes.clear();
         self.audio_nodes.clear();
         self.graph.clear();
@@ -113,6 +113,8 @@ impl Engine {
             "noiz" => Noise::new(&mut paras),
             "lpf" => LPF::new(&mut paras),
             "hpf" => HPF::new(&mut paras),
+            "saw" => Saw::new(&mut paras),
+            "squ" => Square::new(&mut paras),
             _ => Pass::new(name),
             // panic!("cannot match a node")
         };
@@ -156,9 +158,9 @@ impl Engine {
     }
 
     pub fn make_graph(&mut self) {
-        self.audio_nodes.clear();
-        self.control_nodes.clear();
-        self.graph.clear();
+        // self.audio_nodes.clear();
+        // self.control_nodes.clear();
+        // self.graph.clear();
 
         let lines = QParser::parse(Rule::block, self.code)
         .expect("unsuccessful parse")
@@ -232,7 +234,10 @@ impl Engine {
         // you just cannot use self.buffer
         let mut output: [f32; 64] = [0.0; 64];
         for (_ref_name, node) in &self.audio_nodes {
-            // print!("this should before process {:?}", self.graph.raw_edges());
+
+            // find the edge order issue
+            // print!("this should before process {:?}", 
+            // self.graph.raw_edges());
             // if self.graph.raw_edges().len() > 0 {
             self.processor.process(&mut self.graph, *node);
             let b = &self.graph[*node].buffers[0];
@@ -250,9 +255,11 @@ impl Engine {
         let mut output: [f32; 128] = [0.0; 128];
 
         let is_near_bar_end = (self.elapsed_samples + 128) % 88200 < 128;
-        // may be too time consuming?
+        
+        // for wasm live coding
         if self.update && is_near_bar_end {
             self.update = false;
+            self.audio_nodes.clear();
             self.make_graph();
         }
 

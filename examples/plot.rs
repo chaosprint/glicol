@@ -1,20 +1,18 @@
-extern crate quaverseries_rs;
-use quaverseries_rs::Engine;
-
 // you should install gnuplot on your os
 use gnuplot::*;
+use quaverseries_rs::Engine;
 
 fn main () {
     let mut engine = Engine::new();
+    engine.set_code("&a: noiz 0 >> mul 10 >> add 60
 
-    // "&fm: sin 30 >> mul 300 >> add 500\n\n~hi: sin &fm >> mul 0.3"
-    // engine.set_code("&env: imp 1.0 >> env_perc 0.1 1.0\n\n~lead: sin 100 >> mul &env");
-    // "&trigger: loop 60 58 _67 _62
-
-    // &env: &trigger >> env_perc 0.01 0.1 >> mul 0.5
+    &trigger: loop &a
     
-    // ~lead: sin 100.0 >> mul &env"
-    engine.set_code("&cut: sin 1 >> mul 1000 >> add 2000\n\n~aa: noiz 0 >> lpf &cut 1.0");
+    &env: &trigger >> env_perc 0.01 0.1 >> mul 0.2
+    
+    &pitch: &trigger >> mul 261.626
+    
+    ~lead: saw &pitch >> mul &env");
     engine.update();
     engine.make_graph();
 
@@ -47,3 +45,36 @@ fn main () {
         );
     fg.show().unwrap();
 }
+
+
+    // "&fm: sin 30 >> mul 300 >> add 500\n\n~hi: sin &fm >> mul 0.3"
+    // engine.set_code("&env: imp 1.0 >> env_perc 0.1 1.0\n\n~lead: sin 100 >> mul &env");
+    // "&trigger: loop 60 58 _67 _62
+
+    // &env: &trigger >> env_perc 0.01 0.1 >> mul 0.5
+    
+    // ~lead: saw 100.0 >> mul &env"
+    // "&cut: sin 1 >> mul 1000 >> add 2000\n\n~aa: noiz 0 >> lpf &cut 1.0"
+
+    // "&trigger: loop 60 &a _67 _62
+
+    // &a: sin 10 >> mul 20 >> add 50
+
+    // &env: &trigger >> env_perc 0.01 0.1 >> mul 0.5
+
+    // ~lead: saw 100.0 >> mul &env"
+    // "&a: noiz 0 >> mul 10 >> add 60
+
+    // &trigger: loop &a
+    
+    // &env: &trigger >> env_perc 0.01 0.1 >> mul 0.5
+    
+    // &pitch: &trigger >> mul 261.626
+    
+    // ~lead: saw &pitch >> mul &env"
+    
+    // engine.set_code("~test: speed 16 >> loop &a &b
+    
+    // &a: noiz 0 >> add 60
+    
+    // &b: noiz 0 >> add 40");

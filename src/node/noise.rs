@@ -5,6 +5,7 @@ use super::super::{Pairs, Rule, NodeData, BoxedNodeSend};
 pub struct Noise {
     sig: Box<dyn Signal<Frame=f64> + Send>
 }
+
 impl Noise {
     pub fn new(_paras: &mut Pairs<Rule>) -> (NodeData<BoxedNodeSend>, Vec<String>) {
         // let mut paras = paras.next().unwrap().into_inner();
