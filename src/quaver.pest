@@ -1,21 +1,20 @@
-// most challenging part is to avoid ambiguity
-
 block = {(line ~ "\n"*) +}
-line = { reference? ~ ":"? ~ chain}
+line = { reference ~ ":"? ~ chain}
 chain = { (func ~ (">>")? )+ }
 func = { name? ~ paras+ }
 // midi | reference can be regarded as seq
 // loop 50 50 paras -> seq -> compound -> midi
 // linrange 40 70 ambiguity paras -> seq -> compound -> midi
+// lpf &mod 1.0 only get `lpf &mod 1`
 paras = {  float | symbol | seq }
 // minichain = { ":" ~ chain ~ ":"}
-reference = ${ ("~"|"&") ~ ASCII_ALPHA_LOWER+ ~ (("_")~(ASCII_ALPHA_LOWER+) )* }
-name = ${ (ASCII_ALPHA_LOWER+ ~ ("_")? )+ }
 float = @{ (("+" | "-")? ~ ASCII_DIGIT+) ~ "." ~ ASCII_DIGIT* ~ (^"e" ~ midi)? }
 symbol = { "\\" ~ ASCII_ALPHANUMERIC+ }
-seq = { compound+ }
+seq = ${ compound+}
 compound = @{ note+ }
-note = ${midi | rest | reference }
+note = ${ midi | rest | reference }
+reference = ${ ("~"|"&") ~ ASCII_ALPHA_LOWER+ ~ (("_")~(ASCII_ALPHA_LOWER+) )* }
+name = ${ (ASCII_ALPHA_LOWER+ ~ ("_")? )+ }
 rest = { "_" }
-midi = ${ (ASCII_DIGIT)+ }
-WHITESPACE = _{" "}
+midi = ${ (ASCII_DIGIT)+ ~ !"." }
+WHITESPACE = _{" "|":"}

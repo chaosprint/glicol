@@ -4,9 +4,26 @@ use quaverseries_rs::Engine;
 
 fn main () {
     let mut engine = Engine::new();
-    engine.set_code("&a: noiz 0 >> mul 10 >> add 60
+    engine.set_code("&trigger: speed 16.0 >> loop 45 48 50 48 55 53 55 57
+
+    &env: &trigger >> envperc 0.01 0.1 >> mul 0.5
     
-    ~test: speed 16 >> loop &a");
+    &pitch: &trigger >> mul 261.626
+    
+    ~lead: saw &pitch >> mul &env >> lpf &mod 2.0
+    
+    &mod: sin 0.2 >> linrange 1000 3000");
+    // engine.set_code("&a: noiz 0 >> mul 1 >> add 40
+
+    //     &trigger: speed 16 >> loop &a
+        
+    //     &env: &trigger >> envperc 0.01 0.1 >> mul 0.5
+        
+    //     &pitch: &trigger >> mul 261.626
+        
+    //     ~lead: saw &pitch >> mul &env >> lpf &cut 1.0
+        
+    //     &cut: sin 0.2 >> mul 1000 >> add 2000");
     // engine.set_code("&a: noiz 0 >> mul 10 >> add 60
 
     // &trigger: speed 16 >> loop &a
@@ -19,10 +36,10 @@ fn main () {
     engine.update();
     engine.make_graph();
 
-    println!("audio_nodes {:?}", engine.audio_nodes);
-    for e in engine.graph.raw_edges() {
-        println!("raw_edges {:?}", e);
-    }
+    // println!("audio_nodes {:?}", engine.audio_nodes);
+    // for e in engine.graph.raw_edges() {
+    //     println!("raw_edges {:?}", e);
+    // }
 
     let mut x = Vec::<i32>::new();
     let mut y = Vec::<f32>::new();

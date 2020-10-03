@@ -18,13 +18,19 @@ impl Sequencer {
         let mut sidechain_lib = HashMap::<String, usize>::new();
         
         // para -> seq -> compound -> note -> midi/ref/rest
-        let mut paras = paras.next().unwrap().into_inner();
-        let seq = paras.next().unwrap();
+        // println!("paras input to seq", paras.as_str());
+        // let mut paras = paras.next().unwrap().into_inner();
+        // .next().unwrap()
+        // let seq = paras.next().unwrap();
+
+        let seq = paras;
+        // .into_inner().into_inner()
+        
         let mut compound_index = 0;
         let seq_by_space: Vec<pest::iterators::Pair<Rule>> = 
-        seq.clone().into_inner().collect();
+        seq.clone().collect();
 
-        for compound in seq.into_inner() {
+        for compound in seq {
             let mut shift = 0;
             // calculate the length of seq
             let compound_vec: Vec<pest::iterators::Pair<Rule>> = 
@@ -55,7 +61,7 @@ impl Sequencer {
             compound_index += 1;
         }
 
-        println!("events {:?}", events);
+        // println!("events {:?}", events);
 
         (NodeData::new1(BoxedNodeSend::new( Self {
             events: events,

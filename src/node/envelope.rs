@@ -17,11 +17,11 @@ pub struct EnvPerc {
 impl EnvPerc {
     pub fn new(paras: &mut Pairs<Rule>) -> (NodeData<BoxedNodeSend>, Vec<String>) {
 
-        let para_a: String = paras.next().unwrap().as_str().to_string()
-        .chars().filter(|c| !c.is_whitespace()).collect();
+        let para_a: String = paras.next().unwrap().as_str().to_string();
+        // .chars().filter(|c| !c.is_whitespace()).collect();
 
-        let para_b: String = paras.next().unwrap().as_str().to_string()
-        .chars().filter(|c| !c.is_whitespace()).collect();
+        let para_b: String = paras.next().unwrap().as_str().to_string();
+        // .chars().filter(|c| !c.is_whitespace()).collect();
 
         let attack = para_a.parse::<f32>().unwrap();
         let decay = para_b.parse::<f32>().unwrap();

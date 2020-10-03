@@ -9,8 +9,9 @@ impl Mul {
     pub fn new(paras: &mut Pairs<Rule>) -> (NodeData<BoxedNodeSend>, Vec<String>) {
 
         let mut paras = paras.next().unwrap().into_inner();
-        let mul: String = paras.next().unwrap().as_str().to_string()
-        .chars().filter(|c| !c.is_whitespace()).collect();
+        // println!("{:?}", paras.as_str());
+        let mul: String = paras.next().unwrap().as_str().to_string();
+        // .chars().filter(|c| !c.is_whitespace()).collect();
 
         let is_float = mul.parse::<f32>();
         if is_float.is_ok() {
