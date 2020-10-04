@@ -7,7 +7,7 @@ extern crate pest_derive;
 use pest::Parser;
 use pest::iterators::Pairs;
 #[derive(Parser)]
-#[grammar = "quaver.pest"]
+#[grammar = "parser/quaver.pest"]
 pub struct QParser;
 
 use dasp_graph::{NodeData, BoxedNodeSend, Processor};
@@ -26,6 +26,7 @@ use node::noise::Noise;
 use node::pass::Pass;
 use node::filter::{LPF, HPF};
 use node::map::{LinRange};
+use node::rand::{Choose};
 
 pub struct Engine {
     pub elapsed_samples: usize,
@@ -118,6 +119,7 @@ impl Engine {
             "saw" => Saw::new(&mut paras),
             "squ" => Square::new(&mut paras),
             "linrange" => LinRange::new(&mut paras),
+            "choose" => Choose::new(&mut paras),
             _ => Pass::new(name),
             // panic!("cannot match a node")
         };

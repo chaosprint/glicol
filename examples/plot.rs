@@ -4,15 +4,16 @@ use quaverseries_rs::Engine;
 
 fn main () {
     let mut engine = Engine::new();
-    engine.set_code("&trigger: speed 16.0 >> loop 45 48 50 48 55 53 55 57
+    engine.set_code("~test: choose 30 50 70");
+    // engine.set_code("&trigger: speed 16.0 >> loop 45 48 50 48 55 53 55 57
 
-    &env: &trigger >> envperc 0.01 0.1 >> mul 0.5
+    // &env: &trigger >> envperc 0.01 0.1 >> mul 0.5
     
-    &pitch: &trigger >> mul 261.626
+    // &pitch: &trigger >> mul 261.626
     
-    ~lead: saw &pitch >> mul &env >> lpf &mod 2.0
+    // ~lead: saw &pitch >> mul &env >> lpf &mod 2.0
     
-    &mod: sin 0.2 >> linrange 1000 3000");
+    // &mod: sin 0.2 >> linrange 1000 3000");
     // engine.set_code("&a: noiz 0 >> mul 1 >> add 40
 
     //     &trigger: speed 16 >> loop &a
@@ -45,7 +46,7 @@ fn main () {
     let mut y = Vec::<f32>::new();
     let mut n = 0;
 
-    for _ in 0..(88200.0*2.0/64.0) as usize {
+    for _ in 0..(128.0*2.0/64.0) as usize {
         let out = engine.gen_next_buf_64();
         for i in 0..64 {
             x.push(n);
