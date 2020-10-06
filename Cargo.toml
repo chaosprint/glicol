@@ -1,5 +1,5 @@
 [package]
-name = "quaverseries-rs"
+name = "glicol"
 version = "0.1.0"
 authors = ["chaosprint <chaosprint@gmail.com>"]
 edition = "2018"

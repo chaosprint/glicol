@@ -1,4 +1,5 @@
-block = {(line ~ "\n"*) +}
+block = {((line|comment) ~ "\n"*) +}
+comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE+ ~ !NEWLINE}
 line = { reference ~ ":"? ~ chain}
 chain = { (func ~ (">>")? )+ }
 func = { name? ~ paras+ }

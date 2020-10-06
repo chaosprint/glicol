@@ -1,21 +1,17 @@
 use std::{collections::HashMap};
 
 extern crate pest;
-#[macro_use]
 extern crate pest_derive;
-
 use pest::Parser;
 use pest::iterators::Pairs;
-#[derive(Parser)]
-#[grammar = "parser/quaver.pest"]
-pub struct QParser;
+mod parser;
+use parser::*;
 
 use dasp_graph::{NodeData, BoxedNodeSend, Processor};
-use petgraph::{Graph, Directed};
 use petgraph::graph::{NodeIndex, DiGraph};
+use petgraph::{Graph, Directed};
 
 mod node;
-
 use node::adc::{Adc, AdcSource};
 use node::oscillator::{SinOsc, Impulse, Saw, Square};
 use node::operator::{Add, Mul};
@@ -167,7 +163,7 @@ impl Engine {
         // self.control_nodes.clear();
         // self.graph.clear();
 
-        let lines = QParser::parse(Rule::block, self.code)
+        let lines = GlicolParser::parse(Rule::block, self.code)
         .expect("unsuccessful parse")
         .next().unwrap();
 

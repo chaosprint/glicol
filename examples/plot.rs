@@ -1,10 +1,14 @@
 // you should install gnuplot on your os
 use gnuplot::*;
-use quaverseries_rs::Engine;
+use glicol::Engine;
 
 fn main () {
     let mut engine = Engine::new();
-    engine.set_code("~test: choose 30 50 70");
+    engine.set_code("// comment \n\n~hi: sin 440.0");
+    // engine.set_code("~test: sin 440
+
+    // ~another: sin 441
+    // ");
     // engine.set_code("&trigger: speed 16.0 >> loop 45 48 50 48 55 53 55 57
 
     // &env: &trigger >> envperc 0.01 0.1 >> mul 0.5
@@ -46,7 +50,7 @@ fn main () {
     let mut y = Vec::<f32>::new();
     let mut n = 0;
 
-    for _ in 0..(128.0*2.0/64.0) as usize {
+    for _ in 0..(44100.0*2.0/64.0) as usize {
         let out = engine.gen_next_buf_64();
         for i in 0..64 {
             x.push(n);
