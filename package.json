@@ -1,11 +1,12 @@
 {
-  "name": "quaverseries-wasm",
+  "name": "glicl-wasm",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
     "@material-ui/core": "^4.3.1",
-    "@material-ui/icons": "^4.2.1",
+    "@material-ui/icons": "^4.9.1",
     "ace-builds": "^1.4.9",
+    "clsx": "^1.1.1",
     "fs": "^0.0.1-security",
     "node-bwf-wav-file-reader": "^1.0.3",
     "react": "^16.8.6",

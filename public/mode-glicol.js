@@ -1,6 +1,6 @@
 // this file should be copied to node_modules/brace/mode
 
-ace.define("ace/mode/quaver_highlight_rules", ["require", "exports", "module", "ace/lib/oop", "ace/mode/text_highlight_rules"], function (acequire, exports, module) {
+ace.define("ace/mode/glicol_highlight_rules", ["require", "exports", "module", "ace/lib/oop", "ace/mode/text_highlight_rules"], function (acequire, exports, module) {
   "use strict";
 
   var oop = acequire("../lib/oop");
@@ -9,15 +9,15 @@ ace.define("ace/mode/quaver_highlight_rules", ["require", "exports", "module", "
 
   var TextHighlightRules = acequire("./text_highlight_rules").TextHighlightRules;
 
-  var QuaverHighlightRules = function QuaverHighlightRules() {
+  var GlicolHighlightRules = function GlicolHighlightRules() {
 
-    var keywordControls = "loop|bpm|line|shift|every|speed|choose|range|play|set_gate|set_gate_all|midi_out|mul|add|";
+    var keywordControls = "loop|bpm|line|shift|every|speed|choose|range|play|set_gate|set_gate_all|midi_out|mul|add|envperc|linrange";
 
     var storageType = "sin|saw|squ|imp|pwm|brown|white|pink|noiz|membrane|sin_synth|saw_synth|squ_synth|tri_synth|sampler|pluck|metalphone|fm_synth|lfo|sin_lfo|tri_lfo|saw_lfo|squ_lfo|pink_noise|brown_noise|white_noise"
 
     var storageModifiers = "";
     var keywordOperators = ">>|->|="
-    var builtinConstants = "mul|add||amp|pan|bpf|bnf|rlpf|rhpf|lpf|hpf|reverb|pingpong|jcreverb|freeverb|delay|adsr|env_perc"
+    var builtinConstants = "amp|pan|bpf|bnf|rlpf|rhpf|lpf|hpf|reverb|pingpong|jcreverb|freeverb|delay|"
 
     var keywordMapper = this.$keywords = this.createKeywordMapper({
         "keyword.control" : keywordControls,
@@ -40,13 +40,13 @@ ace.define("ace/mode/quaver_highlight_rules", ["require", "exports", "module", "
         regex: "//",
         next: "singleLineComment"
       }, {
-        token: "variable.parameter",
-        regex: "(((((_)+)?((~)[a-z])((_)+)?)+)|(_))(\\s|\\n|~)?\\b"
+        token: "variable.parameter", // compound note
+        regex: "(((((_)+)?((~|&)[a-z])((_)+)?)+)|(_))(\\s|\\n|(~|&))?\\b"
       }, {
         token : "support.constant",
         regex : ","
       }, {
-        token: "meta.tag",
+        token: "meta.tag", // float
         regex: "[-+]?([0-9]{1,}[\.][0-9]+)"
         // regex : "[+-]?\\d+(?:(?:\\.\\d*)?(?:[eE][+-]?\\d+)?)?(?:L|l|UL|ul|u|U|F|f|ll|LL|ull|ULL)?\\b"
       }, {
@@ -88,18 +88,18 @@ ace.define("ace/mode/quaver_highlight_rules", ["require", "exports", "module", "
     };
   };
 
-  oop.inherits(QuaverHighlightRules, TextHighlightRules);
-  exports.QuaverHighlightRules = QuaverHighlightRules;
+  oop.inherits(GlicolHighlightRules, TextHighlightRules);
+  exports.GlicolHighlightRules = GlicolHighlightRules;
 });
-ace.define("ace/mode/quaver", ["require", "exports", "module", "ace/lib/oop", "ace/mode/text", "ace/mode/quaver_highlight_rules"], function (acequire, exports, module) {
+ace.define("ace/mode/glicol", ["require", "exports", "module", "ace/lib/oop", "ace/mode/text", "ace/mode/glicol_highlight_rules"], function (acequire, exports, module) {
   "use strict";
 
   var oop = acequire("../lib/oop");
   var TextMode = acequire("./text").Mode;
-  var QuaverHighlightRules = acequire("./quaver_highlight_rules").QuaverHighlightRules;
+  var GlicolHighlightRules = acequire("./glicol_highlight_rules").GlicolHighlightRules;
 
   var Mode = function Mode() {
-    this.HighlightRules = QuaverHighlightRules;
+    this.HighlightRules = GlicolHighlightRules;
     this.$behaviour = this.$defaultBehaviour;
   };
 
@@ -107,7 +107,7 @@ ace.define("ace/mode/quaver", ["require", "exports", "module", "ace/lib/oop", "a
   (function () {
     this.lineCommentStart = "//"; // this.blockComment = {start:"//", end:""}
 
-    this.$id = "ace/mode/quaver";
+    this.$id = "ace/mode/glicol";
   }).call(Mode.prototype);
   exports.Mode = Mode;
 });

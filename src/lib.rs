@@ -5,12 +5,12 @@
 #[macro_use]
 extern crate lazy_static;
 
-use std::sync::{Mutex, Arc};
+use std::sync::{Mutex};
 use std::{slice::from_raw_parts_mut};
 
 // mod engine;
-extern crate quaverseries_rs;
-use quaverseries_rs::Engine;
+extern crate glicol;
+use glicol::Engine;
 
 #[no_mangle] // to send buffer to JS
 pub extern "C" fn alloc(size: usize) -> *mut f32 {
@@ -37,8 +37,8 @@ pub extern "C" fn alloc_uint32array(length: usize) -> *mut f32 {
 }
 
 lazy_static! {
-    static ref ENGINE:Arc<Mutex<Engine>> = Arc::new(Mutex::new(Engine::new()));
-    // static ref ENGINE:Mutex<engine::Engine> = Mutex::new(engine::Engine::new());
+    // static ref ENGINE:Arc<Mutex<Engine>> = Arc::new(Mutex::new(Engine::new()));
+    static ref ENGINE:Mutex<Engine> = Mutex::new(Engine::new());
 }
 
 #[no_mangle] // 64 f32 float // -> *mut [u8; 256] 
@@ -105,9 +105,9 @@ pub extern "C" fn run(
 
     // read the code from the text editor
     let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
-    let quaver_code = std::str::from_utf8(encoded).unwrap();
+    let glicol_code = std::str::from_utf8(encoded).unwrap();
     // push the code to engine
-    engine.set_code(quaver_code.to_string());
+    engine.set_code(glicol_code);
     engine.update();
 }
 
@@ -117,9 +117,9 @@ pub extern "C" fn update(arr_ptr: *mut u8, length: usize) {
     // assert!(engine.elapsed_samples > 44100, "update clock is starting from zero");
     // read the code from the text editor
     let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
-    let quaver_code = std::str::from_utf8(encoded).unwrap();
+    let glicol_code = std::str::from_utf8(encoded).unwrap();
     // push the code to engine
-    engine.set_code(quaver_code.to_string());
+    engine.set_code(glicol_code);
     engine.update();
 }
 
@@ -127,8 +127,14 @@ pub extern "C" fn update(arr_ptr: *mut u8, length: usize) {
 pub extern "C" fn run_without_samples(arr_ptr: *mut u8, length: usize) {
     let mut engine = ENGINE.lock().unwrap();
     let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
-    let quaver_code = std::str::from_utf8(encoded).unwrap();
-    engine.set_code(quaver_code.to_string());
+    let glicol_code = std::str::from_utf8(encoded).unwrap();
+    engine.set_code(glicol_code);
     engine.update();
-    engine.parse();
+    engine.make_graph();
+}
+
+#[no_mangle]
+pub extern "C" fn reset() {
+    let mut engine = ENGINE.lock().unwrap();
+    engine.reset();
 }

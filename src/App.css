@@ -1,4 +1,4 @@
-.main{
+/* .main{
     text-align: left;
     border-radius: 20px;
     width: 800px;
@@ -9,7 +9,17 @@
     left: 0;
     right: 0;
     bottom: 0;
-  }
-  p{
-    font-family: 'Inconsolata', monospace;
-  }
+  } */
+h3{
+  font-family: 'Inconsolata', monospace;
+}
+h3{
+  font-family: 'Inconsolata', monospace;
+}
+p{
+  font-family: 'Inconsolata', monospace;
+}
+
+.text{
+  font-family: 'Inconsolata', monospace;
+}

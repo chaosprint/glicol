@@ -1,4 +1,4 @@
-class QuaverEngine extends AudioWorkletProcessor {
+class GlicolEngine extends AudioWorkletProcessor {
     static get parameterDescriptors() {
         return [
           {
@@ -122,4 +122,4 @@ class QuaverEngine extends AudioWorkletProcessor {
     }
 }
 
-registerProcessor('quaver-engine', QuaverEngine)
+registerProcessor('glicol-engine', GlicolEngine)

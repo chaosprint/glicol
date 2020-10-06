@@ -1,8 +1,41 @@
 const exampleCode = 
+`&a: noiz 0 >> mul 2 >> add 40
 
-`&mod: sin 3.0 >> mul 2000.0 >> add 3000.0
+&b: choose 35 47
 
-~aa: noiz \\raw >> lpf &mod`
+&trigger: speed 8.0 >> loop &a &b
+
+&env: &trigger >> envperc 0.01 0.1 >> mul 0.5
+
+&pitch: &trigger >> mul 261.626
+
+~lead: saw &pitch >> mul &env >> lpf &cut 3.0
+
+&cut: sin 0.3 >> linrange 300.0 3000.0`
+
+// `&a: noiz 0 >> mul 10 >> add 60
+
+// &trigger: loop &a
+
+// &env: &trigger >> envperc 0.01 0.1 >> mul 0.5
+
+// &pitch: &trigger >> mul 261.626
+
+// ~lead: saw &pitch >> mul &env`
+
+// `&trigger: speed 3.0 >> loop 30 32 33 35 37 39 40 41
+
+// &env: &trigger >> env_perc 0.01 0.1 >> mul 0.5
+
+// &pitch: &trigger >> mul 261.626
+
+// ~lead: saw &pitch >> mul &env >> lpf &mod 1.0
+
+// &mod: sin 0.2 >> mul 3000.0 >> add 5000.0`
+// "~aa: loop 60 >> sampler \\bd"
+// `&mod: sin 3.0 >> mul 2000.0 >> add 3000.0
+
+// ~aa: noiz \\raw >> lpf &mod 1.0`
 
 // `&mod: sin 4.9 >> mul 2000.0 >> add 3000.0
 
