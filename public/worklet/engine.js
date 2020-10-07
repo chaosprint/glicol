@@ -62,11 +62,11 @@ class GlicolEngine extends AudioWorkletProcessor {
                 nameLenArr.push(nameLen)
 
                 // need to reset this
-                this._outBuf = new Float32Array(
-                    this._wasm.exports.memory.buffer,
-                    this._outPtr,
-                    this._size
-                )
+                // this._outBuf = new Float32Array(
+                //     this._wasm.exports.memory.buffer,
+                //     this._outPtr,
+                //     this._size
+                // )
             } else if (e.data.type === "run") {
 
                 console.log("samplePtr, Length", samplePtr, sampleLength)
@@ -111,6 +111,11 @@ class GlicolEngine extends AudioWorkletProcessor {
         let output = outputs[0]
         for (let channel = 0; channel < output.length; ++channel) {
             this._wasm.exports.process(this._outPtr, this._size)
+            this._outBuf = new Float32Array(
+                this._wasm.exports.memory.buffer,
+                this._outPtr,
+                this._size
+            )
             output[channel].set(this._outBuf)
             // console.log(this._outBuf)
         }

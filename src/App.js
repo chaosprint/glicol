@@ -5,7 +5,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 import GitHubIcon from '@material-ui/icons/GitHub';
 import PlayCircleFilledIcon from '@material-ui/icons/PlayCircleFilled';
 import PauseCircleFilledIcon from '@material-ui/icons/PauseCircleFilled';
-import PanoramaFishEyeIcon from '@material-ui/icons/PanoramaFishEye';
+import RotateLeftIcon from '@material-ui/icons/RotateLeft';
 import clsx from 'clsx';
 import { useStyles, theme } from './styles'
 
@@ -221,7 +221,7 @@ export default function App() {
           onClick={handleStop}
           className={clsx(sideOpen && classes.hide)}
         >
-          <PanoramaFishEyeIcon   fontSize="large" />
+          <RotateLeftIcon   fontSize="large" />
         </IconButton>
         </Tooltip>
         
@@ -248,6 +248,8 @@ export default function App() {
           }}
         >
         <Toolbar>
+
+        <Typography>v0.1.0</Typography>
         <div className={classes.menu}>
         <IconButton
           href="https://github.com/glicol/glicol"

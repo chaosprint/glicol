@@ -11,7 +11,7 @@ ace.define("ace/mode/glicol_highlight_rules", ["require", "exports", "module", "
 
   var GlicolHighlightRules = function GlicolHighlightRules() {
 
-    var keywordControls = "loop|bpm|line|shift|every|speed|choose|range|play|set_gate|set_gate_all|midi_out|mul|add|envperc|linrange";
+    var keywordControls = "seq|loop|bpm|line|shift|every|speed|choose|range|play|set_gate|set_gate_all|midi_out|mul|add|envperc|linrange";
 
     var storageType = "sin|saw|squ|imp|pwm|brown|white|pink|noiz|membrane|sin_synth|saw_synth|squ_synth|tri_synth|sampler|pluck|metalphone|fm_synth|lfo|sin_lfo|tri_lfo|saw_lfo|squ_lfo|pink_noise|brown_noise|white_noise"
 
