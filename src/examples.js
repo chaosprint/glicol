@@ -17,7 +17,7 @@ const am =
 
 ~hi: sin 440.0 >> mul &am
 
-&am: sin 0.2 >> mul 0.3 >> add 0.5`
+&am: sin 1.5 >> mul 0.3 >> add 0.5`
 
 const fm = 
 `~hi: sin &fm >> mul &am

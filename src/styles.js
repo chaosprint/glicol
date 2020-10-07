@@ -3,6 +3,8 @@ import { createMuiTheme } from '@material-ui/core/styles';
 import { red, green  } from '@material-ui/core/colors';
 // grey
 const theme = createMuiTheme({
+  spacing: 0,
+  margin: -5,
   palette: {
     primary: {
       // light: will be calculated from palette.primary.main,
@@ -27,13 +29,17 @@ const buttonTheme = createMuiTheme({
 });
 
 const drawerWidth = 240;
+
 const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
     flexGrow: 1,
   },
   appBar: {
-    transition: theme.transitions.create(['margin', 'width'], {
+      // position: 'absolote',
+      margin: 0,
+      padding: 0,
+      transition: theme.transitions.create(['margin', 'width'], {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
     }),
@@ -47,7 +53,7 @@ const useStyles = makeStyles((theme) => ({
     marginRight: drawerWidth,
   },
   title: {
-    flexGrow: 1,
+    // flexGrow: 1,
   },
   hide: {
     display: 'none',
@@ -76,8 +82,8 @@ const useStyles = makeStyles((theme) => ({
     // justifyContent: 'flex-start',
   },
   content: {
-    flexGrow: 1,
-    padding: theme.spacing(3),
+    // flexGrow: 1,
+    // padding: theme.spacing(3),
     transition: theme.transitions.create('margin', {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
@@ -93,14 +99,20 @@ const useStyles = makeStyles((theme) => ({
   },
   button: {
     width: 80,
-    margin: theme.spacing(1),
+    margin: theme.spacing(-1, -1),
   },
   text: {
     typography: {
       fontFamily: '\'Inconsolata\', monospace'
       // fontFamily: 'Inconsolata'
     }
-  }
+  },
+  editor: {
+    margin: theme.spacing(-1, -1),
+    position: 'fixed',
+    // width: "100%",
+    // height: 700
+  },
 }));
 
 // const useStyles = makeStyles(theme => ({

@@ -7,7 +7,7 @@ import PlayCircleFilledIcon from '@material-ui/icons/PlayCircleFilled';
 import PauseCircleFilledIcon from '@material-ui/icons/PauseCircleFilled';
 import PanoramaFishEyeIcon from '@material-ui/icons/PanoramaFishEye';
 import clsx from 'clsx';
-import { useStyles, theme, buttonTheme } from './styles'
+import { useStyles, theme } from './styles'
 
 // import {readFile} from 'fs';
 import { WaveFile } from 'wavefile';
@@ -101,15 +101,7 @@ export default function App() {
         }
       }
   }
-  // const handlePause = () => {
-  //   if (isPlaying) {
-  //     actx.current.suspend();
-  //     setIsPlaying(false)
-  //   } else {
-  //     actx.current.resume();
-  //     setIsPlaying(true)
-  //   }
-  // }
+
   const change = (v) => {
     setCode(v)
     codeRef.current = v
@@ -118,12 +110,16 @@ export default function App() {
 
   const setSize = () => {
     try {
-        let w = document.getElementById('AppBar').offsetWidth;
+        // let w1 = document.getElementById('AppBar').offsetWidth;
+        // let w1 = 0;
+        let w = window.innerWidth;
+        // let w = w1 < w2 ? w1 : w2
         let h = window.innerHeight;
         h -= document.getElementById('AppBar').offsetHeight
         setHeight(h)
         setWidth(w)
-    } catch {}
+        console.log(w, h)
+    } catch (e) {console.log(e)}
   }
   window.onresize = setSize
 
@@ -179,15 +175,15 @@ export default function App() {
 
   
   return (
-    <div className='App'>
-      <div className="main">
+    <div className="App">
         <ThemeProvider theme={theme}>
-        <AppBar position="static" id="AppBar">
+        <AppBar
+          className={classes.appBar}
+          id="AppBar"
+        >
         <Toolbar>
-          <ThemeProvider theme={buttonTheme}>
 
-          
-          {!running ? (
+        { !running ? (
 
           <Tooltip title="Run (cmd + enter / ctrl + enter)">
           <IconButton
@@ -197,9 +193,11 @@ export default function App() {
             onClick={handleRun}
             className={clsx(sideOpen && classes.hide)}
           >
-            <PlayCircleFilledIcon  fontSize="large" />
+          <PlayCircleFilledIcon  fontSize="large" />
           </IconButton>
-          </Tooltip> ) : (
+          </Tooltip>
+
+        ) : (
 
           <Tooltip title="Pause">
           <IconButton
@@ -209,60 +207,194 @@ export default function App() {
             onClick={handlePause}
             className={clsx(sideOpen && classes.hide)}
           >
-            <PauseCircleFilledIcon fontSize="large" />
-          </IconButton>
-          </Tooltip> )}
-
-          <Tooltip title="Stop">
-          <IconButton
-            color="inherit"
-            aria-label="Stop (cmd + shift + . / ctrl + shift + .)"
-            edge="end"
-            onClick={handleStop}
-            className={clsx(sideOpen && classes.hide)}
-          >
-            <PanoramaFishEyeIcon   fontSize="large" />
+          <PauseCircleFilledIcon fontSize="large" />
           </IconButton>
           </Tooltip>
+          
+        )}
 
-          {/* <Button
-            variant="contained"
-            style={{borderRadius:0, fontFamily: 'Inconsolata'}}
-            color="primary"
-            onClick={loadSamples}
-          >Load</Button>*/}
-          </ThemeProvider> 
+        <Tooltip title="Stop">
+        <IconButton
+          color="inherit"
+          aria-label="Stop (cmd + shift + . / ctrl + shift + .)"
+          edge="end"
+          onClick={handleStop}
+          className={clsx(sideOpen && classes.hide)}
+        >
+          <PanoramaFishEyeIcon   fontSize="large" />
+        </IconButton>
+        </Tooltip>
+        
+        <div className={classes.menu}>
+        <IconButton
+          color="inherit"
+          aria-label="open drawer"
+          edge="end"
+          onClick={()=>setSideOpen(true)}
+          className={clsx(sideOpen && classes.hide)}
+        >
+        <MenuIcon />
+        </IconButton>
+        </div>
 
-          <div className={classes.menu}>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="end"
-            onClick={()=>setSideOpen(true)}
-            className={clsx(sideOpen && classes.hide)}
-          >
-            <MenuIcon />
-          </IconButton>
-          </div>
+        <Drawer
+          className={classes.drawer}
+          // variant="persistent"
+          anchor="right"
+          open={sideOpen}
+          onClose={()=>setSideOpen(false)}
+          classes={{
+            paper: classes.drawerPaper,
+          }}
+        >
+        <Toolbar>
+        <div className={classes.menu}>
+        <IconButton
+          href="https://github.com/glicol/glicol"
+          target="_blank"
+          rel="noopener noreferrer"
+          // data-show-count="true"
+          aria-label="GitHub"
+          color="inherit"
+          // aria-label="open drawer"
+          edge="end"
+        ><GitHubIcon />
+        </IconButton>
+        </div>
+        </Toolbar>
+
+        <Divider />
+
+        <List>
+        <ListItem
+          button
+          onClick={()=>{handleList(hello)}}
+        >
+        <ListItemText
+          primary={
+          <Typography
+            style={{ fontFamily: '\'Inconsolata\', monospace'}}
+          >hello world.</Typography>
+        }
+        />
+        </ListItem>
+        </List>
+
+        <List>
+        <ListItem
+          button
+          onClick={()=>{handleList(am)}}
+        >
+        <ListItemText
+          primary={
+          <Typography
+            style={{ fontFamily: '\'Inconsolata\', monospace'}}
+          >am.</Typography>
+        }
+        />
+        </ListItem>
+        </List>
+
+        <List>
+        <ListItem
+          button
+          onClick={()=>{handleList(fm)}}
+        >
+        <ListItemText
+          primary={
+          <Typography
+            style={{ fontFamily: '\'Inconsolata\', monospace'}}
+          >fm.</Typography>
+        }
+        />
+        </ListItem>
+        </List>
+
+        <Divider />
+
+        <List>
+        <ListItem
+          button
+          onClick={()=>{handleList(usesample)}}
+        >
+        <ListItemText
+          primary={
+          <Typography
+            style={{ fontFamily: '\'Inconsolata\', monospace'}}
+          >use samples.</Typography>
+        }
+        />
+        </ListItem>
+        </List>
+
+        <List>
+        <ListItem
+          button
+          onClick={()=>{handleList(envelope)}}
+        >
+        <ListItemText
+          primary={
+          <Typography
+            style={{ fontFamily: '\'Inconsolata\', monospace'}}
+          >envelope.</Typography>
+        }
+        />
+        </ListItem>
+        </List>
+
+        <Divider />
+
+        <List>
+        <ListItem
+          button
+          onClick={()=>{handleList(filter)}}
+        >
+        <ListItemText
+          primary={
+          <Typography
+            style={{ fontFamily: '\'Inconsolata\', monospace'}}
+          >filter.</Typography>
+        }
+        />
+        </ListItem>
+        </List>
+
+        <Divider />
+
+        <List>
+        <ListItem
+          button
+          onClick={()=>{handleList("~sin: sin 110.0")}}>
+        <ListItemText
+          primary={<Typography
+          style={{ fontFamily: '\'Inconsolata\', monospace'}}
+          >template - synthesis.
+        </Typography>}
+        ></ListItemText>
+        </ListItem>
+        </List>
+
+        <List>
+        <ListItem
+          button
+          onClick={()=>{handleList("~bd: loop 60 >> sampler \\bd"); loadSamples();}}>
+        <ListItemText
+          primary={<Typography
+          style={{ fontFamily: '\'Inconsolata\', monospace'}}
+          >template - use samples.
+        </Typography>}
+        ></ListItemText>
+        </ListItem>
+        </List>
+        
+        </Drawer>
+
         </Toolbar> 
         </AppBar>
-        </ThemeProvider>
-
-                {/* <Button
-          variant="contained"
-          style={{borderRadius:0, fontFamily: 'Inconsolata'}}
-          color={isPlaying? "secondary" : "primary"}
-          onClick={handlePause}
-        >{isPlaying? "Off": "On"}</Button> */}
-
-        {/* <Button
-          variant="contained"
-          color="default"
-          style={{borderRadius:0, fontFamily: 'Inconsolata'}}
-          onClick={handleRun}
-        >Run</Button> */}
+        <Toolbar />
 
         <AceEditor
+          className={classes.editor}
           mode="glicol"
           theme="tomorrow-night"
           fontSize = {18}
@@ -287,129 +419,9 @@ export default function App() {
             exec: handleStop //function to execute when keys are pressed.
           }]}
         />
-
-      <Drawer
-        className={classes.drawer}
-        // variant="persistent"
-        anchor="right"
-        open={sideOpen}
-        onClose={()=>setSideOpen(false)}
-        classes={{
-          paper: classes.drawerPaper,
-        }}
-      >
-        <Toolbar>
-        <div className={classes.text}>
-          {/* <h3>GLiCoL</h3> */}
-          <Typography>v0.1.0</Typography>
-        </div>
-        <div className={classes.menu}>
-          <IconButton
-            href="https://github.com/glicol/glicol"
-            target="_blank"
-            rel="noopener noreferrer"
-            // data-show-count="true"
-            aria-label="GitHub"
-            color="inherit"
-            // aria-label="open drawer"
-            edge="end"
-          >
-            <GitHubIcon />
-        </IconButton>
-        </div>
-        </Toolbar>
-        <Divider />
-        {/* <div className={classes.drawerHeader}>
-          <IconButton onClick={()=>setSideOpen(false)}>
-            <MenuIcon />
-            {/* {theme.direction === 'rtl' ? <ChevronLeftIcon /> : <ChevronRightIcon />} */}
-          {/* </IconButton>  */}
-        {/* </div> */}
-        {/* <Divider /> */}
-        <div className={classes.text}>
+        </ThemeProvider>
         
-        <List>
-          <ListItem
-            button
-            key="Hello"
-            onClick={()=>{handleList(hello)}}
-          ><ListItemText
-          primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>hello world.</Typography>}
-          /></ListItem>
-        </List>
+     </div>
 
-        <List>
-          <ListItem
-            button
-            key="Hello"
-            onClick={()=>{handleList(am)}}
-          ><ListItemText
-          primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>am.</Typography>}
-          /></ListItem>
-        </List>
-
-        <List>
-          <ListItem
-            button
-            key="Hello"
-            onClick={()=>{handleList(fm)}}
-          ><ListItemText
-          primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>fm.</Typography>}
-          /></ListItem>
-        </List>
-
-        <Divider />
-        <List>
-          <ListItem
-            button
-            key="Hello"
-            onClick={()=>{loadSamples(); handleList(usesample)}}
-          ><ListItemText
-          primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>use samples.</Typography>}
-          /></ListItem>
-        </List>
-        <List>
-        <ListItem
-          button
-          key="Hello"
-          onClick={()=>{loadSamples(); handleList(envelope)}}
-        ><ListItemText
-        primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>envelope.</Typography>}
-        /></ListItem>
-      </List>
-        <Divider />
-        <List>
-          <ListItem
-            button
-            key="Hello"
-            onClick={()=>{setCode(filter);  setSideOpen(false); codeRef.current=filter}}
-          ><ListItemText
-          primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>filter.</Typography>}
-          /></ListItem>
-        </List>
-        <Divider />
-        <List>
-          <ListItem button key="sin" onClick={()=>{let c = "~sin: sin 110.0"; setCode(c);  setSideOpen(false); codeRef.current = c}}>
-            <ListItemText
-              primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>template - synthesis.</Typography>}
-            ></ListItemText>
-            </ListItem>
-        </List>
-        <List>
-          <ListItem
-          button key="sample"
-          onClick={()=>{let c = "// check the console for more available samples.\n\n~bd: loop 60 >> sampler \\bd"; loadSamples(); setCode(c); setSideOpen(false); codeRef.current = c}}>
-            <ListItemText
-            
-            primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>template - samples.</Typography>}
-
-            />
-            </ListItem>
-        </List>
-        </div>
-      </Drawer>
-
-      </div>
-    </div>
   );
 }
