@@ -1,5 +1,61 @@
-const exampleCode = 
-`&a: noiz 0 >> mul 2 >> add 40
+const hello = 
+`~hi: sin 440.0
+
+// if this doesn't play, check your browser console
+// chrome or firefox are recommended
+
+
+// this is a comment
+// uncomment the line below, and click on the play button again
+// ~another: sin 441.0`
+
+const am = 
+`// you can modulate a parameter using the following syntax.
+// it doesn't matter you write &am line before or after using it
+// however, remember that reference beginning with "~" will be played
+// while the ones beginning with "&" with be processed as a control signal
+
+~hi: sin 440.0 >> mul &am
+
+&am: sin 0.2 >> mul 0.3 >> add 0.5`
+
+const fm = 
+`~hi: sin &fm >> mul &am
+
+&am: sin 0.2 >> mul 0.3 >> add 0.5
+
+// this linrange node map -1.0 to 1.0 the range you give
+&fm: sin &more >> linrange 100.0 1000.0
+
+&more: sin 0.1 >> linrange 1.0 100.0"
+`
+
+const usesample = 
+`// "imp" is used to trigger the sampler
+// the default output amp of "imp" is 1.0
+// you can multiply a float to change the pitch
+
+~imp: imp 1.0 >> mul 1.0 >> sampler \\bd
+
+// loop is a good way to work with midi pitches
+// try to uncomment the following lines to see the difference
+
+// ~tt: loop 60 >> sampler \\casio
+
+// ~tt: loop 48 50 >> sampler \\casio
+
+// ~tt: loop 48 _50 >> sampler \\casio
+
+// ~tt: loop 48 _ _50 _ >> sampler \\casio
+
+// ~tt: speed 2.0 >> loop 48 _ _50 _ >> sampler \\casio`
+
+const filter = 
+`// if there is no sound, check the console for errors
+// make sure you are using Chrome or FireFox
+// if you do, one solution can be to use the incog mode (cmd + shift + n)
+
+&a: noiz 0 >> mul 2 >> add 40
 
 &b: choose 35 47
 
@@ -12,6 +68,24 @@ const exampleCode =
 ~lead: saw &pitch >> mul &env >> lpf &cut 3.0
 
 &cut: sin 0.3 >> linrange 300.0 3000.0`
+
+const envelope = 
+
+`// use 'imp' to trigger an envelop
+
+&tri: imp 1.0 >> envperc 0.01 0.5
+
+~lead: sin 100.0 >> mul &tri
+
+// use the loop to give it a pitch
+
+// &lp: loop 60 _48 _72 _60
+
+// &pitch: &lp >> mul 261.626
+
+// &tri: &lp >> envperc 0.01 0.5
+
+// ~lead: sin &pitch >> mul &tri`
 
 // `&a: noiz 0 >> mul 10 >> add 60
 
@@ -105,4 +179,4 @@ const exampleCode =
 // ~hook: loop 40 _80_34 73__65 42 >> sampler \\808hc
 
 // ~jazz: loop _60 >> sampler \\jazz`
-export {exampleCode}
+export {hello, am, fm, envelope, usesample, filter}

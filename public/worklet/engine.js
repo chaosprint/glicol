@@ -2,13 +2,9 @@ class GlicolEngine extends AudioWorkletProcessor {
     static get parameterDescriptors() {
         return [
           {
-            name: 'freq',
-            defaultValue: 440.0
-          },
-          {
-            name: 'cutoff',
-            defaultValue: 1000.0
-          },
+            name: 'amp',
+            defaultValue: 1.0
+          }
         ]
     }
     constructor() {

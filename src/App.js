@@ -1,18 +1,18 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { AppBar, Tooltip, Toolbar, Button, IconButton, Drawer, List, ListItem, ListItemText, Divider, Typography } from '@material-ui/core'
+import { AppBar, Tooltip, Toolbar, IconButton, Drawer, List, ListItem, ListItemText, Divider, Typography } from '@material-ui/core'
 import { ThemeProvider } from '@material-ui/styles';
 import MenuIcon from '@material-ui/icons/Menu';
 import GitHubIcon from '@material-ui/icons/GitHub';
 import PlayCircleFilledIcon from '@material-ui/icons/PlayCircleFilled';
 import PauseCircleFilledIcon from '@material-ui/icons/PauseCircleFilled';
-// import  from '@material-ui/icons';
+import PanoramaFishEyeIcon from '@material-ui/icons/PanoramaFishEye';
 import clsx from 'clsx';
-import { useStyles, theme, buttonTheme, modalStyle} from './styles'
-import './App.css'
+import { useStyles, theme, buttonTheme } from './styles'
 
+// import {readFile} from 'fs';
 import { WaveFile } from 'wavefile';
 import sampleList from './samples.json';
-import {exampleCode} from './example'
+import {hello, am, fm, usesample, envelope, filter} from './examples'
 
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-glicol";
@@ -23,33 +23,49 @@ export default function App() {
   const classes = useStyles();
 
   const actx = useRef()
+  const loaded = useRef(false)
   const node = useRef()
   // const [url, setUrl] = useState('alex, 0')
-  const [code, setCode] = useState(exampleCode)
+  const [code, setCode] = useState(filter)
   const codeRef = useRef(code)
   // const [isPlaying, setIsPlaying] = useState(false)
   const encoder = new TextEncoder('utf-8');
   const [height, setHeight] = useState(800)
   const [width, setWidth] = useState(600)
 
+  const [running, setRunning] = useState(false)
   const [sideOpen, setSideOpen] = useState(false)
 
   const loadModule = async () => {
     // Note the the path is from public folder
     actx.current = new window.AudioContext()
-    await actx.current.audioWorklet.addModule('worklet/engine.js')
 
+    // const processorPath = isDevMode ? 'public/worklet/engine.js' : `${global.__dirname}/worklet/engine.js`;
+    // const processorPath = 'worklet/engine.js'
+    // const processorSource = await readFile(processorPath); // just a promisified version of fs.readFile
+    // const processorBlob = new Blob([processorSource.toString()], { type: 'text/javascript' });
+    // const processorURL = URL.createObjectURL(processorBlob);
+    // await actx.current.audioWorklet.addModule(processorURL);
+
+    await actx.current.audioWorklet.addModule('./worklet/engine.js')
     node.current = new AudioWorkletNode(actx.current, 'glicol-engine')
+
     fetch('wasm/glicol_wasm.wasm')
     .then(response => response.arrayBuffer())
     .then(arrayBuffer => node.current.port.postMessage({type: "load", obj: arrayBuffer}))
     node.current.connect(actx.current.destination)
+    loaded.current = true
+    console.log("loaded")
 
   };
 
   useEffect(() => {
-    loadModule()
     setSize()
+    try {
+      loadModule()
+    } catch (e) {
+      console.log(e)
+    }
     console.log(sampleList)
   }, []);
 
@@ -99,15 +115,6 @@ export default function App() {
     codeRef.current = v
   }
 
-  const handleRun = () => {
-    actx.current.resume()
-    console.log(codeRef.current)
-    try {
-      node.current.port.postMessage({type: "run", value: encoder.encode(codeRef.current)})
-    } catch (e) {
-      console.log(e)
-    }
-  }
 
   const setSize = () => {
     try {
@@ -122,6 +129,7 @@ export default function App() {
 
   const handleUpdate = () => {
     actx.current.resume()
+    setRunning(true)
     // console.log(codeRef.current)
     try {
       // node.current.port.postMessage({type: "update", value: encoder.encode(code)})
@@ -131,9 +139,36 @@ export default function App() {
     }
   }
 
+  const handleRun = () => {
+    try {
+      actx.current.resume()
+      setRunning(true)
+    } catch (e) {
+      console.log(e)
+    }
+    // console.log(codeRef.current)
+    try {
+      node.current.port.postMessage({type: "run", value: encoder.encode(codeRef.current)})
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
   const handlePause = () => {
     actx.current.suspend()
+    setRunning(false)
     // console.log(codeRef.current)
+  }
+
+  const handleStop = () => {
+    try {
+      actx.current.close();
+      loadModule();
+      setRunning(false)
+    } catch (e) {
+      console.log(e)
+    }
+    console.log("stop") 
   }
 
   const handleList = (code) => {
@@ -145,48 +180,48 @@ export default function App() {
   
   return (
     <div className='App'>
-      <div className="classes.root">
+      <div className="main">
         <ThemeProvider theme={theme}>
         <AppBar position="static" id="AppBar">
         <Toolbar>
           <ThemeProvider theme={buttonTheme}>
 
+          
+          {!running ? (
+
           <Tooltip title="Run (cmd + enter / ctrl + enter)">
-          {/* <Button
-            variant="contained"
-            style={{borderRadius:0, fontFamily: 'Inconsolata'}}
-            color="primary"
-            className={classes.button}
-            onClick={handleRun}
-          >Run</Button> */}
           <IconButton
             color="inherit"
-            aria-label="Play"
+            aria-label="Run"
             edge="end"
             onClick={handleRun}
             className={clsx(sideOpen && classes.hide)}
           >
             <PlayCircleFilledIcon  fontSize="large" />
           </IconButton>
-          </Tooltip>
+          </Tooltip> ) : (
 
           <Tooltip title="Pause">
-
-          {/* <Button
-            variant="contained"
-            style={{borderRadius:0, fontFamily: 'Inconsolata'}}
-            color="secondary"
-            className={classes.button}
-            onClick={handlePause}
-          >Pause</Button> */}
           <IconButton
             color="inherit"
             aria-label="Pause"
             edge="end"
-            onClick={handleRun}
+            onClick={handlePause}
             className={clsx(sideOpen && classes.hide)}
           >
             <PauseCircleFilledIcon fontSize="large" />
+          </IconButton>
+          </Tooltip> )}
+
+          <Tooltip title="Stop">
+          <IconButton
+            color="inherit"
+            aria-label="Stop (cmd + shift + . / ctrl + shift + .)"
+            edge="end"
+            onClick={handleStop}
+            className={clsx(sideOpen && classes.hide)}
+          >
+            <PanoramaFishEyeIcon   fontSize="large" />
           </IconButton>
           </Tooltip>
 
@@ -246,6 +281,10 @@ export default function App() {
             name: 'Update', //name for the key binding.
             bindKey: {win: 'Shift-Enter', mac: 'Shift-Enter'}, //key combination used for the command.
             exec: handleUpdate  //function to execute when keys are pressed.
+          }, {   // commands is array of key bindings.
+            name: 'Stop', //name for the key binding.
+            bindKey: {win: 'Ctrl-Shift-.', mac: 'Command-Shift-.'}, //key combination used for the command.
+            exec: handleStop //function to execute when keys are pressed.
           }]}
         />
 
@@ -260,13 +299,13 @@ export default function App() {
         }}
       >
         <Toolbar>
-        <div className="classes.text">
+        <div className={classes.text}>
           {/* <h3>GLiCoL</h3> */}
-          <p>v0.1.0</p>
+          <Typography>v0.1.0</Typography>
         </div>
         <div className={classes.menu}>
           <IconButton
-            href="https://github.com/gilcol/"
+            href="https://github.com/glicol/glicol"
             target="_blank"
             rel="noopener noreferrer"
             // data-show-count="true"
@@ -287,17 +326,13 @@ export default function App() {
           {/* </IconButton>  */}
         {/* </div> */}
         {/* <Divider /> */}
-        <div className="classes.text">
+        <div className={classes.text}>
         
         <List>
           <ListItem
             button
             key="Hello"
-            onClick={()=>{
-              let code = "~hi: sin 440.0"
-              setCode(code);
-              setSideOpen(false);
-              codeRef.current=exampleCode}}
+            onClick={()=>{handleList(hello)}}
           ><ListItemText
           primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>hello world.</Typography>}
           /></ListItem>
@@ -307,13 +342,9 @@ export default function App() {
           <ListItem
             button
             key="Hello"
-            onClick={()=>{
-              let code = "~hi: sin 440.0 >> mul 0.1"
-              setCode(code);
-              setSideOpen(false);
-              codeRef.current=code}}
+            onClick={()=>{handleList(am)}}
           ><ListItemText
-          primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>amp control.</Typography>}
+          primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>am.</Typography>}
           /></ListItem>
         </List>
 
@@ -321,13 +352,9 @@ export default function App() {
           <ListItem
             button
             key="Hello"
-            onClick={()=>{
-              let code = "~hi: sin 440.0 >> mul &am\n\n&am: sin 0.2 >> mul 0.3 >> add 0.5"
-              setCode(code);
-              setSideOpen(false);
-              codeRef.current=code}}
+            onClick={()=>{handleList(fm)}}
           ><ListItemText
-          primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>amp modulation.</Typography>}
+          primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>fm.</Typography>}
           /></ListItem>
         </List>
 
@@ -336,25 +363,34 @@ export default function App() {
           <ListItem
             button
             key="Hello"
-            onClick={()=>{handleList("~hi: sin 440.0 >> mul &am\n\n&am: sin 0.2 >> mul 0.3 >> add 0.5")}}
+            onClick={()=>{loadSamples(); handleList(usesample)}}
           ><ListItemText
           primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>use samples.</Typography>}
           /></ListItem>
         </List>
+        <List>
+        <ListItem
+          button
+          key="Hello"
+          onClick={()=>{loadSamples(); handleList(envelope)}}
+        ><ListItemText
+        primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>envelope.</Typography>}
+        /></ListItem>
+      </List>
         <Divider />
         <List>
           <ListItem
             button
             key="Hello"
-            onClick={()=>{setCode(exampleCode);  setSideOpen(false); codeRef.current=exampleCode}}
+            onClick={()=>{setCode(filter);  setSideOpen(false); codeRef.current=filter}}
           ><ListItemText
-          primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>all together.</Typography>}
+          primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>filter.</Typography>}
           /></ListItem>
         </List>
         <Divider />
         <List>
           <ListItem button key="sin" onClick={()=>{let c = "~sin: sin 110.0"; setCode(c);  setSideOpen(false); codeRef.current = c}}>
-            <ListItemText className={{primary:classes.text}}
+            <ListItemText
               primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>template - synthesis.</Typography>}
             ></ListItemText>
             </ListItem>
@@ -362,9 +398,9 @@ export default function App() {
         <List>
           <ListItem
           button key="sample"
-          onClick={()=>{let c = "~bd: loop 60 >> sampler \\bd"; loadSamples(); setCode(c); setSideOpen(false); codeRef.current = c}}>
+          onClick={()=>{let c = "// check the console for more available samples.\n\n~bd: loop 60 >> sampler \\bd"; loadSamples(); setCode(c); setSideOpen(false); codeRef.current = c}}>
             <ListItemText
-            className={{primary:classes.text}}
+            
             primary={<Typography style={{ fontFamily: '\'Inconsolata\', monospace'}}>template - samples.</Typography>}
 
             />
