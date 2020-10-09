@@ -104,10 +104,9 @@ pub extern "C" fn run(
     };
 
     // read the code from the text editor
-    let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
-    let glicol_code = std::str::from_utf8(encoded).unwrap();
-    // push the code to engine
-    engine.set_code(glicol_code);
+    let encoded:&'static mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
+    let code: &'static str = std::str::from_utf8(encoded).unwrap();
+    engine.set_code(code);
     engine.update();
 }
 
@@ -117,9 +116,9 @@ pub extern "C" fn update(arr_ptr: *mut u8, length: usize) {
     // assert!(engine.elapsed_samples > 44100, "update clock is starting from zero");
     // read the code from the text editor
     let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
-    let glicol_code = std::str::from_utf8(encoded).unwrap();
+    let code = std::str::from_utf8(encoded).unwrap();
     // push the code to engine
-    engine.set_code(glicol_code);
+    engine.set_code(code);
     engine.update();
 }
 
@@ -127,8 +126,8 @@ pub extern "C" fn update(arr_ptr: *mut u8, length: usize) {
 pub extern "C" fn run_without_samples(arr_ptr: *mut u8, length: usize) {
     let mut engine = ENGINE.lock().unwrap();
     let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
-    let glicol_code = std::str::from_utf8(encoded).unwrap();
-    engine.set_code(glicol_code);
+    let code = std::str::from_utf8(encoded).unwrap();
+    engine.set_code(code);
     engine.update();
     engine.make_graph();
 }
