@@ -1,3 +1,24 @@
+const frontpage = `~bd: speed 1.375 >> loop 60 >> sampler \\breaks165
+
+&a: choose 63 62 58 53
+
+~bass: speed 1.375 >> loop 60 _55 _&a &a _&a _&a >> sampler \\jvbass >> mul 0.4
+
+&c: noiz 0 >> mul 2 >> add 40
+
+&b: choose 63 62 58 53
+
+&trigger: speed 5.5 >> loop &c &b
+
+&env: &trigger >> envperc 0.01 0.1 >> mul 0.5
+
+&pitch: &trigger >> mul 261.626 >> mul 0.5
+
+~lead: saw &pitch >> mul &env >> lpf &cut 3.0
+
+&cut: sin 0.3 >> linrange 300.0 3000.0`
+
+
 const hello = 
 `~hi: sin 440.0
 
@@ -178,4 +199,4 @@ const envelope =
 // ~hook: loop 40 _80_34 73__65 42 >> sampler \\808hc
 
 // ~jazz: loop _60 >> sampler \\jazz`
-export {hello, am, fm, envelope, usesample, filter}
+export {hello, am, fm, envelope, usesample, filter, frontpage}

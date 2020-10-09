@@ -14,7 +14,7 @@ import MyList from "./components/MyList"
 import { WaveFile } from 'wavefile';
 import sampleDict from './samples.json';
 import {sampleList} from './samples.js';
-import {hello, am, fm, usesample, envelope, filter} from './examples'
+import {frontpage, hello, am, fm, usesample, envelope, filter} from './examples'
 
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-glicol";
@@ -25,10 +25,9 @@ export default function App() {
   const classes = useStyles();
 
   const actx = useRef()
-  const loaded = useRef(false)
   const node = useRef()
   // const [url, setUrl] = useState('alex, 0')
-  const [code, setCode] = useState(filter)
+  const [code, setCode] = useState(frontpage)
   const codeRef = useRef(code)
   // const [isPlaying, setIsPlaying] = useState(false)
   const encoder = new TextEncoder('utf-8');
@@ -37,7 +36,8 @@ export default function App() {
 
   // const [progress, setProgress] = useState(50)
   const [running, setRunning] = useState(false)
-  // const [loading, setLoading] = useState(false)
+  const loaded = useRef(false)
+  const [loading, setLoading] = useState(false)
   const [sideOpen, setSideOpen] = useState(false)
 
   const loadModule = async () => {
@@ -51,8 +51,7 @@ export default function App() {
     .then(arrayBuffer => node.current.port.postMessage({
       type: "load", obj: arrayBuffer}))
     node.current.connect(actx.current.destination)
-    loaded.current = true
-    console.log("loaded")
+    console.log("Audio engine loaded.")
   };
 
   useEffect(() => {
@@ -62,14 +61,14 @@ export default function App() {
     } catch (e) {
       console.log(e)
     }
-    console.log(sampleDict)
+    // sampleList.selected.forEach(a=>console.log("sampler \\"+a))
     // console.log(sampleList
     //   .map(s=>s.slice(0, -4))
     //   .reduce( (a,b)=>a+b+"\n", ""))
   }, []);
 
-  const loadSamples = async () => {
-      // setLoading(true)
+  const loadSamples = async (list) => {
+      setLoading(true)
       actx.current.suspend()
       // var sample;
       // let tuple = url.split(",")
@@ -79,7 +78,8 @@ export default function App() {
       // let sampleList = ['drr', 'knock', "ravi"]
       // let l = sampleList.length
       // let count = l
-      for (const key of sampleList) {
+      // document.title = "loading samples..."
+      for (const key of list) {
         // setProgress((l-count)/l*100)
         // count -= 1
         try {
@@ -96,13 +96,13 @@ export default function App() {
           let myRequest = new Request(u);
           await fetch(myRequest).then(response => response.arrayBuffer())
           .then(arrayBuffer => {
-            console.log(arrayBuffer)
+            // console.log(arrayBuffer)
             let buffer = new Uint8Array(arrayBuffer)
             let wav = new WaveFile(buffer);
             let sample = wav.getSamples(true, Int16Array)
 
             // after loading, sent to audioworklet the sample array
-            console.log("\\" + key)
+            console.log("sampler \\" + key)
             node.current.port.postMessage({
               type: "samples",
               sample: sample,
@@ -110,10 +110,12 @@ export default function App() {
             })
           });
         } catch(e) {
-          console.log(e)
+          // console.log(e)
         }
       }
-      // setLoading(false)
+      // document.title = "glicol."
+      setLoading(false)
+      loaded.current = true
   }
 
   const change = (v) => {
@@ -132,7 +134,7 @@ export default function App() {
         h -= document.getElementById('AppBar').offsetHeight
         setHeight(h)
         setWidth(w)
-        console.log(w, h)
+        // console.log(w, h)
     } catch (e) {console.log(e)}
   }
   window.onresize = setSize
@@ -151,7 +153,11 @@ export default function App() {
     }
   }
 
-  const handleRun = () => {
+  const handleRun = async () => {
+    actx.current.suspend()
+    if (!loaded.current) {
+      await loadSamples(sampleList.demo)
+    }
     try {
       actx.current.resume()
       setRunning(true)
@@ -191,7 +197,7 @@ export default function App() {
     setSideOpen(false);
     codeRef.current=code
     handleStop()
-    if (usesample) {loadSamples()}
+    if (usesample) {loadSamples(sampleList.selected)}
   }
 
   return (
@@ -203,13 +209,13 @@ export default function App() {
         >
         <Toolbar>
 
-        {/* {loading ?
-        <p className={classes.text}>loading samples. {progress}%</p>:
-        <div> */} 
+        {loading ?
+        <Typography className={classes.text}>loading samples...please wait...</Typography>:
+        <div> 
         {!running ? <Run onClick={handleRun}/> :
         (<Pause onClick={handlePause}/> )}
         <Reset onClick={handleStop} />
-        {/* </div>} */}
+       </div>}
 
         <Menu onClick = {()=>setSideOpen(true)} />
 

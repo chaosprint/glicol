@@ -4,3 +4,7 @@
     outline: 0; */
     /* etc */
 }
+
+p {
+    fontFamily: 'Inconsolata, monospace'
+}
