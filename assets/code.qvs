@@ -1,3 +1,0 @@
-&am: dac 8
-
-~main: sin 440 >> mul &am

@@ -1,3 +1,0 @@
-&mod: sin 3.0 >> mul 2000.0 >> add 3000.0
-
-~aa: noiz \raw >> lpf &mod

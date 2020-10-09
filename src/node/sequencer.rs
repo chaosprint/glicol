@@ -11,56 +11,41 @@ pub struct Sequencer {
 
 impl Sequencer {
     pub fn new(paras: &mut Pairs<Rule>) -> (NodeData<BoxedNodeSend>, Vec<String>) {
-        let mut events = Vec::<(f64, String)>::new();
 
+        let mut events = Vec::<(f64, String)>::new();
         let mut sidechains = Vec::<String>::new();
         let mut sidechain_id = 0;
         let mut sidechain_lib = HashMap::<String, usize>::new();
-        
-        // para -> seq -> compound -> note -> midi/ref/rest
-        // println!("paras input to seq", paras.as_str());
-        // let mut paras = paras.next().unwrap().into_inner();
-        // .next().unwrap()
-        // let seq = paras.next().unwrap();
 
-        let seq = paras;
-        // .into_inner().into_inner()
-        
-        let mut compound_index = 0;
-        let seq_by_space: Vec<pest::iterators::Pair<Rule>> = 
-        seq.clone().collect();
+        let split: Vec<&str> = paras.as_str().split(" ").collect();
 
-        for compound in seq {
-            let mut shift = 0;
-            // calculate the length of seq
-            let compound_vec: Vec<pest::iterators::Pair<Rule>> = 
-            compound.clone().into_inner().collect();
+        let len_by_space = split.len();
+        let compound_unit = 1.0 / len_by_space as f64;
 
-            for note in compound.into_inner() {
-                if !note.as_str().parse::<i32>().is_ok() & (note.as_str() != "_") {
-                    sidechains.push(note.as_str().to_string());
-                    sidechain_lib.insert(note.as_str().to_string(), sidechain_id);
+        for (i, compound) in split.iter().enumerate() {
+            let c = compound.replace("_", "$_$");
+            let notes = c.split("$").filter(|x|x!=&"").collect::<Vec<_>>();
+
+            let notes_len = notes.len();
+
+            // println!("len = {}", notes_len);
+
+            for (j, x) in notes.iter().enumerate() {
+                let relative_time = i as f64 / len_by_space as f64 + (j as f64/ notes_len as f64 ) * compound_unit;
+
+                if x.contains("&") {
+                    sidechains.push(x.to_string());
+                    sidechain_lib.insert(x.to_string(), sidechain_id);
                     sidechain_id += 1;
                 }
-            
-                let seq_shift = 1.0 / seq_by_space.len() as f64 * 
-                compound_index as f64;
-                
-                let note_shift = 1.0 / compound_vec.len() as f64 *
-                shift as f64 / seq_by_space.len() as f64;
 
-                // relative_pitch can be a ref
-                if note.as_str() != "_" {
-                    let relative_pitch = note.as_str().to_string();
-                    let relative_time = seq_shift + note_shift;
-                    events.push((relative_time, relative_pitch));
+                if x != &"_" {
+                    events.push((relative_time, x.to_string()))
                 }
-                shift += 1;
-                // }
             }
-            compound_index += 1;
         }
-
+        // println!("{:?}", split);
+        // println!("sidechains {:?}", sidechains);
         // println!("events {:?}", events);
 
         (NodeData::new1(BoxedNodeSend::new( Self {

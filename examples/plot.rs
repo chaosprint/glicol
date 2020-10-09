@@ -4,40 +4,7 @@ use glicol::Engine;
 
 fn main () {
     let mut engine = Engine::new();
-    engine.set_code("// comment \n\n~hi: sin 440.0");
-    // engine.set_code("~test: sin 440
-
-    // ~another: sin 441
-    // ");
-    // engine.set_code("&trigger: speed 16.0 >> loop 45 48 50 48 55 53 55 57
-
-    // &env: &trigger >> envperc 0.01 0.1 >> mul 0.5
-    
-    // &pitch: &trigger >> mul 261.626
-    
-    // ~lead: saw &pitch >> mul &env >> lpf &mod 2.0
-    
-    // &mod: sin 0.2 >> linrange 1000 3000");
-    // engine.set_code("&a: noiz 0 >> mul 1 >> add 40
-
-    //     &trigger: speed 16 >> loop &a
-        
-    //     &env: &trigger >> envperc 0.01 0.1 >> mul 0.5
-        
-    //     &pitch: &trigger >> mul 261.626
-        
-    //     ~lead: saw &pitch >> mul &env >> lpf &cut 1.0
-        
-    //     &cut: sin 0.2 >> mul 1000 >> add 2000");
-    // engine.set_code("&a: noiz 0 >> mul 10 >> add 60
-
-    // &trigger: speed 16 >> loop &a
-    
-    // &env: &trigger >> envperc 0.01 0.1 >> mul 0.5
-    
-    // &pitch: &trigger >> mul 261.626
-    
-    // ~lead: saw &pitch >> mul &env");
+    engine.set_code("&amp: seq 50 _&a__ >> envperc 0.01 1.0\n\n~lead: sin 50 >> mul &amp\n\n&a: noiz 0");
     engine.update();
     engine.make_graph();
 
@@ -70,36 +37,3 @@ fn main () {
         );
     fg.show().unwrap();
 }
-
-
-    // "&fm: sin 30 >> mul 300 >> add 500\n\n~hi: sin &fm >> mul 0.3"
-    // engine.set_code("&env: imp 1.0 >> env_perc 0.1 1.0\n\n~lead: sin 100 >> mul &env");
-    // "&trigger: loop 60 58 _67 _62
-
-    // &env: &trigger >> env_perc 0.01 0.1 >> mul 0.5
-    
-    // ~lead: saw 100.0 >> mul &env"
-    // "&cut: sin 1 >> mul 1000 >> add 2000\n\n~aa: noiz 0 >> lpf &cut 1.0"
-
-    // "&trigger: loop 60 &a _67 _62
-
-    // &a: sin 10 >> mul 20 >> add 50
-
-    // &env: &trigger >> env_perc 0.01 0.1 >> mul 0.5
-
-    // ~lead: saw 100.0 >> mul &env"
-    // "&a: noiz 0 >> mul 10 >> add 60
-
-    // &trigger: loop &a
-    
-    // &env: &trigger >> env_perc 0.01 0.1 >> mul 0.5
-    
-    // &pitch: &trigger >> mul 261.626
-    
-    // ~lead: saw &pitch >> mul &env"
-    
-    // engine.set_code("~test: speed 16 >> loop &a &b
-    
-    // &a: noiz 0 >> add 60
-    
-    // &b: noiz 0 >> add 40");
