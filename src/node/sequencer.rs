@@ -88,7 +88,7 @@ impl Node for Sequencer {
             for event in &self.events {
                 if (self.step % (bar_length as usize)) == ((event.0 * bar_length) as usize) {
 
-                    output[0][i] = match event.1.parse::<f32>() {
+                    let midi = match event.1.parse::<f32>() {
                         Ok(val) => val,
                         Err(_why) => {
                             let len = inputs.len();
@@ -104,7 +104,12 @@ impl Node for Sequencer {
                             inputs[index].buffers()[0][i]
                         }
                     };
-                    output[0][i] = 2.0f32.powf((output[0][i] - 60.0)/12.0);
+
+                    if midi == 0.0 {
+                        output[0][i] = 0.0
+                    } else {
+                        output[0][i] = 2.0f32.powf((midi - 60.0)/12.0)
+                    }
                 }
             }
             self.step += 1;
