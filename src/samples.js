@@ -1,0 +1,25 @@
+let sampleList = [
+"808",
+"909",
+"ab",
+"insect",
+"bd",
+"jazz",
+"casio",
+"bass",
+"gtr",
+"sax",
+"can",
+"sf",
+"808ht",
+"808lt",
+"808hc",
+"808bd",
+"808sd",
+"bass0",
+"bass1",
+"bass3",
+"bassdm",
+"bassfoo"
+]
+export {sampleList}

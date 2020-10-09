@@ -108,7 +108,7 @@ const useStyles = makeStyles((theme) => ({
     }
   },
   editor: {
-    margin: theme.spacing(-1, -1),
+    margin: theme.spacing(0, 0),
     position: 'fixed',
     // width: "100%",
     // height: 700

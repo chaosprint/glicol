@@ -36,7 +36,9 @@ class GlicolEngine extends AudioWorkletProcessor {
                 })
 
             } else if (e.data.type === "samples") {
+                if(this._wasm) {
                 // console.log("edatasample", e.data.sample)
+
                 let _s = e.data.sample
                 let s = Float32Array.from(_s, i => i/32768.0)
 
@@ -50,7 +52,7 @@ class GlicolEngine extends AudioWorkletProcessor {
 
                 ptrArr.push(samplePtr)
                 lenArr.push(sampleLength)
-                
+
                 sampleArray.set(s);
 
                 let nameLen = e.data.name.byteLength
@@ -62,11 +64,12 @@ class GlicolEngine extends AudioWorkletProcessor {
                 nameLenArr.push(nameLen)
 
                 // need to reset this
-                // this._outBuf = new Float32Array(
-                //     this._wasm.exports.memory.buffer,
-                //     this._outPtr,
-                //     this._size
-                // )
+                this._outBuf = new Float32Array(
+                    this._wasm.exports.memory.buffer,
+                    this._outPtr,
+                    this._size
+                )
+                }
             } else if (e.data.type === "run") {
 
                 console.log("samplePtr, Length", samplePtr, sampleLength)
@@ -89,7 +92,7 @@ class GlicolEngine extends AudioWorkletProcessor {
                     lengthInfo.ptr, lengthInfo.len,
                     nameInfo.ptr, nameInfo.len,
                     nameLenInfo.ptr, nameLenInfo.len
-                )              
+                )
             } else if (e.data.type === "update") {
 
                 // the code as Uint8 to parse

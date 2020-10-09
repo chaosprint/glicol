@@ -1,17 +1,19 @@
+import './App.css'
 import React, { useRef, useState, useEffect } from 'react'
-import { AppBar, Tooltip, Toolbar, IconButton, Drawer, List, ListItem, ListItemText, Divider, Typography } from '@material-ui/core'
+import { AppBar, Toolbar, IconButton } from '@material-ui/core'
+import { Drawer, Divider, Typography} from '@material-ui/core'
+// import CircularProgress from '@material-ui/core/CircularProgress';
 import { ThemeProvider } from '@material-ui/styles';
-import MenuIcon from '@material-ui/icons/Menu';
 import GitHubIcon from '@material-ui/icons/GitHub';
-import PlayCircleFilledIcon from '@material-ui/icons/PlayCircleFilled';
-import PauseCircleFilledIcon from '@material-ui/icons/PauseCircleFilled';
-import RotateLeftIcon from '@material-ui/icons/RotateLeft';
-import clsx from 'clsx';
-import { useStyles, theme } from './styles'
 
-// import {readFile} from 'fs';
+// import clsx from 'clsx';
+import { useStyles, theme } from './styles'
+import {Run, Reset, Pause, Menu} from './components/ToolButton'
+import MyList from "./components/MyList"
+
 import { WaveFile } from 'wavefile';
-import sampleList from './samples.json';
+import sampleDict from './samples.json';
+import {sampleList} from './samples.js';
 import {hello, am, fm, usesample, envelope, filter} from './examples'
 
 import AceEditor from "react-ace";
@@ -33,30 +35,24 @@ export default function App() {
   const [height, setHeight] = useState(800)
   const [width, setWidth] = useState(600)
 
+  // const [progress, setProgress] = useState(50)
   const [running, setRunning] = useState(false)
+  // const [loading, setLoading] = useState(false)
   const [sideOpen, setSideOpen] = useState(false)
 
   const loadModule = async () => {
     // Note the the path is from public folder
     actx.current = new window.AudioContext()
-
-    // const processorPath = isDevMode ? 'public/worklet/engine.js' : `${global.__dirname}/worklet/engine.js`;
-    // const processorPath = 'worklet/engine.js'
-    // const processorSource = await readFile(processorPath); // just a promisified version of fs.readFile
-    // const processorBlob = new Blob([processorSource.toString()], { type: 'text/javascript' });
-    // const processorURL = URL.createObjectURL(processorBlob);
-    // await actx.current.audioWorklet.addModule(processorURL);
-
     await actx.current.audioWorklet.addModule('./worklet/engine.js')
     node.current = new AudioWorkletNode(actx.current, 'glicol-engine')
 
     fetch('wasm/glicol_wasm.wasm')
     .then(response => response.arrayBuffer())
-    .then(arrayBuffer => node.current.port.postMessage({type: "load", obj: arrayBuffer}))
+    .then(arrayBuffer => node.current.port.postMessage({
+      type: "load", obj: arrayBuffer}))
     node.current.connect(actx.current.destination)
     loaded.current = true
     console.log("loaded")
-
   };
 
   useEffect(() => {
@@ -66,23 +62,36 @@ export default function App() {
     } catch (e) {
       console.log(e)
     }
-    console.log(sampleList)
+    console.log(sampleDict)
+    // console.log(sampleList
+    //   .map(s=>s.slice(0, -4))
+    //   .reduce( (a,b)=>a+b+"\n", ""))
   }, []);
 
-  const mySamples = ["909", "ab", "insect", "bd", "jazz", "casio",
-  "bass", "gtr", "sax", "can", "sf", "fm", "808ht", "808lt", "808hc"]
-
   const loadSamples = async () => {
+      // setLoading(true)
+      actx.current.suspend()
       // var sample;
       // let tuple = url.split(",")
       // let key = tuple[0]
       // let sound = sampleList[key][parseInt(tuple[1])];
       // for (const key of Object.keys(sampleList)) {
-      for (const key of mySamples) {
+      // let sampleList = ['drr', 'knock', "ravi"]
+      // let l = sampleList.length
+      // let count = l
+      for (const key of sampleList) {
+        // setProgress((l-count)/l*100)
+        // count -= 1
         try {
-          let sound = sampleList[key][0];
+          // let u = 
+          // `https://raw.githubusercontent.com/chaosprint/sema/master/assets/samples/`
+          // u += key
+          // u += ".wav"
 
-          let u = 'https://raw.githubusercontent.com/chaosprint/Dirt-Samples/master/' + key + '/' + sound
+          let sound = sampleDict[key][0];
+          let u =
+          'https://raw.githubusercontent.com/chaosprint/Dirt-Samples/master/' 
+          + key + '/' + sound
           // let u = "./samples/" + key + '/' + sound
           let myRequest = new Request(u);
           await fetch(myRequest).then(response => response.arrayBuffer())
@@ -94,12 +103,17 @@ export default function App() {
 
             // after loading, sent to audioworklet the sample array
             console.log("\\" + key)
-            node.current.port.postMessage({type: "samples", sample: sample, name: encoder.encode("\\" + key)})
+            node.current.port.postMessage({
+              type: "samples",
+              sample: sample,
+              name: encoder.encode("\\" + key)
+            })
           });
         } catch(e) {
           console.log(e)
         }
       }
+      // setLoading(false)
   }
 
   const change = (v) => {
@@ -128,8 +142,10 @@ export default function App() {
     setRunning(true)
     // console.log(codeRef.current)
     try {
-      // node.current.port.postMessage({type: "update", value: encoder.encode(code)})
-      node.current.port.postMessage({type: "update", value: encoder.encode(codeRef.current)})
+      node.current.port.postMessage({
+        type: "update",
+        value: encoder.encode(codeRef.current)
+      })
     } catch (e) {
       console.log(e)
     }
@@ -144,7 +160,10 @@ export default function App() {
     }
     // console.log(codeRef.current)
     try {
-      node.current.port.postMessage({type: "run", value: encoder.encode(codeRef.current)})
+      node.current.port.postMessage({
+        type: "run",
+        value: encoder.encode(codeRef.current)
+      })
     } catch (e) {
       console.log(e)
     }
@@ -167,13 +186,14 @@ export default function App() {
     console.log("stop") 
   }
 
-  const handleList = (code) => {
+  const handleList = async (code, usesample=false) => {
     setCode(code);
     setSideOpen(false);
     codeRef.current=code
+    handleStop()
+    if (usesample) {loadSamples()}
   }
 
-  
   return (
     <div className="App">
         <ThemeProvider theme={theme}>
@@ -183,59 +203,15 @@ export default function App() {
         >
         <Toolbar>
 
-        { !running ? (
+        {/* {loading ?
+        <p className={classes.text}>loading samples. {progress}%</p>:
+        <div> */} 
+        {!running ? <Run onClick={handleRun}/> :
+        (<Pause onClick={handlePause}/> )}
+        <Reset onClick={handleStop} />
+        {/* </div>} */}
 
-          <Tooltip title="Run (cmd + enter / ctrl + enter)">
-          <IconButton
-            color="inherit"
-            aria-label="Run"
-            edge="end"
-            onClick={handleRun}
-            className={clsx(sideOpen && classes.hide)}
-          >
-          <PlayCircleFilledIcon  fontSize="large" />
-          </IconButton>
-          </Tooltip>
-
-        ) : (
-
-          <Tooltip title="Pause">
-          <IconButton
-            color="inherit"
-            aria-label="Pause"
-            edge="end"
-            onClick={handlePause}
-            className={clsx(sideOpen && classes.hide)}
-          >
-          <PauseCircleFilledIcon fontSize="large" />
-          </IconButton>
-          </Tooltip>
-          
-        )}
-
-        <Tooltip title="Stop">
-        <IconButton
-          color="inherit"
-          aria-label="Stop (cmd + shift + . / ctrl + shift + .)"
-          edge="end"
-          onClick={handleStop}
-          className={clsx(sideOpen && classes.hide)}
-        >
-          <RotateLeftIcon   fontSize="large" />
-        </IconButton>
-        </Tooltip>
-        
-        <div className={classes.menu}>
-        <IconButton
-          color="inherit"
-          aria-label="open drawer"
-          edge="end"
-          onClick={()=>setSideOpen(true)}
-          className={clsx(sideOpen && classes.hide)}
-        >
-        <MenuIcon />
-        </IconButton>
-        </div>
+        <Menu onClick = {()=>setSideOpen(true)} />
 
         <Drawer
           className={classes.drawer}
@@ -248,147 +224,32 @@ export default function App() {
           }}
         >
         <Toolbar>
-
         <Typography>v0.1.0</Typography>
-        <div className={classes.menu}>
         <IconButton
           href="https://github.com/glicol/glicol"
           target="_blank"
           rel="noopener noreferrer"
-          // data-show-count="true"
-          aria-label="GitHub"
           color="inherit"
-          // aria-label="open drawer"
-          edge="end"
-        ><GitHubIcon />
-        </IconButton>
-        </div>
+          style={{marginLeft: 'auto'}}
+        ><GitHubIcon /></IconButton>
         </Toolbar>
 
         <Divider />
-
-        <List>
-        <ListItem
-          button
-          onClick={()=>{handleList(hello)}}
-        >
-        <ListItemText
-          primary={
-          <Typography
-            style={{ fontFamily: '\'Inconsolata\', monospace'}}
-          >hello world.</Typography>
-        }
-        />
-        </ListItem>
-        </List>
-
-        <List>
-        <ListItem
-          button
-          onClick={()=>{handleList(am)}}
-        >
-        <ListItemText
-          primary={
-          <Typography
-            style={{ fontFamily: '\'Inconsolata\', monospace'}}
-          >am.</Typography>
-        }
-        />
-        </ListItem>
-        </List>
-
-        <List>
-        <ListItem
-          button
-          onClick={()=>{handleList(fm)}}
-        >
-        <ListItemText
-          primary={
-          <Typography
-            style={{ fontFamily: '\'Inconsolata\', monospace'}}
-          >fm.</Typography>
-        }
-        />
-        </ListItem>
-        </List>
-
+        <MyList onClick={()=>handleList(hello)} title="hello world." />
+        <MyList onClick={()=>handleList(am)} title="am." />
+        <MyList onClick={()=>handleList(fm)} title="fm." />
         <Divider />
-
-        <List>
-        <ListItem
-          button
-          onClick={()=>{handleList(usesample)}}
-        >
-        <ListItemText
-          primary={
-          <Typography
-            style={{ fontFamily: '\'Inconsolata\', monospace'}}
-          >use samples.</Typography>
-        }
-        />
-        </ListItem>
-        </List>
-
-        <List>
-        <ListItem
-          button
-          onClick={()=>{handleList(envelope)}}
-        >
-        <ListItemText
-          primary={
-          <Typography
-            style={{ fontFamily: '\'Inconsolata\', monospace'}}
-          >envelope.</Typography>
-        }
-        />
-        </ListItem>
-        </List>
-
+        <MyList onClick={()=>{handleList(usesample, true)}}
+          title="use samples." />
+        <MyList onClick={()=>handleList(envelope)} title="envelope." />
         <Divider />
-
-        <List>
-        <ListItem
-          button
-          onClick={()=>{handleList(filter)}}
-        >
-        <ListItemText
-          primary={
-          <Typography
-            style={{ fontFamily: '\'Inconsolata\', monospace'}}
-          >filter.</Typography>
-        }
-        />
-        </ListItem>
-        </List>
-
+        <MyList onClick={()=>handleList(filter)} title="filter." />
         <Divider />
-
-        <List>
-        <ListItem
-          button
-          onClick={()=>{handleList("~sin: sin 110.0")}}>
-        <ListItemText
-          primary={<Typography
-          style={{ fontFamily: '\'Inconsolata\', monospace'}}
-          >template - synthesis.
-        </Typography>}
-        ></ListItemText>
-        </ListItem>
-        </List>
-
-        <List>
-        <ListItem
-          button
-          onClick={()=>{handleList("~bd: loop 60 >> sampler \\bd"); loadSamples();}}>
-        <ListItemText
-          primary={<Typography
-          style={{ fontFamily: '\'Inconsolata\', monospace'}}
-          >template - use samples.
-        </Typography>}
-        ></ListItemText>
-        </ListItem>
-        </List>
-        
+        <MyList onClick={()=>{handleList("~sin: sin 110.0")}}
+          title="template - synthesis." />
+        <MyList onClick={()=>{
+          handleList("~bd: loop 60 >> sampler \\bd", true)}}
+          title="template - use samples." />
         </Drawer>
 
         </Toolbar> 
@@ -409,21 +270,19 @@ export default function App() {
           editorProps={{ $blockScrolling: true }}
           commands={[{   // commands is array of key bindings.
             name: 'Run', //name for the key binding.
-            bindKey: {win: 'Ctrl-Enter', mac: 'Command-Enter'}, //key combination used for the command.
+            bindKey: {win: 'Ctrl-Enter', mac: 'Command-Enter'},
             exec: handleRun  //function to execute when keys are pressed.
-          }, {   // commands is array of key bindings.
-            name: 'Update', //name for the key binding.
-            bindKey: {win: 'Shift-Enter', mac: 'Shift-Enter'}, //key combination used for the command.
-            exec: handleUpdate  //function to execute when keys are pressed.
-          }, {   // commands is array of key bindings.
-            name: 'Stop', //name for the key binding.
-            bindKey: {win: 'Ctrl-Shift-.', mac: 'Command-Shift-.'}, //key combination used for the command.
-            exec: handleStop //function to execute when keys are pressed.
+          }, {
+            name: 'Update',
+            bindKey: {win: 'Shift-Enter', mac: 'Shift-Enter'},
+            exec: handleUpdate
+          }, {
+            name: 'Stop',
+            bindKey: {win: 'Ctrl-Shift-.', mac: 'Command-Shift-.'},
+            exec: handleStop
           }]}
         />
         </ThemeProvider>
-        
      </div>
-
-  );
+  )
 }

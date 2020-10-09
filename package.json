@@ -1,6 +1,5 @@
 {
   "name": "glicol-wasm",
-  "homepage": "http://glicol.github.io/",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

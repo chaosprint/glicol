@@ -27,8 +27,7 @@ const fm =
 // this linrange node map -1.0 to 1.0 the range you give
 &fm: sin &more >> linrange 100.0 1000.0
 
-&more: sin 0.1 >> linrange 1.0 100.0"
-`
+&more: sin 0.1 >> linrange 1.0 100.0`
 
 const usesample = 
 `// "imp" is used to trigger the sampler
