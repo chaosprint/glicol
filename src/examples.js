@@ -1,12 +1,12 @@
 const frontpage = `~bd: speed 1.375 >> loop 60 >> sampler \\breaks165
 
-&a: choose 63 62 58 53
+&a: choose 63 62 58 53 0 0 0
 
-~bass: speed 1.375 >> loop 60 _55 _&a &a _&a _&a >> sampler \\jvbass >> mul 0.4
+~bass: speed 2.75 >> loop &a &a >> sampler \\jvbass >> mul 0.6
 
 &c: noiz 0 >> mul 2 >> add 40
 
-&b: choose 63 62 58 53
+&b: choose 63 62 58 53 0
 
 &trigger: speed 5.5 >> loop &c &b
 
@@ -14,7 +14,7 @@ const frontpage = `~bd: speed 1.375 >> loop 60 >> sampler \\breaks165
 
 &pitch: &trigger >> mul 261.626 >> mul 0.5
 
-~lead: saw &pitch >> mul &env >> lpf &cut 3.0
+~lead: saw &pitch >> mul &env >> lpf &cut 3.0 >> mul 0.8
 
 &cut: sin 0.3 >> linrange 300.0 3000.0`
 
@@ -106,6 +106,24 @@ const envelope =
 // &tri: &lp >> envperc 0.01 0.5
 
 // ~lead: sin &pitch >> mul &tri`
+
+const livecoding = `~bd: speed 4.0 >> loop 60 >> sampler \\909
+
+&a: choose 60 48 55
+
+~aa: speed 2.0 >> loop &a >> sampler \\arp >> mul 0.1 >> lpf 400.0 1.0
+
+~xx: speed 2.0 >> seq 60 60 _60 _60 >> sampler \\stomp >> lpf 500.0 10.0
+
+&b: choose 48 50
+
+~ff: speed 2.0 >> seq _ &b >> sampler \\v
+
+&mod: sin 0.2 >> linrange 300.0 3000.0
+
+~rm: seq _ 60 >> sampler \\voodoo >> lpf &mod 3.0
+
+~tok: seq _ 60 _ _ >> sampler \\tok`
 
 // `&a: noiz 0 >> mul 10 >> add 60
 
@@ -199,4 +217,4 @@ const envelope =
 // ~hook: loop 40 _80_34 73__65 42 >> sampler \\808hc
 
 // ~jazz: loop _60 >> sampler \\jazz`
-export {hello, am, fm, envelope, usesample, filter, frontpage}
+export {hello, am, fm, envelope, usesample, filter, frontpage, livecoding}

@@ -14,7 +14,7 @@ import MyList from "./components/MyList"
 import { WaveFile } from 'wavefile';
 import sampleDict from './samples.json';
 import {sampleList} from './samples.js';
-import {frontpage, hello, am, fm, usesample, envelope, filter} from './examples'
+import {frontpage, hello, am, fm, usesample, envelope, filter, livecoding} from './examples'
 
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-glicol";
@@ -23,20 +23,18 @@ import "ace-builds/src-noconflict/theme-glicol-night";
 export default function App() {
 
   const classes = useStyles();
+  const encoder = new TextEncoder('utf-8');
 
   const actx = useRef()
   const node = useRef()
-  // const [url, setUrl] = useState('alex, 0')
+  const codeRef = useRef(frontpage)
+
   const [code, setCode] = useState(frontpage)
-  const codeRef = useRef(code)
-  // const [isPlaying, setIsPlaying] = useState(false)
-  const encoder = new TextEncoder('utf-8');
   const [height, setHeight] = useState(800)
   const [width, setWidth] = useState(600)
-
-  // const [progress, setProgress] = useState(50)
   const [running, setRunning] = useState(false)
   const loaded = useRef(false)
+  const [prog, setProg] = useState(0)
   const [loading, setLoading] = useState(false)
   const [sideOpen, setSideOpen] = useState(false)
 
@@ -61,27 +59,17 @@ export default function App() {
     } catch (e) {
       console.log(e)
     }
-    // sampleList.selected.forEach(a=>console.log("sampler \\"+a))
-    // console.log(sampleList
-    //   .map(s=>s.slice(0, -4))
-    //   .reduce( (a,b)=>a+b+"\n", ""))
   }, []);
 
   const loadSamples = async (list) => {
       setLoading(true)
       actx.current.suspend()
-      // var sample;
-      // let tuple = url.split(",")
-      // let key = tuple[0]
-      // let sound = sampleList[key][parseInt(tuple[1])];
-      // for (const key of Object.keys(sampleList)) {
-      // let sampleList = ['drr', 'knock', "ravi"]
-      // let l = sampleList.length
-      // let count = l
+      let l = list.length
+      let count = l
       // document.title = "loading samples..."
       for (const key of list) {
-        // setProgress((l-count)/l*100)
-        // count -= 1
+        setProg((l-count)/l*100)
+        count -= 1
         try {
           // let u = 
           // `https://raw.githubusercontent.com/chaosprint/sema/master/assets/samples/`
@@ -210,7 +198,7 @@ export default function App() {
         <Toolbar>
 
         {loading ?
-        <Typography className={classes.text}>loading samples...please wait...</Typography>:
+        <Typography className={classes.text}>loading samples...please wait... {Math.floor(prog)}% </Typography>:
         <div> 
         {!running ? <Run onClick={handleRun}/> :
         (<Pause onClick={handlePause}/> )}
@@ -254,7 +242,7 @@ export default function App() {
         <MyList onClick={()=>{handleList("~sin: sin 110.0")}}
           title="template - synthesis." />
         <MyList onClick={()=>{
-          handleList("~bd: loop 60 >> sampler \\bd", true)}}
+          handleList(livecoding, true)}}
           title="template - use samples." />
         </Drawer>
 
