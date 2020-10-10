@@ -4,7 +4,7 @@ use glicol::Engine;
 
 fn main () {
     let mut engine = Engine::new();
-    engine.set_code("&amp: seq 50 _&a__ >> envperc 0.01 1.0\n\n~lead: sin 50 >> mul &amp\n\n&a: noiz 0");
+    engine.set_code("~amp: seq 50 _~a__ >> envperc 0.01 1.0\n\n_lead: sin 50 >> mul ~amp\n\n~a: noiz 0");
     engine.update();
     engine.make_graph();
 

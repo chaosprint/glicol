@@ -128,7 +128,7 @@ impl Engine {
         }
 
         // we only process the last nodes of chains in the audio nodes vec
-        if current_ref_name.contains("~") {
+        if !current_ref_name.contains("~") {
             self.audio_nodes.insert(current_ref_name.to_string(), node_index);
         } else {
             self.control_nodes.insert(current_ref_name.to_string(), node_index);

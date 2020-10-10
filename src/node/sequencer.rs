@@ -33,7 +33,7 @@ impl Sequencer {
             for (j, x) in notes.iter().enumerate() {
                 let relative_time = i as f64 / len_by_space as f64 + (j as f64/ notes_len as f64 ) * compound_unit;
 
-                if x.contains("&") {
+                if x.contains("~") {
                     sidechains.push(x.to_string());
                     sidechain_lib.insert(x.to_string(), sidechain_id);
                     sidechain_id += 1;
