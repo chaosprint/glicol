@@ -53,7 +53,7 @@ ace.define("ace/mode/glicol_highlight_rules", ["require", "exports", "module", "
         token : "constant.character",
         regex : "(((((_)+)?([0-9]+)((_)+)?)+)|(_))(\\s|\\n|~)?\\b"
       }, {
-        token : "support.type", // "\8n" now "everything"
+        token : "support.type", // "\8n" now "everything" 
         regex : "\\\\(([0-9]+)?([a-z]+)?(_)?([0-9]+)?)+\\b"
         // regex : "\\\\([0-9]{1,2})([a-z]+)\\b"
       }, {
@@ -61,11 +61,10 @@ ace.define("ace/mode/glicol_highlight_rules", ["require", "exports", "module", "
         regex : "\\\\(([0-9]+)?([a-z]+)(_)?([0-9]+)?)+\\b"
       }, {
         token: "string", // ref
-        regex: "(((~)|(&))([a-z]+(_)?)+)\\b"
+        regex: "((~)([a-z]+(_)?)+)\\b"
       }, {
-        // token: "constant.numeric",
-        // regex: "[-+]?[0-9]"
-        // regex : "[+-]?\\d+(?:(?:\\.\\d*)?(?:[eE][+-]?\\d+)?)?(?:L|l|UL|ul|u|U|F|f|ll|LL|ull|ULL)?\\b"
+        token: "audio", // ref with _
+        regex: "((_|&)([a-z]+(_)?)+)\\b",
       }, {
         token : keywordMapper,
         regex : "[a-zA-Z_$][a-zA-Z0-9_$]*\\b"

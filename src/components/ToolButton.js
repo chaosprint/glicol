@@ -2,6 +2,7 @@ import  { Tooltip, IconButton } from '@material-ui/core'
 import React from 'react';
 import PlayCircleFilledIcon from '@material-ui/icons/PlayCircleFilled';
 import PauseCircleFilledIcon from '@material-ui/icons/PauseCircleFilled';
+import UpdateIcon from '@material-ui/icons/Update';
 import RotateLeftIcon from '@material-ui/icons/RotateLeft';
 import MenuIcon from '@material-ui/icons/Menu';
 
@@ -28,7 +29,7 @@ const Run = ({onClick, disabled}) => {
       // // disabled = {true}
       // disableFocusRipple = {disabled}
       // disableRipple = {disabled}
-      title = "run (cmd + enter / ctrl + enter)"
+      title = "run [ctrl + enter] (or cmd + enter on Mac)"
       onClick = {onClick}
       icon = {<PlayCircleFilledIcon
         // color= { !disabled ? "inherit" : "disabled"}
@@ -37,19 +38,31 @@ const Run = ({onClick, disabled}) => {
   )
 }
 
+const Update = ({onClick}) => {
+  return (
+    <ToolButton
+      title = "update [shift + enter]"
+      onClick = {onClick}
+      icon = {<UpdateIcon fontSize="large" />}
+    ></ToolButton>
+  )
+}
+
 const Pause = ({onClick}) => {
   return (
     <ToolButton
-      title = "pasue"
+      title = "pause"
       onClick = {onClick}
       icon = {<PauseCircleFilledIcon fontSize="large" />}
     ></ToolButton>
   )
 }
+
+
 const Reset = ({onClick}) => {
   return (
     <ToolButton
-      title = "reset"
+      title = "reset [ctrl + shift + .] (cmd + shift + . on Mac)"
       onClick = {onClick}
       icon = {<RotateLeftIcon fontSize="large" />}
     ></ToolButton>
@@ -71,4 +84,4 @@ const Menu = ({onClick}) => (
   // </div>
 )
 
-export {Run, Pause, Reset, Menu}
+export {Run, Pause, Reset, Menu, Update}

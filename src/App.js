@@ -2,13 +2,12 @@ import './App.css'
 import React, { useRef, useState, useEffect } from 'react'
 import { AppBar, Toolbar, IconButton } from '@material-ui/core'
 import { Drawer, Divider, Typography} from '@material-ui/core'
-// import CircularProgress from '@material-ui/core/CircularProgress';
 import { ThemeProvider } from '@material-ui/styles';
 import GitHubIcon from '@material-ui/icons/GitHub';
 
 // import clsx from 'clsx';
 import { useStyles, theme } from './styles'
-import {Run, Reset, Pause, Menu} from './components/ToolButton'
+import {Run, Reset, Pause, Menu, Update} from './components/ToolButton'
 import MyList from "./components/MyList"
 
 import { WaveFile } from 'wavefile';
@@ -202,6 +201,7 @@ export default function App() {
         <div> 
         {!running ? <Run onClick={handleRun}/> :
         (<Pause onClick={handlePause}/> )}
+        <Update onClick={handleUpdate} />
         <Reset onClick={handleStop} />
        </div>}
 
@@ -239,7 +239,7 @@ export default function App() {
         <Divider />
         <MyList onClick={()=>handleList(filter)} title="filter." />
         <Divider />
-        <MyList onClick={()=>{handleList("~sin: sin 110.0")}}
+        <MyList onClick={()=>{handleList("_sin: sin 110.0")}}
           title="template - synthesis." />
         <MyList onClick={()=>{
           handleList(demo2, sampleList.selected)}}

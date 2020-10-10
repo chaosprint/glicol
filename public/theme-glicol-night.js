@@ -71,7 +71,7 @@ ace.define("ace/theme/tomorrow-night",["require","exports","module","ace/lib/dom
     .ace-tomorrow-night .ace_keyword.ace_other.ace_unit,
     .ace-tomorrow-night .ace_support.ace_constant,
     .ace-tomorrow-night .ace_variable.ace_parameter {
-    color: #F5871F
+    color: #5a9c54
     }
     .ace-tomorrow-night .ace_constant.ace_other {
     color: #666969
@@ -102,6 +102,9 @@ ace.define("ace/theme/tomorrow-night",["require","exports","module","ace/lib/dom
     .ace-tomorrow-night .ace_markup.ace_heading,
     .ace-tomorrow-night .ace_string {
     color: #718C00
+    }
+    .ace-tomorrow-night .ace_audio {
+    color: #F5871F
     }
     .ace-tomorrow-night .ace_entity.ace_name.ace_tag,
     .ace-tomorrow-night .ace_entity.ace_other.ace_attribute-name,
