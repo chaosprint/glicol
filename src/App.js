@@ -14,11 +14,15 @@ import MyList from "./components/MyList"
 import { WaveFile } from 'wavefile';
 import sampleDict from './samples.json';
 import {sampleList} from './samples.js';
-import {hello, am, fm, usesample, envelope, filter, demo2, demo1} from './examples'
+import {hello, am, fm, usesample, envelope, filter, demo2, demo1, welcome} from './examples'
 
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-glicol";
 import "ace-builds/src-noconflict/theme-glicol-night";
+
+let x = 
+`// welcome, click the play button to run the code
+// for tutorials, see the right hand side ->\n\n`
 
 export default function App() {
 
@@ -27,9 +31,9 @@ export default function App() {
 
   const actx = useRef()
   const node = useRef()
-  const codeRef = useRef(filter)
+  const codeRef = useRef(x + welcome)
 
-  const [code, setCode] = useState(filter)
+  const [code, setCode] = useState(x + welcome)
   const [height, setHeight] = useState(800)
   const [width, setWidth] = useState(600)
   const [running, setRunning] = useState(false)
@@ -67,21 +71,15 @@ export default function App() {
     actx.current.suspend()
     let l = list.length
     let count = l
-    // document.title = "loading samples..."
     for (const key of list) {
       setProg((l-count)/l*100)
       count -= 1
       try {
-        // let u = 
-        // `https://raw.githubusercontent.com/chaosprint/sema/master/assets/samples/`
-        // u += key
-        // u += ".wav"
 
         let sound = sampleDict[key][0];
         let u =
         'https://raw.githubusercontent.com/chaosprint/Dirt-Samples/master/' 
         + key + '/' + sound
-        // let u = "./samples/" + key + '/' + sound
         let myRequest = new Request(u);
         await fetch(myRequest).then(response => response.arrayBuffer())
         .then(arrayBuffer => {
@@ -102,7 +100,6 @@ export default function App() {
         // console.log(e)
       }
     }
-    // document.title = "glicol."
     setLoading(false)
     loaded.current = true
   }
@@ -200,7 +197,7 @@ export default function App() {
 
         {loading ?
         <Typography className={classes.text}
-        >loading samples. please wait. use [ctrl + shift + i] (or cmd +shift + i on Mac) to see available samples. {
+        >loading samples. please wait. use [ctrl + shift + i] (or cmd + shift + i on Mac) to see available samples. {
           Math.floor(prog)}% </Typography>:
         <div> 
         {!running ? <Run onClick={handleRun}/> :
@@ -249,7 +246,6 @@ export default function App() {
           title="template - use samples." />
         <Divider />
         <MyList onClick={()=>{
-          console.log(sampleList.demo)
           handleList(demo1, sampleList.demo)}}
           title="demo 1." />
         </Drawer>

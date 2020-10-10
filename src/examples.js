@@ -1,3 +1,137 @@
+const welcome =
+`&a: noiz 0 >> mul 2 >> add 40
+
+&b: choose 35 47
+
+&trigger: speed 8.0 >> loop &a &b
+
+&env: &trigger >> envperc 0.01 0.1 >> mul 0.5
+
+&pitch: &trigger >> mul 261.626
+
+~lead: saw &pitch >> mul &env >> lpf &cut 6.0
+
+&cut: squ 0.5 >> linrange 300.0 3000.0`
+
+const hello = 
+`~hi: sin 440.0
+
+// if this doesn't play, check your browser console
+// chrome or firefox are recommended
+
+// this is a comment
+// uncomment the line below, and click on the play button again
+// ~another: sin 441.0
+
+// try to control the volume by adding another node function
+// ~another: sin 441.0 >> mul 0.5
+
+// this example shows the basic usage of nodes
+// a node can have several inputting signals but only one output signal
+// here "sin" is a node that outputs sine wave signal based on its argument frequency
+// in this example, "sin" has no input signal
+// "mul" has one input from its left hand side
+/ "mul" processes the input signal by multiplying the input signal with its first argument
+
+// everything before the colon, e.g. "~hi" or "~another", is called [reference]
+// this will be explained in the next page (am)`
+
+const am = 
+`// you can modulate a parameter using the following syntax.
+
+~hi: sin 440.0 >> mul &am
+
+&am: sin 1.5 >> mul 0.3 >> add 0.5
+
+// it doesn't matter you write &am line before or after using it, which is called lazy evaluation
+// however, remember that only those references beginning with "~" will be played
+// while the ones beginning with "&" with be processed as a control signal`
+
+const fm = 
+`~hi: sin &fm >> mul &am
+
+&am: sin 0.2 >> mul 0.3 >> add 0.5
+
+// this linrange node map -1.0 to 1.0 the range you give
+&fm: sin &more >> linrange 100.0 1000.0
+
+&more: sin 0.1 >> linrange 1.0 100.0`
+
+const usesample = 
+`// "imp" is used to trigger the sampler
+// the default output amp of "imp" is 1.0
+// you can multiply a float to change the pitch
+
+// "sampler" node triggers the sample everytime it gets a non-zero signal from its left
+// the pitch is determined by the value of this input signal
+// the default pitch is 1.0; try to change the argument in "mul" node;
+// for example, mul 2.0 will make the sample octave higher
+
+~imp: imp 1.0 >> mul 1.0 >> sampler \\bd
+
+// an easier way to handle sampler is to use the "seq" node
+// it is a good way to work with midi pitches
+// the default pitch is midi 60, so to make it one octave higher, you should change it to 72
+
+// ~tt: seq 60 >> sampler \\casio
+
+// "seq" node also handles time and rhythm algorithmically
+// all its arguments will occupy one bar with the default bar length to be 2.0 second (equivalent to bpm 120, 4/4)
+
+// this one bar length will be first divided by space
+// uncomment the following codes to see the difference
+// ~tt: seq 48 49 >> sampler \\casio
+// ~tt: seq 48 49 50 >> sampler \\casio
+// ~tt: seq 48 49 50 51 >> sampler \\casio
+// ... 
+// you can add more notets for the "seq" node by yourself to see
+
+// try to replace some midi notes with underscore "_"
+// "_" means rest
+// ~tt: seq 48 _ 50 51 >> sampler \\casio
+
+// rest and midi notes can form compound notes, which will further divided that part
+// ~tt: loop 48 49 >> sampler \\casio
+// ~tt: loop 48 _49_ >> sampler \\casio
+// ~tt: loop 48 _49__ >> sampler \\casio
+// ~tt: loop 48 ___49 >> sampler \\casio
+
+// you can use a speed node to control the speed of "seq" node
+// ~tt: speed 2.0 >> loop 48 _ _50 _ >> sampler \\casio
+
+// use "choose" node to choose notes in the seq
+// the convention is to use single-letter references
+// zeroes means rest while the number of zeroes can influence the probability
+// ~tt: seq 48 &c >> sampler \\casio
+
+// &c: choose 50 62 74 0 0`
+
+
+const envelope = 
+
+`// the envelope can also triggered by "imp" and "seq" but slightly different
+
+// in that it resets to beginning phase everytime it receives a non-zero input
+
+&tri: imp 1.0 >> envperc 0.01 0.5
+
+~lead: sin 100.0 >> mul &tri
+
+// use "seq" to set both env and the pitch
+// &lp: seq 60 _48 _72 _60
+
+// &pitch: &lp >> mul 261.626
+
+// &tri: &lp >> envperc 0.01 0.5
+
+// ~lead: sin &pitch >> mul &tri`
+
+
+const filter = 
+`// there are several more nodes we haven't covered yet
+// "squ" "saw" "noiz" "lpf "hpf"
+// see how they are used in this example` + welcome
+
 const demo1 = `~bd: speed 1.375 >> loop 60 >> sampler \\breaks165
 
 &a: choose 63 62 58 53 0 0 0
@@ -19,94 +153,6 @@ const demo1 = `~bd: speed 1.375 >> loop 60 >> sampler \\breaks165
 &cut: sin 0.3 >> linrange 300.0 3000.0`
 
 
-const hello = 
-`~hi: sin 440.0
-
-// if this doesn't play, check your browser console
-// chrome or firefox are recommended
-
-
-// this is a comment
-// uncomment the line below, and click on the play button again
-// ~another: sin 441.0`
-
-const am = 
-`// you can modulate a parameter using the following syntax.
-// it doesn't matter you write &am line before or after using it
-// however, remember that reference beginning with "~" will be played
-// while the ones beginning with "&" with be processed as a control signal
-
-~hi: sin 440.0 >> mul &am
-
-&am: sin 1.5 >> mul 0.3 >> add 0.5`
-
-const fm = 
-`~hi: sin &fm >> mul &am
-
-&am: sin 0.2 >> mul 0.3 >> add 0.5
-
-// this linrange node map -1.0 to 1.0 the range you give
-&fm: sin &more >> linrange 100.0 1000.0
-
-&more: sin 0.1 >> linrange 1.0 100.0`
-
-const usesample = 
-`// "imp" is used to trigger the sampler
-// the default output amp of "imp" is 1.0
-// you can multiply a float to change the pitch
-
-~imp: imp 1.0 >> mul 1.0 >> sampler \\bd
-
-// loop is a good way to work with midi pitches
-// try to uncomment the following lines to see the difference
-
-// ~tt: loop 60 >> sampler \\casio
-
-// ~tt: loop 48 50 >> sampler \\casio
-
-// ~tt: loop 48 _50 >> sampler \\casio
-
-// ~tt: loop 48 _ _50 _ >> sampler \\casio
-
-// ~tt: speed 2.0 >> loop 48 _ _50 _ >> sampler \\casio`
-
-const filter = 
-`// if there is no sound, check the console for errors
-// make sure you are using Chrome or FireFox
-// if you do, one solution can be to use the incog mode (cmd + shift + n)
-
-&a: noiz 0 >> mul 2 >> add 40
-
-&b: choose 35 47
-
-&trigger: speed 8.0 >> loop &a &b
-
-&env: &trigger >> envperc 0.01 0.1 >> mul 0.5
-
-&pitch: &trigger >> mul 261.626
-
-~lead: saw &pitch >> mul &env >> lpf &cut 3.0
-
-&cut: sin 0.3 >> linrange 300.0 3000.0`
-
-const envelope = 
-
-`// use 'imp' to trigger an envelop
-
-&tri: imp 1.0 >> envperc 0.01 0.5
-
-~lead: sin 100.0 >> mul &tri
-
-// use the loop to give it a pitch
-
-// &lp: loop 60 _48 _72 _60
-
-// &pitch: &lp >> mul 261.626
-
-// &tri: &lp >> envperc 0.01 0.5
-
-// ~lead: sin &pitch >> mul &tri`
-
 const demo2 = `~bd: speed 4.0 >> loop 60 >> sampler \\909
 
 &a: choose 60 48 55
@@ -124,6 +170,8 @@ const demo2 = `~bd: speed 4.0 >> loop 60 >> sampler \\909
 ~rm: seq _ 60 >> sampler \\voodoo >> lpf &mod 3.0
 
 ~tok: seq _ 60 _ _ >> sampler \\tok`
+
+export {hello, am, fm, envelope, usesample, filter, demo1, demo2, welcome}
 
 // `&a: noiz 0 >> mul 10 >> add 60
 
@@ -217,4 +265,3 @@ const demo2 = `~bd: speed 4.0 >> loop 60 >> sampler \\909
 // ~hook: loop 40 _80_34 73__65 42 >> sampler \\808hc
 
 // ~jazz: loop _60 >> sampler \\jazz`
-export {hello, am, fm, envelope, usesample, filter, demo1, demo2}
