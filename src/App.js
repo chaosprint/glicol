@@ -18,6 +18,9 @@ import {hello, am, fm, usesample, envelope, filter, demo2, demo1, welcome} from 
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-glicol";
 import "ace-builds/src-noconflict/theme-glicol-night";
+import { setCompleters } from "ace-builds/src-noconflict/ext-language_tools";
+import comp from "./completion"
+
 
 let x = 
 `// welcome, click the play button to run the code
@@ -33,8 +36,8 @@ export default function App() {
   const codeRef = useRef(x + welcome)
 
   const [code, setCode] = useState(x + welcome)
-  const [height, setHeight] = useState(800)
-  const [width, setWidth] = useState(600)
+  // const [height, setHeight] = useState(800)
+  // const [width, setWidth] = useState(600)
   const [running, setRunning] = useState(false)
   const loaded = useRef(false)
   const [prog, setProg] = useState(0)
@@ -56,7 +59,34 @@ export default function App() {
   };
 
   useEffect(() => {
-    setSize()
+    const completer = {
+      getCompletions: function(editor, session, pos, prefix, callback) {
+        var completions = comp
+
+        /* You Can get to know how to add more cool 
+        autocomplete features by seeing the ext-language-tools 
+        file in the ace-buils folder */
+
+        completions.forEach(i => {
+          completions.push({
+            caption: i.caption,
+            snippet: i.snippet,
+            type: i.type
+          });
+        });
+        callback(null, completions);
+      }
+    };
+
+    /* You can even use addCompleters instead of setCompleters like this :
+       `addCompleter(completer)`;
+     */
+
+    setCompleters([completer]);
+  }, []);
+
+  useEffect(() => {
+    // setSize()
     try {
       loadModule()
     } catch (e) {
@@ -109,20 +139,20 @@ export default function App() {
   }
 
 
-  const setSize = () => {
-    try {
-        // let w1 = document.getElementById('AppBar').offsetWidth;
-        // let w1 = 0;
-        let w = window.innerWidth;
-        // let w = w1 < w2 ? w1 : w2
-        let h = window.innerHeight;
-        h -= document.getElementById('AppBar').offsetHeight
-        setHeight(h)
-        setWidth(w)
-        // console.log(w, h)
-    } catch (e) {console.log(e)}
-  }
-  window.onresize = setSize
+  // const setSize = () => {
+  //   try {
+  //       // let w1 = document.getElementById('AppBar').offsetWidth;
+  //       // let w1 = 0;
+  //       let w = window.innerWidth;
+  //       // let w = w1 < w2 ? w1 : w2
+  //       let h = window.innerHeight;
+  //       h -= document.getElementById('AppBar').offsetHeight
+  //       setHeight(h)
+  //       setWidth(w)
+  //       // console.log(w, h)
+  //   } catch (e) {console.log(e)}
+  // }
+  // window.onresize = setSize
 
   const handleUpdate = () => {
     actx.current.resume()
@@ -259,9 +289,13 @@ export default function App() {
           mode="glicol"
           theme="tomorrow-night"
           fontSize = {18}
-          height = {height+"px"}
-          width = {width+"px"}
+          // height = {height+"px"}
+          // width = {width+"px"}
+          style={{ height: "100vh", width: "100vw" }}
           fontFamily = "Inconsolata"
+          enableSnippets={true}
+          enableBasicAutocompletion={true}
+          enableLiveAutocompletion={true}
           value = {code}
           onChange={change}
           name="UNIQUE_ID_OF_DIV"
