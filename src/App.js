@@ -18,9 +18,8 @@ import {hello, am, fm, usesample, envelope, filter, demo2, demo1, welcome} from 
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-glicol";
 import "ace-builds/src-noconflict/theme-glicol-night";
-import { setCompleters } from "ace-builds/src-noconflict/ext-language_tools";
-import comp from "./completion"
-
+// import { setCompleters } from "ace-builds/src-noconflict/ext-language_tools";
+// import comp from "./completion"
 
 let x = 
 `// welcome, click the play button to run the code
@@ -57,33 +56,6 @@ export default function App() {
     node.current.connect(actx.current.destination)
     console.log("Audio engine loaded.")
   };
-
-  useEffect(() => {
-    const completer = {
-      getCompletions: function(editor, session, pos, prefix, callback) {
-        var completions = comp
-
-        /* You Can get to know how to add more cool 
-        autocomplete features by seeing the ext-language-tools 
-        file in the ace-buils folder */
-
-        completions.forEach(i => {
-          completions.push({
-            caption: i.caption,
-            snippet: i.snippet,
-            type: i.type
-          });
-        });
-        callback(null, completions);
-      }
-    };
-
-    /* You can even use addCompleters instead of setCompleters like this :
-       `addCompleter(completer)`;
-     */
-
-    setCompleters([completer]);
-  }, []);
 
   useEffect(() => {
     // setSize()
@@ -269,7 +241,7 @@ export default function App() {
         <Divider />
         <MyList onClick={()=>handleList(filter)} title="filter." />
         <Divider />
-        <MyList onClick={()=>{handleList("_sin: sin 110.0")}}
+        <MyList onClick={()=>{handleList("lead: sin 110.0")}}
           title="template - synthesis." />
         <MyList onClick={()=>{
           handleList(demo2, sampleList.selected)}}

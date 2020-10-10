@@ -11,9 +11,9 @@ ace.define("ace/mode/glicol_highlight_rules", ["require", "exports", "module", "
 
   var GlicolHighlightRules = function GlicolHighlightRules() {
 
-    var keywordControls = "seq|loop|bpm|line|shift|every|speed|choose|range|play|set_gate|set_gate_all|midi_out|mul|add|envperc|linrange";
+    var keywordControls = "seq|loop|bpm|line|shift|every|speed|choose|range|play|set_gate|set_gate_all|midi_out|mul|add|envperc|linrange|";
 
-    var storageType = "sin|saw|squ|imp|pwm|brown|white|pink|noiz|membrane|sin_synth|saw_synth|squ_synth|tri_synth|sampler|pluck|metalphone|fm_synth|lfo|sin_lfo|tri_lfo|saw_lfo|squ_lfo|pink_noise|brown_noise|white_noise"
+    var storageType = "sin|saw|squ|imp|pwm|brown|white|pink|noiz|membrane|sin_synth|saw_synth|squ_synth|tri_synth|sampler|pluck|metalphone|fm_synth|lfo|sin_lfo|tri_lfo|saw_lfo|squ_lfo|pink_noise|brown_noise|white_noise|"
 
     var storageModifiers = "";
     var keywordOperators = ">>|->|="
@@ -63,11 +63,17 @@ ace.define("ace/mode/glicol_highlight_rules", ["require", "exports", "module", "
         token: "string", // ref
         regex: "((~)([a-z]+(_)?)+)\\b"
       }, {
-        token: "audio", // ref with _
-        regex: "((_|&)([a-z]+(_)?)+)\\b",
+        token: "storage.type",
+        regex: "sin|saw|squ|imp|noiz|lpf|hpf|sampler"
       }, {
-        token : keywordMapper,
-        regex : "[a-zA-Z_$][a-zA-Z0-9_$]*\\b"
+        token: "keyword.control",
+        regex: "speed|seq|choose"
+      }, {
+        token: "constant.language",
+        regex: "envperc|linrange|mul|add"
+      }, {
+        token: "audio",
+        regex: "(([a-z]+(_)?)+)\\b",
       }, {
         token: "text",
         regex: "\\\\s+"
