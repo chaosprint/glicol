@@ -21,7 +21,8 @@ ace.define("ace/theme/tomorrow-night",["require","exports","module","ace/lib/dom
       }
       
       .ace-tomorrow-night .ace_cursor {
-        color: #AEAFAD
+        color: #AEAFAD;
+        width: 20px
       }
       
       .ace-tomorrow-night .ace_marker-layer .ace_selection {

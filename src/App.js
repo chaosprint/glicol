@@ -291,7 +291,7 @@ export default function App() {
           fontSize = {18}
           // height = {height+"px"}
           // width = {width+"px"}
-          style={{ height: "100vh", width: "100vw" }}
+          style={{ height: "100vh", width: "100vw"}}
           fontFamily = "Inconsolata"
           enableSnippets={true}
           enableBasicAutocompletion={true}

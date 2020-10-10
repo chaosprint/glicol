@@ -1,4 +1,7 @@
-export default "sin|saw|squ|imp|lpf|hpf|noiz|sampler|seq|loop|speed|choose|mul|add|envperc|linrange".split("|").map(
+import {sampleList} from './samples'
+
+
+let c = "sin|saw|squ|lpf|hpf|imp|seq|loop|speed|choose|mul|add|envperc|linrange".split("|").concat(sampleList.selected).map(
     i => {
         return {
             caption: i,
@@ -8,6 +11,17 @@ export default "sin|saw|squ|imp|lpf|hpf|noiz|sampler|seq|loop|speed|choose|mul|a
     }
 )
 
-  /* You Can get to know how to add more cool 
-  autocomplete features by seeing the ext-language-tools 
-  file in the ace-buils folder */
+let d = [
+    {
+        caption: "sampler",
+        snippet: "sampler \\",
+        type: "sampler",
+    }, {
+        caption: "noiz",
+        snippet: "noiz 0",
+        type: "noiz",  
+    }
+]
+
+
+export default c.concat(d)
