@@ -11,11 +11,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 lazy_static = "1.2.0"
-pest = "2.0"
-pest_derive = "2.0"
-dasp_graph = "0.11.0"
-dasp_signal = "0.11.0"
-dasp_slice = "0.11.0"
-dasp_interpolate = { version = "*", features = ["linear"] }
-petgraph = "*"
 glicol = { path = "../glicol-rs" }
