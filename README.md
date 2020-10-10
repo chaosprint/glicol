@@ -1,4 +1,4 @@
-This lib is for creating WebAssembly file for Glicol live coding language, which can later be running in browsers.
+This lib is for creating WebAssembly file for Glicol live coding language, which can be used in browsers later.
 
 To test it, clone this repository together with [github.com/glicol/glicol-rs](github.com/glicol/glicol-rs) and put thees two projects in the same folder.
 
