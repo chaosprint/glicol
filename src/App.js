@@ -14,7 +14,7 @@ import MyList from "./components/MyList"
 import { WaveFile } from 'wavefile';
 import sampleDict from './samples.json';
 import {sampleList} from './samples.js';
-import {frontpage, hello, am, fm, usesample, envelope, filter, livecoding} from './examples'
+import {hello, am, fm, usesample, envelope, filter, demo2, demo1} from './examples'
 
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-glicol";
@@ -27,9 +27,9 @@ export default function App() {
 
   const actx = useRef()
   const node = useRef()
-  const codeRef = useRef(frontpage)
+  const codeRef = useRef(filter)
 
-  const [code, setCode] = useState(frontpage)
+  const [code, setCode] = useState(filter)
   const [height, setHeight] = useState(800)
   const [width, setWidth] = useState(600)
   const [running, setRunning] = useState(false)
@@ -62,48 +62,49 @@ export default function App() {
   }, []);
 
   const loadSamples = async (list) => {
-      setLoading(true)
-      actx.current.suspend()
-      let l = list.length
-      let count = l
-      // document.title = "loading samples..."
-      for (const key of list) {
-        setProg((l-count)/l*100)
-        count -= 1
-        try {
-          // let u = 
-          // `https://raw.githubusercontent.com/chaosprint/sema/master/assets/samples/`
-          // u += key
-          // u += ".wav"
+    console.log(list)
+    setLoading(true)
+    actx.current.suspend()
+    let l = list.length
+    let count = l
+    // document.title = "loading samples..."
+    for (const key of list) {
+      setProg((l-count)/l*100)
+      count -= 1
+      try {
+        // let u = 
+        // `https://raw.githubusercontent.com/chaosprint/sema/master/assets/samples/`
+        // u += key
+        // u += ".wav"
 
-          let sound = sampleDict[key][0];
-          let u =
-          'https://raw.githubusercontent.com/chaosprint/Dirt-Samples/master/' 
-          + key + '/' + sound
-          // let u = "./samples/" + key + '/' + sound
-          let myRequest = new Request(u);
-          await fetch(myRequest).then(response => response.arrayBuffer())
-          .then(arrayBuffer => {
-            // console.log(arrayBuffer)
-            let buffer = new Uint8Array(arrayBuffer)
-            let wav = new WaveFile(buffer);
-            let sample = wav.getSamples(true, Int16Array)
+        let sound = sampleDict[key][0];
+        let u =
+        'https://raw.githubusercontent.com/chaosprint/Dirt-Samples/master/' 
+        + key + '/' + sound
+        // let u = "./samples/" + key + '/' + sound
+        let myRequest = new Request(u);
+        await fetch(myRequest).then(response => response.arrayBuffer())
+        .then(arrayBuffer => {
+          // console.log(arrayBuffer)
+          let buffer = new Uint8Array(arrayBuffer)
+          let wav = new WaveFile(buffer);
+          let sample = wav.getSamples(true, Int16Array)
 
-            // after loading, sent to audioworklet the sample array
-            console.log("sampler \\" + key)
-            node.current.port.postMessage({
-              type: "samples",
-              sample: sample,
-              name: encoder.encode("\\" + key)
-            })
-          });
-        } catch(e) {
-          // console.log(e)
-        }
+          // after loading, sent to audioworklet the sample array
+          console.log("sampler \\" + key)
+          node.current.port.postMessage({
+            type: "samples",
+            sample: sample,
+            name: encoder.encode("\\" + key)
+          })
+        });
+      } catch(e) {
+        // console.log(e)
       }
-      // document.title = "glicol."
-      setLoading(false)
-      loaded.current = true
+    }
+    // document.title = "glicol."
+    setLoading(false)
+    loaded.current = true
   }
 
   const change = (v) => {
@@ -143,9 +144,9 @@ export default function App() {
 
   const handleRun = async () => {
     actx.current.suspend()
-    if (!loaded.current) {
-      await loadSamples(sampleList.demo)
-    }
+    // if (!loaded.current) {
+    //   await loadSamples(sampleList.demo)
+    // }
     try {
       actx.current.resume()
       setRunning(true)
@@ -180,12 +181,12 @@ export default function App() {
     console.log("stop") 
   }
 
-  const handleList = async (code, usesample=false) => {
+  const handleList = async (code, list=[]) => {
     setCode(code);
     setSideOpen(false);
     codeRef.current=code
     handleStop()
-    if (usesample) {loadSamples(sampleList.selected)}
+    loadSamples(list)
   }
 
   return (
@@ -198,7 +199,9 @@ export default function App() {
         <Toolbar>
 
         {loading ?
-        <Typography className={classes.text}>loading samples...please wait... {Math.floor(prog)}% </Typography>:
+        <Typography className={classes.text}
+        >loading samples. please wait. use [ctrl + shift + i] (or cmd +shift + i on Mac) to see available samples. {
+          Math.floor(prog)}% </Typography>:
         <div> 
         {!running ? <Run onClick={handleRun}/> :
         (<Pause onClick={handlePause}/> )}
@@ -233,7 +236,7 @@ export default function App() {
         <MyList onClick={()=>handleList(am)} title="am." />
         <MyList onClick={()=>handleList(fm)} title="fm." />
         <Divider />
-        <MyList onClick={()=>{handleList(usesample, true)}}
+        <MyList onClick={()=>{handleList(usesample, sampleList.selected)}}
           title="use samples." />
         <MyList onClick={()=>handleList(envelope)} title="envelope." />
         <Divider />
@@ -242,8 +245,13 @@ export default function App() {
         <MyList onClick={()=>{handleList("~sin: sin 110.0")}}
           title="template - synthesis." />
         <MyList onClick={()=>{
-          handleList(livecoding, true)}}
+          handleList(demo2, sampleList.selected)}}
           title="template - use samples." />
+        <Divider />
+        <MyList onClick={()=>{
+          console.log(sampleList.demo)
+          handleList(demo1, sampleList.demo)}}
+          title="demo 1." />
         </Drawer>
 
         </Toolbar> 

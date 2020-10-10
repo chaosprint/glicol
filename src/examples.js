@@ -1,4 +1,4 @@
-const frontpage = `~bd: speed 1.375 >> loop 60 >> sampler \\breaks165
+const demo1 = `~bd: speed 1.375 >> loop 60 >> sampler \\breaks165
 
 &a: choose 63 62 58 53 0 0 0
 
@@ -107,7 +107,7 @@ const envelope =
 
 // ~lead: sin &pitch >> mul &tri`
 
-const livecoding = `~bd: speed 4.0 >> loop 60 >> sampler \\909
+const demo2 = `~bd: speed 4.0 >> loop 60 >> sampler \\909
 
 &a: choose 60 48 55
 
@@ -217,4 +217,4 @@ const livecoding = `~bd: speed 4.0 >> loop 60 >> sampler \\909
 // ~hook: loop 40 _80_34 73__65 42 >> sampler \\808hc
 
 // ~jazz: loop _60 >> sampler \\jazz`
-export {hello, am, fm, envelope, usesample, filter, frontpage, livecoding}
+export {hello, am, fm, envelope, usesample, filter, demo1, demo2}

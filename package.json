@@ -1,28 +1,20 @@
 {
-  "name": "glicol-wasm",
+  "name": "glicol-js",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
     "@material-ui/core": "^4.3.1",
     "@material-ui/icons": "^4.9.1",
     "ace-builds": "^1.4.9",
-    "clsx": "^1.1.1",
-    "fs": "^0.0.1-security",
-    "gh-pages": "^3.1.0",
-    "node-bwf-wav-file-reader": "^1.0.3",
     "react": "^16.8.6",
     "react-ace": "^8.1.0",
     "react-dom": "^16.8.6",
     "react-scripts": "3.0.1",
-    "tone": "^13.8.25",
-    "wav": "^1.0.2",
     "wavefile": "^11.0.0"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "predeploy": "yarn run build",
-    "deploy": "gh-pages -d build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
