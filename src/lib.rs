@@ -105,7 +105,6 @@ impl Engine {
             "add" => Add::new(&mut paras),
             "imp" => Impulse::new(&mut paras),
             "sampler" => Sampler::new(&mut paras, &self.samples_dict),
-            "loop" => Sequencer::new(&mut paras),
             "seq" => Sequencer::new(&mut paras),
             "speed" => Speed::new(&mut paras),
             "envperc" => EnvPerc::new(&mut paras),
@@ -146,7 +145,7 @@ impl Engine {
     }
 
     pub fn handle_edges(&mut self) {
-        // println!("{:?}", &self.sidechains_list);
+        println!("{:?}", &self.sidechains_list);
         for pair in &self.sidechains_list {
             assert!(self.control_nodes.contains_key(&pair.1), 
             "no such a control node");
