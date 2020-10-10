@@ -10,7 +10,8 @@ fn main () {
     
     ~trigger: speed 8.0 >> seq ~a ~b
     
-    ~env: ~trigger >> envperc 0.01 0.1 >> mul 0.5
+    ~env: ~trigger >> envperc 0.01 0.1
+    >> mul 0.5
     
     ~pitch: ~trigger >> mul 261.626
     

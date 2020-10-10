@@ -1,7 +1,7 @@
 block = {((line|comment) ~ "\n"*) +}
 comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE+ ~ !NEWLINE}
 line = { reference ~ ":"? ~ chain}
-chain = { (func ~ (">>")? )+ }
+chain = { (func ~ ("\n")? ~ (">>")? )+ }
 func = { name? ~ paras+ }
 // midi | reference can be regarded as seq
 // loop 50 50 paras -> seq -> compound -> midi
