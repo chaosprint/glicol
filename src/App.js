@@ -35,8 +35,8 @@ export default function App() {
   const codeRef = useRef(x + welcome)
 
   const [code, setCode] = useState(x + welcome)
-  // const [height, setHeight] = useState(800)
-  // const [width, setWidth] = useState(600)
+  const [height, setHeight] = useState(800)
+  const [width, setWidth] = useState(600)
   const [running, setRunning] = useState(false)
   const loaded = useRef(false)
   const [prog, setProg] = useState(0)
@@ -58,7 +58,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    // setSize()
+    setSize()
     try {
       loadModule()
     } catch (e) {
@@ -111,20 +111,20 @@ export default function App() {
   }
 
 
-  // const setSize = () => {
-  //   try {
-  //       // let w1 = document.getElementById('AppBar').offsetWidth;
-  //       // let w1 = 0;
-  //       let w = window.innerWidth;
-  //       // let w = w1 < w2 ? w1 : w2
-  //       let h = window.innerHeight;
-  //       h -= document.getElementById('AppBar').offsetHeight
-  //       setHeight(h)
-  //       setWidth(w)
-  //       // console.log(w, h)
-  //   } catch (e) {console.log(e)}
-  // }
-  // window.onresize = setSize
+  const setSize = () => {
+    try {
+        // let w1 = document.getElementById('AppBar').offsetWidth;
+        // let w1 = 0;
+        let w = window.innerWidth;
+        // let w = w1 < w2 ? w1 : w2
+        let h = window.innerHeight;
+        h -= document.getElementById('AppBar').offsetHeight
+        setHeight(h)
+        setWidth(w)
+        // console.log(w, h)
+    } catch (e) {console.log(e)}
+  }
+  window.onresize = setSize
 
   const handleUpdate = () => {
     actx.current.resume()
@@ -198,9 +198,9 @@ export default function App() {
 
         {loading ?
         <Typography className={classes.text}
-        >loading samples. please wait. use [ctrl + shift + i] (or cmd + shift + i on Mac) to see available samples. {
-          Math.floor(prog)}% </Typography>:
-        <div> 
+        >loading samples... [{Math.floor(prog)
+        }%] please wait. use [ctrl + shift + i] to see available samples.</Typography>
+         : <div> 
         {!running ? <Run onClick={handleRun}/> :
         (<Pause onClick={handlePause}/> )}
         <Update onClick={handleUpdate} />
@@ -261,13 +261,10 @@ export default function App() {
           mode="glicol"
           theme="tomorrow-night"
           fontSize = {18}
-          // height = {height+"px"}
-          // width = {width+"px"}
-          style={{ height: "100vh", width: "100vw"}}
+          height = {height}
+          width = {width}
+          // style={{ height: "100%", width: "100%"}}
           fontFamily = "Inconsolata"
-          enableSnippets={true}
-          enableBasicAutocompletion={true}
-          enableLiveAutocompletion={true}
           value = {code}
           onChange={change}
           name="UNIQUE_ID_OF_DIV"

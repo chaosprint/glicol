@@ -50,13 +50,15 @@ hi: sin 440.0 >> mul ~am
 
 const fm = 
 `hi: sin ~fm >> mul ~am
-
+// you can write a comment in between lines
 ~am: sin 0.2 >> mul 0.3 >> add 0.5
 
 // this linrange node map -1.0 to 1.0 the range you give
 ~fm: sin ~more >> linrange 100.0 1000.0
 
-~more: sin 0.1 >> linrange 1.0 100.0`
+~more: sin 0.1
+>> linrange 1.0 100.0
+// you can fold a line like this, but always have a blank line or a comment between two chains`
 
 const usesample = 
 `// "imp" is used to trigger the sampler
@@ -74,6 +76,7 @@ hi: imp 1.0 >> mul 1.0 >> sampler \\bd
 // it is a good way to work with midi pitches
 // the default pitch is midi 60, so to make it one octave higher, you should change it to 72
 
+// btw, you don't need to uncomment the line above, the "hi" ref will be replaced by the latest one
 // hi: seq 60 >> sampler \\casio
 
 // "seq" node also handles time and rhythm algorithmically
@@ -81,9 +84,11 @@ hi: imp 1.0 >> mul 1.0 >> sampler \\bd
 
 // this one bar length will be first divided by space
 // uncomment the following codes to see the difference
-// hi: seq 48 49 >> sampler \\casio
-// hi: seq 48 49 50 >> sampler \\casio
-// hi: seq 48 49 50 51 >> sampler \\casio
+// hi: seq 48 55 >> sampler \\casio
+
+// hi: seq 48 52 55 >> sampler \\casio
+
+// hi: seq 48 52 55 60 >> sampler \\casio
 // ... 
 // you can add more notets for the "seq" node by yourself to see
 
@@ -92,20 +97,23 @@ hi: imp 1.0 >> mul 1.0 >> sampler \\bd
 // hi: seq 48 _ 50 51 >> sampler \\casio
 
 // rest and midi notes can form compound notes, which will further divided that part
-// hi: seq 48 49 >> sampler \\casio
-// hi: seq 48 _49_ >> sampler \\casio
-// hi: seq 48 _49__ >> sampler \\casio
-// hi: seq 48 ___49 >> sampler \\casio
+// hi: seq 48 55 >> sampler \\casio
+
+// hi: seq 48 _55_ >> sampler \\casio
+
+// hi: seq 48 _55__ >> sampler \\casio
+
+// hi: seq 48 ___55 >> sampler \\casio
 
 // you can use a speed node to control the speed of "seq" node
-// hi: speed 2.0 >> seq 48 _ _50 _ >> sampler \\casio
+// hi: speed 2.0 >> seq 48 _ _52 _ >> sampler \\casio
 
 // use "choose" node to choose notes in the seq
 // the convention is to use single-letter references
 // zeroes means rest while the number of zeroes can influence the probability
 // hi: seq 48 ~c >> sampler \\casio
 
-// ~c: choose 50 62 74 0 0`
+// ~c: choose 52 55 60 0 0`
 
 
 const envelope = 
