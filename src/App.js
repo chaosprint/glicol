@@ -84,7 +84,7 @@ export default function App() {
         let myRequest = new Request(u);
         await fetch(myRequest).then(response => response.arrayBuffer())
         .then(arrayBuffer => {
-          // console.log(arrayBuffer)
+          // console.log("downloaded", arrayBuffer)
           let buffer = new Uint8Array(arrayBuffer)
           let wav = new WaveFile(buffer);
           let sample = wav.getSamples(true, Int16Array)
@@ -183,7 +183,9 @@ export default function App() {
     setCode(code);
     setSideOpen(false);
     codeRef.current=code
-    handleStop()
+    setRunning(false)
+    // actx.current.close();
+    // await loadModule();
     loadSamples(list)
   }
 
@@ -198,8 +200,8 @@ export default function App() {
 
         {loading ?
         <Typography className={classes.text}
-        >loading samples... [{Math.floor(prog)
-        }%] please wait. use [ctrl + shift + i] to see available samples.</Typography>
+        >loading samples... please wait and do not run the code... use [ctrl + shift + i] to see available samples... [
+          {Math.floor(prog)}%] </Typography>
          : <div> 
         {!running ? <Run onClick={handleRun}/> :
         (<Pause onClick={handlePause}/> )}
@@ -244,12 +246,15 @@ export default function App() {
         <MyList onClick={()=>{handleList("lead: sin 110.0")}}
           title="template - synthesis." />
         <MyList onClick={()=>{
-          handleList(demo2, sampleList.selected)}}
+          handleList("bd: seq 60 >> sampler \\bd", sampleList.selected)}}
           title="template - use samples." />
         <Divider />
         <MyList onClick={()=>{
           handleList(demo1, sampleList.demo)}}
           title="demo 1." />
+         <MyList onClick={()=>{
+          handleList(demo2, sampleList.selected)}}
+          title="demo 2." />
         </Drawer>
 
         </Toolbar> 
@@ -261,8 +266,8 @@ export default function App() {
           mode="glicol"
           theme="tomorrow-night"
           fontSize = {18}
-          height = {height}
-          width = {width}
+          height = {height+"px"}
+          width = {width+"px"}
           // style={{ height: "100%", width: "100%"}}
           fontFamily = "Inconsolata"
           value = {code}
