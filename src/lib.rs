@@ -12,6 +12,7 @@ use petgraph::graph::{NodeIndex, DiGraph};
 use petgraph::{Graph, Directed};
 
 mod node;
+use node::phasor::{Phasor};
 use node::adc::{Adc, AdcSource};
 use node::oscillator::{SinOsc, Impulse, Saw, Square};
 use node::operator::{Add, Mul};
@@ -23,6 +24,7 @@ use node::pass::Pass;
 use node::filter::{LPF, HPF};
 use node::map::{LinRange};
 use node::rand::{Choose};
+use node::buf::{Buf};
 
 pub struct Engine {
     pub elapsed_samples: usize,
@@ -115,6 +117,8 @@ impl Engine {
             "squ" => Square::new(&mut paras),
             "linrange" => LinRange::new(&mut paras),
             "choose" => Choose::new(&mut paras),
+            "pha" => Phasor::new(&mut paras),
+            "buf" => Buf::new(&mut paras, &self.samples_dict),
             _ => Pass::new(name),
             // panic!("cannot match a node")
         };

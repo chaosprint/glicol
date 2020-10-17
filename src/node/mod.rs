@@ -9,3 +9,5 @@ pub mod noise;
 pub mod pass;
 pub mod map;
 pub mod rand;
+pub mod phasor;
+pub mod buf;

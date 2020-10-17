@@ -17,13 +17,13 @@ impl Sampler {
         samples_dict: &HashMap<String, &'static[f32]>,
     ) -> (NodeData<BoxedNodeSend>, Vec<String>) {
 
-        let mut paras = paras.next().unwrap().into_inner();
-        let para_a: String = paras.next().unwrap().as_str().to_string()
-        .chars().filter(|c| !c.is_whitespace()).collect();
+        // let mut paras = paras.next().unwrap().into_inner();
+        // let para_a: String = paras.next().unwrap().as_str().to_string()
+        // .chars().filter(|c| !c.is_whitespace()).collect();
 
-        let key = para_a;
+        let key = paras.as_str();
 
-        let samples = samples_dict[&key];
+        let samples = samples_dict[key];
 
         (NodeData::new1(BoxedNodeSend::new(Self{
             sig: Vec::new(),
@@ -42,15 +42,17 @@ impl Node for Sampler {
             for i in 0..64 {
                 if input_buf[0][i] > 0.0 {
                     // do it every sample, will it be too expensive?
-                    let f: &[[f32;1]] = self.samples.to_frame_slice().unwrap();
-                    // let s = signal::from_iter(f.iter().cloned());
-                    let mut source = signal::from_iter(f.iter().cloned());
-                    let a = source.next();
-                    let b = source.next();
-                    let interp = Linear::new(a, b);
-                    let s = source.scale_hz(interp, input_buf[0][i] as f64);
-                    // as f64 /2.0_f64.powf((60.0-69.0)/12.0)/440.0;
-                    self.sig.push(Box::new(s));
+                    if input_buf[0][i] > 0.0 {
+                        let f: &[[f32;1]] = self.samples.to_frame_slice().unwrap();
+                        // let s = signal::from_iter(f.iter().cloned());
+                        let mut source = signal::from_iter(f.iter().cloned());
+                        let a = source.next();
+                        let b = source.next();
+                        let interp = Linear::new(a, b);
+                        let s = source.scale_hz(interp, input_buf[0][i] as f64);
+                        // as f64 /2.0_f64.powf((60.0-69.0)/12.0)/440.0;
+                        self.sig.push(Box::new(s));
+                    }
                 }
                 // for i in 0..output[0].len() {
                 for v in &mut self.sig {
