@@ -1,7 +1,7 @@
 use dasp_signal::{self as signal, Signal};
 use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNodeSend};
 use pest::iterators::Pairs;
-use super::super::Rule;
+use super::super::{Rule, EngineError};
 
 pub struct SinOsc {
     // pub freq: f64,
@@ -14,21 +14,21 @@ pub struct SinOsc {
 }
 
 impl SinOsc {
-    pub fn new(paras: &mut Pairs<Rule>) -> (NodeData<BoxedNodeSend>, Vec<String>) {
+    pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
         let mut paras = paras.next().unwrap().into_inner();
         let freq: String = paras.next().unwrap().as_str().to_string()
         .chars().filter(|c| !c.is_whitespace()).collect();
 
         if freq.parse::<f32>().is_ok() {
-            return (NodeData::new1(BoxedNodeSend::new(Self {
+            return Ok((NodeData::new1(BoxedNodeSend::new(Self {
                 freq: freq.parse::<f32>().unwrap(),
-                phase: 0.0, diff: 0.0, has_mod: false 
-            })), vec![])
+                phase: 0.0, diff: 0.0, has_mod: false
+            })), vec![]))
         } else {
-            return (NodeData::new1(BoxedNodeSend::new(Self { 
+            return Ok((NodeData::new1(BoxedNodeSend::new(Self { 
                 freq: 0.0,
                 phase:  0.0, diff: 0.0, has_mod: true 
-            })), vec![freq])
+            })), vec![freq]))
         }
     }
 }

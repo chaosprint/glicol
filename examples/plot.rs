@@ -4,11 +4,15 @@ use glicol::Engine;
 
 fn main () {
     let mut engine = Engine::new();
-    engine.set_code("~freq: state 0.0 50.0, 5.0 440.0, 6.0 200.0
+    engine.set_code("hi: sin ~fm >> mul ~am
 
-    k: sin ~freq");
+    ~am: sin 0.2 >> mul 0.3 >> add 0.5
+    
+    ~fm: sin ~mor >> linrange 100.0 1000.0
+        
+    ~more: sin 0.1 >> linrange 1.0 100.0");
     engine.update();
-    engine.make_graph();
+    // engine.make_graph();
 
     // println!("audio_nodes {:?}", engine.audio_nodes);
     // for e in engine.graph.raw_edges() {
@@ -19,9 +23,9 @@ fn main () {
     let mut y = Vec::<f32>::new();
     let mut n = 0;
 
-    for _ in 0..(44100.0*2.0/64.0) as usize {
-        let out = engine.gen_next_buf_64();
-        for i in 0..64 {
+    for _ in 0..(256.0*2.0/128.0) as usize {
+        let out = engine.gen_next_buf_128().unwrap();
+        for i in 0..128 {
             x.push(n);
             n += 1;
             y.push(out[i]);

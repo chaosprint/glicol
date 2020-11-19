@@ -1,12 +1,12 @@
 use dasp_graph::{Buffer, Input, Node};
-use super::super::{Pairs, Rule, NodeData, BoxedNodeSend};
+use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError};
 
 pub struct Mul {
     pub mul: f32,
     has_mod: bool
 }
 impl Mul {
-    pub fn new(paras: &mut Pairs<Rule>) -> (NodeData<BoxedNodeSend>, Vec<String>) {
+    pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
 
         let mut paras = paras.next().unwrap().into_inner();
         // println!("{:?}", paras.as_str());
@@ -15,11 +15,11 @@ impl Mul {
 
         let is_float = mul.parse::<f32>();
         if is_float.is_ok() {
-            (NodeData::new1(BoxedNodeSend::new(Self {mul: is_float.unwrap(), has_mod: false})),
-            vec![])
+            Ok((NodeData::new1(BoxedNodeSend::new(Self {mul: is_float.unwrap(), has_mod: false})),
+            vec![]))
         } else {
-            (NodeData::new1(BoxedNodeSend::new(Self {mul: 0.0, has_mod: true})),
-            vec![mul])
+            Ok((NodeData::new1(BoxedNodeSend::new(Self {mul: 0.0, has_mod: true})),
+            vec![mul]))
         }
     }
 }
@@ -52,7 +52,7 @@ pub struct Add {
     has_mod: bool
 }
 impl Add {
-    pub fn new(paras: &mut Pairs<Rule>) -> (NodeData<BoxedNodeSend>, Vec<String>) {
+    pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError>  {
         let mut paras = paras.next().unwrap().into_inner();
         let inc: String = paras.next().unwrap().as_str().to_string()
         .chars().filter(|c| !c.is_whitespace()).collect();
@@ -60,11 +60,11 @@ impl Add {
         let is_float = inc.parse::<f32>();
 
         if is_float.is_ok() {
-            (NodeData::new1(BoxedNodeSend::new(Self {inc: is_float.unwrap(), has_mod: false})),
-            vec![])
+            Ok((NodeData::new1(BoxedNodeSend::new(Self {inc: is_float.unwrap(), has_mod: false})),
+            vec![]))
         } else {
-            (NodeData::new1(BoxedNodeSend::new(Self {inc: 0.0, has_mod: true})),
-            vec![inc])
+            Ok((NodeData::new1(BoxedNodeSend::new(Self {inc: 0.0, has_mod: true})),
+            vec![inc]))
         }
     }
 }

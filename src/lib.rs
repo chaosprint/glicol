@@ -28,8 +28,9 @@ use node::buf::{Buf};
 use node::state::{State};
 
 #[derive(Debug)]
-pub enum MakeGraphError {
-    NonExistControlNodeError
+pub enum EngineError {
+    NonExistControlNodeError,
+    HandleNodeError
 }
 
 pub struct Engine {
@@ -45,6 +46,7 @@ pub struct Engine {
     pub sr: u32,
     pub bpm: f64,
     code: &'static str,
+    code_backup: &'static str,
     update: bool,
 }
 
@@ -67,6 +69,7 @@ impl Engine {
             graph: g,
             processor: p,
             code: "",
+            code_backup: "backup: sin 440",
             samples_dict: HashMap::new(),
             adc_source_nodes: Vec::new(),
             adc_nodes: Vec::new(),
@@ -98,85 +101,12 @@ impl Engine {
         self.code = code;
     }
 
-    pub fn handle_node(
-        &mut self,
-        name: &str,
-        mut paras: Pairs<Rule>,
-        current_ref_name: &'static str, 
-        previous_nodes: &mut Vec<NodeIndex>
-    ) {
-
-        // println!("name {}", name);
-        let (node_data, sidechains) = match name {
-            "sin" => SinOsc::new(&mut paras),
-            "mul" => Mul::new(&mut paras),
-            "add" => Add::new(&mut paras),
-            "imp" => Impulse::new(&mut paras),
-            "sampler" => Sampler::new(&mut paras, &self.samples_dict),
-            "seq" => Sequencer::new(&mut paras),
-            "speed" => Speed::new(&mut paras),
-            "envperc" => EnvPerc::new(&mut paras),
-            "noiz" => Noise::new(&mut paras),
-            "lpf" => LPF::new(&mut paras),
-            "hpf" => HPF::new(&mut paras),
-            "saw" => Saw::new(&mut paras),
-            "squ" => Square::new(&mut paras),
-            "linrange" => LinRange::new(&mut paras),
-            "choose" => Choose::new(&mut paras),
-            "pha" => Phasor::new(&mut paras),
-            "buf" => Buf::new(&mut paras, &self.samples_dict),
-            "state" => State::new(&mut paras),
-            _ => Pass::new(name),
-            // panic!("cannot match a node")
-        };
-
-        let node_index = self.graph.add_node(node_data);
-
-        // connect to previous node
-        if previous_nodes.len() > 0 {
-            self.graph.add_edge(previous_nodes[0], node_index, ());
-        }
-
-        // we only process the last nodes of chains in the audio nodes vec
-        if !current_ref_name.contains("~") {
-            self.audio_nodes.insert(current_ref_name.to_string(), node_index);
-        } else {
-            self.control_nodes.insert(current_ref_name.to_string(), node_index);
-        }
-
-        // println!("{:?}, {:?}", self.audio_nodes, self.control_nodes);
-
-        // prepare to be connected by the next node of the chain
-        previous_nodes.insert(0, node_index);
-
-        // lazy sidechain connection
-        for sidechain in sidechains.into_iter() {
-            self.sidechains_list.push((node_index, sidechain));
-        }
-    }
-
-    pub fn handle_edges(&mut self) -> Result<(), MakeGraphError> {
-        // println!("{:?}", &self.sidechains_list);
-
-        for pair in &self.sidechains_list {
-
-            // assert!(self.control_nodes.contains_key(&pair.1), 
-            // "no such a control node");
-
-            if !self.control_nodes.contains_key(&pair.1) {
-                return Err(MakeGraphError::NonExistControlNodeError);
-            }
-            let control_node = self.control_nodes[&pair.1];
-            self.graph.add_edge(control_node, pair.0, ()); // the order matters
-        };
-        Ok(())
-    }
-
     // error only comes from this method
-    pub fn make_graph(&mut self) -> Result<(), MakeGraphError>{
-        // self.audio_nodes.clear();
-        // self.control_nodes.clear();
-        // self.graph.clear();
+    pub fn make_graph(&mut self) -> Result<(), EngineError>{
+        self.audio_nodes.clear();
+        self.control_nodes.clear();
+        self.graph.clear();
+        self.sidechains_list.clear();
 
         let lines = GlicolParser::parse(Rule::block, self.code)
         .expect("unsuccessful parse")
@@ -198,16 +128,58 @@ impl Engine {
                     Rule::chain => {
                         previous_nodes.clear();
                         // change name to previous_nodes
-                        // let chain_info = (current_ref_name, previous_nodes);
 
                         for func in element.into_inner() {
-                            let mut inner_rules = func.into_inner();
-                            let name: &str = inner_rules.next().unwrap().as_str();
-                            // println!("{}", name);
-                            // let paras = inner_rules.next().unwrap().into_inner();
-                            // paras = { float | seq | symbol | reference | minichain }
-                            self.handle_node(name, inner_rules,
-                                current_ref_name, &mut previous_nodes);
+                            let mut paras = func.into_inner();
+                            let name: &str = paras.next().unwrap().as_str();
+
+                            let (node_data, sidechains) = match name {
+                                "sin" => SinOsc::new(&mut paras)?,
+                                "mul" => Mul::new(&mut paras)?,
+                                "add" => Add::new(&mut paras)?,
+                                "linrange" => LinRange::new(&mut paras)?,
+                                _ => Pass::new(name)?
+                    
+                                // "imp" => Impulse::new(&mut paras),
+                                // "sampler" => Sampler::new(&mut paras, &self.samples_dict),
+                                // "seq" => Sequencer::new(&mut paras),
+                                // "speed" => Speed::new(&mut paras),
+                                // "envperc" => EnvPerc::new(&mut paras),
+                                // "noiz" => Noise::new(&mut paras),
+                                // "lpf" => LPF::new(&mut paras),
+                                // "hpf" => HPF::new(&mut paras),
+                                // "saw" => Saw::new(&mut paras),
+                                // "squ" => Square::new(&mut paras),
+                                
+                                // "choose" => Choose::new(&mut paras),
+                                // "pha" => Phasor::new(&mut paras),
+                                // "buf" => Buf::new(&mut paras, &self.samples_dict),
+                                // "state" => State::new(&mut paras),
+                                // _ => Pass::new(name),
+                                // panic!("cannot match a node")
+                            };
+                    
+                            let node_index = self.graph.add_node(node_data);
+                    
+                            // connect to previous node
+                            if previous_nodes.len() > 0 {
+                                self.graph.add_edge(previous_nodes[0], node_index, ());
+                            }
+                    
+                            // only process the last nodes of chains in the audio nodes vec
+                            if !current_ref_name.contains("~") {
+                                self.audio_nodes.insert(current_ref_name.to_string(), node_index);
+                            } else {
+                                self.control_nodes.insert(current_ref_name.to_string(), node_index);
+                            }
+                    
+                            // prepare to be connected by the next node of the chain
+                            previous_nodes.insert(0, node_index);
+                    
+                            // lazy sidechain connection
+                            for sidechain in sidechains.into_iter() {
+                                self.sidechains_list.push((node_index, sidechain));
+                            };
                         }
                     },
                     _ => ()
@@ -215,10 +187,18 @@ impl Engine {
             }
         }
 
-        match self.handle_edges() {
-            Ok(_) => { return Ok(())},
-            Err(e) => {return Err(e)}
+        for pair in &self.sidechains_list {
+            // assert!(self.control_nodes.contains_key(&pair.1), 
+            // "no such a control node");
+
+            if !self.control_nodes.contains_key(&pair.1) {
+                return Err(EngineError::NonExistControlNodeError);
+            }
+            let control_node = self.control_nodes[&pair.1];
+            self.graph.add_edge(control_node, pair.0, ()); // the order matters
         };
+
+        Ok(())
     }
 
     // for bela
@@ -271,7 +251,7 @@ impl Engine {
         output
     }
 
-    pub fn gen_next_buf_128(&mut self) -> [f32; 128] {
+    pub fn gen_next_buf_128(&mut self) -> Result<[f32; 128], EngineError> {
         // you just cannot use self.buffer
         let mut output: [f32; 128] = [0.0; 128];
 
@@ -280,13 +260,16 @@ impl Engine {
         // for wasm live coding
         if self.update && is_near_bar_end {
             self.update = false;
-            self.audio_nodes.clear();
-            self.make_graph();
 
-            // self.audio_nodes = match self.make_graph() {
-            //     Ok(nodes) => { nodes }
-            //     Err(e) => { self.audio_nodes }
-            // };
+            match self.make_graph() {
+                Ok(_) => {
+                    self.code_backup = self.code.clone();
+                },
+                Err(_) => {
+                    self.code = self.code_backup.clone();
+                    self.make_graph()?;
+                }
+            }
         }
 
         for (_ref_name, node) in &self.audio_nodes {
@@ -304,6 +287,6 @@ impl Engine {
             }
         }
         self.elapsed_samples += 128;
-        output
+        Ok(output)
     }
 }
