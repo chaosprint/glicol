@@ -62,13 +62,19 @@ pub extern fn process_u8(out_ptr: *mut u8) {
 
 // Mutex<engine::Engine>
 #[no_mangle]
-pub extern "C" fn process(out_ptr: *mut f32, size: usize) {
+pub extern "C" fn process(out_ptr: *mut f32, size: usize) -> usize {
     let mut engine = ENGINE.lock().unwrap();
-    let wave_buf = engine.gen_next_buf_128(); // hard coded
+
+    // error handling here
+    // no need to use Result here
+    // simply guarantee this is outputting 128 samples array
+    let wave_buf = engine.gen_next_buf_128();
+
     let out_buf: &mut [f32] = unsafe { std::slice::from_raw_parts_mut(out_ptr, size) };
     for i in 0..size {
         out_buf[i] = wave_buf[i] as f32
     };
+    return 0;
     // engine.process128(out_ptr, size);s
 }
 
