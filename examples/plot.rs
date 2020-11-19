@@ -4,7 +4,9 @@ use glicol::Engine;
 
 fn main () {
     let mut engine = Engine::new();
-    engine.set_code("k: pha 1.0");
+    engine.set_code("~freq: state 0.0 50.0, 5.0 440.0, 6.0 200.0
+
+    k: sin ~freq");
     engine.update();
     engine.make_graph();
 

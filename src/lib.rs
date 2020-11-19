@@ -25,6 +25,12 @@ use node::filter::{LPF, HPF};
 use node::map::{LinRange};
 use node::rand::{Choose};
 use node::buf::{Buf};
+use node::state::{State};
+
+#[derive(Debug)]
+pub enum MakeGraphError {
+    NonExistControlNodeError
+}
 
 pub struct Engine {
     pub elapsed_samples: usize,
@@ -119,6 +125,7 @@ impl Engine {
             "choose" => Choose::new(&mut paras),
             "pha" => Phasor::new(&mut paras),
             "buf" => Buf::new(&mut paras, &self.samples_dict),
+            "state" => State::new(&mut paras),
             _ => Pass::new(name),
             // panic!("cannot match a node")
         };
@@ -148,20 +155,25 @@ impl Engine {
         }
     }
 
-    pub fn handle_edges(&mut self) {
-        println!("{:?}", &self.sidechains_list);
-        for pair in &self.sidechains_list {
-            assert!(self.control_nodes.contains_key(&pair.1), 
-            "no such a control node");
-            let control_node = self.control_nodes[&pair.1];
+    pub fn handle_edges(&mut self) -> Result<(), MakeGraphError> {
+        // println!("{:?}", &self.sidechains_list);
 
-            // the order matters
-            // self.graph.add_edge( pair.0, control_node, ());
-            self.graph.add_edge(control_node, pair.0, ());
+        for pair in &self.sidechains_list {
+
+            // assert!(self.control_nodes.contains_key(&pair.1), 
+            // "no such a control node");
+
+            if !self.control_nodes.contains_key(&pair.1) {
+                return Err(MakeGraphError::NonExistControlNodeError);
+            }
+            let control_node = self.control_nodes[&pair.1];
+            self.graph.add_edge(control_node, pair.0, ()); // the order matters
         };
+        Ok(())
     }
 
-    pub fn make_graph(&mut self) {
+    // error only comes from this method
+    pub fn make_graph(&mut self) -> Result<(), MakeGraphError>{
         // self.audio_nodes.clear();
         // self.control_nodes.clear();
         // self.graph.clear();
@@ -198,11 +210,15 @@ impl Engine {
                                 current_ref_name, &mut previous_nodes);
                         }
                     },
-                    _ => panic!("cannot match a grammar rule")
+                    _ => ()
                 }
             }
         }
-        self.handle_edges();
+
+        match self.handle_edges() {
+            Ok(_) => { return Ok(())},
+            Err(e) => {return Err(e)}
+        };
     }
 
     // for bela
@@ -235,14 +251,15 @@ impl Engine {
     }
 
     pub fn gen_next_buf_64(&mut self) -> [f32; 64] {
-        // you just cannot use self.buffer
+        
+        // using self.buffer will cause errors on bela
         let mut output: [f32; 64] = [0.0; 64];
         for (_ref_name, node) in &self.audio_nodes {
 
             // find the edge order issue
             // print!("this should before process {:?}", 
             // self.graph.raw_edges());
-            // if self.graph.raw_edges().len() > 0 {
+            // if self.graph.raw_edges().len() > 0 {f
             self.processor.process(&mut self.graph, *node);
             let b = &self.graph[*node].buffers[0];
             for i in 0..64 {
@@ -265,6 +282,11 @@ impl Engine {
             self.update = false;
             self.audio_nodes.clear();
             self.make_graph();
+
+            // self.audio_nodes = match self.make_graph() {
+            //     Ok(nodes) => { nodes }
+            //     Err(e) => { self.audio_nodes }
+            // };
         }
 
         for (_ref_name, node) in &self.audio_nodes {

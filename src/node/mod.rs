@@ -11,3 +11,4 @@ pub mod map;
 pub mod rand;
 pub mod phasor;
 pub mod buf;
+pub mod state;
