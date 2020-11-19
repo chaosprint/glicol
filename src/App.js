@@ -45,7 +45,10 @@ export default function App() {
 
   const loadModule = async () => {
     // Note the the path is from public folder
-    actx.current = new window.AudioContext()
+    // console.log(audioContextOptions.sampleRate )
+    actx.current = new window.AudioContext({
+      sampleRate: 44100
+    })
     await actx.current.audioWorklet.addModule('./worklet/engine.js')
     node.current = new AudioWorkletNode(actx.current, 'glicol-engine')
 

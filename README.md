@@ -1,13 +1,11 @@
-This project is written with React Hooks + WebAssembly + AudioWorklet.
+# Introduction
 
-Be sure you have ```node.js```, ```yarn``` and ```cargo``` installed.
+The web implementation is written with React Hooks + WebAssembly + AudioWorklet.
 
-In terminal, ```cd``` to the current folder, and run the following lines in three times:
+Make sure you have ```node.js```, ```yarn``` and ```cargo``` installed.
 
-1. ```yarn```
+# Test locally
 
-2. ```bash build.sh```
-
-3. ```yarn start```
-
-Next, use ```ctrl``` + ```enter``` to run the code, and use ```shift``` + ```enter``` to update the music.
+1. clone this repo
+2. run the ```build.sh``` or ```build.bat``` in the wasm folder.
+3. in the js folder, run the ```test.bat```

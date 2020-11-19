@@ -34,7 +34,7 @@ const hello =
 // "mul" has one input from its left hand side
 // "mul" processes the input signal by multiplying the input signal with its first argument
 
-// everything before the colon, e.g. "_hi" or "_another", is called [reference]
+// everything before the colon, e.g. "hi" or "another", is called [reference]
 // this will be explained in the next page (am)`
 
 const am = 
