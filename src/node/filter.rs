@@ -1,5 +1,5 @@
 use dasp_graph::{Buffer, Input, Node};
-use super::super::{Pairs, Rule, NodeData, BoxedNodeSend};
+use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError};
 
 pub struct LPF {
     cutoff: f32,
@@ -13,7 +13,8 @@ pub struct LPF {
 }
 
 impl LPF {
-    pub fn new(paras: &mut Pairs<Rule>) -> (NodeData<BoxedNodeSend>, Vec<String>) {
+    pub fn new(paras: &mut Pairs<Rule>) -> 
+    Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
 
         // TODO: figure out paras handling
         // let mut paras = paras.next().unwrap().into_inner();
@@ -41,7 +42,7 @@ impl LPF {
             Ok(val) => val,
             Err(_why) => {destination.push(para_a.clone()); 1000.0}
         };
-        (NodeData::new1( BoxedNodeSend::new( Self {
+        Ok((NodeData::new1( BoxedNodeSend::new( Self {
             cutoff: cutoff,
             q: q,
             has_mod: !para_a.parse::<f32>().is_ok(),
@@ -50,7 +51,7 @@ impl LPF {
             x2: 0.,
             y1: 0.,
             y2: 0.,
-        })), destination)
+        })), destination))
     }
 }
 
@@ -124,7 +125,8 @@ pub struct HPF {
 }
 
 impl HPF {
-    pub fn new(paras: &mut Pairs<Rule>) -> (NodeData<BoxedNodeSend>, Vec<String>) {
+    pub fn new(paras: &mut Pairs<Rule>) -> 
+    Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
 
         let para_a: String = paras.next().unwrap().as_str().to_string()
         .chars().filter(|c| !c.is_whitespace()).collect();
@@ -141,7 +143,7 @@ impl HPF {
             Ok(val) => val,
             Err(_why) => {destination.push(para_a.clone()); 1000.0}
         };
-        (NodeData::new1( BoxedNodeSend::new( Self {
+        Ok((NodeData::new1( BoxedNodeSend::new( Self {
             cutoff: cutoff,
             q: q,
             has_mod: !para_a.parse::<f32>().is_ok(),
@@ -150,7 +152,7 @@ impl HPF {
             x2: 0.,
             y1: 0.,
             y2: 0.,
-        })), destination)
+        })), destination))
     }
 }
 

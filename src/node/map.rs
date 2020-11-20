@@ -17,8 +17,8 @@ impl LinRange {
         let para_b: String = paras.next().unwrap().as_str().to_string()
         .chars().filter(|c| !c.is_whitespace()).collect();
 
-        let low = para_a.parse::<f32>().unwrap();
-        let high = para_b.parse::<f32>().unwrap();
+        let low = para_a.parse::<f32>()?;
+        let high = para_b.parse::<f32>()?;
 
         // assert!(high > low);
 
@@ -26,7 +26,7 @@ impl LinRange {
             out_lo: low,
             _out_hi: high,
             range: (high - low)
-        })), vec![]))        
+        })), vec![]))
     }
 }
 

@@ -1,6 +1,6 @@
 use dasp_graph::{Buffer, Input, Node};
 use pest::iterators::Pairs;
-use super::super::{HashMap, Rule, NodeData, BoxedNodeSend};
+use super::super::{HashMap, Rule, NodeData, BoxedNodeSend, EngineError};
 
 pub struct Sequencer {
     events: Vec<(f64, String)>,
@@ -10,7 +10,8 @@ pub struct Sequencer {
 }
 
 impl Sequencer {
-    pub fn new(paras: &mut Pairs<Rule>) -> (NodeData<BoxedNodeSend>, Vec<String>) {
+    pub fn new(paras: &mut Pairs<Rule>)
+        -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
 
         let mut events = Vec::<(f64, String)>::new();
         let mut sidechains = Vec::<String>::new();
@@ -48,12 +49,12 @@ impl Sequencer {
         // println!("sidechains {:?}", sidechains);
         // println!("events {:?}", events);
 
-        (NodeData::new1(BoxedNodeSend::new( Self {
+        Ok((NodeData::new1(BoxedNodeSend::new( Self {
             events: events,
             speed: 1.0,
             step: 0,
             sidechain_lib: sidechain_lib
-        })), sidechains)
+        })), sidechains))
     }
 }
 
@@ -123,21 +124,22 @@ pub struct Speed {
 }
 
 impl Speed {
-    pub fn new(paras: &mut Pairs<Rule>) -> (NodeData<BoxedNodeSend>, Vec<String>) {
+    pub fn new(paras: &mut Pairs<Rule>) -> Result<
+    (NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
 
-        let speed: String = paras.next().unwrap().as_str().to_string()
+        let speed: String = paras.as_str().to_string()
         .chars().filter(|c| !c.is_whitespace()).collect();
 
         let is_float = speed.parse::<f32>();
 
         if is_float.is_ok() {
-            (NodeData::new1(BoxedNodeSend::new(
-                Self {speed: is_float.unwrap(), has_mod: false})),
-            vec![])
+            Ok((NodeData::new1(BoxedNodeSend::new(
+                Self {speed: is_float?, has_mod: false})),
+            vec![]))
         } else {
-            (NodeData::new1(BoxedNodeSend::new(
+            Ok((NodeData::new1(BoxedNodeSend::new(
                 Self {speed: 1.0, has_mod: true})),
-            vec![speed])
+            vec![speed]))
         }
     }
 }

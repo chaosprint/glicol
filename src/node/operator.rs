@@ -8,10 +8,10 @@ pub struct Mul {
 impl Mul {
     pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
 
-        let mut paras = paras.next().unwrap().into_inner();
+        // let mut paras = paras.next().unwrap().into_inner();
         // println!("{:?}", paras.as_str());
-        let mul: String = paras.next().unwrap().as_str().to_string();
-        // .chars().filter(|c| !c.is_whitespace()).collect();
+        let mul: String = paras.as_str().to_string()
+        .chars().filter(|c| !c.is_whitespace()).collect();
 
         let is_float = mul.parse::<f32>();
         if is_float.is_ok() {
@@ -53,8 +53,7 @@ pub struct Add {
 }
 impl Add {
     pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError>  {
-        let mut paras = paras.next().unwrap().into_inner();
-        let inc: String = paras.next().unwrap().as_str().to_string()
+        let inc: String = paras.as_str().to_string()
         .chars().filter(|c| !c.is_whitespace()).collect();
 
         let is_float = inc.parse::<f32>();

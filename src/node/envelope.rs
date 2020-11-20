@@ -1,5 +1,5 @@
 use dasp_graph::{Buffer, Input, Node};
-use super::super::{Pairs, Rule, NodeData, BoxedNodeSend};
+use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError};
 
 // pub enum Env {
 //     Perc(f64, f64, u32),
@@ -15,7 +15,8 @@ pub struct EnvPerc {
 }
 
 impl EnvPerc {
-    pub fn new(paras: &mut Pairs<Rule>) -> (NodeData<BoxedNodeSend>, Vec<String>) {
+    pub fn new(paras: &mut Pairs<Rule>) -> Result<
+    (NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
 
         let para_a: String = paras.next().unwrap().as_str().to_string();
         // .chars().filter(|c| !c.is_whitespace()).collect();
@@ -23,15 +24,15 @@ impl EnvPerc {
         let para_b: String = paras.next().unwrap().as_str().to_string();
         // .chars().filter(|c| !c.is_whitespace()).collect();
 
-        let attack = para_a.parse::<f32>().unwrap();
-        let decay = para_b.parse::<f32>().unwrap();
+        let attack = para_a.parse::<f32>()?;
+        let decay = para_b.parse::<f32>()?;
 
-        (NodeData::new1( BoxedNodeSend::new( Self {
+        Ok((NodeData::new1( BoxedNodeSend::new( Self {
             attack: attack,
             decay: decay,
             pos: 0,
             scale: 1.0
-        })), vec![])
+        })), vec![]))
     }
 }
 

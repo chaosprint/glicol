@@ -1,7 +1,7 @@
 use dasp_graph::{Buffer, Input, Node};
 use pest::iterators::Pairs;
 use dasp_signal::{self as signal, Signal};
-use super::super::{Rule, NodeData, BoxedNodeSend};
+use super::super::{Rule, NodeData, BoxedNodeSend, EngineError};
 // use rand_core::{RngCore, OsRng};
 // use rand::Rng;
 // use rand::rngs::OsRng;
@@ -15,7 +15,7 @@ pub struct Choose {
 }
 
 impl Choose {
-    pub fn new(paras: &mut Pairs<Rule>) -> (NodeData<BoxedNodeSend>, Vec<String>) {
+    pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
         // let mut paras = paras.next().unwrap().into_inner();
         // let v: Vec<f32> = 
         // println!(">{:?}<", v);
@@ -25,15 +25,20 @@ impl Choose {
         // Ok(buf);
         // println!("{:?} {:?}", c, buf);
         // let rng = OsRng;
-        let note_list = paras.as_str().split(" ").map(
-            |x|x.parse::<f32>().unwrap()).collect();
+        let split: Vec<&str> = paras.as_str().split(" ").collect();
+        let mut note_list = Vec::<f32>::new();
+
+        for note in split {
+            note_list.push(note.parse::<f32>()?)
+        }
+        // = split.iter().map(|x|x.parse::<f32>().unwrap()).collect();
         let sig = signal::noise(0);
 
-        (NodeData::new1(BoxedNodeSend::new( Self {
+        Ok((NodeData::new1(BoxedNodeSend::new( Self {
             // rng: rng,
             sig: Box::new(sig),
             note_list: note_list
-        })), vec![])
+        })), vec![]))
     }
 }
 

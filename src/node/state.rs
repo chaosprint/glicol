@@ -1,5 +1,5 @@
 use dasp_graph::{Buffer, Input, Node};
-use super::super::{Pairs, Rule, NodeData, BoxedNodeSend};
+use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError};
 
 pub struct State {
     // sig: Box<dyn Signal<Frame=f64> + Send>
@@ -9,23 +9,24 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(paras: &mut Pairs<Rule>) -> (NodeData<BoxedNodeSend>, Vec<String>) {
+    pub fn new(paras: &mut Pairs<Rule>) -> Result<
+    (NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
         
         let coma_sep: Vec<&str> = paras.as_str().split(",").collect();
        
         let info = coma_sep.into_iter().map(|s|
             s.split(" ")
             .filter(|s|s!=&"")
-            .map( |s| s.parse::<f32>().unwrap())
+            .map( |s| s.parse::<f32>().unwrap()) // TODO: error handling
             .collect::<Vec<f32>>()
-        ).collect::<Vec<Vec<f32>>>();  
+        ).collect::<Vec<Vec<f32>>>();
         // println!("{:?}", states);
 
-        (NodeData::new1(BoxedNodeSend::new( Self {
+        Ok((NodeData::new1(BoxedNodeSend::new( Self {
             info,
             state: 0,
             step: 0
-        })), vec![])
+        })), vec![]))
     }
 }
 

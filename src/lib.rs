@@ -1,4 +1,4 @@
-use std::{collections::HashMap};
+use std::{collections::HashMap, num::ParseFloatError};
 
 extern crate pest;
 extern crate pest_derive;
@@ -27,11 +27,8 @@ use node::rand::{Choose};
 use node::buf::{Buf};
 use node::state::{State};
 
-#[derive(Debug)]
-pub enum EngineError {
-    NonExistControlNodeError,
-    HandleNodeError
-}
+mod utili;
+use utili::midi_or_float;
 
 pub struct Engine {
     pub elapsed_samples: usize,
@@ -138,23 +135,23 @@ impl Engine {
                                 "mul" => Mul::new(&mut paras)?,
                                 "add" => Add::new(&mut paras)?,
                                 "linrange" => LinRange::new(&mut paras)?,
+                                "imp" => Impulse::new(&mut paras)?,
+                                "sampler" => Sampler::new(&mut paras, &self.samples_dict)?,
+                                "seq" => Sequencer::new(&mut paras)?,
+                                "saw" => Saw::new(&mut paras)?,
+                                "squ" => Square::new(&mut paras)?,
+                                "lpf" => LPF::new(&mut paras)?,
+                                "hpf" => HPF::new(&mut paras)?,
+                                "speed" => Speed::new(&mut paras)?,
+                                "noiz" => Noise::new(&mut paras)?,
+                                "choose" => Choose::new(&mut paras)?,
+                                "envperc" => EnvPerc::new(&mut paras)?,
+                                "pha" => Phasor::new(&mut paras)?,
+                                "buf" => Buf::new(&mut paras, &self.samples_dict)?,
+                                "state" => State::new(&mut paras)?,
                                 _ => Pass::new(name)?
                     
-                                // "imp" => Impulse::new(&mut paras),
-                                // "sampler" => Sampler::new(&mut paras, &self.samples_dict),
-                                // "seq" => Sequencer::new(&mut paras),
-                                // "speed" => Speed::new(&mut paras),
-                                // "envperc" => EnvPerc::new(&mut paras),
-                                // "noiz" => Noise::new(&mut paras),
-                                // "lpf" => LPF::new(&mut paras),
-                                // "hpf" => HPF::new(&mut paras),
-                                // "saw" => Saw::new(&mut paras),
-                                // "squ" => Square::new(&mut paras),
-                                
-                                // "choose" => Choose::new(&mut paras),
-                                // "pha" => Phasor::new(&mut paras),
-                                // "buf" => Buf::new(&mut paras, &self.samples_dict),
-                                // "state" => State::new(&mut paras),
+
                                 // _ => Pass::new(name),
                                 // panic!("cannot match a node")
                             };
@@ -251,9 +248,10 @@ impl Engine {
         output
     }
 
-    pub fn gen_next_buf_128(&mut self) -> Result<[f32; 128], EngineError> {
+    pub fn gen_next_buf_128(&mut self) -> Result<([f32; 128], usize), EngineError> {
         // you just cannot use self.buffer
         let mut output: [f32; 128] = [0.0; 128];
+        let mut state = 0;
 
         let is_near_bar_end = (self.elapsed_samples + 128) % 88200 < 128;
         
@@ -263,11 +261,12 @@ impl Engine {
 
             match self.make_graph() {
                 Ok(_) => {
-                    self.code_backup = self.code.clone();
+                    self.code_backup = self.code;
                 },
-                Err(_) => {
-                    self.code = self.code_backup.clone();
-                    self.make_graph()?;
+                Err(e) => {
+                    self.code = self.code_backup;
+                    state = e as usize + 1;
+                    self.make_graph()?; // this should be fine
                 }
             }
         }
@@ -287,6 +286,20 @@ impl Engine {
             }
         }
         self.elapsed_samples += 128;
-        Ok(output)
+        Ok((output, state))
+    }
+}
+
+#[derive(Debug)]
+pub enum EngineError {
+    NonExistControlNodeError,
+    HandleNodeError,
+    ParameterError,
+    SampleNotExistError
+}
+
+impl std::convert::From<ParseFloatError> for EngineError {
+    fn from(_error: ParseFloatError) -> Self {
+        EngineError::ParameterError
     }
 }

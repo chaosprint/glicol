@@ -1,5 +1,5 @@
 use dasp_graph::{Buffer, Input, Node};
-use super::super::{HashMap, Pairs, Rule, NodeData, BoxedNodeSend};
+use super::super::{HashMap, Pairs, Rule, NodeData, BoxedNodeSend, EngineError};
 
 pub struct Buf {
     // pub sig: Vec< Box<dyn Signal<Frame=[f32;1]> + 'static + Send>>,
@@ -11,7 +11,7 @@ impl Buf {
     pub fn new(
         paras: &mut Pairs<Rule>,
         samples_dict: &HashMap<String, &'static[f32]>,
-    ) -> (NodeData<BoxedNodeSend>, Vec<String>) {
+    ) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
 
         // let mut paras = paras.next().unwrap().into_inner();
         // let para_a: String = paras.next().unwrap().as_str().to_string()
@@ -21,10 +21,10 @@ impl Buf {
 
         let sample = samples_dict[key];
 
-        (NodeData::new1(BoxedNodeSend::new(Self{
+        Ok((NodeData::new1(BoxedNodeSend::new(Self{
             // sig: Vec::new(),
             sample
-        })), vec![])
+        })), vec![]))
     }
 }
 
