@@ -1,3 +1,10 @@
+const errors = [
+    "NonExistControlNodeError",
+    "HandleNodeError",
+    "ParameterError",
+    "SampleNotExistError"
+]
+
 class GlicolEngine extends AudioWorkletProcessor {
     static get parameterDescriptors() {
         return [
@@ -76,10 +83,10 @@ class GlicolEngine extends AudioWorkletProcessor {
                 console.log("samplePtr, Length", samplePtr, sampleLength)
 
                 // the code as Uint8 to parse; e.data.value == the code
-                let length = e.data.value.byteLength
-                let myWasmArrayPtr = this._wasm.exports.alloc_uint8array(length);
-                let myWasmArray = new Uint8Array(this._wasm.exports.memory.buffer, myWasmArrayPtr, length);
-                myWasmArray.set(e.data.value);
+                let codeLen = e.data.value.byteLength
+                let codeUint8ArrayPtr = this._wasm.exports.alloc_uint8array(codeLen);
+                let codeUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, codeUint8ArrayPtr, codeLen);
+                codeUint8Array.set(e.data.value);
 
                 let sampleInfo = allocUint32Array(ptrArr, this._wasm.exports.alloc_uint32array, this._wasm.exports.memory.buffer)
                 let lengthInfo = allocUint32Array(lenArr, this._wasm.exports.alloc_uint32array, this._wasm.exports.memory.buffer)
@@ -88,22 +95,23 @@ class GlicolEngine extends AudioWorkletProcessor {
                 let nameLenInfo = allocUint32Array(nameLenArr, this._wasm.exports.alloc_uint32array, this._wasm.exports.memory.buffer)
 
                 this._wasm.exports.run(
-                    myWasmArrayPtr, length, 
+                    codeUint8ArrayPtr, codeLen,
                     sampleInfo.ptr, sampleInfo.len,
                     lengthInfo.ptr, lengthInfo.len,
                     nameInfo.ptr, nameInfo.len,
                     nameLenInfo.ptr, nameLenInfo.len
                 )
+
             } else if (e.data.type === "update") {
 
                 // the code as Uint8 to parse
-                let length = e.data.value.byteLength
-                let myWasmArrayPtr = this._wasm.exports.alloc_uint8array(length);
-                let myWasmArray = new Uint8Array(this._wasm.exports.memory.buffer, myWasmArrayPtr, length);
-                myWasmArray.set(e.data.value);
+                let codeLen = e.data.value.byteLength
+                let codeUint8ArrayPtr = this._wasm.exports.alloc_uint8array(codeLen);
+                let codeUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, codeUint8ArrayPtr, codeLen);
+                codeUint8Array.set(e.data.value);
 
                 // for updating, no need to pass in samples
-                this._wasm.exports.update(myWasmArrayPtr, length)         
+                this._wasm.exports.update(codeUint8ArrayPtr, codeLen)
             }
         }
     }
@@ -114,10 +122,18 @@ class GlicolEngine extends AudioWorkletProcessor {
         }
         let output = outputs[0]
         for (let channel = 0; channel < output.length; ++channel) {
+            
             let result = this._wasm.exports.process(this._outPtr, this._size)
 
+            if (result !== 0) { console.warn(errors[result-1])}
+
+            this._outBuf = new Float32Array(
+                this._wasm.exports.memory.buffer,
+                this._outPtr,
+                this._size
+            )
+
             output[channel].set(this._outBuf)
-            // console.log(result)
         }
         return true
     }

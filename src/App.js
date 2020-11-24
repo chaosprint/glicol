@@ -227,7 +227,7 @@ export default function App() {
         <Toolbar>
         <Typography>v0.1.0</Typography>
         <IconButton
-          href="https://github.com/glicol/glicol"
+          href="https://github.com/glicol/"
           target="_blank"
           rel="noopener noreferrer"
           color="inherit"

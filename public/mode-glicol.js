@@ -64,7 +64,7 @@ ace.define("ace/mode/glicol_highlight_rules", ["require", "exports", "module", "
         regex: "((~)([a-z]+(_)?)+)\\b"
       }, {
         token: "storage.type",
-        regex: "sin|saw|squ|imp|noiz|lpf|hpf|sampler|pha|buf"
+        regex: "sin|saw|squ|imp|noiz|lpf|hpf|sampler|pha|buf|freeverb"
       }, {
         token: "keyword.control",
         regex: "speed|seq|choose"
