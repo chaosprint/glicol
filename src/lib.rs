@@ -62,22 +62,26 @@ pub extern fn process_u8(out_ptr: *mut u8) {
 
 // Mutex<engine::Engine>
 #[no_mangle]
-pub extern "C" fn process(out_ptr: *mut f32, size: usize) -> usize {
+pub extern "C" fn process(out_ptr: *mut f32, size: usize) -> *mut u8 {
     let mut engine = ENGINE.lock().unwrap();
+
+    // let mut state: [u16; 3] = [0; 3];
+    // let mut wave_buf = [0.0; 128];
 
     // error handling here
     // no need to use Result here
     // simply guarantee this is outputting 128 samples array
-    let wave_buf = match engine.gen_next_buf_128() {
-        Ok(v) => v,
-        Err(_) => {return 1}
+    let (wave_buf, mut console) = match engine.gen_next_buf_128() {
+        Ok(v) => {v},
+        Err(_e) => {([0.0; 128], [0;256])}
     };
 
     let out_buf: &mut [f32] = unsafe { std::slice::from_raw_parts_mut(out_ptr, size) };
     for i in 0..size {
         out_buf[i] = wave_buf[i] as f32
     };
-    return 0;
+    // let mut a = [0; 3];
+    return console.as_mut_ptr();
     // engine.process128(out_ptr, size);s
 }
 
@@ -138,7 +142,7 @@ pub extern "C" fn run_without_samples(arr_ptr: *mut u8, length: usize) {
     let code = std::str::from_utf8(encoded).unwrap();
     engine.set_code(code);
     engine.update();
-    engine.make_graph();
+    // engine.make_graph(); // TODO
 }
 
 #[no_mangle]
