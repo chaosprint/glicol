@@ -28,7 +28,9 @@ class GlicolEngine extends AudioWorkletProcessor {
             return {ptr: ptr, len: len}
         }
 
+
         this.port.onmessage = e => {
+            // this.port.postMessage({value: "hi"})
             
             if (e.data.type === "load") {
                 WebAssembly.instantiate(e.data.obj).then(obj => {
@@ -80,9 +82,10 @@ class GlicolEngine extends AudioWorkletProcessor {
                 }
             } else if (e.data.type === "run") {
 
-                console.log("samplePtr, Length", samplePtr, sampleLength)
+                // console.log("samplePtr, Length", samplePtr, sampleLength)
 
                 // the code as Uint8 to parse; e.data.value == the code
+                this.code = e.data.value;
                 let codeLen = e.data.value.byteLength
                 let codeUint8ArrayPtr = this._wasm.exports.alloc_uint8array(codeLen);
                 let codeUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, codeUint8ArrayPtr, codeLen);
@@ -93,6 +96,8 @@ class GlicolEngine extends AudioWorkletProcessor {
 
                 let nameInfo = allocUint32Array(nameArr, this._wasm.exports.alloc_uint32array, this._wasm.exports.memory.buffer)
                 let nameLenInfo = allocUint32Array(nameLenArr, this._wasm.exports.alloc_uint32array, this._wasm.exports.memory.buffer)
+                
+               
 
                 this._wasm.exports.run(
                     codeUint8ArrayPtr, codeLen,
@@ -123,15 +128,28 @@ class GlicolEngine extends AudioWorkletProcessor {
         let output = outputs[0]
         for (let channel = 0; channel < output.length; ++channel) {
             
-            let result = this._wasm.exports.process(this._outPtr, this._size)
+            let resultPtr = this._wasm.exports.process(this._outPtr, this._size)
 
-            if (result !== 0) { console.warn(errors[result-1])}
+            // if (result !== 0) { console.warn(errors[result-1])}
 
             this._outBuf = new Float32Array(
                 this._wasm.exports.memory.buffer,
                 this._outPtr,
                 this._size
             )
+
+            let result = new Uint8Array(
+                this._wasm.exports.memory.buffer,
+                resultPtr,
+                256
+            )
+
+            if (result[0] !== 0) {
+                // const decoder = new TextDecoder('utf-8');
+                console.log("%cNon exist sample.", "color: white; background: red")
+                console.log("%cAt line "+String(result[1]+1)+".", "color: white; background: green")
+                this.port.postMessage(result.slice(2))
+            }
 
             output[channel].set(this._outBuf)
         }

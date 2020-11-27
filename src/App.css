@@ -4,3 +4,37 @@
     outline: 0; */
     /* etc */
 }
+
+.App {
+    position:relative;
+}
+
+.text {
+    fontFamily: Inconsolata, monospace
+}
+
+#room {
+    position:absolute;
+    width:200px;
+    height:200px;
+    top:50%;
+    left:50%;
+    margin-top:-100px;
+    margin-left:-100px;
+    /* position: absolute; */
+    /* top: 50%; */
+    /* transform: translateY(-50%); */
+    text-align: center;
+    /* border-radius: 20px; */
+    /* width: 500px; */
+    /* height: 400px; */
+    /* margin: auto; */
+    /* position: absolute; */
+    /* top: 50%; */
+    /* transform: translate(0, -50%); */
+    /* position: absolute; */
+    /* top: 0; */
+    /* left: 0; */
+    /* right: 0; */
+    /* bottom: 0; */
+  }

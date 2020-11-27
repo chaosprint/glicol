@@ -6,6 +6,7 @@ import UpdateIcon from '@material-ui/icons/Update';
 import RotateLeftIcon from '@material-ui/icons/RotateLeft';
 import MenuIcon from '@material-ui/icons/Menu';
 
+
 const ToolButton = ({title, onClick, icon}) => {
   // Declare a new state variable, which we'll call "count"
   return (
@@ -84,5 +85,13 @@ const Menu = ({onClick}) => (
   </IconButton>
   // </div>
 )
+
+// const Settings = onClick => (
+//   <ToolButton
+//     title = "settings"
+//     onClick = {onClick}
+//     icon = {<SettingsIcon fontSize="large" />}
+//   ></ToolButton>
+// )
 
 export {Run, Pause, Reset, Menu, Update}
