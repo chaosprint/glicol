@@ -14,7 +14,8 @@ pub struct SinOsc {
 }
 
 impl SinOsc {
-    pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+    pub fn new(paras: &mut Pairs<Rule>) -> Result<
+    (NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
         // let mut paras = paras.next().unwrap().into_inner();
 
         // let freq: String = paras.next().unwrap().as_str().to_string()
@@ -22,8 +23,6 @@ impl SinOsc {
 
         let freq: String = paras.as_str().to_string()
         .chars().filter(|c| !c.is_whitespace()).collect();
-
-       
 
         if freq.parse::<f32>().is_ok() {
             let f = midi_or_float(freq);

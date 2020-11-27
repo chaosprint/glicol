@@ -26,6 +26,7 @@ use node::map::{LinRange};
 use node::rand::{Choose};
 use node::buf::{Buf};
 use node::state::{State};
+use node::freeverb::{FreeVerbNode};
 
 mod utili;
 use utili::midi_or_float;
@@ -100,6 +101,8 @@ impl Engine {
 
     // error only comes from this method
     pub fn make_graph(&mut self) -> Result<(), EngineError>{
+        println!("{}", &self.code[11..14]);
+        println!("{:?}", self.code[..11].matches("\n").count() as u8);
         self.audio_nodes.clear();
         self.control_nodes.clear();
         self.graph.clear();
@@ -128,7 +131,10 @@ impl Engine {
 
                         for func in element.into_inner() {
                             let mut paras = func.into_inner();
-                            let name: &str = paras.next().unwrap().as_str();
+                            let p = paras.next().unwrap();
+                            // println!("{} {}", );
+                            // let pos = (p.as_span().start(), p.as_span().end());
+                            let name: &str  = p.as_str();
 
                             let (node_data, sidechains) = match name {
                                 "sin" => SinOsc::new(&mut paras)?,
@@ -149,6 +155,7 @@ impl Engine {
                                 "pha" => Phasor::new(&mut paras)?,
                                 "buf" => Buf::new(&mut paras, &self.samples_dict)?,
                                 "state" => State::new(&mut paras)?,
+                                "freeverb" => FreeVerbNode::new(&mut paras)?,
                                 _ => Pass::new(name)?
                             };
                     
@@ -244,10 +251,10 @@ impl Engine {
         output
     }
 
-    pub fn gen_next_buf_128(&mut self) -> Result<([f32; 128], usize), EngineError> {
+    pub fn gen_next_buf_128(&mut self) -> Result<([f32; 128], [u8;256]), EngineError> {
         // you just cannot use self.buffer
         let mut output: [f32; 128] = [0.0; 128];
-        let mut state = 0;
+        let mut console: [u8;256] = [0; 256];
 
         let is_near_bar_end = (self.elapsed_samples + 128) % 88200 < 128;
         
@@ -260,8 +267,26 @@ impl Engine {
                     self.code_backup = self.code;
                 },
                 Err(e) => {
+                    // println!("{:?}", e);
+                    console = match e {
+                        EngineError::SampleNotExistError((s, e)) => {
+                            let mut info: [u8; 256] = [0; 256];
+                            let l = self.code.clone()[..s].matches("\n").count() as u8;
+                            info[0] = 1;
+                            info[1] = l;
+                            // println!("{}", self.code);
+                            let word = self.code[s..e].as_bytes();
+                            for i in 2..word.len()+2 {
+                                info[i] = word[i-2]
+                            }
+                            info   
+                        }
+                        _ => unimplemented!()
+                    };
                     self.code = self.code_backup;
-                    state = e as usize + 1;
+                    // state = e as usize + 1;
+                    // get where the error is
+                    // also which kind of error it is
                     self.make_graph()?; // this should be fine
                 }
             }
@@ -282,7 +307,7 @@ impl Engine {
             }
         }
         self.elapsed_samples += 128;
-        Ok((output, state))
+        Ok((output, console))
     }
 }
 
@@ -291,7 +316,7 @@ pub enum EngineError {
     NonExistControlNodeError,
     HandleNodeError,
     ParameterError,
-    SampleNotExistError
+    SampleNotExistError((usize, usize))
 }
 
 impl std::convert::From<ParseFloatError> for EngineError {

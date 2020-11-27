@@ -14,17 +14,21 @@ pub struct Sampler {
 impl Sampler {
     pub fn new(
         paras: &mut Pairs<Rule>,
-        samples_dict: &HashMap<String, &'static[f32]>,
+        samples_dict: &HashMap<String, &'static[f32]>
     ) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
 
         // let mut paras = paras.next().unwrap().into_inner();
         // let para_a: String = paras.next().unwrap().as_str().to_string()
         // .chars().filter(|c| !c.is_whitespace()).collect();
 
-        let key = paras.as_str();
+        let p = paras.next().unwrap();
 
+        // println!("{:?}", p.as_span());
+        let pos = (p.as_span().start(), p.as_span().end());
+
+        let key = p.as_str();
         if !samples_dict.contains_key(key) {
-            return Err(EngineError::SampleNotExistError)
+            return Err(EngineError::SampleNotExistError(pos))
         }
 
         let samples = samples_dict[key];

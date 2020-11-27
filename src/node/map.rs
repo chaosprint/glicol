@@ -1,5 +1,5 @@
 use dasp_graph::{Buffer, Input, Node};
-use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError};
+use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError, midi_or_float};
 
 pub struct LinRange {
     out_lo: f32,
@@ -11,16 +11,13 @@ pub struct LinRange {
 
 impl LinRange {
     pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
-        let para_a: String = paras.next().unwrap().as_str().to_string()
-        .chars().filter(|c| !c.is_whitespace()).collect();
 
-        let para_b: String = paras.next().unwrap().as_str().to_string()
-        .chars().filter(|c| !c.is_whitespace()).collect();
+        let p = paras.as_str().split(" ").collect::<Vec<&str>>();
+        let para_a = p[0].to_string();
+        let para_b = p[1].to_string();
 
-        let low = para_a.parse::<f32>()?;
-        let high = para_b.parse::<f32>()?;
-
-        // assert!(high > low);
+        let low = midi_or_float(para_a);
+        let high = midi_or_float(para_b);
 
         Ok((NodeData::new1( BoxedNodeSend::new( Self {
             out_lo: low,

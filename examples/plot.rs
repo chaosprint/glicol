@@ -1,15 +1,13 @@
 // you should install gnuplot on your os
 use gnuplot::*;
 use glicol::Engine;
+use glicol::EngineError;
 
-fn main () {
+fn main () -> Result<(), EngineError> {
     let mut engine = Engine::new();
-    engine.set_code("~a: choose 60 50 90 80");
+    engine.set_code("a: sampler \\bd");
     engine.update();
-    match engine.make_graph() {
-        Ok(_) => {},
-        Err(_) => {}
-    };
+    engine.make_graph()?;
 
     // println!("audio_nodes {:?}", engine.audio_nodes);
     // for e in engine.graph.raw_edges() {
@@ -40,4 +38,5 @@ fn main () {
             &[],
         );
     fg.show().unwrap();
+    Ok(())
 }

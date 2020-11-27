@@ -12,3 +12,4 @@ pub mod rand;
 pub mod phasor;
 pub mod buf;
 pub mod state;
+pub mod freeverb;

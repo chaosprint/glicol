@@ -15,6 +15,7 @@ dasp_slice = "0.11.0"
 dasp_interpolate = { version = "*", features = ["linear"] }
 petgraph = "*"
 gnuplot = "0.0.37"
+freeverb = { path = "../freeverb-rs/src/freeverb" }
 
 #getrandom = "*"
 #[target.'cfg(target_arch = "wasm32")'.dependencies]
