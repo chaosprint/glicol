@@ -67,7 +67,7 @@ impl Engine {
             graph: g,
             processor: p,
             code: "",
-            code_backup: "backup: sin 440",
+            code_backup: "",
             samples_dict: HashMap::new(),
             adc_source_nodes: Vec::new(),
             adc_nodes: Vec::new(),
@@ -101,8 +101,6 @@ impl Engine {
 
     // error only comes from this method
     pub fn make_graph(&mut self) -> Result<(), EngineError>{
-        println!("{}", &self.code[11..14]);
-        println!("{:?}", self.code[..11].matches("\n").count() as u8);
         self.audio_nodes.clear();
         self.control_nodes.clear();
         self.graph.clear();
@@ -169,6 +167,7 @@ impl Engine {
                             // only process the last nodes of chains in the audio nodes vec
                             if !current_ref_name.contains("~") {
                                 self.audio_nodes.insert(current_ref_name.to_string(), node_index);
+                                self.control_nodes.insert(current_ref_name.to_string(), node_index);
                             } else {
                                 self.control_nodes.insert(current_ref_name.to_string(), node_index);
                             }
@@ -195,6 +194,7 @@ impl Engine {
                 return Err(EngineError::NonExistControlNodeError);
             }
             let control_node = self.control_nodes[&pair.1];
+            // self.graph.add_edge(pair.0, control_node, ());
             self.graph.add_edge(control_node, pair.0, ()); // the order matters
         };
 

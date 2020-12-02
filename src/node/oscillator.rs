@@ -145,7 +145,7 @@ impl Node for Saw {
             }
             assert_ne!(self.freq, 0.0);
             let circle_len = (44100.0 / self.freq) as usize;
-            output[0][i] = ((self.phase_n % circle_len) as f32 / circle_len as f32)*2.0-0.5;
+            output[0][i] = ((self.phase_n % circle_len) as f32 / circle_len as f32)*2.0-1.0;
             self.phase_n += 1;
         }
     }
@@ -187,7 +187,7 @@ impl Node for Square {
                 }   
             }
             let circle_len = (44100.0 / self.freq) as usize;
-            output[0][i] = ((self.phase_n % circle_len) > (circle_len / 2)) as u8 as f32;
+            output[0][i] = ((self.phase_n % circle_len) > (circle_len / 2)) as u8 as f32 * 2.0 - 1.0;
             self.phase_n += 1;
         }
     }
