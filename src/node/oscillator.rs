@@ -26,7 +26,7 @@ impl SinOsc {
 
         if freq.parse::<f32>().is_ok() {
             let f = midi_or_float(freq);
-            println!("{}", f);
+            // println!("{}", f);
             return Ok((NodeData::new1(BoxedNodeSend::new(Self {
                 freq: f,
                 phase: 0.0, diff: 0.0, has_mod: false

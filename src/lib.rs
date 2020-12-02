@@ -132,7 +132,14 @@ impl Engine {
                             let p = paras.next().unwrap();
                             // println!("{} {}", );
                             // let pos = (p.as_span().start(), p.as_span().end());
-                            let name: &str  = p.as_str();
+                            let name: &str = p.as_str();
+
+                            // println!("{:?}", p.as_rule());
+                            let mut dest = "".to_string();
+
+                            if p.as_rule() == Rule::paras {
+                                dest = format!("@rev{}", p.as_str());
+                            }
 
                             let (node_data, sidechains) = match name {
                                 "sin" => SinOsc::new(&mut paras)?,
@@ -159,9 +166,14 @@ impl Engine {
                     
                             let node_index = self.graph.add_node(node_data);
                     
-                            // connect to previous node
+                            // connect to previous node, or redirect the previous node to a control node
                             if previous_nodes.len() > 0 {
-                                self.graph.add_edge(previous_nodes[0], node_index, ());
+                                if dest != "" {
+                                    // println!("{}", dest);
+                                    self.sidechains_list.push((previous_nodes[0], dest));
+                                } else {
+                                    self.graph.add_edge(previous_nodes[0], node_index, ());
+                                }
                             }
                     
                             // only process the last nodes of chains in the audio nodes vec
@@ -186,16 +198,26 @@ impl Engine {
             }
         }
 
+        // here all nodes are processed, we create lazy edge connection
         for pair in &self.sidechains_list {
             // assert!(self.control_nodes.contains_key(&pair.1), 
             // "no such a control node");
 
-            if !self.control_nodes.contains_key(&pair.1) {
-                return Err(EngineError::NonExistControlNodeError);
+            if pair.1.contains("@rev") {
+                // let name: Vec<&str> = pair.1.split("@rev").collect();
+                let name = &pair.1[4..];
+                if !self.control_nodes.contains_key(name) {
+                    return Err(EngineError::NonExistControlNodeError);
+                }
+                let control_node = self.control_nodes[name];
+                self.graph.add_edge(pair.0, control_node, ());
+            } else {
+                if !self.control_nodes.contains_key(&pair.1) {
+                    return Err(EngineError::NonExistControlNodeError);
+                }
+                let control_node = self.control_nodes[&pair.1];
+                self.graph.add_edge(control_node, pair.0, ()); // the order matters
             }
-            let control_node = self.control_nodes[&pair.1];
-            // self.graph.add_edge(pair.0, control_node, ());
-            self.graph.add_edge(control_node, pair.0, ()); // the order matters
         };
 
         Ok(())
