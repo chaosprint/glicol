@@ -73,7 +73,7 @@ pub extern "C" fn process(out_ptr: *mut f32, size: usize) -> *mut u8 {
     // simply guarantee this is outputting 128 samples array
     let (wave_buf, mut console) = match engine.gen_next_buf_128() {
         Ok(v) => {v},
-        Err(_e) => {([0.0; 128], [0;256])}
+        Err(_e) => {([0.0; 256], [0;256])}
     };
 
     let out_buf: &mut [f32] = unsafe { std::slice::from_raw_parts_mut(out_ptr, size) };
