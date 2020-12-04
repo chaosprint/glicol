@@ -5,11 +5,7 @@ use glicol::EngineError;
 
 fn main () -> Result<(), EngineError> {
     let mut engine = Engine::new();
-    engine.set_code("abc: sin 60 >> ~mul
-
-    bb: sin 60 >> ~mul
-    
-    ~mul: mul 0.5");
+    engine.set_code("a: sin 60 >> pan 0.2");
     
     // ~filter: mul 0.3");
     engine.update();
@@ -22,15 +18,17 @@ fn main () -> Result<(), EngineError> {
 
     let mut x = Vec::<i32>::new();
     let mut y = Vec::<f32>::new();
+    let mut y2 = Vec::<f32>::new();
     let mut n = 0;
 
-    for _ in 0..(512.0*2.0/64.0) as usize {
+    for _ in 0..(512.0*2.0/128.0) as usize {
         // let out = engine.gen_next_buf_128().unwrap().0;
-        let out = engine.gen_next_buf_64();
-        for i in 0..64 {
+        let out = engine.gen_next_buf_128().unwrap().0;
+        for i in 0..128 {
             x.push(n);
             n += 1;
             y.push(out[i]);
+            y2.push(out[i+128])
         }
     }
 
@@ -41,7 +39,11 @@ fn main () -> Result<(), EngineError> {
         .lines(
             &x,
             &y,
-            &[],
+            &[Caption("left")],
+        ).lines(
+            &x,
+            &y2,
+            &[Caption("right")],
         );
     fg.show().unwrap();
     Ok(())

@@ -59,6 +59,7 @@ impl Node for SinOsc {
                     self.phase -= 1.0
                 }
             }
+            // output[1] = output[0].clone();
             // }
         } else {
 
@@ -70,6 +71,7 @@ impl Node for SinOsc {
                     self.phase -= 2.0 * std::f32::consts::PI
                 }
             }
+            // output[1] = output[0].clone();
         }
     }
 }
@@ -104,6 +106,7 @@ impl Node for Impulse {
         for o in output {
             o.iter_mut().for_each(|s| *s = self.sig.next() as f32);
         }
+        // assert_eq!(output[1][0], output[0][0]);
     }
 }
 

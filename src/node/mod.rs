@@ -13,3 +13,4 @@ pub mod phasor;
 pub mod buf;
 pub mod state;
 pub mod freeverb;
+pub mod pan;

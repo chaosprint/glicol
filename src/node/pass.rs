@@ -9,7 +9,6 @@ impl Pass {
         let destination: String = name.to_string()
         .chars().filter(|c| !c.is_whitespace()).collect();
         // println!("destination {}", name);
-        // let sig = signal::noise(0);
         Ok((NodeData::new1(BoxedNodeSend::new( Self {
         })), vec![destination]))
     }
@@ -17,6 +16,7 @@ impl Pass {
 
 impl Node for Pass {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+        // println!("{}", inputs.len());
         output[0] = inputs[0].buffers()[0].clone();
     }
 }

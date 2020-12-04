@@ -27,6 +27,7 @@ use node::rand::{Choose};
 use node::buf::{Buf};
 use node::state::{State};
 use node::freeverb::{FreeVerbNode};
+use node::pan::{Pan};
 
 mod utili;
 use utili::midi_or_float;
@@ -161,6 +162,7 @@ impl Engine {
                                 "buf" => Buf::new(&mut paras, &self.samples_dict)?,
                                 "state" => State::new(&mut paras)?,
                                 "freeverb" => FreeVerbNode::new(&mut paras)?,
+                                "pan" => Pan::new(&mut paras)?,
                                 _ => Pass::new(name)?
                             };
                     
@@ -273,9 +275,9 @@ impl Engine {
         output
     }
 
-    pub fn gen_next_buf_128(&mut self) -> Result<([f32; 128], [u8;256]), EngineError> {
+    pub fn gen_next_buf_128(&mut self) -> Result<([f32; 256], [u8;256]), EngineError> {
         // you just cannot use self.buffer
-        let mut output: [f32; 128] = [0.0; 128];
+        let mut output: [f32; 256] = [0.0; 256];
         let mut console: [u8;256] = [0; 256];
 
         let is_near_bar_end = (self.elapsed_samples + 128) % 88200 < 128;
@@ -316,16 +318,30 @@ impl Engine {
 
         for (_ref_name, node) in &self.audio_nodes {
             self.processor.process(&mut self.graph, *node);
-            let b = &self.graph[*node].buffers[0];
+
+            let bufleft = &self.graph[*node].buffers[0];
+            let bufright = match &self.graph[*node].buffers.len() {
+                1 => {bufleft},
+                2 => {&self.graph[*node].buffers[1]},
+                _ => {unimplemented!()}
+            };
             for i in 0..64 {
-                output[i] += b[i];
+                output[i] += bufleft[i];
+                output[128+i] += bufright[i];
             }
         }
         for (_ref_name, node) in &self.audio_nodes {
             self.processor.process(&mut self.graph, *node);
-            let b = &self.graph[*node].buffers[0];
+            let bufleft = &self.graph[*node].buffers[0];
+            let bufright = match &self.graph[*node].buffers.len() {
+                1 => {bufleft},
+                2 => {&self.graph[*node].buffers[1]},
+                _ => {unimplemented!()}
+            };
+
             for i in 0..64 {
-                output[i+64] += b[i]; 
+                output[i+64] += bufleft[i];
+                output[i+64+128] += bufright[i];
             }
         }
         self.elapsed_samples += 128;
