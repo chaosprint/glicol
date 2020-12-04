@@ -35,7 +35,7 @@ class GlicolEngine extends AudioWorkletProcessor {
             if (e.data.type === "load") {
                 WebAssembly.instantiate(e.data.obj).then(obj => {
                     this._wasm = obj.instance
-                    this._size = 128
+                    this._size = 256
                     this._outPtr = this._wasm.exports.alloc(this._size)
                     this._outBuf = new Float32Array(
                       this._wasm.exports.memory.buffer,
@@ -125,34 +125,36 @@ class GlicolEngine extends AudioWorkletProcessor {
         if(!this._wasm) {
             return true
         }
-        let output = outputs[0]
-        for (let channel = 0; channel < output.length; ++channel) {
+
+        // console.log(outputs)
+        // let output = outputs[0]
+        // console.log("outlen", output.length);
+        // for (let channel = 0; channel < output.length; ++channel) {
             
-            let resultPtr = this._wasm.exports.process(this._outPtr, this._size)
+        let resultPtr = this._wasm.exports.process(this._outPtr, this._size)
 
-            // if (result !== 0) { console.warn(errors[result-1])}
+        this._outBuf = new Float32Array(
+            this._wasm.exports.memory.buffer,
+            this._outPtr,
+            this._size
+        )
 
-            this._outBuf = new Float32Array(
-                this._wasm.exports.memory.buffer,
-                this._outPtr,
-                this._size
-            )
+        let result = new Uint8Array(
+            this._wasm.exports.memory.buffer,
+            resultPtr,
+            256
+        )
 
-            let result = new Uint8Array(
-                this._wasm.exports.memory.buffer,
-                resultPtr,
-                256
-            )
-
-            if (result[0] !== 0) {
-                // const decoder = new TextDecoder('utf-8');
-                console.log("%cNon exist sample.", "color: white; background: red")
-                console.log("%cAt line "+String(result[1]+1)+".", "color: white; background: green")
-                this.port.postMessage(result.slice(2))
-            }
-
-            output[channel].set(this._outBuf)
+        if (result[0] !== 0) {
+            console.log("%cNon exist sample.", "color: white; background: red")
+            console.log("%cAt line "+String(result[1]+1)+".", "color: white; background: green")
+            this.port.postMessage(result.slice(2))
         }
+
+        
+        outputs[0][0].set(this._outBuf.slice(0, 128))
+        outputs[0][1].set(this._outBuf.slice(128, 256))
+        // console.log(outputs[0][0], outputs[0][1])
         return true
     }
 }

@@ -2,6 +2,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { createMuiTheme } from '@material-ui/core/styles';
 import { red, green  } from '@material-ui/core/colors';
 // grey
+
 const theme = createMuiTheme({
   spacing: 0,
   margin: -5,
@@ -61,7 +62,7 @@ const useStyles = makeStyles((theme) => ({
       easing: theme.transitions.easing.easeOut,
       duration: theme.transitions.duration.enteringScreen,
     }),
-    marginRight: drawerWidth,
+    marginLeft: drawerWidth,
   },
   title: {
     // flexGrow: 1,
@@ -70,7 +71,7 @@ const useStyles = makeStyles((theme) => ({
     display: 'none',
   },
   menu: {
-    marginLeft: 'auto',
+    marginRight: 'auto',
   },
   drawer: {
     width: drawerWidth,
@@ -83,7 +84,7 @@ const useStyles = makeStyles((theme) => ({
   },
   drawerHeader: {
     // display: 'flex',
-    marginRight: 'auto',
+    marginLeft: 'auto',
     // margin: theme.spacing(1),
     // alignItems: 'center',
     // padding: theme.spacing(0, 1),
@@ -99,14 +100,14 @@ const useStyles = makeStyles((theme) => ({
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
     }),
-    marginRight: -drawerWidth,
+    marginLeft: -drawerWidth,
   },
   contentShift: {
     transition: theme.transitions.create('margin', {
       easing: theme.transitions.easing.easeOut,
       duration: theme.transitions.duration.enteringScreen,
     }),
-    marginRight: 0,
+    marginLeft: 0,
   },
   button: {
     width: 80,

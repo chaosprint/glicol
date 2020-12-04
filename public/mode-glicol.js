@@ -70,7 +70,7 @@ ace.define("ace/mode/glicol_highlight_rules", ["require", "exports", "module", "
         regex: "speed|seq|choose"
       }, {
         token: "constant.language",
-        regex: "envperc|linrange|mul|add|state|ramp|point"
+        regex: "envperc|linrange|mul|add|state|ramp|point|pan"
       }, {
         token: "audio",
         regex: "(([a-z]+(_)?)+)\\b",

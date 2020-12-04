@@ -46,7 +46,7 @@ function Text() {
       label="Room"
       type="text"
       // name="room"
-      variant="outlined"
+      variant="filled"
       onChange={e=>{window.room=e.target.value}}
       size="medium"
       fullWidth={true}
@@ -76,18 +76,21 @@ export default function App() {
   const [sideOpen, setSideOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [useSamples, setUseSamples] = useState(false)
-  const [showTutorial, setShowTutorial] = useState(false)
+  // const [showTutorial, setShowTutorial] = useState(false)
 
   window.docs = docs
 
   const loadModule = async () => {
     // Note the the path is from public folder
     // console.log(audioContextOptions.sampleRate )
+    window.code = welcome
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
     window.actx = new window.AudioContext({
       sampleRate: 44100
     })
     await window.actx.audioWorklet.addModule('./worklet/engine.js')
-    window.node = new AudioWorkletNode(window.actx, 'glicol-engine')
+    window.node = new AudioWorkletNode(window.actx, 'glicol-engine', {outputChannelCount: [2]})
+
 
     fetch('wasm/glicol_wasm.wasm')
     .then(response => response.arrayBuffer())
@@ -95,12 +98,17 @@ export default function App() {
       window.node.port.postMessage({
       type: "load", obj: arrayBuffer})
     })
+    console.log("maxChannelCount", window.actx.destination.maxChannelCount)
+
+    // window.actx.destination.channelCountMode = "explicit";
+    window.actx.destination.channelInterpretation = "discrete";
+    // window.actx.destination.chan
     window.node.connect(window.actx.destination)
     console.log("Audio engine loaded.")
   };
 
   useEffect(() => {
-    // setSize()
+    setSize()
     try {
       loadModule()
     } catch (e) {
@@ -109,7 +117,18 @@ export default function App() {
   }, []);
 
   const loadSamples = async (list) => {
-    console.log(list)
+    // const arr = [1,2,3,4,5,6,7,8,9];
+    // var arr = list.sort();
+    // var newArr = [];
+    // while(arr.length) newArr.push(arr.splice(0,4));
+    // for (let i = 0; i < list.length; i+=3) {
+    //   console.log("%c\\"+list.sort()[i], "color:white;background:green")
+    //   console.log("%c\\"+list.sort()[i+1], "color:white;background:red")
+    //   console.log("%c\\"+list.sort()[i+2], "color:white;background:blue")
+    // }
+
+    console.log("%cAvailable samples: ", "background: green; color:white")
+    console.table(list.sort())
     setLoading(true)
     window.actx.suspend()
     let l = list.length
@@ -132,7 +151,7 @@ export default function App() {
           let sample = wav.getSamples(true, Int16Array)
 
           // after loading, sent to audioworklet the sample array
-          console.log("sampler \\" + key)
+          // console.log("sampler \\" + key)
           window.node.port.postMessage({
             type: "samples",
             sample: sample,
@@ -253,7 +272,7 @@ export default function App() {
   }
 
   const handleList = async (code, list=[]) => {
-    setShowTutorial(true)
+    // setShowTutorial(true)
     setCode(code);
     window.code = code
     setSize()
@@ -276,11 +295,18 @@ export default function App() {
         >
         <Toolbar>
 
+        <div className={classes.menu} >
+        <Menu onClick = {()=>setSideOpen(true)} />
+        </div>
+
+        <div id="text"><Text /></div>
+
+        <div id="control">
         {loading ?
         <Typography className={classes.text}
-        >loading samples... please wait and do not run the code... use [ctrl + shift + i] to see available samples... [
+        >loading samples...[
           {Math.floor(prog)}%] </Typography>
-         : <div> 
+         : <div>
         {!running ? <Run onClick={handleRun}/> :
         (<Pause onClick={handlePause}/> )}
         <Update onClick={handleUpdate} />
@@ -296,13 +322,12 @@ export default function App() {
         </IconButton>
         </Tooltip>
        </div>}
-
-        <Menu onClick = {()=>setSideOpen(true)} />
-
+       </div>
+      
         <Drawer
           className={classes.drawer}
           // variant="persistent"
-          anchor="right"
+          anchor="left"
           open={sideOpen}
           onClose={()=>setSideOpen(false)}
           classes={{
@@ -390,7 +415,6 @@ export default function App() {
       {/* <h2>Accounts</h2> */}
       <Switch>
         <Route exact path="/" children={
-          ( showTutorial ? 
             <div>
               <AceEditor
                 className={classes.editor}
@@ -419,11 +443,8 @@ export default function App() {
                   exec: handleStop
                 }]}
               />
-            </div>
-          :
-          <div id="room"><Text /></div>
-          )}
-        />)
+            </div> }
+        />
         <Route path="/:id" children={<Editor
           handleRun={handleRun}
           handleUpdate={handleUpdate}
