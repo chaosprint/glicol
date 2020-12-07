@@ -1,4 +1,4 @@
-use dasp_signal::{self as signal, Signal};
+// use dasp_signal::{self as signal, Signal};
 use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNodeSend};
 use pest::iterators::Pairs;
 use super::super::{Rule, EngineError, midi_or_float};
@@ -46,7 +46,7 @@ impl Node for SinOsc {
         // let freq = self.freq.parse::<f32>();
         if self.has_mod {
             // assert_eq!(inputs.len(), 1);
-            assert!(inputs.len() > 0);
+            // assert!(inputs.len() > 0);
             let mod_buf = &mut inputs[0].buffers();
             for i in 0..64 {
                 output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
@@ -63,13 +63,25 @@ impl Node for SinOsc {
             // }
         } else {
 
+            // no mod, input[0] is the clock
+            let mut clock = inputs[0].buffers()[0][0];
+
             for i in 0..64 {
-                output[0][i] = self.phase.sin();
-                self.phase += self.freq / 44100.0 * 2.0 * std::f32::consts::PI;
-                // self.phase += 220.0 / 44100.0;
-                if self.phase > 2.0 * std::f32::consts::PI {
-                    self.phase -= 2.0 * std::f32::consts::PI
-                }
+                output[0][i] = (clock/(44100.0 / self.freq) * 2.0 
+                * std::f32::consts::PI).sin();
+                
+                clock += 1.0;
+
+                // if we lost the phase, i.e. :(clock/(44100.0 / self.freq) * 2.0 
+                // * std::f32::consts::PI)
+                // we will get a click
+
+                // output[0][i] = self.phase.sin();
+                // self.phase += self.freq / 44100.0 * 2.0 * std::f32::consts::PI;
+                // // self.phase += 220.0 / 44100.0;
+                // if self.phase > 2.0 * std::f32::consts::PI {
+                //     self.phase -= 2.0 * std::f32::consts::PI
+                // }
             }
             // output[1] = output[0].clone();
         }
@@ -77,7 +89,9 @@ impl Node for SinOsc {
 }
 
 pub struct Impulse {
-    sig: Box<dyn Signal<Frame=f32> + Send>,
+    // sig: Box<dyn Signal<Frame=f32> + Send>,
+    clock: usize,
+    period: usize,
     // sig: GenMut<(dyn Signal<Frame=f32> + 'static + Sized), f32>
 }
 
@@ -88,23 +102,36 @@ impl Impulse {
         .chars().filter(|c| !c.is_whitespace()).collect();
 
         let freq = para_a.parse::<f32>()?;
-        let p = (44100.0 / freq) as usize;
-        let mut i: usize = 0;
-        let s = signal::gen_mut(move || {
-            let imp = (i % p == 0) as u8;
-            i += 1;
-            imp as f32
-        });
+        let period = (44100.0 / freq) as usize;
+
+        // let mut i: usize = 0;
+        // let s = signal::gen_mut(move || {
+        //     let imp = (i % p == 0) as u8;
+        //     i += 1;
+        //     imp as f32
+        // });
         Ok((NodeData::new1(BoxedNodeSend::new(Self {
-            sig: Box::new(s)
+            // sig: Box::new(s)
+            clock: 0,
+            period: period,
         })), vec![]))
     }
 }
 
 impl Node for Impulse {
-    fn process(&mut self, _inputs: &[Input], output: &mut [Buffer]) {
-        for o in output {
-            o.iter_mut().for_each(|s| *s = self.sig.next() as f32);
+    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+
+        self.clock = inputs[0].buffers()[0][0] as usize;
+
+        // println!("processed");
+        // for o in output {
+        //     o.iter_mut().for_each(|s| *s = self.sig.next() as f32);
+        // }
+
+        for i in 0..64 {
+            let out = (self.clock % self.period == 0) as u8;
+            output[0][i] = out as f32;
+            self.clock += 1;
         }
         // assert_eq!(output[1][0], output[0][0]);
     }
@@ -144,7 +171,7 @@ impl Node for Saw {
                 let mod_buf = &mut inputs[0].buffers();
                 if mod_buf[0][i] != 0.0 {
                     self.freq = mod_buf[0][i];
-                } 
+                }
             }
             assert_ne!(self.freq, 0.0);
             let circle_len = (44100.0 / self.freq) as usize;

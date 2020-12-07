@@ -21,13 +21,15 @@ use node::sequencer::{Sequencer, Speed};
 use node::envelope::EnvPerc;
 use node::noise::Noise;
 use node::pass::Pass;
-use node::filter::{LPF, HPF};
+use node::filter::{LPF, HPF, Allpass, Comb};
 use node::map::{LinRange};
 use node::rand::{Choose};
 use node::buf::{Buf};
 use node::state::{State};
 use node::freeverb::{FreeVerbNode};
 use node::pan::{Pan};
+use node::delay::{Delay};
+use node::clock::{Clock};
 
 mod utili;
 use utili::midi_or_float;
@@ -44,6 +46,7 @@ pub struct Engine {
     pub samples_dict: HashMap<String, &'static[f32]>,
     pub sr: u32,
     pub bpm: f64,
+    clock: NodeIndex,
     code: &'static str,
     code_backup: &'static str,
     update: bool,
@@ -63,6 +66,7 @@ impl Engine {
         let max_edges = 512;
         let g = MyGraph::with_capacity(max_nodes, max_edges);
         let p = MyProcessor::with_capacity(max_nodes);
+        // let clock = g.add_node(NodeData::new1(BoxedNodeSend::new(Clock{})));
 
         Engine {
             graph: g,
@@ -76,6 +80,7 @@ impl Engine {
             audio_nodes: HashMap::new(),
             control_nodes: HashMap::new(),
             elapsed_samples: 0,
+            clock: NodeIndex::new(0),
             sr: 44100,
             bpm: 120.0,
             update: false,
@@ -106,6 +111,8 @@ impl Engine {
         self.control_nodes.clear();
         self.graph.clear();
         self.sidechains_list.clear();
+
+        self.clock = self.graph.add_node(NodeData::new1(BoxedNodeSend::new(Clock{})));
 
         let lines = GlicolParser::parse(Rule::block, self.code)
         .expect("unsuccessful parse")
@@ -163,15 +170,19 @@ impl Engine {
                                 "state" => State::new(&mut paras)?,
                                 "freeverb" => FreeVerbNode::new(&mut paras)?,
                                 "pan" => Pan::new(&mut paras)?,
+                                "delay" => Delay::new(&mut paras)?,
+                                "apf" => Allpass::new(&mut paras)?,
+                                "comb" => Comb::new(&mut paras)?,
                                 _ => Pass::new(name)?
                             };
                     
                             let node_index = self.graph.add_node(node_data);
+
+                            self.graph.add_edge(self.clock, node_index, ());
                     
                             // connect to previous node, or redirect the previous node to a control node
                             if previous_nodes.len() > 0 {
                                 if dest != "" {
-                                    // println!("{}", dest);
                                     self.sidechains_list.push((previous_nodes[0], dest));
                                 } else {
                                     self.graph.add_edge(previous_nodes[0], node_index, ());
@@ -182,6 +193,11 @@ impl Engine {
                             if !current_ref_name.contains("~") {
                                 self.audio_nodes.insert(current_ref_name.to_string(), node_index);
                                 self.control_nodes.insert(current_ref_name.to_string(), node_index);
+
+                                // for all the audio nodes, we need to have an individual clock
+                                // otherwise it will be processed several times
+                                
+                                // self.clocks.insert(current_ref_name.to_string(), clock_node_index);
                             } else {
                                 self.control_nodes.insert(current_ref_name.to_string(), node_index);
                             }
@@ -206,6 +222,7 @@ impl Engine {
             // "no such a control node");
 
             if pair.1.contains("@rev") {
+                println!("reversed connection");
                 // let name: Vec<&str> = pair.1.split("@rev").collect();
                 let name = &pair.1[4..];
                 if !self.control_nodes.contains_key(name) {
@@ -275,6 +292,7 @@ impl Engine {
         output
     }
 
+    // , input: Input
     pub fn gen_next_buf_128(&mut self) -> Result<([f32; 256], [u8;256]), EngineError> {
         // you just cannot use self.buffer
         let mut output: [f32; 256] = [0.0; 256];
@@ -317,8 +335,12 @@ impl Engine {
         }
 
         for (_ref_name, node) in &self.audio_nodes {
+            // println!("{:?}", *node);
+            self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
             self.processor.process(&mut self.graph, *node);
+        }
 
+        for (_ref_name, node) in &self.audio_nodes {
             let bufleft = &self.graph[*node].buffers[0];
             let bufright = match &self.graph[*node].buffers.len() {
                 1 => {bufleft},
@@ -330,8 +352,17 @@ impl Engine {
                 output[128+i] += bufright[i];
             }
         }
+        self.elapsed_samples += 64;
+
+        // process 64..128,and output stereo
         for (_ref_name, node) in &self.audio_nodes {
+            // println!("{:?}", *node);
+            self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
             self.processor.process(&mut self.graph, *node);
+        }
+
+        // process all audio nodes first; get audio nodes out values now
+        for (_ref_name, node) in &self.audio_nodes {
             let bufleft = &self.graph[*node].buffers[0];
             let bufright = match &self.graph[*node].buffers.len() {
                 1 => {bufleft},
@@ -344,7 +375,8 @@ impl Engine {
                 output[i+64+128] += bufright[i];
             }
         }
-        self.elapsed_samples += 128;
+
+        self.elapsed_samples += 64;
         Ok((output, console))
     }
 }
@@ -362,3 +394,16 @@ impl std::convert::From<ParseFloatError> for EngineError {
         EngineError::ParameterError
     }
 }
+
+// #[macro_export]
+// macro_rules! handleparas {
+//     () => {
+//         pub fn new(paras: &mut Pairs<Rule>) -> 
+//         Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+            
+//             Ok((NodeData::new1( BoxedNodeSend::new( Self {
+               
+//             })), vec![]))
+//         }
+//     };
+// }

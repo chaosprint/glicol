@@ -5,13 +5,15 @@ use glicol::EngineError;
 
 fn main () -> Result<(), EngineError> {
     let mut engine = Engine::new();
-    engine.set_code("a: sin 60 >> pan 0.2");
+    engine.set_code("aa: imp 441.0 >> mul 0.5
     
-    // ~filter: mul 0.3");
+    bb: aa >> comb 1.0 0.1 0.2 0.3");
+
     engine.update();
     engine.make_graph()?;
 
     // println!("audio_nodes {:?}", engine.audio_nodes);
+    // println!("control_nodes {:?}", engine.control_nodes);
     // for e in engine.graph.raw_edges() {
     //     println!("raw_edges {:?}", e);
     // }
@@ -21,7 +23,7 @@ fn main () -> Result<(), EngineError> {
     let mut y2 = Vec::<f32>::new();
     let mut n = 0;
 
-    for _ in 0..(512.0*2.0/128.0) as usize {
+    for _ in 0..(128.0*10.0/128.0) as usize {
         // let out = engine.gen_next_buf_128().unwrap().0;
         let out = engine.gen_next_buf_128().unwrap().0;
         for i in 0..128 {

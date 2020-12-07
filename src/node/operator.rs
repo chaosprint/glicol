@@ -28,7 +28,7 @@ impl Node for Mul {
 
         if !self.has_mod {
             // if inputs.len() > 0 {
-            assert_eq!(inputs.len(), 1);
+            // assert_eq!(inputs.len(), 1);
             // let buf = &mut inputs[0].buffers();
             // output[0] = buf[0].clone();
             output[0] = inputs[0].buffers()[0].clone();
@@ -36,7 +36,7 @@ impl Node for Mul {
             // }
         } else {
             // if inputs.len() > 1 {
-            assert!(inputs.len() > 1);
+            // assert!(inputs.len() > 1);
             let buf = &mut inputs[0].buffers();
             let mod_buf = &mut inputs[1].buffers();
             for i in 0..64 {
@@ -71,14 +71,14 @@ impl Node for Add {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
 
         if self.has_mod {
-            assert!(inputs.len() > 1);
+            // assert!(inputs.len() > 1);
             let buf = &mut inputs[0].buffers();
             let mod_buf = &mut inputs[1].buffers();
             for i in 0..64 {
                 output[0][i] = mod_buf[0][i] + buf[0][i];
             }
         } else {
-            assert_eq!(inputs.len(), 1);
+            // assert_eq!(inputs.len(), 1);
             output[0] = inputs[0].buffers()[0].clone();
             output[0].iter_mut().for_each(|s| *s = *s + self.inc as f32);
         }
