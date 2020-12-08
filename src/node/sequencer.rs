@@ -60,19 +60,18 @@ impl Sequencer {
 
 impl Node for Sequencer {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+
+        let mut step = inputs[inputs.len()-1].buffers()[0][0] as usize;
         
         let mut has_speed_input = false;
         
-        if inputs.len() > 0 {
+        if inputs.len() > 1 {
+            // except for the clock, the only optional input should be the speed node
+            
             // speed input is set as [ f32, 0.0, 0.0 ... ], so it's identical
             // NOTE! inputs are in reverse order
 
-            // println!("input0 {} {}", inputs[0].buffers()[0][0],inputs[0].buffers()[0][1]);
-            // println!("input0 {}, input1 {}, input2 {}", inputs[0].buffers()[0][0], 
-            // inputs[1].buffers()[0][0], inputs[2].buffers()[0][0]);
-            // println!("input0 {}, input1 {}, input2 {}", inputs[0].buffers()[0][1], 
-            // inputs[1].buffers()[0][1], inputs[2].buffers()[0][1]);
-            let last = inputs.len() - 1;
+            let last = inputs.len() - 2; // -1 is the clock
             if (inputs[last].buffers()[0][0] > 0.0) & (inputs[last].buffers()[0][1] == 0.0) {
                 self.speed = inputs[last].buffers()[0][0];
                 has_speed_input = true;
@@ -87,7 +86,7 @@ impl Node for Sequencer {
             output[0][i] = 0.0;
 
             for event in &self.events {
-                if (self.step % (bar_length as usize)) == ((event.0 * bar_length) as usize) {
+                if (step % (bar_length as usize)) == ((event.0 * bar_length) as usize) {
 
                     let midi = match event.1.parse::<f32>() {
                         Ok(val) => val,
@@ -99,7 +98,7 @@ impl Node for Sequencer {
                             // - one speed input, no sidechain,
                             // - one speed input. several sidechains
 
-                            let index = len - 1 - 
+                            let index = len - 2 - 
                             self.sidechain_lib[&event.1] - has_speed_input as usize;
                             // println!("index {}", index);
                             inputs[index].buffers()[0][i]
@@ -113,7 +112,7 @@ impl Node for Sequencer {
                     }
                 }
             }
-            self.step += 1;
+            step += 1;
         }
     }
 }
@@ -147,14 +146,14 @@ impl Node for Speed {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
 
         if self.has_mod {
-            assert!(inputs.len() > 0);
+            // assert!(inputs.len() > 0);
             let mod_buf = &mut inputs[0].buffers();
             // let mod_buf = &mut inputs[1].buffers();
             // for i in 0..64 {
             output[0][0] = mod_buf[0][0];
             // }
         } else {
-            assert_eq!(inputs.len(), 0);
+            // assert_eq!(inputs.len(), 0);
             // output[0] = inputs[0].buffers()[0].clone();
             output[0][0] = self.speed as f32;
             // output[0].iter_mut().for_each(|s| *s = self.speed as f32);

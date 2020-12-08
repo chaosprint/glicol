@@ -296,7 +296,7 @@ impl Comb {
         let para_b: String = paras.next().unwrap().as_str().to_string();
         let para_c: String = paras.next().unwrap().as_str().to_string();
         let para_d: String = paras.next().unwrap().as_str().to_string();
-
+        
         let delay_time = para_a.parse::<f64>()?;
         let gain = para_b.parse::<f64>()?;
         let forward = para_c.parse::<f64>()?;

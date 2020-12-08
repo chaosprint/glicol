@@ -20,7 +20,7 @@ impl State {
             .map( |s| s.parse::<f32>().unwrap()) // TODO: error handling
             .collect::<Vec<f32>>()
         ).collect::<Vec<Vec<f32>>>();
-        // println!("{:?}", states);
+        println!("{:?}", info);
 
         Ok((NodeData::new1(BoxedNodeSend::new( Self {
             info,
@@ -31,20 +31,29 @@ impl State {
 }
 
 impl Node for State {
-    fn process(&mut self, _inputs: &[Input], output: &mut [Buffer]) {
+    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+
+        let mut clock = inputs[0].buffers()[0][0] as usize;
+
         for i in 0..64 {
             if self.state >= self.info.len() - 1 {
                 output[0][i] = self.info[self.info.len()-1][1];
+                self.state = 0;
             } else {
                 let inc = self.info[self.state + 1][1] - self.info[self.state][1];
                 let dur = self.info[self.state + 1][0] - self.info[self.state][0];
-                let state_time =  self.step as f32 / 44100.0 - self.info[self.state][0];
+
+                let total_dur = self.info[self.info.len()-1][0] - self.info[0][0];
+
+                let state_time = (clock as f32 / 44100.0 - self.info[self.state][0]) % total_dur;
+
                 output[0][i] = self.info[self.state][1] + state_time / dur * inc;
-                if self.step as f32 / 44100.0 > self.info[self.state + 1][0] {
+
+                if state_time >= self.info[self.state + 1][0] {
                     self.state += 1;
                 }
             }
-            self.step += 1;
+            clock += 1;
         }
         // output[0] = inputs[0].buffers()[0].clone();
     }

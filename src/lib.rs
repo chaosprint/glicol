@@ -395,15 +395,26 @@ impl std::convert::From<ParseFloatError> for EngineError {
     }
 }
 
-// #[macro_export]
-// macro_rules! handleparas {
-//     () => {
-//         pub fn new(paras: &mut Pairs<Rule>) -> 
-//         Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
-            
-//             Ok((NodeData::new1( BoxedNodeSend::new( Self {
-               
-//             })), vec![]))
-//         }
-//     };
-// }
+#[macro_export]
+macro_rules! handle_params {
+    ($id: ident: $default: expr) => {
+        pub fn new(paras: &mut Pairs<Rule>) -> 
+        Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+
+            let mut sidechains = Vec::<String>::new();
+
+            // TODO: need to handle unwarp
+            let para_a: String = paras.next().unwrap().as_str().to_string();
+            let para_a_parse = para_a.parse::<f32>();
+            let (para_a_val, has_mod) = match para_a_parse {
+                Ok(val) => (val, false),
+                Err(_) => {sidechains.push(para_a); ($default, true)}
+            };
+
+            Ok((NodeData::new1( BoxedNodeSend::new( Self {
+                $id: para_a_val,
+                has_mod
+            })), sidechains))
+        }
+    };
+}

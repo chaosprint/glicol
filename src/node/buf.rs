@@ -38,7 +38,7 @@ impl Node for Buf {
 
         for i in 0..64 {
             let len = self.sample.len() - 1;
-            let index = input_buf[0][i]  * len as f32;
+            let index = input_buf[0][i] * len as f32;
 
             output[0][i] = match index {
                 x if x == 0.0 => self.sample[0],
@@ -48,7 +48,7 @@ impl Node for Buf {
                     let right = x.ceil();
                     self.sample[left as usize] * (x - left) + self.sample[right as usize] * (right - x)
                 },
-                _ => panic!()
+                _ => 0.0
             };
         }
     }

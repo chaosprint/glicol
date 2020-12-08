@@ -1,27 +1,28 @@
 use dasp_graph::{Buffer, Input, Node};
-use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError};
+use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError, handle_params};
 
 pub struct Mul {
     pub mul: f32,
     has_mod: bool
 }
 impl Mul {
-    pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+    handle_params!(mul: 0.0);
+    // pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
 
-        // let mut paras = paras.next().unwrap().into_inner();
-        // println!("{:?}", paras.as_str());
-        let mul: String = paras.as_str().to_string()
-        .chars().filter(|c| !c.is_whitespace()).collect();
+    //     // let mut paras = paras.next().unwrap().into_inner();
+    //     // println!("{:?}", paras.as_str());
+    //     let mul: String = paras.as_str().to_string()
+    //     .chars().filter(|c| !c.is_whitespace()).collect();
 
-        let is_float = mul.parse::<f32>();
-        if is_float.is_ok() {
-            Ok((NodeData::new1(BoxedNodeSend::new(Self {mul: is_float.unwrap(), has_mod: false})),
-            vec![]))
-        } else {
-            Ok((NodeData::new1(BoxedNodeSend::new(Self {mul: 0.0, has_mod: true})),
-            vec![mul]))
-        }
-    }
+    //     let is_float = mul.parse::<f32>();
+    //     if is_float.is_ok() {
+    //         Ok((NodeData::new1(BoxedNodeSend::new(Self {mul: is_float.unwrap(), has_mod: false})),
+    //         vec![]))
+    //     } else {
+    //         Ok((NodeData::new1(BoxedNodeSend::new(Self {mul: 0.0, has_mod: true})),
+    //         vec![mul]))
+    //     }
+    // }
 }
 impl Node for Mul {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
@@ -52,20 +53,21 @@ pub struct Add {
     has_mod: bool
 }
 impl Add {
-    pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError>  {
-        let inc: String = paras.as_str().to_string()
-        .chars().filter(|c| !c.is_whitespace()).collect();
+    handle_params!(inc: 0.0);
+    // pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError>  {
+    //     let inc: String = paras.as_str().to_string()
+    //     .chars().filter(|c| !c.is_whitespace()).collect();
 
-        let is_float = inc.parse::<f32>();
+    //     let is_float = inc.parse::<f32>();
 
-        if is_float.is_ok() {
-            Ok((NodeData::new1(BoxedNodeSend::new(Self {inc: is_float.unwrap(), has_mod: false})),
-            vec![]))
-        } else {
-            Ok((NodeData::new1(BoxedNodeSend::new(Self {inc: 0.0, has_mod: true})),
-            vec![inc]))
-        }
-    }
+    //     if is_float.is_ok() {
+    //         Ok((NodeData::new1(BoxedNodeSend::new(Self {inc: is_float.unwrap(), has_mod: false})),
+    //         vec![]))
+    //     } else {
+    //         Ok((NodeData::new1(BoxedNodeSend::new(Self {inc: 0.0, has_mod: true})),
+    //         vec![inc]))
+    //     }
+    // }
 }
 impl Node for Add {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
