@@ -193,6 +193,7 @@ version = "0.1.0"
 dependencies = [
  "dasp_graph",
  "dasp_interpolate",
+ "dasp_ring_buffer",
  "dasp_signal",
  "dasp_slice",
  "freeverb",
