@@ -33,7 +33,7 @@ impl Pan {
 
 impl Node for Pan {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
-
+        
         if self.has_mod {
             assert!(inputs.len() > 0);
             let mod_buf = &mut inputs[0].buffers();
@@ -75,5 +75,25 @@ impl Node for Pan {
                 _ => {panic!()}
             }
         }
+    }
+}
+
+pub struct Mix2 {}
+impl Mix2 {
+    pub fn new(paras: &mut Pairs<Rule>) -> Result<
+    (NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+        let para_a: String = paras.next().unwrap().as_str().to_string();
+        let para_b: String = paras.next().unwrap().as_str().to_string();        
+        return Ok((NodeData::new2(BoxedNodeSend::new(Self {})), vec![para_a, para_b]))
+    }
+}
+
+impl Node for Mix2 {
+    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+        // let _clock = inputs[2].clone();
+        let left = inputs[1].buffers()[0].clone();
+        let right = inputs[0].buffers()[0].clone();
+        output[0] = left;
+        output[1] = right;
     }
 }

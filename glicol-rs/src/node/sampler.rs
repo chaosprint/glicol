@@ -7,32 +7,20 @@ use super::super::{Rule, HashMap, NodeData, BoxedNodeSend, EngineError};
 
 pub struct Sampler {
     pub sig: Vec< Box<dyn Signal<Frame=[f32;1]> + 'static + Send>>,
-    // pub sig: Box<dyn Signal<Frame=[f32;1]> + Send>,
     pub samples: &'static[f32],
 }
-// samples: &'static[f32]
 impl Sampler {
     pub fn new(
         paras: &mut Pairs<Rule>,
         samples_dict: &HashMap<String, &'static[f32]>
     ) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
-
-        // let mut paras = paras.next().unwrap().into_inner();
-        // let para_a: String = paras.next().unwrap().as_str().to_string()
-        // .chars().filter(|c| !c.is_whitespace()).collect();
-
         let p = paras.next().unwrap();
-
-        // println!("{:?}", p.as_span());
         let pos = (p.as_span().start(), p.as_span().end());
-
         let key = p.as_str();
         if !samples_dict.contains_key(key) {
             return Err(EngineError::SampleNotExistError(pos))
         }
-
         let samples = samples_dict[key];
-
         Ok((NodeData::new1(BoxedNodeSend::new(Self{
             sig: Vec::new(),
             samples: samples
@@ -63,10 +51,13 @@ impl Node for Sampler {
                     }
                 }
                 // for i in 0..output[0].len() {
-                for v in &mut self.sig {
-                    if !v.is_exhausted() {
-                        output[0][i] += v.next()[0];
-                    }                   
+                for s in &mut self.sig {
+                    if !s.is_exhausted() {
+                        output[0][i] += s.next()[0];
+                    } 
+                    // else { .iter_mut().enumerate()
+                    //     self.sig.remove(i);
+                    // }                
                 }
             }
         }

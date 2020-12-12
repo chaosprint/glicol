@@ -1,5 +1,5 @@
 use dasp_graph::{Buffer, Input, Node};
-use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError};
+use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError, handle_params};
 use dasp_ring_buffer as ring_buffer;
 
 pub struct LPF {
@@ -217,43 +217,65 @@ impl Node for HPF {
     }
 }
 
+type Fixed = ring_buffer::Fixed<Vec<f32>>;
+
 pub struct Allpass {
-    delay: f64,
-    decay: f64,
+    delay: f32,
+    decay: f32,
     // gain: f32,
-    bufx: ring_buffer::Fixed<Vec<f32>>,
-    bufy: ring_buffer::Fixed<Vec<f32>>,
-    control: Vec::<u8>
+    bufx: Fixed,
+    bufy: Fixed,
+    sidechain_ids: Vec::<u8>
 }
 
 impl Allpass {
-    pub fn new(paras: &mut Pairs<Rule>) -> 
-    Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
 
-        let para_a: String = paras.next().unwrap().as_str().to_string();
-        let para_b: String = paras.next().unwrap().as_str().to_string();
-        // let para_c: String = paras.next().unwrap().as_str().to_string();
+    handle_params!(
+        {
+            delay: 0.5,
+            decay: 2.0
+        }, [
+            (
+                delay, bufx, |d: f32| -> Fixed {
+                    let size = (d / 1000.0 * 44100.0) as usize;
+                    ring_buffer::Fixed::from(vec![0.0; size])
+                }
+            ), (
+                delay, bufy, |d: f32| -> Fixed {
+                    let size = (d / 1000.0 * 44100.0) as usize;
+                    ring_buffer::Fixed::from(vec![0.0; size])
+                }
+            )
+        ]
+    );
+    // pub fn new(paras: &mut Pairs<Rule>) -> 
+    // Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
 
-        let delay = para_a.parse::<f64>()?;
-        let decay = para_b.parse::<f64>()?;
-        // let gain = para_c.parse::<f32>()?;
+    //     let para_a: String = paras.next().unwrap().as_str().to_string();
+    //     let para_b: String = paras.next().unwrap().as_str().to_string();
+    //     // let para_c: String = paras.next().unwrap().as_str().to_string();
 
-        let mut sidechains = Vec::<String>::new();
-        let mut which_param = Vec::<u8>::new();
-        if !para_a.parse::<f64>().is_ok() {sidechains.push(para_a); which_param.push(0)};
-        if !para_b.parse::<f64>().is_ok() {sidechains.push(para_b); which_param.push(1)};
-        // if !para_c.parse::<f64>().is_ok() {sidechains.push(para_c); which_param.push(2)};
-        let size = (delay / 1000.0 * 44100.0) as usize;
+    //     let delay = para_a.parse::<f32>()?;
+    //     let decay = para_b.parse::<f32>()?;
+    //     // let gain = para_c.parse::<f32>()?;
 
-        Ok((NodeData::new1( BoxedNodeSend::new( Self {
-            delay: delay,
-            decay: decay,
-            bufx: ring_buffer::Fixed::from(vec![0.0; size]),
-            bufy: ring_buffer::Fixed::from(vec![0.0; size]),
-            // gain: gain,
-            control: which_param
-        })), sidechains))
-    }
+    //     let mut sidechains = Vec::<String>::new();
+    //     let mut which_param = Vec::<u8>::new();
+    //     if !para_a.parse::<f32>().is_ok() {sidechains.push(para_a); which_param.push(0)};
+    //     if !para_b.parse::<f32>().is_ok() {sidechains.push(para_b); which_param.push(1)};
+    //     // if !para_c.parse::<f64>().is_ok() {sidechains.push(para_c); which_param.push(2)};
+    //     let size = (delay / 1000.0 * 44100.0) as usize;
+
+    //     Ok((NodeData::new1( BoxedNodeSend::new( Self {
+    //         delay: delay,
+    //         decay: decay,
+    //         bufx: ring_buffer::Fixed::from(vec![0.0; size]),
+    //         bufy: ring_buffer::Fixed::from(vec![0.0; size]),
+    //         // gain: gain,
+    //         // control: which_param
+    //         sidechain_ids: vec![]
+    //     })), sidechains))
+    // }
 }
 
 impl Node for Allpass {
@@ -263,7 +285,7 @@ impl Node for Allpass {
         // y(n) = -a * x(n) + x(n-D) + a * y(n-D)
         // a = exp(log(0.001) * D/t60).
         // let decay = (self.decay * 44100.0) as usize;
-        let a = (0.001_f64.log10() * (self.delay / self.decay)).exp();
+        let a = (0.001_f32.log10() * (self.delay / self.decay)).exp();
 
         for i in 0..64 {
             // println!("{:?}", self.buf);
@@ -274,52 +296,71 @@ impl Node for Allpass {
             self.bufy.push(yn);
             output[0][i] = yn;
         }
-
-
     }
 }
 
 pub struct Comb {
-    delay_time: f64,
-    gain: f64,
-    forward: f64,
-    back: f64,
-    bufx: ring_buffer::Fixed<Vec<f64>>,
-    bufy: ring_buffer::Fixed<Vec<f64>>,
+    delay_time: f32,
+    gain: f32,
+    forward: f32,
+    back: f32,
+    bufx: Fixed,
+    bufy: Fixed,
+    sidechain_ids: Vec::<u8>
 }
 
 impl Comb {
-    pub fn new(paras: &mut Pairs<Rule>) -> 
-    Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+    handle_params!(
+        {
+            delay_time: 600.0,
+            gain: 0.5,
+            forward: 0.5,
+            back: 0.5
+        }, [
+            (
+                delay_time, bufx, |d: f32| -> Fixed {
+                    let size = (d / 1000.0 * 44100.0) as usize;
+                    ring_buffer::Fixed::from(vec![0.0; size])
+                }
+            ), (
+                delay_time, bufy, |d: f32| -> Fixed {
+                    let size = (d / 1000.0 * 44100.0) as usize;
+                    ring_buffer::Fixed::from(vec![0.0; size])
+                }
+            )
+        ]
+    );
+    // pub fn new(paras: &mut Pairs<Rule>) -> 
+    // Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
 
-        let para_a: String = paras.next().unwrap().as_str().to_string();
-        let para_b: String = paras.next().unwrap().as_str().to_string();
-        let para_c: String = paras.next().unwrap().as_str().to_string();
-        let para_d: String = paras.next().unwrap().as_str().to_string();
+    //     let para_a: String = paras.next().unwrap().as_str().to_string();
+    //     let para_b: String = paras.next().unwrap().as_str().to_string();
+    //     let para_c: String = paras.next().unwrap().as_str().to_string();
+    //     let para_d: String = paras.next().unwrap().as_str().to_string();
         
-        let delay_time = para_a.parse::<f64>()?;
-        let gain = para_b.parse::<f64>()?;
-        let forward = para_c.parse::<f64>()?;
-        let back = para_d.parse::<f64>()?;
+    //     let delay_time = para_a.parse::<f64>()?;
+    //     let gain = para_b.parse::<f64>()?;
+    //     let forward = para_c.parse::<f64>()?;
+    //     let back = para_d.parse::<f64>()?;
 
-        let mut sidechains = Vec::<String>::new();
-        if !para_a.parse::<f64>().is_ok() {sidechains.push(para_a);};
-        if !para_b.parse::<f64>().is_ok() {sidechains.push(para_b);};
-        if !para_c.parse::<f64>().is_ok() {sidechains.push(para_c);};
-        if !para_d.parse::<f64>().is_ok() {sidechains.push(para_d);};
+    //     let mut sidechains = Vec::<String>::new();
+    //     if !para_a.parse::<f64>().is_ok() {sidechains.push(para_a);};
+    //     if !para_b.parse::<f64>().is_ok() {sidechains.push(para_b);};
+    //     if !para_c.parse::<f64>().is_ok() {sidechains.push(para_c);};
+    //     if !para_d.parse::<f64>().is_ok() {sidechains.push(para_d);};
         
-        // if !para_c.parse::<f64>().is_ok() {sidechains.push(para_c); which_param.push(2)};
-        let size = (delay_time / 1000.0 * 44100.0) as usize;
+    //     // if !para_c.parse::<f64>().is_ok() {sidechains.push(para_c); which_param.push(2)};
+    //     let size = (delay_time / 1000.0 * 44100.0) as usize;
 
-        Ok((NodeData::new1( BoxedNodeSend::new( Self {
-            delay_time,
-            gain,
-            forward,
-            back,
-            bufx: ring_buffer::Fixed::from(vec![0.0; size]),
-            bufy: ring_buffer::Fixed::from(vec![0.0; size]),
-        })), sidechains))
-    }
+    //     Ok((NodeData::new1( BoxedNodeSend::new( Self {
+    //         delay_time,
+    //         gain,
+    //         forward,
+    //         back,
+    //         bufx: ring_buffer::Fixed::from(vec![0.0; size]),
+    //         bufy: ring_buffer::Fixed::from(vec![0.0; size]),
+    //     })), sidechains))
+    // }
 }
 
 impl Node for Comb {
@@ -332,13 +373,13 @@ impl Node for Comb {
         // println!("{:?}",self.bufx);
 
         for i in 0..64 {
-            let xn = inputs[0].buffers()[0][0] as f64;
+            let xn = inputs[0].buffers()[0][0];
             let xn_d = self.bufx[0];
             let yn_d = self.bufy[0];
             let yn = a * xn + b * xn_d + c * yn_d;
             self.bufx.push(xn);
             self.bufy.push(yn);
-            output[0][i] = yn as f32;
+            output[0][i] = yn;
         }
        
 

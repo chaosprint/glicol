@@ -3,10 +3,12 @@ use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError, handle_par
 
 pub struct Mul {
     pub mul: f32,
-    has_mod: bool
+    sidechain_ids: Vec<u8>
 }
 impl Mul {
-    handle_params!(mul: 0.0);
+    handle_params!({
+        mul: 0.0
+    });
     // pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
 
     //     // let mut paras = paras.next().unwrap().into_inner();
@@ -27,7 +29,7 @@ impl Mul {
 impl Node for Mul {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
 
-        if !self.has_mod {
+        if !(self.sidechain_ids.len() > 0) {
             // if inputs.len() > 0 {
             // assert_eq!(inputs.len(), 1);
             // let buf = &mut inputs[0].buffers();
@@ -50,10 +52,12 @@ impl Node for Mul {
 
 pub struct Add {
     pub inc: f32,
-    has_mod: bool
+    sidechain_ids: Vec<u8>
 }
 impl Add {
-    handle_params!(inc: 0.0);
+    handle_params!({
+        inc: 0.0
+    });
     // pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError>  {
     //     let inc: String = paras.as_str().to_string()
     //     .chars().filter(|c| !c.is_whitespace()).collect();
@@ -72,7 +76,7 @@ impl Add {
 impl Node for Add {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
 
-        if self.has_mod {
+        if self.sidechain_ids.len() > 0 {
             // assert!(inputs.len() > 1);
             let buf = &mut inputs[0].buffers();
             let mod_buf = &mut inputs[1].buffers();

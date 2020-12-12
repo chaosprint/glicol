@@ -5,7 +5,7 @@ use glicol::EngineError;
 
 fn main () -> Result<(), EngineError> {
     let mut engine = Engine::new();
-    engine.set_code("aa: state 0.0 0.0, 0.1 1.0, 0.2 0.8, 0.3 0.0");
+    engine.set_code("aa: sin 60 >> plate 0.5");
 
     engine.update();
     engine.make_graph()?;

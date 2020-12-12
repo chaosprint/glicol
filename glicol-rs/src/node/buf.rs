@@ -12,17 +12,14 @@ impl Buf {
         paras: &mut Pairs<Rule>,
         samples_dict: &HashMap<String, &'static[f32]>,
     ) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
-
-        // let mut paras = paras.next().unwrap().into_inner();
-        // let para_a: String = paras.next().unwrap().as_str().to_string()
-        // .chars().filter(|c| !c.is_whitespace()).collect();
-
-        let key = paras.as_str();
-
+        let p = paras.next().unwrap();
+        let pos = (p.as_span().start(), p.as_span().end());
+        let key = p.as_str();
+        if !samples_dict.contains_key(key) {
+            return Err(EngineError::SampleNotExistError(pos))
+        }
         let sample = samples_dict[key];
-
         Ok((NodeData::new1(BoxedNodeSend::new(Self{
-            // sig: Vec::new(),
             sample
         })), vec![]))
     }
@@ -32,8 +29,7 @@ impl Node for Buf {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
         // output[0].silence();
         // if inputs.len() > 0 {
-            
-            // each input value is between 0-1
+        // each input value is between 0-1
         let input_buf = &mut inputs[0].buffers();
 
         for i in 0..64 {
@@ -46,7 +42,8 @@ impl Node for Buf {
                 x if x > 0.0 && x < len as f32 => {
                     let left = x.floor();
                     let right = x.ceil();
-                    self.sample[left as usize] * (x - left) + self.sample[right as usize] * (right - x)
+                    self.sample[left as usize] * (x - left)
+                    + self.sample[right as usize] * (right - x)
                 },
                 _ => 0.0
             };

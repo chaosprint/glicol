@@ -7,7 +7,8 @@ use pest::iterators::Pairs;
 mod parser;
 use parser::*;
 
-use dasp_graph::{NodeData, BoxedNodeSend, Processor};
+// use dasp_graph::{Buffer, , Node};
+use dasp_graph::{NodeData, Input, BoxedNodeSend, Processor};
 use petgraph::graph::{NodeIndex, DiGraph};
 use petgraph::{Graph, Directed};
 
@@ -27,9 +28,10 @@ use node::rand::{Choose};
 use node::buf::{Buf};
 use node::state::{State};
 use node::freeverb::{FreeVerbNode};
-use node::pan::{Pan};
+use node::pan::{Pan, Mix2};
 use node::delay::{Delay};
-use node::clock::{Clock};
+use node::system::{Clock, AudioIn};
+use node::reverb::{Plate};
 
 mod utili;
 use utili::midi_or_float;
@@ -47,6 +49,7 @@ pub struct Engine {
     pub sr: u32,
     pub bpm: f64,
     clock: NodeIndex,
+    audio_in: NodeIndex,
     code: &'static str,
     code_backup: &'static str,
     update: bool,
@@ -81,6 +84,7 @@ impl Engine {
             control_nodes: HashMap::new(),
             elapsed_samples: 0,
             clock: NodeIndex::new(0),
+            audio_in: NodeIndex::new(1),
             sr: 44100,
             bpm: 120.0,
             update: false,
@@ -105,6 +109,10 @@ impl Engine {
         self.code = code;
     }
 
+    pub fn input(&mut self, inputs: &[Input]) {
+        self.graph[self.control_nodes["~input"]].buffers[0] = inputs[0].buffers()[0].clone();
+    }
+
     // error only comes from this method
     pub fn make_graph(&mut self) -> Result<(), EngineError>{
         self.audio_nodes.clear();
@@ -113,6 +121,8 @@ impl Engine {
         self.sidechains_list.clear();
 
         self.clock = self.graph.add_node(NodeData::new1(BoxedNodeSend::new(Clock{})));
+        self.audio_in = self.graph.add_node(NodeData::new1(BoxedNodeSend::new(AudioIn{})));
+        self.control_nodes.insert("~input".to_string(), self.audio_in);
 
         let lines = GlicolParser::parse(Rule::block, self.code)
         .expect("unsuccessful parse")
@@ -173,6 +183,8 @@ impl Engine {
                                 "delay" => Delay::new(&mut paras)?,
                                 "apf" => Allpass::new(&mut paras)?,
                                 "comb" => Comb::new(&mut paras)?,
+                                "mix" => Mix2::new(&mut paras)?,
+                                "plate" => Plate::new(&mut paras)?,
                                 _ => Pass::new(name)?
                             };
                     
@@ -222,9 +234,10 @@ impl Engine {
             // "no such a control node");
 
             if pair.1.contains("@rev") {
-                println!("reversed connection");
+                
                 // let name: Vec<&str> = pair.1.split("@rev").collect();
                 let name = &pair.1[4..];
+                println!("reversed connection for {}", name);
                 if !self.control_nodes.contains_key(name) {
                     return Err(EngineError::NonExistControlNodeError);
                 }
@@ -271,29 +284,32 @@ impl Engine {
         }
     }
 
-    pub fn gen_next_buf_64(&mut self) -> [f32; 64] {
+    pub fn gen_next_buf_64(&mut self) -> Result<[f32; 128], EngineError> {
         
         // using self.buffer will cause errors on bela
-        let mut output: [f32; 64] = [0.0; 64];
+        let mut output: [f32; 128] = [0.0; 128];
         for (_ref_name, node) in &self.audio_nodes {
 
-            // find the edge order issue
-            // print!("this should before process {:?}", 
-            // self.graph.raw_edges());
-            // if self.graph.raw_edges().len() > 0 {f
+            self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
             self.processor.process(&mut self.graph, *node);
-            let b = &self.graph[*node].buffers[0];
+
+            let bufleft = &self.graph[*node].buffers[0];
+            let bufright = match &self.graph[*node].buffers.len() {
+                1 => {bufleft},
+                2 => {&self.graph[*node].buffers[1]},
+                _ => {unimplemented!()}
+            };
             for i in 0..64 {
-                output[i] += b[i];
-                }
-            // }
+                output[i] += bufleft[i];
+                output[i+64] += bufright[i];
+            }
         }
         self.elapsed_samples += 64;
-        output
+        Ok(output)
     }
 
     // , input: Input
-    pub fn gen_next_buf_128(&mut self) -> Result<([f32; 256], [u8;256]), EngineError> {
+    pub fn gen_next_buf_128(&mut self, inbuf: &mut [f32]) -> Result<([f32; 256], [u8;256]), EngineError> {
         // you just cannot use self.buffer
         let mut output: [f32; 256] = [0.0; 256];
         let mut console: [u8;256] = [0; 256];
@@ -337,6 +353,9 @@ impl Engine {
         for (_ref_name, node) in &self.audio_nodes {
             // println!("{:?}", *node);
             self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
+            for i in 0..64 {
+                self.graph[self.control_nodes["~input"]].buffers[0][i] = inbuf[i];
+            }
             self.processor.process(&mut self.graph, *node);
         }
 
@@ -358,6 +377,9 @@ impl Engine {
         for (_ref_name, node) in &self.audio_nodes {
             // println!("{:?}", *node);
             self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
+            for i in 0..64 {
+                self.graph[self.control_nodes["~input"]].buffers[0][i] = inbuf[i+64];
+            }
             self.processor.process(&mut self.graph, *node);
         }
 
@@ -396,25 +418,77 @@ impl std::convert::From<ParseFloatError> for EngineError {
 }
 
 #[macro_export]
+/// this works well for nodes whose inner states are only floats
+/// e.g. oscillator, filter, operator
 macro_rules! handle_params {
-    ($id: ident: $default: expr) => {
-        pub fn new(paras: &mut Pairs<Rule>) -> 
+    ( 
+        { $($id: ident: $default: expr),* }
+        $(,{$( $extra_params: ident : $val: expr),* })?
+        $(,[$( ( $related: ident, $extra_id: ident, $handler: expr) ),* ])?
+    ) => {
+        pub fn new(paras: &mut Pairs<Rule>) ->
         Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
 
             let mut sidechains = Vec::<String>::new();
+            let mut params_val = std::collections::HashMap::<&str, f32>::new();
+            let mut sidechain_ids = Vec::<u8>::new();
+            let mut sidechain_id: u8 = 0;
 
             // TODO: need to handle unwarp
-            let para_a: String = paras.next().unwrap().as_str().to_string();
-            let para_a_parse = para_a.parse::<f32>();
-            let (para_a_val, has_mod) = match para_a_parse {
-                Ok(val) => (val, false),
-                Err(_) => {sidechains.push(para_a); ($default, true)}
-            };
+            $(
+                let current_param: String = paras.next().unwrap().as_str().to_string();
+                let parse_result = current_param.parse::<f32>();
+                match parse_result {
+                    Ok(val) => {
+                        params_val.insert(stringify!($id), val);
+                    },
+                    Err(_) => {
+                        sidechains.push(current_param);
+                        params_val.insert(stringify!($id), $default);
+                        sidechain_ids.push(sidechain_id);
+                    }
+                };
+                sidechain_id += 1;
+            )*
+
+            $(
+                $(
+                    let $extra_id = $handler(params_val[stringify!($related)]);
+                )*
+            )?
 
             Ok((NodeData::new1( BoxedNodeSend::new( Self {
-                $id: para_a_val,
-                has_mod
+                $(
+                    $id: params_val[stringify!($id)],
+                )*
+                $(
+                    $(
+                        $extra_params: $val,
+                    )*
+                )?
+                $(
+                    $(
+                        $extra_id,
+                    )*
+                )?
+                sidechain_ids
             })), sidechains))
         }
     };
 }
+
+#[macro_export]
+macro_rules! create_node_with_code {
+    ($code: expr) => {
+        println!(stringify!($code))
+    };
+}
+
+// #[macro_export]
+// macro_rules! new_node {
+//     ($node_name: ident) => {
+//         pub struct $node_name {
+            
+//         }
+//     };
+// }
