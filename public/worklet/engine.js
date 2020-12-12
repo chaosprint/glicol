@@ -42,6 +42,12 @@ class GlicolEngine extends AudioWorkletProcessor {
                       this._outPtr,
                       this._size
                     )
+                    this._inPtr = this._wasm.exports.alloc(128)
+                    this._inBuf = new Float32Array(
+                      this._wasm.exports.memory.buffer,
+                      this._inPtr,
+                      128
+                    )
                 })
 
             } else if (e.data.type === "samples") {
@@ -121,7 +127,7 @@ class GlicolEngine extends AudioWorkletProcessor {
         }
     }
 
-    process(_inputs, outputs, _parameters) {
+    process(inputs, outputs, _parameters) {
         if(!this._wasm) {
             return true
         }
@@ -130,8 +136,19 @@ class GlicolEngine extends AudioWorkletProcessor {
         // let output = outputs[0]
         // console.log("outlen", output.length);
         // for (let channel = 0; channel < output.length; ++channel) {
-            
-        let resultPtr = this._wasm.exports.process(this._outPtr, this._size)
+
+        this._inBuf = new Float32Array(
+            this._wasm.exports.memory.buffer,
+            this._inPtr,
+            128
+        )
+
+        if (inputs[0][0]) {
+            // console.log(inputs[0][0]);
+            this._inBuf.set(inputs[0][1])
+        }
+
+        let resultPtr = this._wasm.exports.process(this.in_Ptr, this._outPtr, this._size)
 
         this._outBuf = new Float32Array(
             this._wasm.exports.memory.buffer,

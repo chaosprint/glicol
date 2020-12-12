@@ -84,12 +84,15 @@ export default function App() {
     // Note the the path is from public folder
     // console.log(audioContextOptions.sampleRate )
     window.code = welcome
+
+    
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
     window.actx = new window.AudioContext({
       sampleRate: 44100
     })
     await window.actx.audioWorklet.addModule('./worklet/engine.js')
     window.node = new AudioWorkletNode(window.actx, 'glicol-engine', {outputChannelCount: [2]})
+
 
 
     fetch('wasm/glicol_wasm.wasm')
@@ -104,7 +107,17 @@ export default function App() {
     window.actx.destination.channelInterpretation = "discrete";
     // window.actx.destination.chan
     window.node.connect(window.actx.destination)
+
     console.log("Audio engine loaded.")
+
+    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+    navigator.getUserMedia( {audio:true}, stream => {
+        // window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        var mediaStreamSource = window.actx.createMediaStreamSource( stream );
+        // Connect it to the destination to hear yourself (or any other node for processing!)
+        mediaStreamSource.connect( window.node );
+      }, ()=> console.warn("Error getting audio stream from getUserMedia")
+    )
   };
 
   useEffect(() => {
@@ -115,6 +128,32 @@ export default function App() {
       console.log(e)
     }
   }, []);
+
+  window.addSample = async (name, url) => {
+    window.actx.suspend()
+    let u = url;
+    let myRequest = new Request(u);
+    await fetch(myRequest).then(response => response.arrayBuffer())
+    .then(arrayBuffer => {
+      // console.log("downloaded", arrayBuffer)
+      let buffer = new Uint8Array(arrayBuffer)
+      let wav = new WaveFile(buffer);
+      let sample = wav.getSamples(true, Int16Array)
+
+      // after loading, sent to audioworklet the sample array
+      // console.log("sampler \\" + key)
+      window.node.port.postMessage({
+        type: "samples",
+        sample: sample,
+        name: encoder.encode("\\" + name)
+      })
+    });
+  }
+
+  // window.addSampleFromGitHub = (ownerName, repoName, folder) => {
+  //   // 'https://raw.githubusercontent.com/ownerName/repoName/master/'
+
+  // }
 
   const loadSamples = async (list) => {
     // const arr = [1,2,3,4,5,6,7,8,9];
