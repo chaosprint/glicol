@@ -175,10 +175,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37ab347416e802de484e4d03c7316c48f1ecb56574dfd4a46a80f173ce1de04d"
 
 [[package]]
-name = "freeverb"
-version = "0.1.0"
-
-[[package]]
 name = "generic-array"
 version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -196,7 +192,6 @@ dependencies = [
  "dasp_ring_buffer",
  "dasp_signal",
  "dasp_slice",
- "freeverb",
  "gnuplot",
  "pest",
  "pest_derive",

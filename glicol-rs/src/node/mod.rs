@@ -12,7 +12,6 @@ pub mod rand;
 pub mod phasor;
 pub mod buf;
 pub mod state;
-pub mod freeverb;
 pub mod pan;
 pub mod delay;
 pub mod system;

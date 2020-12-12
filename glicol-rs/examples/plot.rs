@@ -21,14 +21,14 @@ fn main () -> Result<(), EngineError> {
     let mut y2 = Vec::<f32>::new();
     let mut n = 0;
 
-    for _ in 0..100 as usize {
+    for _ in 0..64 as usize {
         // let out = engine.gen_next_buf_128().unwrap().0;
-        let out = engine.gen_next_buf_128().unwrap().0;
-        for i in 0..128 {
+        let out = engine.gen_next_buf_64().unwrap();
+        for i in 0..64 {
             x.push(n);
             n += 1;
             y.push(out[i]);
-            y2.push(out[i+128])
+            y2.push(out[i+64])
         }
     }
 

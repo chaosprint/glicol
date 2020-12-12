@@ -11,7 +11,7 @@ impl Plate {
     (NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
         // let param_a = paras.as_str().parse::<f32>().unwrap();
         let mut engine = Engine::new();
-        engine.set_code("out: ~input >> apf 600.0 2000.0");
+        engine.set_code("out: ~input >> apf 60.0 200.0");
         engine.make_graph()?;
         engine.update();
         Ok((NodeData::new2(BoxedNodeSend::new( Self {

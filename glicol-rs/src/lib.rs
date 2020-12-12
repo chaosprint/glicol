@@ -8,7 +8,7 @@ mod parser;
 use parser::*;
 
 // use dasp_graph::{Buffer, , Node};
-use dasp_graph::{NodeData, Input, BoxedNodeSend, Processor};
+use dasp_graph::{NodeData, Input, Buffer, BoxedNodeSend, Processor};
 use petgraph::graph::{NodeIndex, DiGraph};
 use petgraph::{Graph, Directed};
 
@@ -27,7 +27,6 @@ use node::map::{LinRange};
 use node::rand::{Choose};
 use node::buf::{Buf};
 use node::state::{State};
-use node::freeverb::{FreeVerbNode};
 use node::pan::{Pan, Mix2};
 use node::delay::{Delay};
 use node::system::{Clock, AudioIn};
@@ -178,7 +177,7 @@ impl Engine {
                                 "pha" => Phasor::new(&mut paras)?,
                                 "buf" => Buf::new(&mut paras, &self.samples_dict)?,
                                 "state" => State::new(&mut paras)?,
-                                "freeverb" => FreeVerbNode::new(&mut paras)?,
+                                // "freeverb" => FreeVerbNode::new(&mut paras)?,
                                 "pan" => Pan::new(&mut paras)?,
                                 "delay" => Delay::new(&mut paras)?,
                                 "apf" => Allpass::new(&mut paras)?,
@@ -202,15 +201,15 @@ impl Engine {
                             }
                     
                             // only process the last nodes of chains in the audio nodes vec
-                            if !current_ref_name.contains("~") {
-                                self.audio_nodes.insert(current_ref_name.to_string(), node_index);
-                                self.control_nodes.insert(current_ref_name.to_string(), node_index);
-
+                            if current_ref_name.contains("~") {
+                                
+                                self.control_nodes.insert(current_ref_name.to_string(), node_index);                            
                                 // for all the audio nodes, we need to have an individual clock
                                 // otherwise it will be processed several times
-                                
+    
                                 // self.clocks.insert(current_ref_name.to_string(), clock_node_index);
                             } else {
+                                self.audio_nodes.insert(current_ref_name.to_string(), node_index);
                                 self.control_nodes.insert(current_ref_name.to_string(), node_index);
                             }
                     
@@ -353,9 +352,12 @@ impl Engine {
         for (_ref_name, node) in &self.audio_nodes {
             // println!("{:?}", *node);
             self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
+            // let mut sum = 0.0;
             for i in 0..64 {
+                // sum += inbuf[i];
                 self.graph[self.control_nodes["~input"]].buffers[0][i] = inbuf[i];
             }
+            // assert!(sum > 0.0);
             self.processor.process(&mut self.graph, *node);
         }
 
@@ -369,6 +371,8 @@ impl Engine {
             for i in 0..64 {
                 output[i] += bufleft[i];
                 output[128+i] += bufright[i];
+                // output[i] += inbuf[i];
+                // output[128+i] += inbuf[i];
             }
         }
         self.elapsed_samples += 64;
@@ -395,6 +399,8 @@ impl Engine {
             for i in 0..64 {
                 output[i+64] += bufleft[i];
                 output[i+64+128] += bufright[i];
+                // output[i+64] += inbuf[i+64];
+                // output[i+64+128] += inbuf[i+64];
             }
         }
 

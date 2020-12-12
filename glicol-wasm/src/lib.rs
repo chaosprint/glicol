@@ -68,12 +68,6 @@ pub extern "C" fn process(in_ptr: *mut f32, out_ptr: *mut f32, size: usize) -> *
     // let mut state: [u16; 3] = [0; 3];
     // let mut wave_buf = [0.0; 128];
     let in_buf: &mut [f32] = unsafe { std::slice::from_raw_parts_mut(in_ptr, 128) };
-
-    let mut sum = 0.0;
-    for i in 0..64 {
-        sum += in_buf[i];
-    }
-    assert!(sum > 0.0);
     // error handling here
     // no need to use Result here
     // simply guarantee this is outputting 128 samples array
@@ -83,10 +77,12 @@ pub extern "C" fn process(in_ptr: *mut f32, out_ptr: *mut f32, size: usize) -> *
     };
 
     let out_buf: &mut [f32] = unsafe { std::slice::from_raw_parts_mut(out_ptr, size) };
-    for i in 0..size {
+    for i in 0..256 {
         out_buf[i] = wave_buf[i] as f32
+        // out_buf[i] = in_buf[i]
     };
     // let mut a = [0; 3];
+    // console[0] = (sum * 100.0) as u8;
     return console.as_mut_ptr();
     // engine.process128(out_ptr, size);s
 }
