@@ -42,12 +42,6 @@ class GlicolEngine extends AudioWorkletProcessor {
                       this._outPtr,
                       this._size
                     )
-                    this._inPtr = this._wasm.exports.alloc(128)
-                    this._inBuf = new Float32Array(
-                      this._wasm.exports.memory.buffer,
-                      this._inPtr,
-                      128
-                    )
                 })
 
             } else if (e.data.type === "samples") {
@@ -102,8 +96,6 @@ class GlicolEngine extends AudioWorkletProcessor {
 
                 let nameInfo = allocUint32Array(nameArr, this._wasm.exports.alloc_uint32array, this._wasm.exports.memory.buffer)
                 let nameLenInfo = allocUint32Array(nameLenArr, this._wasm.exports.alloc_uint32array, this._wasm.exports.memory.buffer)
-                
-               
 
                 this._wasm.exports.run(
                     codeUint8ArrayPtr, codeLen,
@@ -136,41 +128,49 @@ class GlicolEngine extends AudioWorkletProcessor {
         // let output = outputs[0]
         // console.log("outlen", output.length);
         // for (let channel = 0; channel < output.length; ++channel) {
-
-        this._inBuf = new Float32Array(
-            this._wasm.exports.memory.buffer,
-            this._inPtr,
-            128
-        )
-
         if (inputs[0][0]) {
-            // console.log(inputs[0][0]);
-            this._inBuf.set(inputs[0][1])
+            this._inPtr = this._wasm.exports.alloc(128)
+            this._inBuf = new Float32Array(
+                this._wasm.exports.memory.buffer,
+                this._inPtr,
+                128
+            )
+            this._inBuf.set(inputs[0][0])
         }
 
-        let resultPtr = this._wasm.exports.process(this.in_Ptr, this._outPtr, this._size)
+        let resultPtr = this._wasm.exports.process(this._inPtr, this._outPtr, this._size)
 
         this._outBuf = new Float32Array(
             this._wasm.exports.memory.buffer,
             this._outPtr,
             this._size
         )
-
+    
         let result = new Uint8Array(
             this._wasm.exports.memory.buffer,
             resultPtr,
             256
         )
-
+    
         if (result[0] !== 0) {
             console.log("%cNon exist sample.", "color: white; background: red")
             console.log("%cAt line "+String(result[1]+1)+".", "color: white; background: green")
             this.port.postMessage(result.slice(2))
         }
-
-        
+            // console.log(result[0])
         outputs[0][0].set(this._outBuf.slice(0, 128))
         outputs[0][1].set(this._outBuf.slice(128, 256))
+            // outputs[0][0].set(this._inBuf);
+            // console.log(this._inBuf);
+        // console.log(this._inBuf);
+
+
+
+        // if (inputs[0][0]) {
+        //     outputs[0][0].set(inputs[0][0]);
+        // }
+        // outputs[0][0].set(this._outBuf.slice(0, 128))
+        // outputs[0][1].set(this._outBuf.slice(128, 256))
         // console.log(outputs[0][0], outputs[0][1])
         return true
     }
