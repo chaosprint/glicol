@@ -90,12 +90,22 @@ export default function Editor(props) {
             command.forEach(c => window.editor.commands.addCommand(c))
 
             var firepadRef = getExampleRef(id);
-            window.firepad = window.Firepad.fromACE(firepadRef, window.editor,
-                { richTextToolbar: false, richTextShortcuts: false});
+            try {
+                // window.code = window.editor.getValue()
+                // console.log( window.code)
+                // window.editor.setValue("")
+                window.firepad = window.Firepad.fromACE(firepadRef, window.editor,
+                    { richTextToolbar: false, richTextShortcuts: false});
+            } catch (e) {
+                // console.log(e)
+                console.warn("please refresh the page")
+            }
             setSize()
-            window.firepad.on('ready', () => {
-                window.code = window.editor.getValue()
-            });
+            // window.firepad.on('ready', () => {
+            //     window.code = window.editor.getValue()
+                // window.editor.setValue(window.code)
+            // });
+            console.log("editor loaded")
     // eslint-disable-next-line
     }, [id])
 

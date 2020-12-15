@@ -100,18 +100,6 @@ export default function App() {
       type: "load", obj: arrayBuffer})
     })
 
-    navigator.getUserMedia = navigator.getUserMedia
-                      || navigator.webkitGetUserMedia
-                      || navigator.mozGetUserMedia;
-    navigator.getUserMedia( {audio:true}, stream => {
-        // window.AudioContext = window.AudioContext || window.webkitAudioContext;
-        var mediaStreamSource = window.actx.createMediaStreamSource( stream );
-        // Connect it to the destination to hear yourself (or any other node for processing!)
-        // mediaStreamSource.connect( window.actx.destination );
-        mediaStreamSource.connect( window.node );
-      }, ()=> console.warn("Error getting audio stream from getUserMedia")
-    )
-
     console.log("maxChannelCount", window.actx.destination.maxChannelCount)
 
     // window.actx.destination.channelCountMode = "explicit";
@@ -119,6 +107,17 @@ export default function App() {
     window.node.connect(window.actx.destination)  
     console.log("Audio engine loaded.")
 
+    // navigator.getUserMedia = navigator.getUserMedia
+    // || navigator.webkitGetUserMedia
+    // || navigator.mozGetUserMedia;
+    // navigator.getUserMedia( {audio:true}, stream => {
+    // // window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    // var mediaStreamSource = window.actx.createMediaStreamSource( stream );
+    // // Connect it to the destination to hear yourself (or any other node for processing!)
+    // // mediaStreamSource.connect( window.actx.destination );
+    // mediaStreamSource.connect( window.node );
+    // }, ()=> console.warn("Error getting audio stream from getUserMedia")
+    // )
 
   };
 
