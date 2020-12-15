@@ -7,6 +7,7 @@ import { useParams } from "react-router-dom";
 export default function Editor(props) {
 
     const getExampleRef = (roomID) => {
+        // console.log(roomID, "called")
         var ref = window.firebase.database().ref();   
         ref = ref.child(roomID)
         return ref;
@@ -27,14 +28,17 @@ export default function Editor(props) {
     // window.onresize = setSize
 
     useEffect(()=>{
+            try {
+                window.firepad.dispose()
+            } catch {}
             // console.log(id)
             if (!window.firebase.apps.length) {
                 window.firebase.initializeApp(firebaseConfig);
             }
             //// Create ACE
             window.editor = window.ace.edit("firepad");
-            // window.editor.setValue("")// has to be here, else cause error
-            window.editor.setFontSize("18px");
+            window.editor.setValue("")// has to be here, else cause error
+            window.editor.setFontSize("20px");
             window.editor.setTheme("ace/theme/tomorrow-night")
             window.editor.setOptions({
                 fontFamily: "B612 Mono",
@@ -46,7 +50,7 @@ export default function Editor(props) {
             // editor.setTheme("ace/theme/textmate");
             var session =  window.editor.getSession();
             session.setUseWrapMode(true);
-            session.setUseWorker(false);
+            session.setUseWorker(true);
             session.setMode("ace/mode/glicol");
             session.on("change", () => window.code = window.editor.getValue())
 
@@ -101,11 +105,7 @@ export default function Editor(props) {
                 console.warn("please refresh the page")
             }
             setSize()
-            // window.firepad.on('ready', () => {
-            //     window.code = window.editor.getValue()
-                // window.editor.setValue(window.code)
-            // });
-            console.log("editor loaded")
+            // console.log("editor loaded")
     // eslint-disable-next-line
     }, [id])
 

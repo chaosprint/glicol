@@ -169,6 +169,7 @@ export default function App() {
 
     console.log("%cAvailable samples: ", "background: green; color:white")
     console.table(list.sort())
+    let tempcode = window.code
     setLoading(true)
     window.actx.suspend()
     let l = list.length
@@ -204,6 +205,8 @@ export default function App() {
     }
     setLoading(false)
     setLoaded(true)
+    window.code = tempcode
+    console.log(window.code)
   }
 
   const change = (v) => {
@@ -339,7 +342,7 @@ export default function App() {
         <Menu onClick = {()=>setSideOpen(true)} />
         </div>
 
-        <div id="text"><Text /></div>
+        {loading ? <div></div> : <div id="text"><Text /></div> }
 
         <div id="control">
         {loading ?
