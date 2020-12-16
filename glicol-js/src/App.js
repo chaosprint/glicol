@@ -100,7 +100,7 @@ export default function App() {
       type: "load", obj: arrayBuffer})
     })
 
-    console.log("maxChannelCount", window.actx.destination.maxChannelCount)
+    // console.log("maxChannelCount", window.actx.destination.maxChannelCount)
 
     // window.actx.destination.channelCountMode = "explicit";
     window.actx.destination.channelInterpretation = "discrete";
@@ -206,7 +206,7 @@ export default function App() {
     setLoading(false)
     setLoaded(true)
     window.code = tempcode
-    console.log(window.code)
+    // console.log(window.code)
   }
 
   const change = (v) => {
@@ -286,6 +286,7 @@ export default function App() {
   }
 
   const handleStop = () => {
+    let codetemp = window.code
     try {
       window.actx.close();
       loadModule();
@@ -296,6 +297,7 @@ export default function App() {
       console.log(e)
     }
     console.log("stop") 
+    window.code = codetemp
   }
 
   const handleSettings = () => {
@@ -463,7 +465,7 @@ export default function App() {
                 className={classes.editor}
                 mode="glicol"
                 theme="tomorrow-night"
-                fontSize = {18}
+                fontSize = {20}
                 height = {height+"px"}
                 width = {width+"px"}
                 // style={{ height: "100%", width: "100%"}}

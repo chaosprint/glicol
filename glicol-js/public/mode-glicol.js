@@ -68,7 +68,7 @@ ace.define("ace/mode/glicol_highlight_rules", ["require", "exports", "module", "
         pha|buf|freeverb|apf|comb|delay|plate|onepole|allpass`
       }, {
         token: "keyword.control",
-        regex: "speed|seq|choose"
+        regex: "speed|seq|choose|euc"
       }, {
         token: "constant.language",
         regex: "envperc|linrange|mul|add|state|ramp|point|pan|mix"
