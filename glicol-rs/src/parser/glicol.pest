@@ -15,8 +15,8 @@ seq = ${ compound+}
 compound = @{ note+ }
 note = ${ midi | rest | reference }
 reference = ${ ("~")? ~ ASCII_ALPHA_LOWER+ ~ (("_")~(ASCII_ALPHA_LOWER+) )* }
-name = ${ "seq"|"speed"|"choose"|"mul"|"add"|"linrange"|
-"sin"|"saw"|"squ"|"imp"|"envperc"|"sampler"|"noiz"|"lpf" | "plate"|
+name = ${ "seq"|"speed"|"choose"|"mul"|"add"|"linrange"| "allpass" | "delayn" |
+"sin"|"saw"|"squ"|"imp"|"envperc"|"sampler"|"noiz"|"lpf" | "plate"| "onepole" |
 "hpf"|"pha"|"buf"|"state"|"freeverb"|"pan"|"delay"|"apf" |"comb"|"mix" }
 rest = { "_" }
 midi = ${ (ASCII_DIGIT)+ ~ !"." }

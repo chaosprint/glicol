@@ -385,3 +385,110 @@ impl Node for Comb {
 
     }
 }
+
+pub struct OnePole {
+    sidechain_ids: Vec<u8>,
+    a: f32,
+    y1: f32
+}
+
+impl OnePole {
+    handle_params!({
+        a: 0.9
+    }, {
+        y1: 0.0
+    });
+}
+
+impl Node for OnePole {
+    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+        match self.sidechain_ids.len() {
+            0 => {
+                let input_sig = inputs[0].buffers()[0].clone();
+                for i in 0..64 {
+                    let y = input_sig[i] + self.a * self.y1;
+                    output[0][i] = y;
+                    self.y1 = y;
+                }
+            },
+            1 => {
+                let modulator = inputs[0].buffers()[0].clone();
+                let input_sig = inputs[1].buffers()[0].clone();
+                for i in 0..64 {
+                    let y = input_sig[i] + modulator[i] * self.y1;
+                    output[0][i] = y;
+                    self.y1 = y;
+                }
+            },
+            _ => unimplemented!()
+        };
+    }
+}
+
+pub struct AllpassGain {
+    delay: f32,
+    a: f32,
+    bufx: Fixed,
+    bufy: Fixed,
+    sidechain_ids: Vec::<u8>
+}
+
+impl AllpassGain {
+    handle_params!({
+        delay: 5000.0,
+        a: 0.5
+    }, [
+        (
+            delay, bufx, |d: f32| -> Fixed {
+                let size = (d / 1000.0 * 44100.0) as usize;
+                ring_buffer::Fixed::from(vec![0.0; size])
+            }
+        ), (
+            delay, bufy, |d: f32| -> Fixed {
+                let size = (d / 1000.0 * 44100.0) as usize;
+                ring_buffer::Fixed::from(vec![0.0; size])
+            }
+        )
+    ]);
+}
+
+impl Node for AllpassGain {
+    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+        match self.sidechain_ids.len() {
+            0 => {
+                for i in 0..64 {
+                    // println!("{:?}", self.buf);
+                    let xn = inputs[0].buffers()[0][i];
+                    let yn = -self.a * xn
+                    + self.bufx[0] + self.a * self.bufy[0];
+                    
+                    // save new input to ring buffer
+                    self.bufx.push(xn);
+                    self.bufy.push(yn);
+                    output[0][i] = yn;
+                }
+            },
+            1 => {
+                let insig = inputs[1].buffers()[0].clone();
+                let modulator = inputs[0].buffers()[0].clone();
+                let new_delay_samples = (modulator[0] / 44100.0) as usize;
+                let length = self.bufx.len();
+                
+                for i in 0..64 {
+                    // println!("{:?}", self.buf);
+                    let xn = insig[i];
+                    let yn = -self.a * xn
+                    + self.bufx[0] + self.a * self.bufy[0];
+                    
+                    // save new input to ring buffer
+                    self.bufx.push(xn);
+                    self.bufy.push(yn);
+                    output[0][i] = yn;
+                    self.bufx.set_first(length - new_delay_samples);
+                    self.bufy.set_first(length - new_delay_samples);
+                }
+            },
+            _ => {}
+        }
+    }
+}

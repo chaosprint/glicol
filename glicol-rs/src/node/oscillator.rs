@@ -6,7 +6,7 @@ use super::super::{Rule, EngineError, midi_or_float};
 pub struct SinOsc {
     // pub freq: f64,
     // pub sig: Sine<ConstHz>
-    freq: f32,
+    pub freq: f32,
     phase: f32,
     diff: f32,
     has_mod: bool
@@ -64,13 +64,14 @@ impl Node for SinOsc {
         } else {
 
             // no mod, input[0] is the clock
-            let mut clock = inputs[0].buffers()[0][0];
+            let mut clock = inputs[0].buffers()[0][0] as usize;
 
             for i in 0..64 {
-                output[0][i] = (clock/(44100.0 / self.freq) * 2.0 
-                * std::f32::consts::PI).sin();
                 
-                clock += 1.0;
+                output[0][i] = (clock as f64 / (44100.0 / self.freq as f64 ) * 2.0 
+                * std::f64::consts::PI).sin() as f32;
+                
+                clock += 1;
 
                 // if we lost the phase, i.e. :(clock/(44100.0 / self.freq) * 2.0 
                 // * std::f32::consts::PI)

@@ -22,13 +22,13 @@ use node::sequencer::{Sequencer, Speed};
 use node::envelope::EnvPerc;
 use node::noise::Noise;
 use node::pass::Pass;
-use node::filter::{LPF, HPF, Allpass, Comb};
+use node::filter::{LPF, HPF, Allpass, Comb, OnePole, AllpassGain};
 use node::map::{LinRange};
 use node::rand::{Choose};
 use node::buf::{Buf};
 use node::state::{State};
 use node::pan::{Pan, Mix2};
-use node::delay::{Delay};
+use node::delay::{Delay, DelayN};
 use node::system::{Clock, AudioIn};
 use node::reverb::{Plate};
 
@@ -47,10 +47,11 @@ pub struct Engine {
     pub samples_dict: HashMap<String, &'static[f32]>,
     pub sr: u32,
     pub bpm: f64,
+    pub node_info: Vec<HashMap<String, NodeInfo>>,
     clock: NodeIndex,
     audio_in: NodeIndex,
-    code: &'static str,
-    code_backup: &'static str,
+    code: String,
+    code_backup: String,
     update: bool,
 }
 
@@ -63,9 +64,9 @@ impl Engine {
 
         // Create a graph and a processor with some
         // suitable capacity to avoid dynamic allocation
-        // if 1024, error in wasm, 512 is fine
-        let max_nodes = 512; 
-        let max_edges = 512;
+        // need to make sure the memory in wasm
+        let max_nodes = 1024;
+        let max_edges = 1024;
         let g = MyGraph::with_capacity(max_nodes, max_edges);
         let p = MyProcessor::with_capacity(max_nodes);
         // let clock = g.add_node(NodeData::new1(BoxedNodeSend::new(Clock{})));
@@ -73,8 +74,8 @@ impl Engine {
         Engine {
             graph: g,
             processor: p,
-            code: "",
-            code_backup: "",
+            code: "".to_string(),
+            code_backup: "".to_string(),
             samples_dict: HashMap::new(),
             adc_source_nodes: Vec::new(),
             adc_nodes: Vec::new(),
@@ -82,6 +83,7 @@ impl Engine {
             audio_nodes: HashMap::new(),
             control_nodes: HashMap::new(),
             elapsed_samples: 0,
+            node_info: Vec::new(),
             clock: NodeIndex::new(0),
             audio_in: NodeIndex::new(1),
             sr: 44100,
@@ -93,7 +95,7 @@ impl Engine {
     pub fn reset(&mut self) {
         self.elapsed_samples = 0;
         self.update = false;
-        self.code = "";
+        self.code = "".to_string();
         self.sidechains_list.clear();
         self.control_nodes.clear();
         self.audio_nodes.clear();
@@ -104,8 +106,8 @@ impl Engine {
         self.update = true;
     }
 
-    pub fn set_code(&mut self, code: &'static str) {
-        self.code = code;
+    pub fn set_code(&mut self, code: &str) {
+        self.code = code.to_string();
     }
 
     pub fn input(&mut self, inputs: &[Input]) {
@@ -123,12 +125,12 @@ impl Engine {
         self.audio_in = self.graph.add_node(NodeData::new1(BoxedNodeSend::new(AudioIn{})));
         self.control_nodes.insert("~input".to_string(), self.audio_in);
 
-        let lines = GlicolParser::parse(Rule::block, self.code)
+        let lines = GlicolParser::parse(Rule::block, &self.code)
         .expect("unsuccessful parse")
         .next().unwrap();
 
         let mut previous_nodes = Vec::<NodeIndex>::new();
-        let mut current_ref_name: &'static str = "";
+        let mut current_ref_name: &str = "";
 
         // add function to Engine HashMap Function Chain Vec accordingly
         for line in lines.into_inner() {
@@ -162,10 +164,10 @@ impl Engine {
                                 "sin" => SinOsc::new(&mut paras)?,
                                 "mul" => Mul::new(&mut paras)?,
                                 "add" => Add::new(&mut paras)?,
-                                "linrange" => LinRange::new(&mut paras)?,
                                 "imp" => Impulse::new(&mut paras)?,
                                 "sampler" => Sampler::new(&mut paras, &self.samples_dict)?,
                                 "seq" => Sequencer::new(&mut paras)?,
+                                "linrange" => LinRange::new(&mut paras)?,
                                 "saw" => Saw::new(&mut paras)?,
                                 "squ" => Square::new(&mut paras)?,
                                 "lpf" => LPF::new(&mut paras)?,
@@ -184,6 +186,9 @@ impl Engine {
                                 "comb" => Comb::new(&mut paras)?,
                                 "mix" => Mix2::new(&mut paras)?,
                                 "plate" => Plate::new(&mut paras)?,
+                                "onepole" => OnePole::new(&mut paras)?,
+                                "allpass" => AllpassGain::new(&mut paras)?,
+                                "delayn" => DelayN::new(&mut paras)?,
                                 _ => Pass::new(name)?
                             };
                     
@@ -321,7 +326,7 @@ impl Engine {
 
             match self.make_graph() {
                 Ok(_) => {
-                    self.code_backup = self.code;
+                    self.code_backup = self.code.clone();
                 },
                 Err(e) => {
                     // println!("{:?}", e);
@@ -340,7 +345,7 @@ impl Engine {
                         }
                         _ => unimplemented!()
                     };
-                    self.code = self.code_backup;
+                    self.code = self.code_backup.clone();
                     // state = e as usize + 1;
                     // get where the error is
                     // also which kind of error it is
@@ -423,6 +428,12 @@ impl std::convert::From<ParseFloatError> for EngineError {
     }
 }
 
+pub struct NodeInfo {
+    position: u8,
+    name: String,
+    paras: String,
+}
+
 #[macro_export]
 /// this works well for nodes whose inner states are only floats
 /// e.g. oscillator, filter, operator
@@ -490,11 +501,52 @@ macro_rules! create_node_with_code {
     };
 }
 
-// #[macro_export]
-// macro_rules! new_node {
-//     ($node_name: ident) => {
-//         pub struct $node_name {
-            
-//         }
-//     };
-// }
+#[macro_export]
+macro_rules! ndef {
+    ($struct_name: ident, $channel_num: ident, {$code_str: expr}) => {
+        pub struct $struct_name {
+            engine: Engine
+        }
+        
+        impl $struct_name {
+            pub fn new(paras: &mut Pairs<Rule>) -> Result<
+            (NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+                // let param_a = paras.as_str().parse::<f32>().unwrap();
+                let mut engine = Engine::new();
+                // let code: &'static str = &$code_str.replace("$1", paras.as_str());
+                engine.set_code(&format!($code_str, a=paras.as_str()));
+                // engine.set_params(paras);
+                // println!("{}", engine.code);
+                engine.make_graph()?;
+                engine.update();
+                Ok((NodeData::$channel_num(BoxedNodeSend::new( Self {
+                    engine
+                })), vec![]))
+            }
+        }
+        
+        impl Node for $struct_name {
+            fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+                self.engine.input(inputs); // mono or stereo?
+                let buf = self.engine.gen_next_buf_64().unwrap();
+                for i in 0..64 {
+                    output[0][i] = buf[i];
+                    output[1][i] = buf[i+64];
+                }
+            }
+        }
+    };
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test() {
+        use super::*;
+        let mut engine = Engine::new();
+        engine.set_code("test: imp 44100.0 >> mul 0.8");
+        let out = engine.gen_next_buf_64().unwrap();
+        // println!("{:?}", out);
+        assert_eq!(&out[0..3], &[0.8, 0.8, 0.8])
+    }
+}

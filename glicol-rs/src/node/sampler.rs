@@ -54,7 +54,7 @@ impl Node for Sampler {
                 for s in &mut self.sig {
                     if !s.is_exhausted() {
                         output[0][i] += s.next()[0];
-                    } 
+                    }
                     // else { .iter_mut().enumerate()
                     //     self.sig.remove(i);
                     // }                

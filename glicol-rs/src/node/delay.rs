@@ -4,6 +4,30 @@ use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError, handle_par
 
 type Fixed = ring_buffer::Fixed<Vec<f32>>;
 
+pub struct DelayN {
+    sidechain_ids: Vec<u8>,
+    n: f32,
+    buf: Fixed
+}
+
+impl DelayN {
+    handle_params!({
+        n: 44100.0
+    }, [(n, buf, |delay: f32|->Fixed {
+        ring_buffer::Fixed::from(vec![0.0; delay as usize])
+    })]);
+}
+
+impl Node for DelayN {
+    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+        for i in 0..64 {
+            output[0][i] = self.buf[0];
+            // save new input to ring buffer
+            self.buf.push(inputs[0].buffers()[0][i]);
+        }
+    }
+}
+
 #[allow(dead_code)]
 pub struct Delay {
     sidechain_ids: Vec<u8>,
@@ -13,7 +37,7 @@ pub struct Delay {
 
 impl Delay {
     handle_params!({
-        delay: 0.1
+        delay: 5000.0
     }, [(delay, buf, |d: f32|->Fixed {
             let size = (d / 1000.0 * 44100.0) as usize;
             ring_buffer::Fixed::from(vec![0.0; size])
@@ -47,10 +71,27 @@ impl Delay {
 
 impl Node for Delay {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
-        for i in 0..64 {
-            output[0][i] = self.buf[0];
-            // save new input to ring buffer
-            self.buf.push(inputs[0].buffers()[0][i]);
-        }
+        match self.sidechain_ids.len() {
+            0 => {
+                for i in 0..64 {
+                    output[0][i] = self.buf[0];
+                    // save new input to ring buffer
+                    self.buf.push(inputs[0].buffers()[0][i]);
+                }
+            },
+            1 => {
+                let input_sig = inputs[1].buffers()[0].clone();
+                let modulator = inputs[0].buffers()[0].clone();
+                let delay_len = (modulator[0] / 1000.0 * 44100.0 ) as usize;
+                self.buf.set_first(self.buf.len() - delay_len);
+                for i in 0..64 {
+                    output[0][i] = self.buf[0];
+                    self.buf.push(input_sig[i]);
+                }
+            },
+            _ => {
+                unimplemented!()
+            }
+        };
     }
 }
