@@ -429,9 +429,10 @@ impl std::convert::From<ParseFloatError> for EngineError {
 }
 
 pub struct NodeInfo {
-    position: u8,
+    index: u8,
     name: String,
     paras: String,
+    sidechains: Vec<String>,
 }
 
 #[macro_export]
