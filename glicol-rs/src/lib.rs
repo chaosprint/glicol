@@ -9,8 +9,9 @@ use parser::*;
 
 // use dasp_graph::{Buffer, , Node};
 use dasp_graph::{NodeData, Input, Buffer, BoxedNodeSend, Processor};
-use petgraph::graph::{NodeIndex, DiGraph};
-use petgraph::{Graph, Directed};
+use petgraph::graph::{NodeIndex};
+use petgraph::Directed;
+use petgraph::stable_graph::{StableGraph, StableDiGraph};
 
 mod node;
 use node::phasor::{Phasor};
@@ -37,9 +38,9 @@ use utili::midi_or_float;
 
 pub struct Engine {
     pub elapsed_samples: usize,
-    pub graph: Graph<NodeData<BoxedNodeSend>, (), Directed, u32>,
-    processor: Processor<DiGraph<NodeData<BoxedNodeSend>, (), u32>>,
-    sidechains_list: Vec<(NodeIndex, String)>,
+    pub graph: StableGraph<NodeData<BoxedNodeSend>, (), Directed, u32>,
+    processor: Processor<StableDiGraph<NodeData<BoxedNodeSend>, (), u32>>,
+    sidechains_list: Vec<(NodeIndex, String, String)>,
     pub adc_source_nodes: Vec<NodeIndex>,
     pub adc_nodes: Vec<NodeIndex>,
     pub audio_nodes: HashMap<String, NodeIndex>,
@@ -47,29 +48,29 @@ pub struct Engine {
     pub samples_dict: HashMap<String, &'static[f32]>,
     pub sr: u32,
     pub bpm: f64,
-    pub node_info: Vec<HashMap<String, NodeInfo>>,
-    clock: NodeIndex,
+    pub chain_string: HashMap<String, String>,
+    pub node_by_chain: HashMap<String, Vec<NodeIndex>>,
+    // pub chain_info: HashMap<String, Vec<HashMap<String, NodeInfo>>>,
+    pub clock: NodeIndex,
     audio_in: NodeIndex,
     code: String,
     code_backup: String,
     update: bool,
+    // pub updatefree: Vec<String>,
+    pub all_refs: Vec<String>,
 }
 
 impl Engine {
     pub fn new() -> Engine {
         // Chose a type of graph for audio processing.
-        type MyGraph = Graph<NodeData<BoxedNodeSend>, (), Directed, u32>;
+        type MyGraph = StableGraph<NodeData<BoxedNodeSend>, (), Directed, u32>;
         // Create a short-hand for our processor type.
         type MyProcessor = Processor<MyGraph>;
 
-        // Create a graph and a processor with some
-        // suitable capacity to avoid dynamic allocation
-        // need to make sure the memory in wasm
         let max_nodes = 1024;
         let max_edges = 1024;
         let g = MyGraph::with_capacity(max_nodes, max_edges);
         let p = MyProcessor::with_capacity(max_nodes);
-        // let clock = g.add_node(NodeData::new1(BoxedNodeSend::new(Clock{})));
 
         Engine {
             graph: g,
@@ -83,12 +84,16 @@ impl Engine {
             audio_nodes: HashMap::new(),
             control_nodes: HashMap::new(),
             elapsed_samples: 0,
-            node_info: Vec::new(),
+            chain_string: HashMap::new(),
+            node_by_chain: HashMap::new(),
+            // chain_info: HashMap::new(),
             clock: NodeIndex::new(0),
             audio_in: NodeIndex::new(1),
             sr: 44100,
             bpm: 120.0,
             update: false,
+            // updatefree: Vec::new(),
+            all_refs: Vec::new(),
         }
     }
 
@@ -111,25 +116,32 @@ impl Engine {
     }
 
     pub fn input(&mut self, inputs: &[Input]) {
-        self.graph[self.control_nodes["~input"]].buffers[0] = inputs[0].buffers()[0].clone();
+        self.graph[self.control_nodes["~input"]].buffers[0]
+        = inputs[0].buffers()[0].clone();
     }
 
     // error only comes from this method
     pub fn make_graph(&mut self) -> Result<(), EngineError>{
-        self.audio_nodes.clear();
-        self.control_nodes.clear();
-        self.graph.clear();
-        self.sidechains_list.clear();
+        // self.audio_nodes.clear();
+        // self.control_nodes.clear();
+        // self.node_by_chain.clear();
+        self.graph.clear_edges();
+        self.all_refs.clear();
+        // self.sidechains_list.clear();
 
-        self.clock = self.graph.add_node(NodeData::new1(BoxedNodeSend::new(Clock{})));
-        self.audio_in = self.graph.add_node(NodeData::new1(BoxedNodeSend::new(AudioIn{})));
-        self.control_nodes.insert("~input".to_string(), self.audio_in);
+        if self.graph.node_count() < 2 {
+            self.clock = self.graph.add_node(
+                NodeData::new1(BoxedNodeSend::new(Clock{})));
+            self.audio_in = self.graph.add_node(
+                NodeData::new1(BoxedNodeSend::new(AudioIn{})));
+            self.control_nodes.insert("~input".to_string(), self.audio_in);
+        }
 
-        let lines = GlicolParser::parse(Rule::block, &self.code)
+        let lines = GlicolParser::parse(Rule::block, &mut self.code)
         .expect("unsuccessful parse")
         .next().unwrap();
 
-        let mut previous_nodes = Vec::<NodeIndex>::new();
+        // let mut previous_nodes = Vec::<NodeIndex>::new();
         let mut current_ref_name: &str = "";
 
         // add function to Engine HashMap Function Chain Vec accordingly
@@ -143,8 +155,25 @@ impl Engine {
                         current_ref_name = element.as_str();
                     },
                     Rule::chain => {
-                        previous_nodes.clear();
-                        // change name to previous_nodes
+                        // previous_nodes.clear();
+
+                        self.all_refs.push(current_ref_name.to_string());
+                        let refname = current_ref_name.to_string();
+                        let e = element.as_str().to_string();
+
+                        if self.chain_string.contains_key(&refname) {
+                            if e == self.chain_string[&refname] {
+                                break
+                            } else {
+                                for node in &self.node_by_chain[&refname] {
+                                    self.graph.remove_node(*node);
+                                    self.sidechains_list.retain(|v| v.0 != *node);
+                                }
+                                self.node_by_chain.remove_entry(&refname);
+                            }
+                        };
+
+                        self.chain_string.insert(refname.clone(), e);
 
                         for func in element.into_inner() {
                             let mut paras = func.into_inner();
@@ -165,7 +194,8 @@ impl Engine {
                                 "mul" => Mul::new(&mut paras)?,
                                 "add" => Add::new(&mut paras)?,
                                 "imp" => Impulse::new(&mut paras)?,
-                                "sampler" => Sampler::new(&mut paras, &self.samples_dict)?,
+                                "sampler" => Sampler::new(&mut paras, 
+                                    &self.samples_dict)?,
                                 "seq" => Sequencer::new(&mut paras)?,
                                 "linrange" => LinRange::new(&mut paras)?,
                                 "saw" => Saw::new(&mut paras)?,
@@ -177,9 +207,9 @@ impl Engine {
                                 "choose" => Choose::new(&mut paras)?,
                                 "envperc" => EnvPerc::new(&mut paras)?,
                                 "pha" => Phasor::new(&mut paras)?,
-                                "buf" => Buf::new(&mut paras, &self.samples_dict)?,
+                                "buf" => Buf::new(&mut paras, 
+                                    &self.samples_dict)?,
                                 "state" => State::new(&mut paras)?,
-                                // "freeverb" => FreeVerbNode::new(&mut paras)?,
                                 "pan" => Pan::new(&mut paras)?,
                                 "delay" => Delay::new(&mut paras)?,
                                 "apf" => Allpass::new(&mut paras)?,
@@ -194,36 +224,37 @@ impl Engine {
                     
                             let node_index = self.graph.add_node(node_data);
 
-                            self.graph.add_edge(self.clock, node_index, ());
-                    
-                            // connect to previous node, or redirect the previous node to a control node
-                            if previous_nodes.len() > 0 {
-                                if dest != "" {
-                                    self.sidechains_list.push((previous_nodes[0], dest));
-                                } else {
-                                    self.graph.add_edge(previous_nodes[0], node_index, ());
-                                }
-                            }
-                    
-                            // only process the last nodes of chains in the audio nodes vec
-                            if current_ref_name.contains("~") {
-                                
-                                self.control_nodes.insert(current_ref_name.to_string(), node_index);                            
-                                // for all the audio nodes, we need to have an individual clock
-                                // otherwise it will be processed several times
-    
-                                // self.clocks.insert(current_ref_name.to_string(), clock_node_index);
+                            // self.graph.add_edge(self.clock, node_index, ());
+
+                            // connect to previous node,
+                            // or redirect the previous node to a control node
+                            if !self.node_by_chain.contains_key(&refname) {
+                                // head of chain
+                                self.node_by_chain.insert(refname.clone(), vec![node_index]);
                             } else {
-                                self.audio_nodes.insert(current_ref_name.to_string(), node_index);
-                                self.control_nodes.insert(current_ref_name.to_string(), node_index);
+                                if dest != "" {
+                                    self.sidechains_list.push(
+                                        (self.node_by_chain[&refname][0], dest, refname.clone()));
+                                }
+                                let mut list = self.node_by_chain[&refname].clone();
+                                
+                                list.insert(0, node_index);
+                                self.node_by_chain.insert(refname.clone(),list);
+                            };
+
+                            if current_ref_name.contains("~") {
+                                self.control_nodes.insert(
+                                    refname.clone(), node_index);
+                            } else {
+                                self.audio_nodes.insert(
+                                    refname.clone(), node_index);
+                                self.control_nodes.insert(
+                                    refname.clone(), node_index);
                             }
-                    
-                            // prepare to be connected by the next node of the chain
-                            previous_nodes.insert(0, node_index);
-                    
+
                             // lazy sidechain connection
                             for sidechain in sidechains.into_iter() {
-                                self.sidechains_list.push((node_index, sidechain));
+                                self.sidechains_list.push((node_index, sidechain, refname.clone()));
                             };
                         }
                     },
@@ -232,14 +263,49 @@ impl Engine {
             }
         }
 
+        for (key, _) in &mut self.chain_string {
+            if !self.all_refs.contains(&key) {
+                // self.chain_string.remove_entry(key);
+                for n in &self.node_by_chain[key] {
+                    self.graph.remove_node(*n);
+                    self.sidechains_list.retain(|v| v.0 != *n);
+                }
+                self.audio_nodes.remove_entry(key);
+                self.control_nodes.remove_entry(key);
+                self.node_by_chain.remove_entry(key);
+            }
+        }
+
+        let all_refs = self.all_refs.clone();
+        self.chain_string.retain(|k, _| all_refs.contains(k));
+
+        // connect clocks to all the nodes
+        for (_, nodes) in &self.node_by_chain {
+            for n in nodes {
+                self.graph.add_edge(self.clock, *n,());
+            }
+        }
+
+        // println!("node_by_chain {:?}", self.node_by_chain);
+        // println!("sidechainlist {:?}", self.sidechains_list);
+        // println!("audio_node {:?}", self.audio_nodes);
+        // println!("control_nodes {:?}", self.control_nodes);
+
+        for (refname, node_chains) in &self.node_by_chain {
+            if node_chains.len() >= 2 {
+                // println!("a");
+                self.graph.add_edge(node_chains[1],node_chains[0],());
+                // println!("b");
+                for i in 0..(node_chains.len()-2) {
+                    self.graph.add_edge(node_chains[i+2],node_chains[i+1],());
+                };
+            };
+        }
+        
         // here all nodes are processed, we create lazy edge connection
         for pair in &self.sidechains_list {
-            // assert!(self.control_nodes.contains_key(&pair.1), 
-            // "no such a control node");
-
             if pair.1.contains("@rev") {
                 
-                // let name: Vec<&str> = pair.1.split("@rev").collect();
                 let name = &pair.1[4..];
                 println!("reversed connection for {}", name);
                 if !self.control_nodes.contains_key(name) {
@@ -252,7 +318,7 @@ impl Engine {
                     return Err(EngineError::NonExistControlNodeError);
                 }
                 let control_node = self.control_nodes[&pair.1];
-                self.graph.add_edge(control_node, pair.0, ()); // the order matters
+                self.graph.add_edge(control_node, pair.0, ());
             }
         };
 
@@ -545,9 +611,25 @@ mod tests {
     fn test() {
         use super::*;
         let mut engine = Engine::new();
-        engine.set_code("test: imp 44100.0 >> mul 0.8");
-        let out = engine.gen_next_buf_64().unwrap();
-        // println!("{:?}", out);
-        assert_eq!(&out[0..3], &[0.8, 0.8, 0.8])
+        engine.set_code("aa: sin 60 >> mul ~am
+    
+        ~am: sin 0.3 >> linrange 0.1 0.9");
+    
+        engine.update();
+        engine.make_graph();
+
+        for _ in 0..(43000.0/128.0) as usize {
+            let out = engine.gen_next_buf_128(&mut [0.0;128]).unwrap().0;
+        }
+        engine.set_code("aa: sin 80 >> mul ~am
+    
+        ~am: sin 0.3 >> linrange 0.1 0.9");
+
+        engine.update();
+        engine.make_graph();
+
+        for _ in 0..(43000.0/128.0) as usize {
+            let out = engine.gen_next_buf_128(&mut [0.0;128]).unwrap().0;
+        }
     }
 }
