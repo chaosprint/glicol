@@ -29,14 +29,14 @@ import "ace-builds/src-noconflict/theme-glicol-night";
 // import comp from "./completion"
 
 function Text() {
-
   let history = useHistory();
 
   function handleRoomSubmit(e) {
     e.preventDefault()
+    // console.log("push", window.room)
     history.push("/"+window.room);
   }
-  
+
   return (
     <form onSubmit={handleRoomSubmit}>
        {/* <TextField id="room" label="Filled" variant="filled" /> */}
@@ -77,6 +77,7 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [useSamples, setUseSamples] = useState(false)
   // const [showTutorial, setShowTutorial] = useState(false)
+  // const history = useHistory();
 
   window.docs = docs
 
@@ -215,26 +216,26 @@ export default function App() {
   }
 
   const setSize = () => {
-    try {
-        // let w1 = document.getElementById('AppBar').offsetWidth;
-        // let w1 = 0;
+    // console.log("set size")
+    // if (window.state === "coding") {
+      try {
+        let w = document.getElementById('AppBar').offsetWidth
+        let border =  document.documentElement.clientWidth - w
+        let h = document.documentElement.clientHeight
+        h = h - document.getElementById('AppBar').offsetHeight - border
+        window.editor.container.style.width = `${w}px`
+        window.editor.container.style.height = `${h}px`
+        window.editor.resize()
+      } catch (e) {}
+    // } else {
+      try {
         let w = window.innerWidth;
-        // let w = w1 < w2 ? w1 : w2
         let h = window.innerHeight;
         h -= document.getElementById('AppBar').offsetHeight
         setHeight(h)
         setWidth(w)
-        // console.log(w, h)
-    } catch (e) {}
-    try {
-      let w = document.getElementById('AppBar').offsetWidth
-      let border =  document.documentElement.clientWidth - w
-      let h = document.documentElement.clientHeight
-      h = h - document.getElementById('AppBar').offsetHeight - border
-      window.editor.container.style.width = `${w}px`
-      window.editor.container.style.height = `${h}px`
-      window.editor.resize()
-    } catch (e) {}
+      } catch (e) {}
+    // }
   }
   window.onresize = setSize
 
@@ -316,17 +317,21 @@ export default function App() {
     }
   }
 
-  const handleList = async (code, list=[]) => {
+  const handleList = async (code) => {
     // setShowTutorial(true)
+    // history.push("/")
+    // window.editor.destroy();
+    // console.log("should go to turorial")
     setCode(code);
     window.code = code
     setSize()
     setSideOpen(false);
     codeRef.current=code
     setRunning(false)
+    // handleStop();
     // window.actx.close();
     // await loadModule();
-    loadSamples(list)
+    // loadSamples(list)
   }
 
   return (
@@ -396,23 +401,22 @@ export default function App() {
         <MyList onClick={()=>handleList(am)} title="am." />
         <MyList onClick={()=>handleList(fm)} title="fm." />
         <Divider />
-        <MyList onClick={()=>{handleList(usesample, sampleList.selected)}}
+        <MyList onClick={()=>{handleList(usesample)}}
           title="use samples." />
         <MyList onClick={()=>handleList(envelope)} title="envelope." />
         <Divider />
         <MyList onClick={()=>handleList(filter)} title="filter." />
-        <Divider />
-        <MyList onClick={()=>{handleList("lead: sin 110.0")}}
+        {/* <MyList onClick={()=>{handleList("lead: sin 110.0")}}
           title="template - synthesis." />
         <MyList onClick={()=>{
           handleList("bd: seq 60 >> sampler \\bd", sampleList.selected)}}
-          title="template - use samples." />
+          title="template - use samples." /> */}
         <Divider />
         <MyList onClick={()=>{
-          handleList(demo1, sampleList.demo)}}
+          handleList(demo1)}}
           title="demo 1." />
          <MyList onClick={()=>{
-          handleList(demo2, sampleList.selected)}}
+          handleList(demo2)}}
           title="demo 2." />
         </Drawer>
 

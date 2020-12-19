@@ -1,11 +1,11 @@
 use dasp_graph::{Buffer, Input, Node};
 use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError};
 
+
 pub struct State {
     // sig: Box<dyn Signal<Frame=f64> + Send>
     info: Vec::<Vec<f32>>,
-    state: usize,
-    step: usize
+    state: usize
 }
 
 impl State {
@@ -25,7 +25,6 @@ impl State {
         Ok((NodeData::new1(BoxedNodeSend::new( Self {
             info,
             state: 0,
-            step: 0
         })), vec![]))
     }
 }

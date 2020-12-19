@@ -4,12 +4,14 @@ use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError, handle_par
 
 type Fixed = ring_buffer::Fixed<Vec<f32>>;
 
+#[allow(dead_code)]
 pub struct DelayN {
     sidechain_ids: Vec<u8>,
     n: f32,
     buf: Fixed
 }
 
+#[allow(dead_code)]
 impl DelayN {
     handle_params!({
         n: 44100.0
@@ -35,6 +37,7 @@ pub struct Delay {
     buf: Fixed
 }
 
+#[allow(dead_code)]
 impl Delay {
     handle_params!({
         delay: 5000.0

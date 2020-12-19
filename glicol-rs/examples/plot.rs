@@ -5,15 +5,22 @@ use glicol::EngineError;
 
 fn main () -> Result<(), EngineError> {
     let mut engine = Engine::new();
-    engine.set_code("aa: seq 60 72 48 51");
+    engine.set_code("~aa: sin 440.0
+
+    ~bb: sin 450.0
+    
+    out: monosum ~aa ~bb");
 
     engine.update();
     engine.make_graph()?;
 
-    // println!("audio_nodes {:?}", engine.audio_nodes);
-    // println!("control_nodes {:?}", engine.control_nodes);
+    println!("audio_nodes {:?}", engine.audio_nodes);
+    println!("control_nodes {:?}", engine.control_nodes);
     // println!("node_by_chain {:?}", engine.node_by_chain);
-    for e in engine.graph.edges(engine.clock) {
+    for e in engine.graph.edges(engine.control_nodes["~aa"]) {
+        println!("raw_edges {:?}", e);
+    }
+    for e in engine.graph.edges(engine.control_nodes["~bb"]) {
         println!("raw_edges {:?}", e);
     }
 

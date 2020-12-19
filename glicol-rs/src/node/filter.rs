@@ -219,6 +219,7 @@ impl Node for HPF {
 
 type Fixed = ring_buffer::Fixed<Vec<f32>>;
 
+#[allow(dead_code)]
 pub struct Allpass {
     delay: f32,
     decay: f32,
@@ -299,6 +300,7 @@ impl Node for Allpass {
     }
 }
 
+#[allow(dead_code)]
 pub struct Comb {
     delay_time: f32,
     gain: f32,
@@ -425,6 +427,7 @@ impl Node for OnePole {
     }
 }
 
+#[allow(dead_code)]
 pub struct AllpassGain {
     delay: f32,
     a: f32,

@@ -20,7 +20,7 @@ const table = {
 }
 
 const about = {
-    sin: "This sin node outputs sine wave audio signal."
+    sin: "Outputs sine wave audio signal."
 }
 
 const example = {

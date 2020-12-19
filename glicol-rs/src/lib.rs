@@ -8,7 +8,7 @@ mod parser;
 use parser::*;
 
 // use dasp_graph::{Buffer, , Node};
-use dasp_graph::{NodeData, Input, Buffer, BoxedNodeSend, Processor};
+use dasp_graph::{NodeData, Input, BoxedNodeSend, Processor};
 use petgraph::graph::{NodeIndex};
 use petgraph::Directed;
 use petgraph::stable_graph::{StableGraph, StableDiGraph};
@@ -17,7 +17,7 @@ mod node;
 use node::phasor::{Phasor};
 use node::adc::{Adc, AdcSource};
 use node::oscillator::{SinOsc, Impulse, Saw, Square};
-use node::operator::{Add, Mul};
+use node::operator::{Add, Mul, MonoSum};
 use node::sampler::{Sampler};
 use node::sequencer::{Sequencer, Speed};
 use node::envelope::EnvPerc;
@@ -35,6 +35,9 @@ use node::reverb::{Plate};
 
 mod utili;
 use utili::midi_or_float;
+
+pub type NodeResult =Result<
+    (NodeData<BoxedNodeSend>, Vec<String>), EngineError>;
 
 pub struct Engine {
     pub elapsed_samples: usize,
@@ -219,6 +222,7 @@ impl Engine {
                                 "onepole" => OnePole::new(&mut paras)?,
                                 "allpass" => AllpassGain::new(&mut paras)?,
                                 "delayn" => DelayN::new(&mut paras)?,
+                                "monosum" => MonoSum::new(&mut paras)?,
                                 _ => Pass::new(name)?
                             };
                     
@@ -279,6 +283,7 @@ impl Engine {
         let all_refs = self.all_refs.clone();
         self.chain_string.retain(|k, _| all_refs.contains(k));
 
+        println!("node_by_chain {:?}", self.node_by_chain);
         // connect clocks to all the nodes
         for (_, nodes) in &self.node_by_chain {
             for n in nodes {
@@ -291,7 +296,7 @@ impl Engine {
         // println!("audio_node {:?}", self.audio_nodes);
         // println!("control_nodes {:?}", self.control_nodes);
 
-        for (refname, node_chains) in &self.node_by_chain {
+        for (_refname, node_chains) in &self.node_by_chain {
             if node_chains.len() >= 2 {
                 // println!("a");
                 self.graph.add_edge(node_chains[1],node_chains[0],());
@@ -494,13 +499,6 @@ impl std::convert::From<ParseFloatError> for EngineError {
     }
 }
 
-pub struct NodeInfo {
-    index: u8,
-    name: String,
-    paras: String,
-    sidechains: Vec<String>,
-}
-
 #[macro_export]
 /// this works well for nodes whose inner states are only floats
 /// e.g. oscillator, filter, operator
@@ -525,14 +523,15 @@ macro_rules! handle_params {
                 match parse_result {
                     Ok(val) => {
                         params_val.insert(stringify!($id), val);
+                        sidechain_id += 1;
                     },
                     Err(_) => {
                         sidechains.push(current_param);
                         params_val.insert(stringify!($id), $default);
                         sidechain_ids.push(sidechain_id);
+                        sidechain_id += 1;
                     }
                 };
-                sidechain_id += 1;
             )*
 
             $(

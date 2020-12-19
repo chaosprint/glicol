@@ -1,9 +1,47 @@
 use dasp_graph::{Buffer, Input, Node};
-use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError, handle_params};
+use dasp_slice::add_in_place;
+use super::super::{Pairs, Rule, NodeData, 
+    NodeResult, BoxedNodeSend, EngineError, handle_params};
 
+pub struct MonoSum {}
+
+impl MonoSum {
+    pub fn new(paras: &mut Pairs<Rule>) -> NodeResult {
+        let inputs: Vec<String> = paras.as_str()
+        .split(" ").map(|a|a.to_string()).collect();
+
+        println!("{:?}", inputs);
+
+        Ok(
+            (NodeData::new1(
+                BoxedNodeSend::new(
+                    Self {}
+                )
+            ), inputs)
+        )
+    }
+}
+
+impl Node for MonoSum {
+    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+        let n = inputs.len();
+        // clock input[n-1]
+        output[0].silence();
+
+        for i in 0..(n-1) {
+            let in_buffer = inputs[i].buffers().clone();
+            add_in_place(&mut output[0], &in_buffer[0]);
+            // for i in 0..64 {
+                // output[0][i] += in_buffer[0][i];
+            // }
+        }
+    }
+}
+
+#[allow(dead_code)]
 pub struct Mul {
     pub mul: f32,
-    sidechain_ids: Vec<u8>
+    pub sidechain_ids: Vec<u8>
 }
 impl Mul {
     handle_params!({
@@ -50,10 +88,12 @@ impl Node for Mul {
     }
 }
 
+#[allow(dead_code)]
 pub struct Add {
     pub inc: f32,
     sidechain_ids: Vec<u8>
 }
+
 impl Add {
     handle_params!({
         inc: 0.0
