@@ -106,7 +106,7 @@ export default function App() {
     // window.actx.destination.channelCountMode = "explicit";
     window.actx.destination.channelInterpretation = "discrete";
     window.node.connect(window.actx.destination)  
-    console.log("Audio engine loaded.")
+    console.log("%cGlicol server is running...", "background: #3E999F; font-weight: bold")
 
     // navigator.getUserMedia = navigator.getUserMedia
     // || navigator.webkitGetUserMedia
@@ -287,6 +287,7 @@ export default function App() {
   }
 
   const handleStop = () => {
+    console.log("%cRestarting Glicol server...", "background: pink; font-weight: bold")
     let codetemp = window.code
     try {
       window.actx.close();
