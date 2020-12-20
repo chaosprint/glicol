@@ -31,11 +31,10 @@ impl Node for Buf {
         // if inputs.len() > 0 {
         // each input value is between 0-1
         let input_buf = &mut inputs[0].buffers();
+        let len = self.sample.len() - 1;
 
         for i in 0..64 {
-            let len = self.sample.len() - 1;
             let index = input_buf[0][i] * len as f32;
-
             output[0][i] = match index {
                 x if x == 0.0 => self.sample[0],
                 x if x == len as f32 => self.sample[len],

@@ -5,11 +5,9 @@ use glicol::EngineError;
 
 fn main () -> Result<(), EngineError> {
     let mut engine = Engine::new();
-    engine.set_code("~aa: sin 440.0
-
-    ~bb: sin 450.0
+    engine.set_code("aa: sin 440
     
-    out: monosum ~aa ~bb");
+    am: *si");
 
     engine.update();
     engine.make_graph()?;

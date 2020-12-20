@@ -78,8 +78,8 @@ impl Engine {
         Engine {
             graph: g,
             processor: p,
-            code: "".to_string(),
-            code_backup: "".to_string(),
+            code: "de: imp 1.0 >> mul 0.0".to_string(),
+            code_backup: "de: imp 1.0 >> mul 0.0".to_string(),
             samples_dict: HashMap::new(),
             adc_source_nodes: Vec::new(),
             adc_nodes: Vec::new(),
@@ -140,9 +140,10 @@ impl Engine {
             self.control_nodes.insert("~input".to_string(), self.audio_in);
         }
 
-        let lines = GlicolParser::parse(Rule::block, &mut self.code)
-        .expect("unsuccessful parse")
-        .next().unwrap();
+        let lines = match GlicolParser::parse(Rule::block, &mut self.code) {
+            Ok(mut v) => v.next().unwrap(),
+            Err(e) => { println!("{:?}", e); return Err(EngineError::ParsingError)}
+        };
 
         // let mut previous_nodes = Vec::<NodeIndex>::new();
         let mut current_ref_name: &str = "";
@@ -383,7 +384,6 @@ impl Engine {
         Ok(output)
     }
 
-    // , input: Input
     pub fn gen_next_buf_128(&mut self, inbuf: &mut [f32]) -> Result<([f32; 256], [u8;256]), EngineError> {
         // you just cannot use self.buffer
         let mut output: [f32; 256] = [0.0; 256];
@@ -401,9 +401,9 @@ impl Engine {
                 },
                 Err(e) => {
                     // println!("{:?}", e);
+                    let mut info: [u8; 256] = [0; 256];
                     console = match e {
-                        EngineError::SampleNotExistError((s, e)) => {
-                            let mut info: [u8; 256] = [0; 256];
+                        EngineError::SampleNotExistError((s, e)) => { 
                             let l = self.code.clone()[..s].matches("\n").count() as u8;
                             info[0] = 1;
                             info[1] = l;
@@ -413,13 +413,25 @@ impl Engine {
                                 info[i] = word[i-2]
                             }
                             info   
-                        }
+                        },
+                        EngineError::NonExistControlNodeError => {
+                            info[0] = 2;
+                            info[1] = 0;
+                            info
+                        },
+                        EngineError::ParameterError => {
+                            info[0] = 3;
+                            info[1] = 0;
+                            info
+                        },
+                        EngineError::HandleNodeError => {
+                            info[0] = 4;
+                            info[1] = 0;
+                            info
+                        },
                         _ => unimplemented!()
                     };
                     self.code = self.code_backup.clone();
-                    // state = e as usize + 1;
-                    // get where the error is
-                    // also which kind of error it is
                     self.make_graph()?; // this should be fine
                 }
             }
@@ -428,12 +440,9 @@ impl Engine {
         for (_ref_name, node) in &self.audio_nodes {
             // println!("{:?}", *node);
             self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
-            // let mut sum = 0.0;
             for i in 0..64 {
-                // sum += inbuf[i];
                 self.graph[self.control_nodes["~input"]].buffers[0][i] = inbuf[i];
             }
-            // assert!(sum > 0.0);
             self.processor.process(&mut self.graph, *node);
         }
 
@@ -447,8 +456,6 @@ impl Engine {
             for i in 0..64 {
                 output[i] += bufleft[i];
                 output[128+i] += bufright[i];
-                // output[i] += inbuf[i];
-                // output[128+i] += inbuf[i];
             }
         }
         self.elapsed_samples += 64;
@@ -475,8 +482,6 @@ impl Engine {
             for i in 0..64 {
                 output[i+64] += bufleft[i];
                 output[i+64+128] += bufright[i];
-                // output[i+64] += inbuf[i+64];
-                // output[i+64+128] += inbuf[i+64];
             }
         }
 
@@ -487,6 +492,7 @@ impl Engine {
 
 #[derive(Debug)]
 pub enum EngineError {
+    ParsingError,
     NonExistControlNodeError,
     HandleNodeError,
     ParameterError,
@@ -514,7 +520,7 @@ macro_rules! handle_params {
             let mut sidechains = Vec::<String>::new();
             let mut params_val = std::collections::HashMap::<&str, f32>::new();
             let mut sidechain_ids = Vec::<u8>::new();
-            let mut sidechain_id: u8 = 0;
+            let mut _sidechain_id: u8 = 0;
 
             // TODO: need to handle unwarp
             $(
@@ -523,15 +529,14 @@ macro_rules! handle_params {
                 match parse_result {
                     Ok(val) => {
                         params_val.insert(stringify!($id), val);
-                        sidechain_id += 1;
                     },
                     Err(_) => {
                         sidechains.push(current_param);
                         params_val.insert(stringify!($id), $default);
-                        sidechain_ids.push(sidechain_id);
-                        sidechain_id += 1;
+                        sidechain_ids.push(_sidechain_id);
                     }
                 };
+                _sidechain_id += 1;
             )*
 
             $(
@@ -557,13 +562,6 @@ macro_rules! handle_params {
                 sidechain_ids
             })), sidechains))
         }
-    };
-}
-
-#[macro_export]
-macro_rules! create_node_with_code {
-    ($code: expr) => {
-        println!(stringify!($code))
     };
 }
 

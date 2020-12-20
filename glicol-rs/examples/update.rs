@@ -37,7 +37,9 @@ fn main () -> Result<(), EngineError> {
         }
     }
 
-    engine.set_code("aa: seq 60 72 48 59");
+    engine.set_code("aa: sin 30 >> mul ~am
+    
+    ~a: sin 0.3 >> linrange 0.1 0.9");
 
     engine.update();
     engine.make_graph()?;
