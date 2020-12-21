@@ -44,7 +44,7 @@ impl Node for SinOsc {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
         
         // let freq = self.freq.parse::<f32>();
-        if self.has_mod {
+        if true {
             // assert_eq!(inputs.len(), 1);
             // assert!(inputs.len() > 0);
             let mod_buf = &mut inputs[0].buffers();
@@ -61,31 +61,32 @@ impl Node for SinOsc {
             }
             // output[1] = output[0].clone();
             // }
-        } else {
+        };
+        //  else {
 
-            // no mod, input[0] is the clock
-            let mut clock = inputs[0].buffers()[0][0] as usize;
+        //     // no mod, input[0] is the clock
+        //     let mut clock = inputs[0].buffers()[0][0] as usize;
 
-            for i in 0..64 {
+        //     for i in 0..64 {
                 
-                output[0][i] = (clock as f64 / (44100.0 / self.freq as f64 ) * 2.0 
-                * std::f64::consts::PI).sin() as f32;
+        //         output[0][i] = (clock as f64 / (44100.0 / self.freq as f64 ) * 2.0 
+        //         * std::f64::consts::PI).sin() as f32;
                 
-                clock += 1;
+        //         clock += 1;
 
-                // if we lost the phase, i.e. :(clock/(44100.0 / self.freq) * 2.0 
-                // * std::f32::consts::PI)
-                // we will get a click
+        //         // if we lost the phase, i.e. :(clock/(44100.0 / self.freq) * 2.0 
+        //         // * std::f32::consts::PI)
+        //         // we will get a click
 
-                // output[0][i] = self.phase.sin();
-                // self.phase += self.freq / 44100.0 * 2.0 * std::f32::consts::PI;
-                // // self.phase += 220.0 / 44100.0;
-                // if self.phase > 2.0 * std::f32::consts::PI {
-                //     self.phase -= 2.0 * std::f32::consts::PI
-                // }
-            }
-            // output[1] = output[0].clone();
-        }
+        //         // output[0][i] = self.phase.sin();
+        //         // self.phase += self.freq / 44100.0 * 2.0 * std::f32::consts::PI;
+        //         // // self.phase += 220.0 / 44100.0;
+        //         // if self.phase > 2.0 * std::f32::consts::PI {
+        //         //     self.phase -= 2.0 * std::f32::consts::PI
+        //         // }
+        //     }
+        //     // output[1] = output[0].clone();
+        // }
     }
 }
 
@@ -168,13 +169,13 @@ impl Node for Saw {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
 
         for i in 0..64 {
-            if self.has_sidechain {
-                let mod_buf = &mut inputs[0].buffers();
-                if mod_buf[0][i] != 0.0 {
-                    self.freq = mod_buf[0][i];
-                }
-            }
-            assert_ne!(self.freq, 0.0);
+            // if self.has_sidechain {
+            let mod_buf = &mut inputs[0].buffers();
+            if mod_buf[0][i] != 0.0 {
+                self.freq = mod_buf[0][i];
+            };
+            // }
+            // assert_ne!(self.freq, 0.0);
             let circle_len = (44100.0 / self.freq) as usize;
             output[0][i] = ((self.phase_n % circle_len) as f32 / circle_len as f32)*2.0-1.0;
             self.phase_n += 1;
@@ -211,12 +212,12 @@ impl Square {
 impl Node for Square {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
         for i in 0..64 {
-            if self.has_sidechain {
-                let mod_buf = &mut inputs[0].buffers();
-                if mod_buf[0][i] != 0.0 {
-                    self.freq = mod_buf[0][i];
-                }   
-            }
+            // if self.has_sidechain {
+            let mod_buf = &mut inputs[0].buffers();
+            if mod_buf[0][i] != 0.0 {
+                self.freq = mod_buf[0][i];
+            };
+            // }
             let circle_len = (44100.0 / self.freq) as usize;
             output[0][i] = ((self.phase_n % circle_len) > (circle_len / 2)) as u8 as f32 * 2.0 - 1.0;
             self.phase_n += 1;

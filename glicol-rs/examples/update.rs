@@ -5,21 +5,12 @@ use glicol::EngineError;
 
 fn main () -> Result<(), EngineError> {
     let mut engine = Engine::new();
-    engine.set_code("aa: sin 30 >> mul ~am
-    
-    ~am: sin 0.3 >> linrange 0.1 0.9");
+    engine.set_code("aa: const 10 >> sin 1");
 
     engine.update();
     engine.make_graph()?;
 
-    println!("audio_nodes {:?}", engine.audio_nodes);
-    println!("control_nodes {:?}", engine.control_nodes);
     println!("node_by_chain {:?}", engine.node_by_chain);
-    // for e in engine.graph.raw_edges() {
-    //     println!("raw_edges {:?}", e);
-    // }
-
-    // println!("{:?}", engine.graph.raw_nodes()[0]);
 
     let mut x = Vec::<i32>::new();
     let mut y = Vec::<f32>::new();
@@ -37,19 +28,10 @@ fn main () -> Result<(), EngineError> {
         }
     }
 
-    engine.set_code("aa: sin 30 >> mul ~am
-    
-    ~a: sin 0.3 >> linrange 0.1 0.9");
-
+    engine.set_code("aa: const 20 >> sin 1");
     engine.update();
     engine.make_graph()?;
-
-    println!("audio_nodes {:?}", engine.audio_nodes);
-    println!("control_nodes {:?}", engine.control_nodes);
     println!("node_by_chain {:?}", engine.node_by_chain);
-    // for e in engine.graph.raw_edges() {
-    //     println!("raw_edges {:?}", e);
-    // }
 
     for _ in 0..(43000.0/128.0) as usize {
         let out = engine.gen_next_buf_128(&mut [0.0;128]).unwrap().0;

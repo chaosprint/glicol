@@ -193,6 +193,7 @@ dependencies = [
  "dasp_signal",
  "dasp_slice",
  "gnuplot",
+ "lcs-diff",
  "pest",
  "pest_derive",
  "petgraph",
@@ -236,6 +237,12 @@ name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
+
+[[package]]
+name = "lcs-diff"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c172ea7099cef89eb5a1a6e1f55d79a753823a0201d362f6ec5508028efcf4ed"
 
 [[package]]
 name = "maplit"

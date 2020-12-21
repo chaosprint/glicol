@@ -5,25 +5,32 @@ use glicol::EngineError;
 
 fn main () -> Result<(), EngineError> {
     let mut engine = Engine::new();
-    engine.set_code("aa: sin 440
+    engine.set_code("hi: sin 440.0
+
+    // if this doesn't play, check your browser console
+    // chrome or firefox are recommended
     
-    am: *si");
+    // this is a comment
+    // uncomment the line below, and click on the update button to update the sound
+    // another: sin 441.0
+    
+    // try to control the volume by adding another node function
+    // another: sin 441.0 >> mul 0.5
+    
+    // this example shows the basic usage of nodes
+    // a node can have several inputting signals but only one output signal
+    // here \"sin\" is a node that outputs sine wave signal based on its argument frequency
+    // in this example, \"sin\" has no input signal
+    // \"mul\" has one input from its left hand side
+    // \"mul\" processes the input signal by multiplying the input signal with its first argument
+    
+    // everything before the colon, e.g. \"hi\" or \"another\", is called [reference]
+    // this will be explained in the next page (am)");
 
     engine.update();
     engine.make_graph()?;
 
-    println!("audio_nodes {:?}", engine.audio_nodes);
-    println!("control_nodes {:?}", engine.control_nodes);
-    // println!("node_by_chain {:?}", engine.node_by_chain);
-    for e in engine.graph.edges(engine.control_nodes["~aa"]) {
-        println!("raw_edges {:?}", e);
-    }
-    for e in engine.graph.edges(engine.control_nodes["~bb"]) {
-        println!("raw_edges {:?}", e);
-    }
-
-    // println!("{:?}", engine.graph.raw_nodes()[0]);
-
+    println!("node_by_chain {:?}", engine.node_by_chain);
     let mut x = Vec::<i32>::new();
     let mut y = Vec::<f32>::new();
     let mut y2 = Vec::<f32>::new();
