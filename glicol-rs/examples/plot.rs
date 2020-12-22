@@ -5,27 +5,7 @@ use glicol::EngineError;
 
 fn main () -> Result<(), EngineError> {
     let mut engine = Engine::new();
-    engine.set_code("hi: sin 440.0
-
-    // if this doesn't play, check your browser console
-    // chrome or firefox are recommended
-    
-    // this is a comment
-    // uncomment the line below, and click on the update button to update the sound
-    // another: sin 441.0
-    
-    // try to control the volume by adding another node function
-    // another: sin 441.0 >> mul 0.5
-    
-    // this example shows the basic usage of nodes
-    // a node can have several inputting signals but only one output signal
-    // here \"sin\" is a node that outputs sine wave signal based on its argument frequency
-    // in this example, \"sin\" has no input signal
-    // \"mul\" has one input from its left hand side
-    // \"mul\" processes the input signal by multiplying the input signal with its first argument
-    
-    // everything before the colon, e.g. \"hi\" or \"another\", is called [reference]
-    // this will be explained in the next page (am)");
+    engine.set_code("hi: sin 100.0 >> state 0.1");
 
     engine.update();
     engine.make_graph()?;

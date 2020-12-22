@@ -46,7 +46,8 @@ pub extern fn process_u8(out_ptr: *mut u8) {
     let mut engine = ENGINE.lock().unwrap();
     // engine.set_code("~ss: sin 440".to_string());
     // engine.update();
-    let buf = engine.gen_next_buf_64().unwrap(); // float *const [f32; 64]
+    let buf = engine.gen_next_buf_64(&mut [0.0; 64]).unwrap();
+    // float *const [f32; 64]
     // let mut bytes: [u8; 256] = [0; 256];
     let out_buf: &mut [u8] = unsafe { std::slice::from_raw_parts_mut(out_ptr, 256) };
     for i in 0..64 {
@@ -62,7 +63,7 @@ pub extern fn process_u8(out_ptr: *mut u8) {
 
 // Mutex<engine::Engine>
 #[no_mangle]
-pub extern "C" fn process(in_ptr: *mut f32, out_ptr: *mut f32, size: usize) -> *mut u8 {
+pub extern "C" fn process(in_ptr: *mut f32, out_ptr: *mut f32, size: usize)-> *mut u8 {
     let mut engine = ENGINE.lock().unwrap();
 
     // let mut state: [u16; 3] = [0; 3];
@@ -110,10 +111,12 @@ pub extern "C" fn run(
     
     // save samples in a HashMap
     for i in 0..samples.len() {
-        let sample_array: &'static[f32] = unsafe {from_raw_parts_mut(samples[i], lengths[i] as usize)};
+        let sample_array: &'static[f32] = unsafe {
+            from_raw_parts_mut(samples[i], lengths[i] as usize)};
         // let st = unsafe {from_raw_parts_mut(samples[i], lengths[i] as usize)};
         // let sample_array = 
-        let name_encoded:&mut [u8] = unsafe { from_raw_parts_mut(names[i], names_len[i] as usize) };
+        let name_encoded:&mut [u8] = unsafe {
+            from_raw_parts_mut(names[i], names_len[i] as usize) };
         let name = std::str::from_utf8(name_encoded).unwrap();
         engine.samples_dict.insert(name.to_string(), sample_array);
     };
