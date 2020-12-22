@@ -7,12 +7,14 @@ use super::super::{HashMap, Rule, NodeData, BoxedNodeSend, EngineError};
 pub struct Sequencer {
     events: Vec<(f64, String)>,
     speed: f32,
+    bpm: f32,
+    sr: f32,
     pub step: usize,
     sidechain_lib: HashMap<String, usize>
 }
 
 impl Sequencer {
-    pub fn new(paras: &mut Pairs<Rule>)
+    pub fn new(paras: &mut Pairs<Rule>, sr: f32, bpm: f32)
         -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
 
         let mut events = Vec::<(f64, String)>::new();
@@ -52,6 +54,8 @@ impl Sequencer {
         // println!("events {:?}", events);
 
         Ok((NodeData::new1(BoxedNodeSend::new( Self {
+            sr,
+            bpm,
             events: events,
             speed: 1.0,
             step: 0,
@@ -83,7 +87,7 @@ impl Node for Sequencer {
         // println!("speed {}", self.speed);
         // let relative_time = event.0;
         // let relative_pitch = event.1; a ratio for midi 60 freq
-        let bar_length = 88200.0 / self.speed as f64;
+        let bar_length = 240.0 / self.bpm as f64 * self.sr as f64 / self.speed as f64;
         for i in 0..64 {
             output[0][i] = 0.0;
 

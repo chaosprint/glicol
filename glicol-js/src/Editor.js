@@ -78,16 +78,7 @@ export default function Editor(props) {
                     // var sel = window.editor.getSelectedText();
                     var token = window.editor.session.getTokenAt(pos.row, pos.column).value;
 
-                    if (token in window.docs.about) {
-                        console.log(`%c${window.docs.about[token]}`, "background: blue")
-                        console.table(window.docs.table[token])
-                        console.table(window.docs.range[token])
-                        console.log("%cEXAMPLE", "background: green; color: white")
-                        window.docs.example[token]()
-                    } else {
-                        console.error(`Move your cursor to an non-empty place where you wish to search.
-                        \nFor example, if you wish to search "sin", your cursor should be inside "sin" like this: s|in`)
-                    }
+                    window.help(token);
                 }
             }]
 

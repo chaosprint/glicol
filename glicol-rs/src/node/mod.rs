@@ -30,9 +30,10 @@ use source::{ConstSig};
 pub fn make_node(
     name: &str,
     mut paras: &mut Pairs<Rule>,
-    samples_dict: &HashMap<String, &'static[f32]>)
-
--> NodeResult {
+    samples_dict: &HashMap<String, &'static[f32]>,
+    sr: f32,
+    bpm: f32,
+) -> NodeResult {
 
     match name {
         "sin" => SinOsc::new(&mut paras),
@@ -41,7 +42,7 @@ pub fn make_node(
         "imp" => Impulse::new(&mut paras),
         "sampler" => Sampler::new(&mut paras, 
             samples_dict),
-        "seq" => Sequencer::new(&mut paras),
+        "seq" => Sequencer::new(&mut paras, sr, bpm),
         "linrange" => LinRange::new(&mut paras),
         "saw" => Saw::new(&mut paras),
         "squ" => Square::new(&mut paras),

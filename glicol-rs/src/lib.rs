@@ -44,7 +44,7 @@ pub struct Engine {
     code_backup: String,
     update: bool,
     // pub updatefree: Vec<String>,
-    pub all_refs: Vec<String>,
+    pub all_refs: Vec<String>, // for always using current code
 }
 
 impl Engine {
@@ -88,7 +88,11 @@ impl Engine {
         self.elapsed_samples = 0;
         self.update = false;
         self.code = "default: const 0".to_string();
+        self.code_backup = "default: const 0".to_string();
         self.sidechains_list.clear();
+        self.node_by_chain.clear();
+        self.chain_info.clear();
+        self.chain_string.clear();
         self.graph.clear();
     }
 
@@ -204,7 +208,11 @@ impl Engine {
                                 println!("info {:?} != {:?} ?", &id, &info.0);
                                 if info.0 == id {
                                     let (node_data, sidechains) = make_node(
-                                        name, &mut paras, &self.samples_dict)?;
+                                        name, &mut paras,
+                                        &self.samples_dict,
+                                        self.sr as f32,
+                                        self.bpm
+                                    )?;
                                     let node_index = self.graph.add_node(node_data);
                                     
                                     if !self.node_by_chain.contains_key(&refname) {
@@ -378,7 +386,9 @@ impl Engine {
         let mut output: [f32; 256] = [0.0; 256];
         let mut console: [u8;256] = [0; 256];
 
-        let is_near_bar_end = (self.elapsed_samples + 128) % 88200 < 128;
+        let one_bar = 60.0 / self.bpm * 4.0 * self.sr as f32;
+
+        let is_near_bar_end = (self.elapsed_samples + 128) % (one_bar as usize) < 128;
         
         // for wasm live coding
         if self.update && is_near_bar_end {

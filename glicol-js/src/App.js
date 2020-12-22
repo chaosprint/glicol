@@ -81,12 +81,25 @@ export default function App() {
 
   window.docs = docs
 
+  window.help = (token) => {
+    const t0 = performance.now();
+    if (token in window.docs.about) {
+      console.log(`%c${window.docs.about[token]}`, "background: blue")
+      console.table(window.docs.table[token])
+      console.table(window.docs.range[token])
+      console.log("%cEXAMPLE", "background: green; color: white")
+      window.docs.example[token]()
+    } else {
+        console.error(`Move your cursor to an non-empty place where you wish to search.
+        \nFor example, if you wish to search "sin", your cursor should be inside "sin" like this: s|in`)
+    }
+    return `Execution time: ${(performance.now()-t0).toFixed(4)} ms`
+  }
+
   const loadModule = async () => {
     // Note the the path is from public folder
     // console.log(audioContextOptions.sampleRate )
     window.code = welcome
-
-    
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
     window.actx = new window.AudioContext({
       sampleRate: 44100
@@ -108,6 +121,19 @@ export default function App() {
     window.node.connect(window.actx.destination)  
     console.log("%cGlicol server is running...", "background: #3E999F; font-weight: bold")
 
+    window.bpm = (beats_per_minute) => {
+      const t0 = performance.now();
+      if (typeof beats_per_minute === "number") {
+        window.node.port.postMessage({
+          type: "bpm", value: beats_per_minute})
+        console.log(`%cBPM set to: ${beats_per_minute}`, "background: red");
+        console.log(`%c This will be effective when you make \
+        some changes to the code.`, "background: yellow");
+      } else {
+        console.warn("BPM should be a number.")
+      }
+      return `Execution time: ${(performance.now()-t0).toFixed(4)} ms`
+    }
     // navigator.getUserMedia = navigator.getUserMedia
     // || navigator.webkitGetUserMedia
     // || navigator.mozGetUserMedia;

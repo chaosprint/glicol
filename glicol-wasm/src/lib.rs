@@ -155,3 +155,10 @@ pub extern "C" fn reset() {
     let mut engine = ENGINE.lock().unwrap();
     engine.reset();
 }
+
+#[no_mangle]
+pub extern "C" fn set_bpm(bpm: f32) {
+    let mut engine = ENGINE.lock().unwrap();
+    engine.bpm = bpm;
+    // engine.reset();
+}
