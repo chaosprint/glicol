@@ -33,6 +33,15 @@ useEffect(()=>{
 
         if (!window.firebase.apps.length) {
             window.firebase.initializeApp(firebaseConfig);
+            try {
+                window.firebase.auth().signInAnonymously()
+                .then(() => {
+                })
+                .catch((error) => {
+                    console.log(error.code);
+                    console.log(error.message);
+                });
+            } catch {}
         }
 
         // console.log(id)
@@ -86,17 +95,24 @@ useEffect(()=>{
         command.forEach(c => window.editor.commands.addCommand(c))
 
         var firepadRef = getExampleRef(id);
-        try {
-            // window.code = window.editor.getValue()
-            // console.log( window.code)
-            // window.editor.setValue("")
-            window.firepad = window.Firepad.fromACE(firepadRef, window.editor,
-                { richTextToolbar: false, richTextShortcuts: false});
-        } catch (e) {
-            // console.log(e)
-            console.warn("please refresh the page")
-        }
-        setSize()
+        window.firebase.auth().signInAnonymously()
+        .then(() => {
+            try {
+                // window.code = window.editor.getValue()
+                // console.log( window.code)
+                // window.editor.setValue("")
+                window.firepad = window.Firepad.fromACE(firepadRef, window.editor,
+                    { richTextToolbar: false, richTextShortcuts: false});
+            } catch (e) {
+                // console.log(e)
+                console.warn("please refresh the page")
+            }
+            setSize()
+        })
+        .catch((error) => {
+            console.log(error.code);
+            console.log(error.message);
+        });
         // console.log("editor loaded")
     // eslint-disable-next-line
     }, [id])

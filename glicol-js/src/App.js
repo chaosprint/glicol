@@ -162,7 +162,7 @@ export default function App() {
           console.log(error.code);
           console.log(error.message);
       });
-    } catch {}
+  } catch {}
   }, []);
 
   window.addSample = async (name, url) => {
