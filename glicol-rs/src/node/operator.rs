@@ -1,7 +1,7 @@
 use dasp_graph::{Buffer, Input, Node};
 use dasp_slice::add_in_place;
 use super::super::{Pairs, Rule, NodeData, 
-    NodeResult, BoxedNodeSend, EngineError, handle_params};
+    NodeResult, BoxedNodeSend, EngineError, handle_params, apodize};
 
 pub struct MonoSum {}
 
@@ -38,15 +38,28 @@ impl Node for MonoSum {
     }
 }
 
-#[allow(dead_code)]
 pub struct Mul {
-    pub mul: f32,
-    pub sidechain_ids: Vec<u8>
+    mul: f32,
+    transit_begin: f32,
+    transit_end: f32,
+    transit_index: usize,
+    transit: bool,
+    window: Vec<f64>,
+    sidechain_ids: Vec<u8>
 }
 impl Mul {
     handle_params!({
         mul: 0.0
-    });
+    }, {
+        transit_begin: 0.0,
+        transit_end: 0.0,
+        transit_index: 0,
+        transit: false
+    }, [
+        (mul, window, |_mul:f32|->Vec<f64>{
+            apodize::hanning_iter(2048).collect::<Vec<f64>>()
+        })
+    ]);
     // pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
 
     //     // let mut paras = paras.next().unwrap().into_inner();
@@ -68,27 +81,48 @@ impl Node for Mul {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
 
         if !(self.sidechain_ids.len() > 0) {
-            // if inputs.len() > 0 {
-            // assert_eq!(inputs.len(), 1);
-            // let buf = &mut inputs[0].buffers();
-            // output[0] = buf[0].clone();
             output[0] = inputs[0].buffers()[0].clone();
             output[0].iter_mut().for_each(|s| *s = *s * self.mul as f32);
-            // }
         } else {
-            // if inputs.len() > 1 {
-            // assert!(inputs.len() > 1);
-            let buf = &mut inputs[0].buffers();
-            let mod_buf = &mut inputs[1].buffers();
-            for i in 0..64 {
-                output[0][i] = mod_buf[0][i] * buf[0][i];
+            let buf = &mut inputs[1].buffers();
+            let mod_buf = &mut inputs[0].buffers();
+
+            self.transit = self.transit_begin != mod_buf[0][0]
+            && mod_buf[0][0] == mod_buf[0][63];
+
+            if self.transit {
+                self.transit_end = mod_buf[0][0];
             }
-            // }
+
+            let distance = self.transit_begin - self.transit_end;
+
+            // println!("{} {} {}", self.transit, self.window[self.transit_index], phase);
+
+            if self.transit_index == 1024 {
+                self.transit_index = 0;
+                self.transit_begin = self.transit_end.clone();
+                self.transit = false;
+            }
+
+            for i in 0..64 {
+                // output[0][i] = self.window[self.transit_index] as f32;
+                // self.transit_index += 1;
+                output[0][i] = match self.transit {
+                    true => {
+                        let phase = self.transit_begin - 
+                        self.window[self.transit_index] as f32 * distance;
+                        self.transit_index += 1;
+                        phase * buf[0][i]
+                    },
+                    false => {
+                        mod_buf[0][i] * buf[0][i]
+                    }
+                };
+            }
         }
     }
 }
 
-#[allow(dead_code)]
 pub struct Add {
     pub inc: f32,
     sidechain_ids: Vec<u8>

@@ -8,7 +8,7 @@ mod parser;
 use parser::*;
 
 // #[macro_use]
-// extern crate apodize;
+extern crate apodize;
 
 use dasp_graph::{NodeData, BoxedNodeSend, Processor};
 use petgraph::graph::{NodeIndex};
@@ -21,7 +21,7 @@ use node::adc::{Adc, AdcSource};
 use node::system::{Clock, AudioIn};
 
 mod utili;
-use utili::{midi_or_float, code_preprocess, lcs};
+use utili::{midi_or_float, preprocess_sin, preprocess_mul, lcs};
 
 pub type NodeResult =Result<
     (NodeData<BoxedNodeSend>, Vec<String>), EngineError>;
@@ -131,8 +131,9 @@ impl Engine {
             vec![(self.audio_in, "~input".to_string())]
         );
 
-        let mut b = code_preprocess(&mut self.code)?;
-        // println!("{}",&b);
+        let mut b = preprocess_sin(&mut self.code)?;
+        b = preprocess_mul(&mut b)?;
+        println!("{}",&b);
 
         let lines = match GlicolParser::parse(Rule::block, &mut b) {
             Ok(mut v) => v.next().unwrap(),

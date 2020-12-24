@@ -128,8 +128,7 @@ export default function App() {
         window.node.port.postMessage({
           type: "bpm", value: beats_per_minute})
         console.log(`%cBPM set to: ${beats_per_minute}`, "background: red");
-        console.log(`%c This will be effective when you make \
-        some changes to the code.`, "background: yellow");
+        console.log("%c This will be effective when you make some changes to the code.", "background: yellow");
       } else {
         console.warn("BPM should be a number.")
       }
@@ -142,10 +141,8 @@ export default function App() {
         if (amp <= 1.0) {
           window.node.port.postMessage({
             type: "amp", value: amp})
-          console.log(`%cThe amplitude of each track is set to: ${amp}`,"\
-          background: red");
-          console.log(`%c This will be effective when you make \
-          some changes to the code.`, "background: yellow");
+          console.log(`%cThe amplitude of each track is set to: ${amp}`,"background: red");
+          console.log("%c This will be effective when you make some changes to the code.", "background: yellow");
         } else {
           console.warn("Amplitude should not exceed 1.0.")
         }

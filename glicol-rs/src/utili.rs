@@ -1,6 +1,7 @@
 extern crate lcs_diff;
 use self::lcs_diff::*;
 use super::{EngineError};
+// use regex::Regex;
 
 pub fn midi_or_float(num: String) -> f32 {
     if num.contains(".") {
@@ -15,7 +16,7 @@ pub fn midi_or_float(num: String) -> f32 {
     }
 }
 
-pub fn code_preprocess(a: &String) -> Result<String, EngineError> {
+pub fn preprocess_sin(a: &String) -> Result<String, EngineError> {
     let q: String = a.replace("\n", " \n");
     let v: Vec<&str> = q.split(" ").collect();
     // println!("{:?}", v);
@@ -43,7 +44,50 @@ pub fn code_preprocess(a: &String) -> Result<String, EngineError> {
                 b += " ";
             }
         }
-    };
+    }
+    Ok(b)
+}
+
+pub fn preprocess_mul(a: &String) -> Result<String, EngineError> {
+    let q: String = a.replace("\n", " \n ");
+    let v: Vec<&str> = q.split(" ").collect();
+    let mut b = "".to_string();
+    let mut current_ref = "";
+    let x = "abcdefghijklmnopqrstuvwxyz".to_string();
+    let mut append = Vec::<(&str, &str, &str)>::new();
+    let mut find = false;
+    let mut index:usize = 0;
+    for (i, c) in v.iter().enumerate() {
+        if c.contains(":") {
+            current_ref = &c[1..c.len()-1];
+            index = 0;
+            b += c;
+            b += " ";
+        } else if c == &"mul" {
+            if v[i+1].parse::<f32>().is_ok() {
+                append.push((current_ref, &x[index..(index+1)], v[i+1]));
+                find = true;
+            };
+            b += c;
+            b += " ";
+        } else if find == true {
+            let s = format!("~{}mulconst{}",
+            append.last().unwrap().0, append.last().unwrap().1);
+            b += &s;
+            b += " ";
+            find = false;
+            index += 1;
+        } else if c == &"\n" {
+            b += c;
+        } else {
+            b += c;
+            b += " ";
+        }
+        
+    }
+    for x in append {
+        b += &format!("\n\n~{}mulconst{}: const {}", x.0, x.1, x.2);
+    }
     Ok(b)
 }
 

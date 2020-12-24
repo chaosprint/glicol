@@ -5,7 +5,7 @@ use glicol::EngineError;
 
 fn main () -> Result<(), EngineError> {
     let mut engine = Engine::new();
-    engine.set_code("aa: sin 440 >> mul 0.8 >> mul 0.8");
+    engine.set_code("aa: sin 440 >> mul 0.8");
 
     // engine.update();
     engine.make_graph()?;
@@ -16,7 +16,7 @@ fn main () -> Result<(), EngineError> {
     let mut y2 = Vec::<f32>::new();
     let mut n = 0;
 
-    for _ in 0..(3000.0/128.0) as usize {
+    for _ in 0..(9000.0/128.0) as usize {
         let out = engine.gen_next_buf_128(&mut [0.0;128]).unwrap().0;
         // let out = engine.gen_next_buf_64().unwrap();
         for i in 0..128 {
