@@ -26,7 +26,7 @@ impl Node for SinOsc {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
         if inputs.len() < 2 { return () };
         let clock = inputs[1].buffers()[0][0] as usize;
-        if self.clock != clock {
+        if self.clock != 0 && self.clock == clock {
             output[0] = self.buffer.clone();
             return ()
         };
@@ -39,7 +39,7 @@ impl Node for SinOsc {
             }
         }
         self.buffer = output[0].clone();
-        self.clock = clock + 64;
+        self.clock = clock;
     }
 }
 
@@ -94,7 +94,7 @@ impl Node for Impulse {
 
 #[allow(dead_code)]
 pub struct Saw {
-    _freq: f32,
+    freq: f32,
     phase_n: usize,
     clock: usize,
     buffer: Buffer,
@@ -102,8 +102,8 @@ pub struct Saw {
 }
 
 impl Saw {
-    handle_params!({_freq: 100.0}, {phase_n: 0, clock: 0},
-        [(_freq, buffer, |_freq: f32|->Buffer {
+    handle_params!({freq: 100.0}, {phase_n: 0, clock: 0},
+        [(freq, buffer, |_freq: f32|->Buffer {
             Buffer::default()
         })]);
 }
@@ -111,31 +111,23 @@ impl Saw {
 impl Node for Saw {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
         if inputs.len() < 2 { return () };
-        let clock = inputs[1].buffers()[0][0] as usize;
-        if self.clock != clock {
-            output[0] = self.buffer.clone();
-            return ()
-        };
-
+        let mut clock = inputs[1].buffers()[0][0] as usize;
         for i in 0..64 {
             let mod_buf = &mut inputs[0].buffers();
-            if mod_buf[0][i] == 0.0 {
-                output[0][i] = 0.0;
-                continue;
-            }
-            let period = 44100.0 / mod_buf[0][i];
-            output[0][i] = (self.phase_n % period as usize) as f32
+            if mod_buf[0][i] != 0.0 {
+                self.freq = mod_buf[0][i];
+            };
+            let period = 44100.0 / self.freq;
+            output[0][i] = (clock % period as usize) as f32
             / period *2.0-1.0;
-            self.phase_n += 1;
+            clock += 1;
         }
-        self.buffer = output[0].clone();
-        self.clock = clock as usize + 64;
     }
 }
 
 #[allow(dead_code)]
 pub struct Square {
-    _freq: f32,
+    freq: f32,
     phase_n: usize,
     clock: usize,
     buffer: Buffer,
@@ -144,12 +136,12 @@ pub struct Square {
 
 impl Square {
     handle_params!({
-        _freq: 100.0
+        freq: 100.0
     }, {
         phase_n: 0,
         clock: 0
     }, [
-        (_freq, buffer, |_freq: f32|->Buffer {
+        (freq, buffer, |_freq: f32|->Buffer {
             Buffer::default()
         })
     ]);
@@ -158,24 +150,16 @@ impl Square {
 impl Node for Square {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
         if inputs.len() < 2 { return () };
-        let clock = inputs[1].buffers()[0][0] as usize;
-        if self.clock != clock {
-            output[0] = self.buffer.clone();
-            return ()
-        };
-
+        let mut clock = inputs[1].buffers()[0][0] as usize;
         for i in 0..64 {
             let mod_buf = &mut inputs[0].buffers();
-            if mod_buf[0][i] == 0.0 {
-                output[0][i] = 0.0;
-                continue;
-            }
-            let period = (44100.0 / mod_buf[0][i]) as usize;
-            output[0][i] = ((self.phase_n%period) > (period/2))
+            if mod_buf[0][i] != 0.0 {
+                self.freq = mod_buf[0][i];
+            };
+            let period = (44100.0 / self.freq) as usize;
+            output[0][i] = ((clock%period) > (period/2))
             as u8 as f32 * 2.0 - 1.0;
-            self.phase_n += 1;
+            clock += 1;
         }
-        self.buffer = output[0].clone();
-        self.clock = clock as usize + 64;
     }
 }

@@ -1,6 +1,6 @@
 use dasp_graph::{Buffer, Input, Node};
 use pest::iterators::Pairs;
-use super::super::{HashMap, Rule, NodeData, BoxedNodeSend, EngineError};
+use super::super::{HashMap, Rule, NodeData, BoxedNodeSend, EngineError, handle_params};
 
 // pub struct
 
@@ -36,7 +36,8 @@ impl Sequencer {
             // println!("len = {}", notes_len);
 
             for (j, x) in notes.iter().enumerate() {
-                let relative_time = i as f64 / len_by_space as f64 + (j as f64/ notes_len as f64 ) * compound_unit;
+                let relative_time = i as f64 / len_by_space as f64 
+                + (j as f64/ notes_len as f64 ) * compound_unit;
 
                 if x.contains("~") {
                     sidechains.push(x.to_string());
@@ -78,7 +79,8 @@ impl Node for Sequencer {
             // NOTE! inputs are in reverse order
 
             let last = inputs.len() - 2; // -1 is the clock
-            if (inputs[last].buffers()[0][0] > 0.0) & (inputs[last].buffers()[0][1] == 0.0) {
+            if (inputs[last].buffers()[0][0] > 0.0) &&
+            (inputs[last].buffers()[0][1] == 0.0) { // make sure it is speed input
                 self.speed = inputs[last].buffers()[0][0];
                 has_speed_input = true;
             }
@@ -96,7 +98,7 @@ impl Node for Sequencer {
 
                     let midi = match event.1.parse::<f32>() {
                         Ok(val) => val,
-                        Err(_why) => {
+                        Err(_) => {
                             let len = inputs.len();
 
                             // there are cases:
@@ -124,54 +126,24 @@ impl Node for Sequencer {
 }
 
 pub struct Speed {
-    pub speed: f32,
-    has_mod: bool
+    speed: f32,
+    sidechain_ids: Vec<u8>
 }
 
 impl Speed {
-    pub fn new(paras: &mut Pairs<Rule>) -> Result<
-    (NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
-
-        let speed: String = paras.as_str().to_string()
-        .chars().filter(|c| !c.is_whitespace()).collect();
-
-        let is_float = speed.parse::<f32>();
-
-        if is_float.is_ok() {
-            Ok((NodeData::new1(BoxedNodeSend::new(
-                Self {speed: is_float?, has_mod: false})),
-            vec![]))
-        } else {
-            Ok((NodeData::new1(BoxedNodeSend::new(
-                Self {speed: 1.0, has_mod: true})),
-            vec![speed]))
-        }
-    }
+    handle_params!({
+        speed: 1.0
+    });
 }
+
 impl Node for Speed {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
 
-        if self.has_mod {
-            // assert!(inputs.len() > 0);
+        if self.sidechain_ids.len() > 0 {
             let mod_buf = &mut inputs[0].buffers();
-            // let mod_buf = &mut inputs[1].buffers();
-            // for i in 0..64 {
             output[0][0] = mod_buf[0][0];
-            // }
         } else {
-            // assert_eq!(inputs.len(), 0);
-            // output[0] = inputs[0].buffers()[0].clone();
             output[0][0] = self.speed as f32;
-            // output[0].iter_mut().for_each(|s| *s = self.speed as f32);
         }
-        // if inputs.len() > 0 {
     }
 }
-
-// impl Node for Speed {
-//     fn process(&mut self, _inputs: &[Input], output: &mut [Buffer]) {
-//         for o in output {
-//             o.iter_mut().for_each(|s| *s = self.speed);
-//         }
-//     }
-// }

@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react'
-import firebaseConfig from './firebaseConfig'
 import './Editor.css'
 import { useParams } from "react-router-dom";
-// import { sound, control, calc } from './helpers'
+import firebaseConfig from './firebaseConfig'
 
 export default function Editor(props) {
 
@@ -27,83 +26,84 @@ export default function Editor(props) {
 
     // window.onresize = setSize
 
-    useEffect(()=>{
-            try {
-                window.firepad.dispose()
-            } catch {}
-            // console.log(id)
-            if (!window.firebase.apps.length) {
-                window.firebase.initializeApp(firebaseConfig);
-                window.firebase.auth().signInAnonymously()
-                .then(() => {
-                })
-                .catch((error) => {
-                    console.log(error.code);
-                    console.log(error.message);
-                });
+useEffect(()=>{
+        try {
+            window.firepad.dispose()
+        } catch {}
+
+        if (!window.firebase.apps.length) {
+            window.firebase.initializeApp(firebaseConfig);
+        }
+        window.firebase.auth().signInAnonymously()
+        .then(() => {
+        })
+        .catch((error) => {
+            console.log(error.code);
+            console.log(error.message);
+        });
+        // console.log(id)
+        //// Create ACE
+        window.editor = window.ace.edit("firepad");
+        window.editor.setValue("")// has to be here, else cause error
+        window.editor.setFontSize("20px");
+        window.editor.setTheme("ace/theme/tomorrow-night")
+        window.editor.setOptions({
+            fontFamily: "B612 Mono",
+            // readOnly: true,
+            "highlightActiveLine": false
+        })
+        window.editor.resize()
+        // window.editor.onChange(()=>{console.log("change")})
+        // editor.setTheme("ace/theme/textmate");
+        var session =  window.editor.getSession();
+        session.setUseWrapMode(true);
+        session.setUseWorker(true);
+        session.setMode("ace/mode/glicol");
+        session.on("change", () => window.code = window.editor.getValue())
+
+        const command = [{
+            name: 'run',
+            bindKey: {win: 'Ctrl-Enter', mac: 'Command-Enter'},
+            exec: props.handleRun
+        }, {
+            name: 'update',
+            bindKey: {win: 'Shift-Enter', mac: 'Shift-Enter'},
+            exec: props.handleUpdate
+        }, {
+            name: 'stop',
+            bindKey: {win: 'Ctrl-Alt-.', mac: 'Command-Option-.'},
+            exec: props.handleStop
+        }, {
+            name: 'pause',
+            bindKey: {win: 'Ctrl-\'', mac: 'Command-\''},
+            exec: props.handlePause
+        }, {
+            name: 'help',
+            bindKey: {win: 'Ctrl-\\', mac: 'Command-\\'},
+            exec: ()=>{
+                var pos = window.editor.getCursorPosition();
+                // var sel = window.editor.getSelectedText();
+                var token = window.editor.session.getTokenAt(pos.row, pos.column).value;
+
+                window.help(token);
             }
-            //// Create ACE
-            window.editor = window.ace.edit("firepad");
-            window.editor.setValue("")// has to be here, else cause error
-            window.editor.setFontSize("20px");
-            window.editor.setTheme("ace/theme/tomorrow-night")
-            window.editor.setOptions({
-                fontFamily: "B612 Mono",
-                // readOnly: true,
-                "highlightActiveLine": false
-            })
-            window.editor.resize()
-            // window.editor.onChange(()=>{console.log("change")})
-            // editor.setTheme("ace/theme/textmate");
-            var session =  window.editor.getSession();
-            session.setUseWrapMode(true);
-            session.setUseWorker(true);
-            session.setMode("ace/mode/glicol");
-            session.on("change", () => window.code = window.editor.getValue())
+        }]
 
-            const command = [{
-                name: 'run',
-                bindKey: {win: 'Ctrl-Enter', mac: 'Command-Enter'},
-                exec: props.handleRun
-            }, {
-                name: 'update',
-                bindKey: {win: 'Shift-Enter', mac: 'Shift-Enter'},
-                exec: props.handleUpdate
-            }, {
-                name: 'stop',
-                bindKey: {win: 'Ctrl-Alt-.', mac: 'Command-Option-.'},
-                exec: props.handleStop
-            }, {
-                name: 'pause',
-                bindKey: {win: 'Ctrl-\'', mac: 'Command-\''},
-                exec: props.handlePause
-            }, {
-                name: 'help',
-                bindKey: {win: 'Ctrl-\\', mac: 'Command-\\'},
-                exec: ()=>{
-                    var pos = window.editor.getCursorPosition();
-                    // var sel = window.editor.getSelectedText();
-                    var token = window.editor.session.getTokenAt(pos.row, pos.column).value;
+        command.forEach(c => window.editor.commands.addCommand(c))
 
-                    window.help(token);
-                }
-            }]
-
-            command.forEach(c => window.editor.commands.addCommand(c))
-
-            var firepadRef = getExampleRef(id);
-            try {
-                // window.code = window.editor.getValue()
-                // console.log( window.code)
-                // window.editor.setValue("")
-                window.firepad = window.Firepad.fromACE(firepadRef, window.editor,
-                    { richTextToolbar: false, richTextShortcuts: false});
-            } catch (e) {
-                // console.log(e)
-                console.warn("please refresh the page")
-            }
-            setSize()
-            // console.log("editor loaded")
+        var firepadRef = getExampleRef(id);
+        try {
+            // window.code = window.editor.getValue()
+            // console.log( window.code)
+            // window.editor.setValue("")
+            window.firepad = window.Firepad.fromACE(firepadRef, window.editor,
+                { richTextToolbar: false, richTextShortcuts: false});
+        } catch (e) {
+            // console.log(e)
+            console.warn("please refresh the page")
+        }
+        setSize()
+        // console.log("editor loaded")
     // eslint-disable-next-line
     }, [id])
 

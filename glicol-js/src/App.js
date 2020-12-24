@@ -13,6 +13,7 @@ import { useStyles, theme } from './styles'
 import {Run, Reset, Pause, Menu, Update } from './components/ToolButton'
 import MyList from "./components/MyList"
 
+
 import { WaveFile } from 'wavefile';
 import sampleDict from './samples.json';
 import {sampleList} from './samples.js';
@@ -152,9 +153,7 @@ export default function App() {
     setSize()
     try {
       loadModule()
-    } catch (e) {
-      console.log(e)
-    }
+    } catch (e) {console.log(e)}
   }, []);
 
   window.addSample = async (name, url) => {
