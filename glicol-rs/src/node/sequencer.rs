@@ -83,7 +83,11 @@ impl Node for Sequencer {
             (inputs[last].buffers()[0][1] == 0.0) { // make sure it is speed input
                 self.speed = inputs[last].buffers()[0][0];
                 has_speed_input = true;
+            } else {
+                self.speed = 1.0;
             }
+        } else {
+            self.speed = 1.0;
         }
 
         // println!("speed {}", self.speed);

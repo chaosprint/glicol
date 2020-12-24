@@ -5,19 +5,7 @@ use glicol::EngineError;
 
 fn main () -> Result<(), EngineError> {
     let mut engine = Engine::new();
-    engine.set_code("~a: noiz 0 >> mul 1 >> add 40
-
-    ~b: choose 35 45 0
-    
-    ~trigger: speed 8.0 >> seq ~a ~b
-    
-    ~env: ~trigger >> envperc 0.01 0.1 >> mul 0.5
-    
-    ~pitch: ~trigger >> mul 261.626
-    
-    lead: saw ~pitch >> mul ~env >> lpf ~cut 6.0
-    
-    ~cut: squ 0.5 >> linrange 300.0 3000.0");
+    engine.set_code("aa: sin 440 >> mul 0.8 >> mul 0.8");
 
     // engine.update();
     engine.make_graph()?;
