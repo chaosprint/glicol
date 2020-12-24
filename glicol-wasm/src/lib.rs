@@ -162,3 +162,9 @@ pub extern "C" fn set_bpm(bpm: f32) {
     engine.bpm = bpm;
     // engine.reset();
 }
+
+#[no_mangle]
+pub extern "C" fn set_track_amp(amp: f32) {
+    let mut engine = ENGINE.lock().unwrap();
+    engine.set_track_amp(amp);
+}

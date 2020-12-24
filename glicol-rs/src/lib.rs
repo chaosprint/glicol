@@ -44,6 +44,7 @@ pub struct Engine {
     code: String,
     code_backup: String,
     update: bool,
+    track_amp: f32,
     // fade: usize,
     // window: Vec<f64>,
     pub modified: Vec<String>,
@@ -80,6 +81,7 @@ impl Engine {
             bpm: 120.0,
             elapsed_samples: 0,
             update: false,
+            track_amp: 1.0,
             // fade: 0,
             // window: apodize::hanning_iter(4096).collect::<Vec<f64>>(),
             modified: Vec::new(),
@@ -102,6 +104,10 @@ impl Engine {
     pub fn set_code(&mut self, code: &str) {
         self.code = code.to_string();
         self.update = true;
+    }
+
+    pub fn set_track_amp(&mut self, amp: f32) {
+        self.track_amp = amp;
     }
 
     // error only comes from this method
@@ -376,8 +382,8 @@ impl Engine {
                 _ => {unimplemented!()}
             };
             for i in 0..64 {
-                output[i] += bufleft[i];
-                output[i+64] += bufright[i];
+                output[i] += bufleft[i] * self.track_amp;
+                output[i+64] += bufright[i] * self.track_amp;
             }
         }
         self.elapsed_samples += 64;
@@ -474,8 +480,8 @@ impl Engine {
                 // };
                 // self.fade += 1;
                 // let scale = 1.0;bufleft[i] * bufright[i] * 
-                output[i] += bufleft[i];
-                output[i+128] += bufright[i];
+                output[i] += bufleft[i] * self.track_amp;
+                output[i+128] += bufright[i] * self.track_amp;
                 // output[i] += s;
                 // output[i+128] += s;
             }
@@ -516,8 +522,8 @@ impl Engine {
                 // };
                 // self.fade += 1;
                 // let scale = 1.0;bufleft[i] * bufright[i] * 
-                output[i+64] += bufleft[i];
-                output[i+128+64] += bufright[i];
+                output[i+64] += bufleft[i] * self.track_amp;
+                output[i+128+64] += bufright[i] * self.track_amp;
                 // output[i+64] += s;
                 // output[i+128+64] += s;
             }

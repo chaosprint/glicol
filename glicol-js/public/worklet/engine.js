@@ -82,6 +82,8 @@ class GlicolEngine extends AudioWorkletProcessor {
                 }
             } else if (e.data.type === "bpm") {
                 this._wasm.exports.set_bpm(e.data.value);
+            } else if (e.data.type === "amp") {
+                this._wasm.exports.set_track_amp(e.data.value);
             } else if (e.data.type === "run") {
                 // console.log("samplePtr, Length", samplePtr, sampleLength)
 
