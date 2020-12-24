@@ -1,99 +1,52 @@
-// use dasp_signal::{self as signal, Signal};
 use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNodeSend};
 use pest::iterators::Pairs;
-use super::super::{Rule, EngineError, midi_or_float};
+use super::super::{Rule, EngineError, handle_params};
 
+#[allow(dead_code)]
 pub struct SinOsc {
-    // pub freq: f64,
-    // pub sig: Sine<ConstHz>
-    pub freq: f32,
+    _freq: f32,
     phase: f32,
-    diff: f32,
-    has_mod: bool
-    // pub sig: Box<dyn Signal<Frame=f64> + Send>,
+    clock: usize,
+    buffer: Buffer,
+    sidechain_ids: Vec<u8>
 }
 
 impl SinOsc {
-    pub fn new(paras: &mut Pairs<Rule>) -> Result<
-    (NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
-        // let mut paras = paras.next().unwrap().into_inner();
-
-        // let freq: String = paras.next().unwrap().as_str().to_string()
-        // .chars().filter(|c| !c.is_whitespace()).collect();
-
-        let freq: String = paras.as_str().to_string()
-        .chars().filter(|c| !c.is_whitespace()).collect();
-
-        if freq.parse::<f32>().is_ok() {
-            let f = freq.parse::<f32>().unwrap();
-            // println!("{}", f);
-            return Ok((NodeData::new1(BoxedNodeSend::new(Self {
-                freq: f,
-                phase: 0.0, diff: 0.0, has_mod: false
-            })), vec![]))
-        } else {
-            return Ok((NodeData::new1(BoxedNodeSend::new(Self { 
-                freq: 0.0,
-                phase:  0.0, diff: 0.0, has_mod: true 
-            })), vec![freq]))
-        }
-    }
+    handle_params!({
+        _freq: 440.0
+    }, {
+        phase: 0.0,
+        clock: 0
+    }, [(_freq, buffer, |_freq: f32|->Buffer {
+        Buffer::default()
+    })]);
 }
 
 impl Node for SinOsc {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
-        
-        // let freq = self.freq.parse::<f32>();
-        if true {
-            // assert_eq!(inputs.len(), 1);
-            // assert!(inputs.len() > 0);
-            let mod_buf = &mut inputs[0].buffers();
-            for i in 0..64 {
-                output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
-                if mod_buf[0][i] != 0.0 { // doesn't make sense to have 0 freq
-                    self.diff = mod_buf[0][i] / 44100.0;    
-                }
-                self.phase += self.diff;
-                // self.phase += 440.0 / 44100.0;
-                if self.phase > 1.0 {
-                    self.phase -= 1.0
-                }
-            }
-            // output[1] = output[0].clone();
-            // }
+        if inputs.len() < 2 { return () };
+        let clock = inputs[1].buffers()[0][0] as usize;
+        if self.clock != clock {
+            output[0] = self.buffer.clone();
+            return ()
         };
-        //  else {
-
-        //     // no mod, input[0] is the clock
-        //     let mut clock = inputs[0].buffers()[0][0] as usize;
-
-        //     for i in 0..64 {
-                
-        //         output[0][i] = (clock as f64 / (44100.0 / self.freq as f64 ) * 2.0 
-        //         * std::f64::consts::PI).sin() as f32;
-                
-        //         clock += 1;
-
-        //         // if we lost the phase, i.e. :(clock/(44100.0 / self.freq) * 2.0 
-        //         // * std::f32::consts::PI)
-        //         // we will get a click
-
-        //         // output[0][i] = self.phase.sin();
-        //         // self.phase += self.freq / 44100.0 * 2.0 * std::f32::consts::PI;
-        //         // // self.phase += 220.0 / 44100.0;
-        //         // if self.phase > 2.0 * std::f32::consts::PI {
-        //         //     self.phase -= 2.0 * std::f32::consts::PI
-        //         // }
-        //     }
-        //     // output[1] = output[0].clone();
-        // }
+        let mod_buf = &mut inputs[0].buffers();
+        for i in 0..64 {
+            output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
+            self.phase += mod_buf[0][i] / 44100.0;
+            if self.phase > 1.0 {
+                self.phase -= 1.0
+            }
+        }
+        self.buffer = output[0].clone();
+        self.clock = clock + 64;
     }
 }
 
 pub struct Impulse {
-    // sig: Box<dyn Signal<Frame=f32> + Send>,
     clock: usize,
     period: usize,
+    // sig: Box<dyn Signal<Frame=f32> + Send>,
     // sig: GenMut<(dyn Signal<Frame=f32> + 'static + Sized), f32>
 }
 
@@ -139,88 +92,90 @@ impl Node for Impulse {
     }
 }
 
+#[allow(dead_code)]
 pub struct Saw {
+    _freq: f32,
     phase_n: usize,
-    freq: f32,
-    has_sidechain: bool
+    clock: usize,
+    buffer: Buffer,
+    sidechain_ids: Vec<u8>
 }
 
 impl Saw {
-    pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
-        let para_a: String = paras.as_str().to_string()
-        .chars().filter(|c| !c.is_whitespace()).collect();
-
-        let is_float = para_a.parse::<f32>();
-        let has_sidechain = !is_float.is_ok();
-        let (freq, sidechain) = match has_sidechain {
-            true => (440.0, vec![para_a]),
-            false => (midi_or_float(para_a), vec![])
-        };
-
-        Ok((NodeData::new1(BoxedNodeSend::new(Self {
-            phase_n: 0,
-            freq: freq,
-            has_sidechain: has_sidechain
-        })), sidechain))
-    }
+    handle_params!({_freq: 100.0}, {phase_n: 0, clock: 0},
+        [(_freq, buffer, |_freq: f32|->Buffer {
+            Buffer::default()
+        })]);
 }
 
 impl Node for Saw {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+        if inputs.len() < 2 { return () };
+        let clock = inputs[1].buffers()[0][0] as usize;
+        if self.clock != clock {
+            output[0] = self.buffer.clone();
+            return ()
+        };
 
         for i in 0..64 {
-            // if self.has_sidechain {
             let mod_buf = &mut inputs[0].buffers();
-            if mod_buf[0][i] != 0.0 {
-                self.freq = mod_buf[0][i];
-            };
-            // }
-            // assert_ne!(self.freq, 0.0);
-            let circle_len = (44100.0 / self.freq) as usize;
-            output[0][i] = ((self.phase_n % circle_len) as f32 / circle_len as f32)*2.0-1.0;
+            if mod_buf[0][i] == 0.0 {
+                output[0][i] = 0.0;
+                continue;
+            }
+            let period = 44100.0 / mod_buf[0][i];
+            output[0][i] = (self.phase_n % period as usize) as f32
+            / period *2.0-1.0;
             self.phase_n += 1;
         }
+        self.buffer = output[0].clone();
+        self.clock = clock as usize + 64;
     }
 }
 
+#[allow(dead_code)]
 pub struct Square {
+    _freq: f32,
     phase_n: usize,
-    freq: f32,
-    has_sidechain: bool
+    clock: usize,
+    buffer: Buffer,
+    sidechain_ids: Vec<u8>
 }
 
 impl Square {
-    pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
-        let para_a: String = paras.next().unwrap().as_str().to_string()
-        .chars().filter(|c| !c.is_whitespace()).collect();
-
-        let is_float = para_a.parse::<f32>();
-        let has_sidechain = !is_float.is_ok();
-        let (freq, sidechain) = match has_sidechain {
-            true => (440.0, vec![para_a]),
-            false => (midi_or_float(para_a), vec![])
-        };
-
-        Ok((NodeData::new1(BoxedNodeSend::new(Self {
-            phase_n: 0,
-            freq: freq,
-            has_sidechain: has_sidechain
-        })), sidechain))
-    }
+    handle_params!({
+        _freq: 100.0
+    }, {
+        phase_n: 0,
+        clock: 0
+    }, [
+        (_freq, buffer, |_freq: f32|->Buffer {
+            Buffer::default()
+        })
+    ]);
 }
 
 impl Node for Square {
     fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+        if inputs.len() < 2 { return () };
+        let clock = inputs[1].buffers()[0][0] as usize;
+        if self.clock != clock {
+            output[0] = self.buffer.clone();
+            return ()
+        };
+
         for i in 0..64 {
-            // if self.has_sidechain {
             let mod_buf = &mut inputs[0].buffers();
-            if mod_buf[0][i] != 0.0 {
-                self.freq = mod_buf[0][i];
-            };
-            // }
-            let circle_len = (44100.0 / self.freq) as usize;
-            output[0][i] = ((self.phase_n % circle_len) > (circle_len / 2)) as u8 as f32 * 2.0 - 1.0;
+            if mod_buf[0][i] == 0.0 {
+                output[0][i] = 0.0;
+                continue;
+            }
+            let period = (44100.0 / mod_buf[0][i]) as usize;
+            output[0][i] = ((self.phase_n%period) > (period/2))
+            as u8 as f32 * 2.0 - 1.0;
             self.phase_n += 1;
         }
+        self.buffer = output[0].clone();
+        self.clock = clock as usize + 64;
     }
 }

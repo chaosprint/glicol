@@ -125,7 +125,7 @@ pub extern "C" fn run(
     let encoded:&'static mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
     let code: &'static str = std::str::from_utf8(encoded).unwrap();
     engine.set_code(code);
-    engine.update();
+    // engine.update();
 }
 
 #[no_mangle]
@@ -137,7 +137,7 @@ pub extern "C" fn update(arr_ptr: *mut u8, length: usize) {
     let code = std::str::from_utf8(encoded).unwrap();
     // push the code to engine
     engine.set_code(code);
-    engine.update();
+    // engine.update();
 }
 
 #[no_mangle]
@@ -146,7 +146,7 @@ pub extern "C" fn run_without_samples(arr_ptr: *mut u8, length: usize) {
     let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
     let code = std::str::from_utf8(encoded).unwrap();
     engine.set_code(code);
-    engine.update();
+    // engine.update();
     // engine.make_graph(); // TODO
 }
 

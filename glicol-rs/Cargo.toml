@@ -10,7 +10,8 @@ edition = "2018"
 pest = "2.0"
 pest_derive = "2.0"
 dasp_graph = "0.11.0"
-dasp_signal = "0.11.0"
+dasp_signal = { version = "*" }
+#apodize = "1.0.0"
 dasp_ring_buffer = "0.11.0"
 dasp_slice = "0.11.0"
 dasp_interpolate = { version = "*", features = ["linear"] }

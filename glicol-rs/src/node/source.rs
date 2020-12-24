@@ -1,7 +1,7 @@
 use dasp_graph::{Buffer, Input, Node};
-use dasp_slice::add_in_place;
+// use dasp_slice::add_in_place;
 use super::super::{Pairs, Rule, NodeData, 
-    NodeResult, BoxedNodeSend, EngineError, handle_params};
+    NodeResult, BoxedNodeSend, EngineError};
 
 pub struct ConstSig {
     val: f32
@@ -26,7 +26,7 @@ impl ConstSig {
 }
 
 impl Node for ConstSig {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+    fn process(&mut self, _inputs: &[Input], output: &mut [Buffer]) {
         for o in output {
             o.iter_mut().for_each(|s| *s = self.val);
         }

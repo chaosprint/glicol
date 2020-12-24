@@ -1,13 +1,16 @@
 use std::{collections::HashMap, num::ParseFloatError};
 
-extern crate pest;
-extern crate pest_derive;
+// extern crate pest;
+// extern crate pest_derive;
 use pest::Parser;
 use pest::iterators::Pairs;
 mod parser;
 use parser::*;
 
-use dasp_graph::{NodeData, Input, BoxedNodeSend, Processor};
+// #[macro_use]
+// extern crate apodize;
+
+use dasp_graph::{NodeData, BoxedNodeSend, Processor};
 use petgraph::graph::{NodeIndex};
 use petgraph::Directed;
 use petgraph::stable_graph::{StableGraph, StableDiGraph};
@@ -18,7 +21,7 @@ use node::adc::{Adc, AdcSource};
 use node::system::{Clock, AudioIn};
 
 mod utili;
-use utili::{midi_or_float, code_hack, lcs};
+use utili::{midi_or_float, code_preprocess, lcs};
 
 pub type NodeResult =Result<
     (NodeData<BoxedNodeSend>, Vec<String>), EngineError>;
@@ -36,14 +39,14 @@ pub struct Engine {
     pub chain_string: HashMap<String, String>,
     pub node_by_chain: HashMap<String, Vec<(NodeIndex, String)>>,
     pub chain_info: HashMap<String, Vec<String>>,
-    // pub node_index_dict: HashMap<String, Vec<(NodeIndex, Vec<String>)>>,
-    // pub node_string_dict: HashMap<String, Vec<Vec<String>>>,
     pub clock: NodeIndex,
     audio_in: NodeIndex,
     code: String,
     code_backup: String,
     update: bool,
-    // pub updatefree: Vec<String>,
+    // fade: usize,
+    // window: Vec<f64>,
+    pub modified: Vec<String>,
     pub all_refs: Vec<String>, // for always using current code
 }
 
@@ -62,16 +65,14 @@ impl Engine {
         Engine {
             graph: g,
             processor: p,
-            code: "default: const 0".to_string(),
-            code_backup: "default: const 0".to_string(),
+            code: "".to_string(),
+            code_backup: "".to_string(),
             samples_dict: HashMap::new(),
             adc_source_nodes: Vec::new(),
             adc_nodes: Vec::new(),
             sidechains_list: Vec::new(),
             chain_string: HashMap::new(),
             node_by_chain: HashMap::new(),
-            // node_index_dict: HashMap::new(),
-            // node_string_dict: HashMap::new(),
             chain_info: HashMap::new(),
             clock: NodeIndex::new(0),
             audio_in: NodeIndex::new(1),
@@ -79,7 +80,9 @@ impl Engine {
             bpm: 120.0,
             elapsed_samples: 0,
             update: false,
-            // updatefree: Vec::new(),
+            // fade: 0,
+            // window: apodize::hanning_iter(4096).collect::<Vec<f64>>(),
+            modified: Vec::new(),
             all_refs: Vec::new(),
         }
     }
@@ -87,8 +90,8 @@ impl Engine {
     pub fn reset(&mut self) {
         self.elapsed_samples = 0;
         self.update = false;
-        self.code = "default: const 0".to_string();
-        self.code_backup = "default: const 0".to_string();
+        self.code = "".to_string();
+        self.code_backup = "".to_string();
         self.sidechains_list.clear();
         self.node_by_chain.clear();
         self.chain_info.clear();
@@ -96,24 +99,17 @@ impl Engine {
         self.graph.clear();
     }
 
-    pub fn update(&mut self) {
-        self.update = true;
-    }
-
     pub fn set_code(&mut self, code: &str) {
         self.code = code.to_string();
+        self.update = true;
     }
-
-    // pub fn input(&mut self, inputs: &[Input]) {
-    //     // self.graph[self.control_nodes["~input"]].buffers[0]
-    //     // = inputs[0].buffers()[0].clone();
-    // }
 
     // error only comes from this method
     pub fn make_graph(&mut self) -> Result<(), EngineError>{
         // self.node_by_chain.clear();
         self.graph.clear_edges();
         self.all_refs.clear();
+        // self.modified.clear();
         // self.sidechains_list.clear();
 
         if self.graph.node_count() < 2 {
@@ -129,8 +125,8 @@ impl Engine {
             vec![(self.audio_in, "~input".to_string())]
         );
 
-        let mut b = code_hack(&mut self.code)?;
-        println!("{}",&b);
+        let mut b = code_preprocess(&mut self.code)?;
+        // println!("{}",&b);
 
         let lines = match GlicolParser::parse(Rule::block, &mut b) {
             Ok(mut v) => v.next().unwrap(),
@@ -157,7 +153,7 @@ impl Engine {
                         .filter(|c| !c.is_whitespace()).collect()).collect();
                         // new.reverse();
 
-                        let (add, rem, del) = match self.chain_info
+                        let (add, _rem, del) = match self.chain_info
                         .contains_key(&refname) {
 
                             true => {
@@ -173,6 +169,10 @@ impl Engine {
                                 lcs(&t, &new)
                             }
                         };
+
+                        // if (add.len() + del.len()) > 0 {
+                        //     self.modified.push(refname.clone());
+                        // }
 
                         for info in &del {
                             let mut i = 0;
@@ -205,14 +205,16 @@ impl Engine {
                             };
 
                             for info in &add {
-                                println!("info {:?} != {:?} ?", &id, &info.0);
+                                // println!("info {:?} != {:?} ?", &id, &info.0);
                                 if info.0 == id {
+
                                     let (node_data, sidechains) = make_node(
                                         name, &mut paras,
                                         &self.samples_dict,
                                         self.sr as f32,
                                         self.bpm
                                     )?;
+
                                     let node_index = self.graph.add_node(node_data);
                                     
                                     if !self.node_by_chain.contains_key(&refname) {
@@ -232,7 +234,7 @@ impl Engine {
                                         list.insert(
                                             info.1, (node_index, id.clone()));
 
-                                        println!("insert{} at{}",id.clone(),info.1);
+                                        // println!("insert{} at{}",id.clone(),info.1);
                                         self.node_by_chain.insert(
                                             refname.clone(),list);
                                     };
@@ -249,28 +251,26 @@ impl Engine {
                 }
             }
         }
+        // println!("{:?}", self.node_by_chain);
 
         // for chains that are simply deleted or commented out
-        for (key, _) in &self.node_by_chain {
-            if !self.all_refs.contains(&key) {
-                for n in &self.node_by_chain[key] {
-                    self.graph.remove_node(n.0);
-                    self.sidechains_list.retain(|v| v.0 != n.0);
-                }
+        for key in self.node_by_chain.keys() {
+            if self.all_refs.contains(key) {
+                continue;
             }
+            for n in &self.node_by_chain[key] {
+                // println!("remove node: {:?} index: {:?}", key, n);
+                self.graph.remove_node(n.0);
+                self.sidechains_list.retain(|v| v.0 != n.0);
+            }
+            self.chain_info.remove(key);
+            self.chain_string.remove(key);
         }
 
         let all_refs = self.all_refs.clone();
-        let mut list = self.node_by_chain.clone();
-        list.retain(|k, _| all_refs.contains(k));
-        self.node_by_chain = list;
-        // .iter_mut().map(|(k, v)|{v.reverse();}).collect();
-        let all_refs = self.all_refs.clone();
-        self.chain_string.retain(|k, _| all_refs.contains(k));
-        let all_refs = self.all_refs.clone();
-        self.chain_info.retain(|k, _| all_refs.contains(k));
-        // println!("node_by_chain {:?}", self.node_by_chain);
+        self.node_by_chain.retain(|k, _| all_refs.contains(k));
 
+        // println!("connect clock to {:?}", self.node_by_chain);
         // connect clocks to all the nodes
         for (refname, nodes) in &self.node_by_chain {
             if refname != "~input" {
@@ -280,15 +280,10 @@ impl Engine {
             }
         }
 
-        // println!("node_by_chain {:?}", self.node_by_chain);
-        // println!("sidechainlist {:?}", self.sidechains_list);
-
         // make edges in each chain
         for (_refname, node_chains) in &self.node_by_chain {
             if node_chains.len() >= 2 {
-                // println!("a");
                 self.graph.add_edge(node_chains[0].0,node_chains[1].0,());
-                // println!("b");
                 for i in 0..(node_chains.len()-2) {
                     self.graph.add_edge(node_chains[i+1].0,node_chains[i+2].0,());
                 };
@@ -297,11 +292,11 @@ impl Engine {
         
         // make edges cross chain
         for pair in &self.sidechains_list {
-            println!("{}", pair.1);
+            // println!("sidechain conncect {:?}", pair);
             if pair.1.contains("@rev") {
                 
                 let name = &pair.1[4..];
-                println!("reversed connection for {}", name);
+                // println!("reversed connection for {}", name);
                 if !self.node_by_chain.contains_key(name) {
                     return Err(EngineError::NonExistControlNodeError);
                 }
@@ -318,6 +313,14 @@ impl Engine {
 
         Ok(())
     }
+
+    // TODO: find all modified,
+    // pub fn find_modified(&self mut) -> Result<(), EngineError> {
+    //     let lines = match GlicolParser::parse(Rule::block, &mut b) {
+    //         Ok(mut v) => v.next().unwrap(),
+    //         Err(e) => { println!("{:?}", e); return Err(EngineError::ParsingError)}
+    //     };
+    // }
 
     // for bela
     pub fn make_adc_node(&mut self, chan:usize) {
@@ -379,21 +382,21 @@ impl Engine {
         Ok(output)
     }
 
+    // for wasm live coding
     pub fn gen_next_buf_128(&mut self, inbuf: &mut [f32])
     -> Result<([f32; 256], [u8;256]), EngineError> {
-
-        // you just cannot use self.buffer
+        // don't use self.buffer
         let mut output: [f32; 256] = [0.0; 256];
         let mut console: [u8;256] = [0; 256];
+        let one_bar = (240.0 / self.bpm * self.sr as f32) as usize;
+        let n = self.elapsed_samples;
 
-        let one_bar = 60.0 / self.bpm * 4.0 * self.sr as f32;
+        // if self.update && (n + 128 + 2048) % one_bar < 128 {
+        //     self.fade = 0;
+        // }
 
-        let is_near_bar_end = (self.elapsed_samples + 128) % (one_bar as usize) < 128;
-        
-        // for wasm live coding
-        if self.update && is_near_bar_end {
+        if self.update && (n + 128) % one_bar < 128 {
             self.update = false;
-
             match self.make_graph() {
                 Ok(_) => {
                     self.code_backup = self.code.clone();
@@ -436,16 +439,89 @@ impl Engine {
             }
         }
 
-        let first64 = self.gen_next_buf_64(inbuf)?;
-        for i in 0..64 {
-            output[i] = first64[i];
-            output[i+128] = first64[i+64];
+        // process 0..64
+        for (refname, v) in &self.node_by_chain {
+            if refname.contains("~") {
+                continue;
+            }
+            self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
+            for i in 0..64 {
+                self.graph[
+                    self.node_by_chain["~input"][0].0
+                ].buffers[0][i] = inbuf[i];
+            }
+            self.processor.process(&mut self.graph, v.last().unwrap().0);
         }
-        let second64 = self.gen_next_buf_64(inbuf)?;
-        for i in 0..64 {
-            output[i+64] = second64[i];
-            output[i+128+64] = second64[i+64]
+
+        // sendout 0..64
+        for (refname, v) in &self.node_by_chain {
+            if refname.contains("~") {
+                continue;
+            }
+            let bufleft = &self.graph[v.last().unwrap().0].buffers[0];
+            let bufright = match &self.graph[v.last().unwrap().0].buffers.len() {
+                1 => {bufleft},
+                2 => {&self.graph[v.last().unwrap().0].buffers[1]},
+                _ => {unimplemented!()}
+            };
+
+            for i in 0..64 {
+                // let s = match self.fade {
+                //     k if k > 4095 => 1.0,
+                //     _ => self.window[self.fade] as f32 * -1.0 + 1.0
+                // };
+                // self.fade += 1;
+                // let scale = 1.0;bufleft[i] * bufright[i] * 
+                output[i] += bufleft[i];
+                output[i+128] += bufright[i];
+                // output[i] += s;
+                // output[i+128] += s;
+            }
         }
+        self.elapsed_samples += 64;
+
+        // process 64..128
+        for (refname, v) in &self.node_by_chain {
+            if refname.contains("~") {
+                continue;
+            }
+            self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
+            for i in 0..64 {
+                self.graph[
+                    self.node_by_chain["~input"][0].0
+                ].buffers[0][i] = inbuf[i+64];
+            }
+            self.processor.process(&mut self.graph, v.last().unwrap().0);
+        }
+
+        // sendout 64..128
+        for (refname, v) in &self.node_by_chain {
+            if refname.contains("~") {
+                continue;
+            }
+
+            let bufleft = &self.graph[v.last().unwrap().0].buffers[0];
+            let bufright = match &self.graph[v.last().unwrap().0].buffers.len() {
+                1 => {bufleft},
+                2 => {&self.graph[v.last().unwrap().0].buffers[1]},
+                _ => {unimplemented!()}
+            };
+            for i in 0..64 {
+                // let s = clamp(((self.fade-4095) as f32/4095.0).powi(6), -1.0, 1.0);
+                // let s = match self.fade {
+                //     k if k > 4095 => 1.0,
+                //     _ => self.window[self.fade] as f32 * -1.0 + 1.0
+                // };
+                // self.fade += 1;
+                // let scale = 1.0;bufleft[i] * bufright[i] * 
+                output[i+64] += bufleft[i];
+                output[i+128+64] += bufright[i];
+                // output[i+64] += s;
+                // output[i+128+64] += s;
+            }
+        }
+        self.elapsed_samples += 64;
+
         Ok((output, console))
     }
 }
@@ -469,7 +545,7 @@ impl std::convert::From<ParseFloatError> for EngineError {
 /// this works well for nodes whose inner states are only floats
 /// e.g. oscillator, filter, operator
 macro_rules! handle_params {
-    ( 
+    (
         { $($id: ident: $default: expr),* }
         $(,{$( $extra_params: ident : $val: expr),* })?
         $(,[$( ( $related: ident, $extra_id: ident, $handler: expr) ),* ])?
@@ -535,18 +611,9 @@ macro_rules! ndef {
         impl $struct_name {
             pub fn new(paras: &mut Pairs<Rule>) -> Result<
             (NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
-                // let param_a = paras.as_str().parse::<f32>().unwrap();
                 let mut engine = Engine::new();
-                // let code: &'static str = &$code_str.replace("$1", paras.as_str());
-                // let mut code = $code_str;
-                // if code.contains("{}") {
-                //     code = format!($code_str, a=paras.as_str()
-                // }
                 engine.set_code(&format!($code_str, a=paras.as_str()));
-                // engine.set_params(paras);
-                // println!("{}", engine.code);
                 engine.make_graph()?;
-                engine.update();
                 Ok((NodeData::$channel_num(BoxedNodeSend::new( Self {
                     engine
                 })), vec![]))
@@ -587,7 +654,6 @@ mod tests {
     
         ~am: sin 0.3 >> linrange 0.1 0.9");
     
-        engine.update();
         engine.make_graph();
 
         for _ in 0..(43000.0/128.0) as usize {
@@ -597,7 +663,6 @@ mod tests {
     
         ~am: sin 0.3 >> linrange 0.1 0.9");
 
-        engine.update();
         engine.make_graph();
 
         for _ in 0..(43000.0/128.0) as usize {

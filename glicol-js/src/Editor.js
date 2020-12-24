@@ -34,6 +34,13 @@ export default function Editor(props) {
             // console.log(id)
             if (!window.firebase.apps.length) {
                 window.firebase.initializeApp(firebaseConfig);
+                window.firebase.auth().signInAnonymously()
+                .then(() => {
+                })
+                .catch((error) => {
+                    console.log(error.code);
+                    console.log(error.message);
+                });
             }
             //// Create ACE
             window.editor = window.ace.edit("firepad");
