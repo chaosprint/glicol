@@ -204,6 +204,7 @@ impl Engine {
                                 _ => "".to_string()
                             };
 
+                            // println!("{:?}", &add);
                             for info in &add {
                                 // println!("info {:?} != {:?} ?", &id, &info.0);
                                 if info.0 == id {
@@ -243,7 +244,8 @@ impl Engine {
                                         self.sidechains_list.push(
                                             (node_index, sidechain));
                                     };
-                                }
+                                    break;
+                                };
                             };
                         }
                     },

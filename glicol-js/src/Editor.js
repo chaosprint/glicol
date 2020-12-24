@@ -34,13 +34,7 @@ useEffect(()=>{
         if (!window.firebase.apps.length) {
             window.firebase.initializeApp(firebaseConfig);
         }
-        window.firebase.auth().signInAnonymously()
-        .then(() => {
-        })
-        .catch((error) => {
-            console.log(error.code);
-            console.log(error.message);
-        });
+
         // console.log(id)
         //// Create ACE
         window.editor = window.ace.edit("firepad");
@@ -57,7 +51,7 @@ useEffect(()=>{
         // editor.setTheme("ace/theme/textmate");
         var session =  window.editor.getSession();
         session.setUseWrapMode(true);
-        session.setUseWorker(true);
+        session.setUseWorker(false);
         session.setMode("ace/mode/glicol");
         session.on("change", () => window.code = window.editor.getValue())
 

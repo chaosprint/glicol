@@ -154,6 +154,15 @@ export default function App() {
     try {
       loadModule()
     } catch (e) {console.log(e)}
+    try {
+      window.firebase.auth().signInAnonymously()
+      .then(() => {
+      })
+      .catch((error) => {
+          console.log(error.code);
+          console.log(error.message);
+      });
+    } catch {}
   }, []);
 
   window.addSample = async (name, url) => {
@@ -504,6 +513,9 @@ export default function App() {
                 onChange={change}
                 name="UNIQUE_ID_OF_DIV"
                 editorProps={{ $blockScrolling: true }}
+                setOptions={{
+                  useWorker: false // <<----- USE THIS OPTION TO DISABLE THE SYNTAX CHECKER
+                }}
                 commands={[{   // commands is array of key bindings.
                   name: 'Run', //name for the key binding.
                   bindKey: {win: 'Ctrl-Enter', mac: 'Command-Enter'},
