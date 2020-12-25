@@ -13,7 +13,6 @@ import { useStyles, theme } from './styles'
 import {Run, Reset, Pause, Menu, Update } from './components/ToolButton'
 import MyList from "./components/MyList"
 
-
 import handleError from './handleError'
 import { WaveFile } from 'wavefile';
 import sampleDict from './samples.json';
@@ -85,11 +84,28 @@ export default function App() {
   window.help = (token) => {
     const t0 = performance.now();
     if (token in window.docs.about) {
-      console.log(`%c${window.docs.about[token]}`, "background: blue")
-      console.table(window.docs.table[token])
-      console.table(window.docs.range[token])
-      console.log("%cEXAMPLE", "background: green; color: white")
-      window.docs.example[token]()
+      if (token in window.docs.range) {
+        console.log("%cABOUT:", "background: purple; color: white; font-weight: bold")
+        console.log(`%c${window.docs.about[token]}`, "background: green; color: white")
+      } else {
+        console.log(`%cStill under development.`, "background: blue")
+      }
+      if (token in window.docs.params) {
+        // console.table(window.docs.params[token])
+        console.log("%cPARAMETERS:", "background: purple; color: white; font-weight: bold")
+        window.docs.params[token].forEach(e=>{
+          console.log(`%c${e[0]}: ${e[1]}`, "background: green; color: white");
+          console.log(`%c${e[2]}`, "background: yellow; color: white");
+        })
+      }
+      if (token in window.docs.range) {
+        console.log("%cRANGE:", "background: purple; color: white; font-weight: bold")
+        console.table(window.docs.range[token])
+      }
+      if (token in window.docs.example) {
+        console.log("%cEXAMPLE", "background: green; color: white");
+        window.docs.example[token]()
+      }
     } else {
         console.error(`Move your cursor to an non-empty place where you wish to search.
         \nFor example, if you wish to search "sin", your cursor should be inside "sin" like this: s|in`)
