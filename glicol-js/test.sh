@@ -1,4 +1,4 @@
 cp  ./public/mode-glicol.js     ./node_modules/ace-builds/src-noconflict/
 cp  ./public/theme-glicol-night.js      ./node_modules/ace-builds/src-noconflict/
-cp ../glicol-wasm/target/wasm32-unknown-unknown/release/glicol_wasm.wasm    ./public/wasm/
+cp ../glicol-wasm/target/wasm32-unknown-unknown/release/glicol_wasm.wasm    ./public/
 yarn start

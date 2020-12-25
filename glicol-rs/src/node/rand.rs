@@ -26,10 +26,14 @@ impl Choose {
         // println!("{:?} {:?}", c, buf);
         // let rng = OsRng;
         let split: Vec<&str> = paras.as_str().split(" ").collect();
+        let p = paras.next().unwrap();
+        let pos = (p.as_span().start(), p.as_span().end());
         let mut note_list = Vec::<f32>::new();
-
         for note in split {
-            note_list.push(note.parse::<f32>()?)
+            match note.parse::<f32>() {
+                Ok(v) => note_list.push(v),
+                Err(_) => return Err(EngineError::ParameterError(pos))
+            }
         }
         // = split.iter().map(|x|x.parse::<f32>().unwrap()).collect();
         let sig = signal::noise(0);

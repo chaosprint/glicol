@@ -55,8 +55,13 @@ impl Impulse {
 
         let para_a: String = paras.as_str().to_string()
         .chars().filter(|c| !c.is_whitespace()).collect();
+        let p = paras.next().unwrap();
+        let pos = (p.as_span().start(), p.as_span().end());
 
-        let freq = para_a.parse::<f32>()?;
+        let freq = match para_a.parse::<f32>() {
+            Ok(v) => v,
+            Err(_) => return Err(EngineError::ParameterError(pos))
+        };
         let period = (44100.0 / freq) as usize;
 
         // let mut i: usize = 0;

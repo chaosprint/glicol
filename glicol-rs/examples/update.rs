@@ -5,9 +5,10 @@ use glicol::EngineError;
 
 fn main () -> Result<(), EngineError> {
     let mut engine = Engine::new();
-    engine.set_code("aa: sin 44000 >> mul 0.9");
-    engine.make_graph()?;
-    println!("\n\nnode_by_chain {:?}\n\n", engine.node_by_chain);
+    engine.set_code("aa: sin 440");
+    // engine.update = true;
+    // engine.make_graph()?;
+    // println!("\n\nnode_by_chain {:?}\n\n", engine.node_by_chain);
     let mut x = Vec::<i32>::new();
     let mut y = Vec::<f32>::new();
     let mut y2 = Vec::<f32>::new();
@@ -22,9 +23,9 @@ fn main () -> Result<(), EngineError> {
         }
     }
 
-    engine.set_code("aa: sin 44000 >> mul 0.1");
+    engine.set_code("aa: imp 1.0 >> sampler \\impp");
 
-    println!("\n\nsnode_by_chain {:?}\n\n", engine.node_by_chain);
+    // println!("\n\nnode_by_chain {:?}\n\n", engine.node_by_chain);
     for _ in 0..(70000.0/128.0) as usize {
         let out = engine.gen_next_buf_128(&mut [0.0;128]).unwrap().0;
         for i in 0..128 {
@@ -35,8 +36,8 @@ fn main () -> Result<(), EngineError> {
         }
     }
 
-    const LO: usize = 88100;
-    const HI: usize = 89900;
+    const LO: usize = 0;
+    const HI: usize = 130000;
 
     let mut fg = Figure::new();
     fg.axes2d()

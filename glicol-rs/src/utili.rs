@@ -51,6 +51,7 @@ pub fn preprocess_sin(a: &String) -> Result<String, EngineError> {
 pub fn preprocess_mul(a: &String) -> Result<String, EngineError> {
     let q: String = a.replace("\n", " \n ");
     let v: Vec<&str> = q.split(" ").collect();
+    // println!("{:?}", v);
     let mut b = "".to_string();
     let mut current_ref = "";
     let x = "abcdefghijklmnopqrstuvwxyz".to_string();
@@ -139,3 +140,21 @@ pub fn lcs(old: &Vec<String>, new: &Vec<String>)
 //         _ => input
 //     }
 // }
+
+pub fn process_error_info(code: String, error: usize, s: usize, e: usize) -> [u8; 256] {
+    let mut info: [u8; 256] = [0; 256];
+    let l = code[..s].matches("\n").count() as u8;
+    info[0] = error as u8;
+    info[1] = l;
+    let word = code[s..e].as_bytes();
+    if word.len() < 254 {
+        for i in 2..word.len()+2 {
+            info[i] = word[i-2]
+        }
+    } else {
+        for i in 2..256 {
+            info[i] = word[i-2]
+        }
+    }
+    info
+}

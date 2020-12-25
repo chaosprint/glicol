@@ -1,4 +1,5 @@
-use std::{collections::HashMap, num::ParseFloatError};
+use std::{collections::HashMap};
+// , num::ParseFloatError}
 
 // extern crate pest;
 // extern crate pest_derive;
@@ -21,7 +22,8 @@ use node::adc::{Adc, AdcSource};
 use node::system::{Clock, AudioIn};
 
 mod utili;
-use utili::{midi_or_float, preprocess_sin, preprocess_mul, lcs};
+use utili::{midi_or_float, preprocess_sin,
+    preprocess_mul, lcs, process_error_info};
 
 pub type NodeResult =Result<
     (NodeData<BoxedNodeSend>, Vec<String>), EngineError>;
@@ -43,7 +45,7 @@ pub struct Engine {
     audio_in: NodeIndex,
     code: String,
     code_backup: String,
-    update: bool,
+    pub update: bool,
     track_amp: f32,
     // fade: usize,
     // window: Vec<f64>,
@@ -101,6 +103,18 @@ impl Engine {
         self.graph.clear();
     }
 
+    pub fn soft_reset(&mut self) {
+        // self.elapsed_samples = 0;
+        // self.update = false;
+        // self.code = "".to_string();
+        // self.code_backup = "".to_string();
+        self.sidechains_list.clear();
+        self.node_by_chain.clear();
+        self.chain_info.clear();
+        self.chain_string.clear();
+        self.graph.clear();
+    }
+
     pub fn set_code(&mut self, code: &str) {
         self.code = code.to_string();
         self.update = true;
@@ -113,6 +127,7 @@ impl Engine {
     // error only comes from this method
     pub fn make_graph(&mut self) -> Result<(), EngineError>{
         // self.node_by_chain.clear();
+        self.samples_dict.insert("\\imp".to_string(), &[1.0]);
         self.graph.clear_edges();
         self.all_refs.clear();
         // self.modified.clear();
@@ -307,13 +322,13 @@ impl Engine {
                 let name = &pair.1[4..];
                 // println!("reversed connection for {}", name);
                 if !self.node_by_chain.contains_key(name) {
-                    return Err(EngineError::NonExistControlNodeError);
+                    return Err(EngineError::NonExistControlNodeError(name.to_string()));
                 }
                 let control_node = self.node_by_chain[name].last().unwrap().0;
                 self.graph.add_edge(pair.0, control_node, ());
             } else {
                 if !self.node_by_chain.contains_key(&pair.1) {
-                    return Err(EngineError::NonExistControlNodeError);
+                    return Err(EngineError::NonExistControlNodeError(pair.1.to_string()));
                 }
                 let control_node = self.node_by_chain[&pair.1].last().unwrap().0;
                 self.graph.add_edge(control_node, pair.0, ());
@@ -404,36 +419,36 @@ impl Engine {
         //     self.fade = 0;
         // }
 
-        if self.update && (n + 128) % one_bar < 128 {
+        if self.update && (n + 128) % one_bar <= 128 {
+            // println!("update, {}", self.code);
             self.update = false;
             match self.make_graph() {
                 Ok(_) => {
                     self.code_backup = self.code.clone();
                 },
                 Err(e) => {
-                    // println!("{:?}", e);
                     let mut info: [u8; 256] = [0; 256];
                     console = match e {
                         EngineError::SampleNotExistError((s, e)) => { 
-                            let l = self.code.clone()[..s].matches("\n").count() as u8;
-                            info[0] = 1;
-                            info[1] = l;
-                            // println!("{}", self.code);
-                            let word = self.code[s..e].as_bytes();
-                            for i in 2..word.len()+2 {
-                                info[i] = word[i-2]
-                            }
-                            info   
+                            process_error_info(self.code.clone(), 1, s, e)
                         },
-                        EngineError::NonExistControlNodeError => {
+                        EngineError::NonExistControlNodeError(name) => {
                             info[0] = 2;
-                            info[1] = 0;
+                            info[1] = 0;//position is not given here
+                            let word = name.as_bytes();
+                            if word.len() < 254 {
+                                for i in 2..word.len()+2 {
+                                    info[i] = word[i-2]
+                                }
+                            } else {
+                                for i in 2..256 {
+                                    info[i] = word[i-2]
+                                }
+                            }
                             info
                         },
-                        EngineError::ParameterError => {
-                            info[0] = 3;
-                            info[1] = 0;
-                            info
+                        EngineError::ParameterError((s, e)) => {
+                            process_error_info(self.code.clone(), 3, s, e)
                         },
                         EngineError::HandleNodeError => {
                             info[0] = 4;
@@ -442,8 +457,10 @@ impl Engine {
                         },
                         _ => unimplemented!()
                     };
-                    self.code = self.code_backup.clone();
-                    self.make_graph()?; // this should be fine
+                    self.soft_reset();
+                    // self.code = self.code_backup.clone();
+                    self.set_code(&self.code_backup.clone());
+                    self.make_graph()?;
                 }
             }
         }
@@ -538,17 +555,17 @@ impl Engine {
 #[derive(Debug)]
 pub enum EngineError {
     ParsingError,
-    NonExistControlNodeError,
     HandleNodeError,
-    ParameterError,
+    NonExistControlNodeError(String),
+    ParameterError((usize, usize)),
     SampleNotExistError((usize, usize))
 }
 
-impl std::convert::From<ParseFloatError> for EngineError {
-    fn from(_error: ParseFloatError) -> Self {
-        EngineError::ParameterError
-    }
-}
+// impl std::convert::From<ParseFloatError> for EngineError {
+//     fn from(_error: ParseFloatError) -> Self {
+//         EngineError::ParameterError
+//     }
+// }
 
 #[macro_export]
 /// this works well for nodes whose inner states are only floats

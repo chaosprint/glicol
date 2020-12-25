@@ -14,6 +14,7 @@ import {Run, Reset, Pause, Menu, Update } from './components/ToolButton'
 import MyList from "./components/MyList"
 
 
+import handleError from './handleError'
 import { WaveFile } from 'wavefile';
 import sampleDict from './samples.json';
 import {sampleList} from './samples.js';
@@ -61,7 +62,6 @@ export default function App() {
 
   const classes = useStyles();
   const encoder = new TextEncoder('utf-8');
-  const decoder = new TextDecoder('utf-8');
   // const actx = useRef()
   // const node = useRef()
   const codeRef = useRef(welcome)
@@ -105,10 +105,10 @@ export default function App() {
     window.actx = new window.AudioContext({
       sampleRate: 44100
     })
-    await window.actx.audioWorklet.addModule('./worklet/engine.js')
+    await window.actx.audioWorklet.addModule('./engine.js')
     window.node = new AudioWorkletNode(window.actx, 'glicol-engine', {outputChannelCount: [2]})
 
-    fetch('wasm/glicol_wasm.wasm')
+    fetch('./glicol_wasm.wasm')
     .then(response => response.arrayBuffer())
     .then(arrayBuffer => {
       window.node.port.postMessage({
@@ -127,7 +127,7 @@ export default function App() {
       if (typeof beats_per_minute === "number") {
         window.node.port.postMessage({
           type: "bpm", value: beats_per_minute})
-        console.log(`%cBPM set to: ${beats_per_minute}`, "background: red");
+        console.log(`%cBPM set to: ${beats_per_minute}`, "background: green");
         console.log("%c This will be effective when you make some changes to the code.", "background: yellow");
       } else {
         console.warn("BPM should be a number.")
@@ -141,8 +141,7 @@ export default function App() {
         if (amp <= 1.0) {
           window.node.port.postMessage({
             type: "amp", value: amp})
-          console.log(`%cThe amplitude of each track is set to: ${amp}`,"background: red");
-          console.log("%c This will be effective when you make some changes to the code.", "background: yellow");
+          console.log(`%cThe amplitude of each track is set to: ${amp}`,"background: green");
         } else {
           console.warn("Amplitude should not exceed 1.0.")
         }
@@ -310,9 +309,11 @@ export default function App() {
 
   const handleRun = () => {
 
-    window.node.port.onmessage = e => {
-      console.log("%cError element: "+decoder.decode(e.data), "color:white;background:pink");
-    };
+    window.node.port.onmessage = handleError;
+    // e => {
+      // e.data[0]
+    //   console.log("%cError element: "+decoder.decode(e.data.slice(2)), "color:white;background:pink");
+    // };
 
     try {
       window.actx.suspend()
