@@ -11,3 +11,6 @@ cd ../glicol-js
 yarn
 sudo zsh test.sh  // or run test.bat on windows
 ```
+
+# License
+Copyright (c) 2020 Qichao Lan

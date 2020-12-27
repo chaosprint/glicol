@@ -63,15 +63,15 @@ ace.define("ace/mode/glicol_highlight_rules", ["require", "exports", "module", "
         token: "string", // ref
         regex: "((~)([a-z]+(_)?)+)\\b"
       }, {
+        token: "keyword.control",
+        regex: "spd|speed|seq|choose|euc"
+      }, {
         token: "storage.type",
         regex: `sin|saw|squ|imp|noiz|lpf|hpf|sampler|delayn|
-        pha|buf|freeverb|apf|comb|delay|plate|onepole|allpass`
-      }, {
-        token: "keyword.control",
-        regex: "speed|seq|choose|euc"
+        pha|buf|freeverb|apf|comb|delay|plate|onepole|allpass|sp`
       }, {
         token: "constant.language",
-        regex: "envperc|linrange|mul|add|state|ramp|point|pan|mix|monosum"
+        regex: "envperc|linrange|mul|add|state|ramp|point|pan|mix|monosum|\\*"
       }, {
         token: "audio",
         regex: "(([a-z]+(_)?)+)\\b",

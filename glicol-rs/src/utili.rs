@@ -64,7 +64,7 @@ pub fn preprocess_mul(a: &String) -> Result<String, EngineError> {
             index = 0;
             b += c;
             b += " ";
-        } else if c == &"mul" {
+        } else if c == &"mul" || c == &"*" {
             if v[i+1].parse::<f32>().is_ok() {
                 append.push((current_ref, &x[index..(index+1)], v[i+1]));
                 find = true;

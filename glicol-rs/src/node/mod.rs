@@ -34,9 +34,12 @@ pub fn make_node(
 
     let result = match name {
         "sin" => SinOsc::new(&mut paras)?,
+        "*" => Mul::new(&mut paras)?,
         "mul" => Mul::new(&mut paras)?,
         "add" => Add::new(&mut paras)?,
         "imp" => Impulse::new(&mut paras)?,
+        "sp" => Sampler::new(&mut paras, 
+            samples_dict)?,
         "sampler" => Sampler::new(&mut paras, 
             samples_dict)?,
         "buf" => Buf::new(&mut paras, 
@@ -47,6 +50,7 @@ pub fn make_node(
         "squ" => Square::new(&mut paras)?,
         "lpf" => LPF::new(&mut paras)?,
         "hpf" => HPF::new(&mut paras)?,
+        "spd" => Speed::new(&mut paras)?,
         "speed" => Speed::new(&mut paras)?,
         "noiz" => Noise::new(&mut paras)?,
         "choose" => Choose::new(&mut paras)?,
