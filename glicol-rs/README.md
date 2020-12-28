@@ -10,9 +10,12 @@ See:
 [glicol.web.app](https://glicol.web.app)
 
 ### Test and development
-If you hope to test the rust version:
+If you hope to test the Rust code with plotting:
 ```
-git clone [*this repo*]
 cargo run --example plot
 ```
-All the issues and request are welcomed!
+Or:
+```
+cargo run --example update
+```
+You should install gnuplot on your OS.
