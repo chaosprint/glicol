@@ -1,12 +1,19 @@
 const welcome =
 
-`~a: noiz 0 >> mul 1 >> add 40
+    `// Hi and welcome!
+
+// Please make sure you are using Chrome or Firefox
+// and the console of the browser is opened.
+// The shortcut is CTRL+SHIFT+J (Chrome) or CTRL+SHIFT+I (Firefox)
+
+~a: noiz 0 >> mul 1 >> add 40
 
 ~b: choose 35 45 0
 
 ~trigger: speed 8.0 >> seq ~a ~b
 
-~env: ~trigger >> envperc 0.01 0.1 >> mul 0.5
+~env: ~trigger >> envperc 0.01 0.1
+>> mul 0.5
 
 ~pitch: ~trigger >> mul 261.626
 
@@ -14,8 +21,8 @@ lead: saw ~pitch >> mul ~env >> lpf ~cut 6.0
 
 ~cut: squ 0.5 >> linrange 300.0 3000.0`
 
-const hello = 
-`hi: sin 440.0
+const hello =
+    `hi: sin 440.0
 
 // if this doesn't play, check your browser console
 // chrome or firefox are recommended
@@ -37,8 +44,8 @@ const hello =
 // everything before the colon, e.g. "hi" or "another", is called [reference]
 // this will be explained in the next page (am)`
 
-const am = 
-`// you can modulate a parameter using the following syntax.
+const am =
+    `// you can modulate a parameter using the following syntax.
 
 hi: sin 440.0 >> mul ~am
 
@@ -48,8 +55,8 @@ hi: sin 440.0 >> mul ~am
 // it doesn't matter you write ~am line before or after using it, which is called lazy evaluation
 // however, remember that only those references without "~" will be played`
 
-const fm = 
-`hi: sin ~fm >> mul ~am
+const fm =
+    `hi: sin ~fm >> mul ~am
 // you can write a comment in between lines
 ~am: sin 0.2 >> mul 0.3 >> add 0.5
 
@@ -60,12 +67,17 @@ const fm =
 >> linrange 1.0 100.0
 // you can fold a line like this, but always have a blank line or a comment between two chains`
 
-const usesample = 
-`// "imp" is used to trigger the sampler
+const usesample = `// To use samples, first click the settings button on top
+// to select 'use samples'
+// In the console, you will see all available samples.
+// You can add new samples in the console with addSample(name, url)
+
+// "imp" is used to trigger the sampler
 // the default output amp of "imp" is 1.0
 // you can multiply a float to change the pitch
 
-// "sampler" node triggers the sample everytime it gets a non-zero signal from its left
+// "sampler" node triggers the sample everytime it gets a
+// non-zero signal from its left
 // the pitch is determined by the value of this input signal
 // the default pitch is 1.0; try to change the argument in "mul" node;
 // for example, mul 2.0 will make the sample octave higher
@@ -74,13 +86,16 @@ hi: imp 1.0 >> mul 1.0 >> sampler \\bd
 
 // an easier way to handle sampler is to use the "seq" node
 // it is a good way to work with midi pitches
-// the default pitch is midi 60, so to make it one octave higher, you should change it to 72
+// the default pitch is midi 60, so to make it one octave higher,
+// you should change it to 72
 
-// btw, you don't need to uncomment the line above, the "hi" ref will be replaced by the latest one
+// btw, you don't need to uncomment the line above, the "hi" ref
+// will be replaced by the latest one
 // hi: seq 60 >> sampler \\casio
 
 // "seq" node also handles time and rhythm algorithmically
-// all its arguments will occupy one bar with the default bar length to be 2.0 second (equivalent to bpm 120, 4/4)
+// all its arguments will occupy one bar with the default bar
+// length to be 2.0 second (equivalent to bpm 120, 4/4)
 
 // this one bar length will be first divided by space
 // uncomment the following codes to see the difference
@@ -96,7 +111,8 @@ hi: imp 1.0 >> mul 1.0 >> sampler \\bd
 // "_" means rest
 // hi: seq 48 _ 50 51 >> sampler \\casio
 
-// rest and midi notes can form compound notes, which will further divided that part
+// rest and midi notes can form compound notes, which will
+// further divided that part
 // hi: seq 48 55 >> sampler \\casio
 
 // hi: seq 48 _55_ >> sampler \\casio
@@ -110,15 +126,16 @@ hi: imp 1.0 >> mul 1.0 >> sampler \\bd
 
 // use "choose" node to choose notes in the seq
 // the convention is to use single-letter references
-// zeroes means rest while the number of zeroes can influence the probability
+// zeroes means rest while the number of zeroes can influence
+// the probability
 // hi: seq 48 ~c >> sampler \\casio
 
 // ~c: choose 52 55 60 0 0`
 
 
-const envelope = 
+const envelope =
 
-`// the envelope can also triggered by "imp" and "seq" but slightly different
+    `// the envelope can also triggered by "imp" and "seq" but slightly different
 
 // in that it resets to beginning phase everytime it receives a non-zero input
 
@@ -136,8 +153,8 @@ lead: sin 100.0 >> mul ~tri
 // lead: sin ~pitch >> mul ~tri`
 
 
-const filter = 
-`// there are several more nodes we haven't covered yet
+const filter =
+    `// there are several more nodes we haven't covered yet
 // "squ" "saw" "noiz" "lpf "hpf"
 // see how they are used in this example\n\n` + welcome
 
@@ -180,7 +197,7 @@ rm: seq _ 60 >> sampler \\voodoo >> lpf ~mod 3.0
 
 tok: seq _ 60 _ _ >> sampler \\tok`
 
-export {hello, am, fm, envelope, usesample, filter, demo1, demo2, welcome}
+export { hello, am, fm, envelope, usesample, filter, demo1, demo2, welcome }
 
 // `~a: noiz 0 >> mul 10 >> add 60
 

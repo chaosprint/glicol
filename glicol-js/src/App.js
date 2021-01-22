@@ -131,6 +131,13 @@ export default function App() {
       type: "load", obj: arrayBuffer})
     })
 
+    console.log(`%cAvailable nodes:`, "background: green");
+    console.table( window.docs.about );
+
+    console.log(`%cFetch help files by:`, "background: green");
+    console.log(`%chelp("the node name")`, "background: yellow");
+    // console.log(`%cOr move the cursor to the code and pr`, "background: green");
+
     // console.log("maxChannelCount", window.actx.destination.maxChannelCount)
 
     // window.actx.destination.channelCountMode = "explicit";
