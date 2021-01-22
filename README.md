@@ -5,7 +5,7 @@ It is currently running on its collaborative web-based IDE with documentation an
 
 https://glicol.web.app
 
-Feel free to try it as a live coding language or a tool for quick audio effect prototyping. If you find bugs or any questions, issues and pull request are welcomed.
+Feel free to try it as a live coding language or a tool for quick audio effect prototyping. If you find bugs, have any questions, or simply hope to add some features for your project, please open new issues and pull request are welcomed.
 
 # Repository structure and development
 
@@ -43,4 +43,6 @@ https://crates.io/crates/dasp_graph
 https://firepad.io/
 
 # License
+The MIT License (MIT)
+
 Copyright (c) 2020 Qichao Lan

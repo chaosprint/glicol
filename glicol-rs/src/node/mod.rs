@@ -23,6 +23,7 @@ use pan::{Pan, Mix2};
 use delay::{Delay, DelayN};
 use reverb::{Plate};
 use source::{ConstSig};
+use synth::{Synth};
 
 pub fn make_node(
     name: &str,
@@ -68,6 +69,7 @@ pub fn make_node(
         "delayn" => DelayN::new(&mut paras)?,
         "monosum" => MonoSum::new(&mut paras)?,
         "const" => ConstSig::new(&mut paras)?,
+        "synth" => Synth::new(&mut paras)?,
         _ => Pass::new(name)?
     };
     Ok(result)
