@@ -85,25 +85,29 @@ export default function App() {
     const t0 = performance.now();
     if (token in window.docs.about) {
       if (token in window.docs.range) {
-        console.log("%cABOUT:", "background: purple; color: white; font-weight: bold")
-        console.log(`%c${window.docs.about[token]}`, "background: green; color: white")
+        console.log("%cABOUT", "background: green; font-weight: bold");
+        // console.log("%cABOUT:", "background: purple; color: white; font-weight: bold")
+        console.log(`%${window.docs.about[token]}`) //, "background: green; color: white")
       } else {
-        console.log(`%cStill under development.`, "background: blue")
+        console.log(`%cstill under development...`, "background: red")
       }
       if (token in window.docs.params) {
         // console.table(window.docs.params[token])
-        console.log("%cPARAMETERS:", "background: purple; color: white; font-weight: bold")
+        console.log("%cPARAMETERS", "background: green; font-weight: bold");
+        // console.log("%cPARAMETERS:", "background: purple; color: white; font-weight: bold")
         window.docs.params[token].forEach(e=>{
-          console.log(`%c${e[0]}: ${e[1]}`, "background: green; color: white");
-          console.log(`%c${e[2]}`, "background: yellow; color: white");
+          console.log(`${e[0]}: ${e[1]}`) //, "background: green; color: white");
+          console.log(`${e[2]}`) //, "background: yellow; color: white");
         })
       }
       if (token in window.docs.range) {
-        console.log("%cRANGE:", "background: purple; color: white; font-weight: bold")
+        
+        console.log("%cRANGE", "background: green; font-weight: bold");
         console.table(window.docs.range[token])
       }
       if (token in window.docs.example) {
-        console.log("%cEXAMPLE", "background: green; color: white");
+        // console.log("example:")
+        console.log("%cEXAMPLE", "background: green; font-weight: bold");
         window.docs.example[token]()
       }
     } else {
@@ -131,11 +135,14 @@ export default function App() {
       type: "load", obj: arrayBuffer})
     })
 
-    console.log(`%cAvailable nodes:`, "background: green");
-    console.table( window.docs.about );
+    // console.log("available nodes:", )
+    console.log(`%cAvailable nodes:`, "background: green; font-weight: bold");
+    console.log(Object.keys(window.docs.about))
+    // console.table( Object.keys(window.docs.about) );
 
-    console.log(`%cFetch help files by:`, "background: green");
-    console.log(`%chelp("the node name")`, "background: yellow");
+    // console.log(`fetch help files by:`);
+    console.log(`%cFetch help files by:`, "background: grey; font-weight: bold");
+    console.log(`help("the node name")`) //, "background: green");
     // console.log(`%cOr move the cursor to the code and pr`, "background: green");
 
     // console.log("maxChannelCount", window.actx.destination.maxChannelCount)
@@ -240,8 +247,9 @@ export default function App() {
     //   console.log("%c\\"+list.sort()[i+2], "color:white;background:blue")
     // }
 
-    console.log("%cAvailable samples: ", "background: green; color:white")
-    console.table(list.sort())
+    // console.log("available samples:")
+    console.log("%cAvailable samples: ", "background: green; font-weight: bold")
+    console.log(list.sort())
     let tempcode = window.code
     setLoading(true)
     window.actx.suspend()
