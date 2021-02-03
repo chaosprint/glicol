@@ -89,4 +89,6 @@ const example = {
     sin: () => { console.log("%cany_ref_you_like: %csin %c440.0", "color: #C99E00", "color: #8959A8", "color: #3E999F") }
 }
 
-export default { about, params, range, example }
+const all = { about, params, range, example }
+
+export default all;

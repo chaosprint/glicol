@@ -210,10 +210,41 @@ export default function App() {
   } catch {}
   }, []);
 
+  window.addArray = async (name, arr) => {
+    window.actx.suspend()
+    console.log(arr)
+    let f32 = new Float32Array(arr)
+    console.log(f32)
+    let i16 = new Int16Array(f32.buffer)
+    console.log(i16)
+    window.node.port.postMessage({
+      type: "samples",
+      sample: i16,
+      name: encoder.encode("\\" + name)
+    })
+  }
+
+  window.addJSON = async (url, key) => {
+    window.actx.suspend()
+    let req = new Request(url)
+    await fetch(req).then(res=>res.json()).then(a=>{
+      let arr = a[key]
+      console.log(arr)
+      let f32 = new Float32Array(arr)
+      console.log(f32)
+      let i16 = new Int16Array(f32.buffer)
+      console.log(i16)
+      window.node.port.postMessage({
+        type: "samples",
+        sample: i16,
+        name: encoder.encode("\\" + key)
+      })
+    })
+  }
+
   window.addSample = async (name, url) => {
     window.actx.suspend()
-    let u = url;
-    let myRequest = new Request(u);
+    let myRequest = new Request(url);
     await fetch(myRequest).then(response => response.arrayBuffer())
     .then(arrayBuffer => {
       // console.log("downloaded", arrayBuffer)

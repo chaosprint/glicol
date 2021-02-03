@@ -6,7 +6,7 @@ const errors = [
     "unable to build the node.",
 ]
 // console.log("%cAt line "+String(result[1]+1)+".", "color: white; background: green")
-export default e => {
+const handler = e => {
     console.log(`%cError: ${errors[e.data[0]-1]}`, "color: white; background: red")
 
     if (e.data[0] === 2) {
@@ -21,3 +21,5 @@ export default e => {
     }
     console.log("%cError element: "+decoder.decode(e.data.slice(2)), "color:white;background:pink");
   };
+
+export default handler;
