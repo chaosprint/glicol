@@ -24,7 +24,6 @@ export default function HorizontalLabelPositionBelowStepper() {
       history.push("/"+ref.key);
       window.firebase.auth().createUserWithEmailAndPassword(
         ref.key+"@glicol.web.app", password).catch( e => console.log(e) );
-      console.log(password)
       setActiveStep((prevActiveStep) => prevActiveStep + 1)
     } else {
       alert("Password shoud be longer than 6 digits.")

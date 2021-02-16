@@ -1,6 +1,6 @@
 // edited based on the tomorrow-night theme for ace editor
 
-ace.define("ace/theme/tomorrow-night",["require","exports","module","ace/lib/dom"], function(acequire, exports, module) {
+window.ace.define("ace/theme/tomorrow-night",["require","exports","module","ace/lib/dom"], function(acequire, exports, module) {
 
     exports.isDark = true;
     exports.cssClass = "ace-tomorrow-night";

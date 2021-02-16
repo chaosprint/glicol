@@ -26,8 +26,9 @@ import { CodeContext } from './Context'
 import docs from './docs'
 
 import AceEditor from "react-ace";
-import "ace-builds/src-noconflict/mode-glicol";
-import "ace-builds/src-noconflict/theme-glicol-night";
+import "./mode-glicol";
+import "./theme-glicol-night";
+
 // import { setCompleters } from "ace-builds/src-noconflict/ext-language_tools";
 // import comp from "./completion"
 

@@ -1,7 +1,6 @@
 // this file should be copied to node_modules/brace/mode
 
-ace.define("ace/mode/glicol_highlight_rules", ["require", "exports", "module", "ace/lib/oop", "ace/mode/text_highlight_rules"], function (acequire, exports, module) {
-  "use strict";
+window.ace.define("ace/mode/glicol_highlight_rules", ["require", "exports", "module", "ace/lib/oop", "ace/mode/text_highlight_rules"], function (acequire, exports, module) {
 
   var oop = acequire("../lib/oop");
   
@@ -11,22 +10,22 @@ ace.define("ace/mode/glicol_highlight_rules", ["require", "exports", "module", "
 
   var GlicolHighlightRules = function GlicolHighlightRules() {
 
-    var keywordControls = "seq|loop|bpm|line|shift|every|speed|choose|range|play|set_gate|set_gate_all|midi_out|mul|add|envperc|linrange|";
+    // var keywordControls = "seq|loop|bpm|line|shift|every|speed|choose|range|play|set_gate|set_gate_all|midi_out|mul|add|envperc|linrange|";
 
-    var storageType = "sin|saw|squ|imp|pwm|brown|white|pink|noiz|membrane|sin_synth|saw_synth|squ_synth|tri_synth|sampler|pluck|metalphone|fm_synth|lfo|sin_lfo|tri_lfo|saw_lfo|squ_lfo|pink_noise|brown_noise|white_noise|"
+    // var storageType = "sin|saw|squ|imp|pwm|brown|white|pink|noiz|membrane|sin_synth|saw_synth|squ_synth|tri_synth|sampler|pluck|metalphone|fm_synth|lfo|sin_lfo|tri_lfo|saw_lfo|squ_lfo|pink_noise|brown_noise|white_noise|"
 
-    var storageModifiers = "";
-    var keywordOperators = ">>|->|="
-    var builtinConstants = "amp|pan|bpf|bnf|rlpf|rhpf|lpf|hpf|reverb|pingpong|jcreverb|freeverb|delay|"
+    // var storageModifiers = "";
+    // var keywordOperators = ">>|->|="
+    // var builtinConstants = "amp|pan|bpf|bnf|rlpf|rhpf|lpf|hpf|reverb|pingpong|jcreverb|freeverb|delay|"
 
-    var keywordMapper = this.$keywords = this.createKeywordMapper({
-        "keyword.control" : keywordControls,
-        "storage.type" : storageType,
-        "storage.modifier" : storageModifiers,
-        "keyword.operator" : keywordOperators,
-        // "variable.language": "this",
-        "constant.language": builtinConstants
-    }, "identifier");
+    // var keywordMapper = this.$keywords = this.createKeywordMapper({
+    //     "keyword.control" : keywordControls,
+    //     "storage.type" : storageType,
+    //     "storage.modifier" : storageModifiers,
+    //     "keyword.operator" : keywordOperators,
+    //     // "variable.language": "this",
+    //     "constant.language": builtinConstants
+    // }, "identifier");
     this.$rules = {
       "start": [{
         token: "comment",
@@ -47,7 +46,7 @@ ace.define("ace/mode/glicol_highlight_rules", ["require", "exports", "module", "
         regex : ","
       }, {
         token: "meta.tag", // float
-        regex: "[-+]?([0-9]{1,}[\.][0-9]+)"
+        regex: "[-+]?([0-9]{1,}[.][0-9]+)"
         // regex : "[+-]?\\d+(?:(?:\\.\\d*)?(?:[eE][+-]?\\d+)?)?(?:L|l|UL|ul|u|U|F|f|ll|LL|ull|ULL)?\\b"
       }, {
         token : "constant.character",
@@ -96,8 +95,7 @@ ace.define("ace/mode/glicol_highlight_rules", ["require", "exports", "module", "
   oop.inherits(GlicolHighlightRules, TextHighlightRules);
   exports.GlicolHighlightRules = GlicolHighlightRules;
 });
-ace.define("ace/mode/glicol", ["require", "exports", "module", "ace/lib/oop", "ace/mode/text", "ace/mode/glicol_highlight_rules"], function (acequire, exports, module) {
-  "use strict";
+window.ace.define("ace/mode/glicol", ["require", "exports", "module", "ace/lib/oop", "ace/mode/text", "ace/mode/glicol_highlight_rules"], function (acequire, exports, module) {
 
   var oop = acequire("../lib/oop");
   var TextMode = acequire("./text").Mode;
