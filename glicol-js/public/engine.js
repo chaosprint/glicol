@@ -39,7 +39,7 @@ class GlicolEngine extends AudioWorkletProcessor {
 
             } else if (e.data.type === "samples") {
                 if(this._wasm) {
-                // console.log("sample data: ", e.data.sample)
+                console.log("sample data: ", e.data.sample)
                 // console.log("sampler \\" + e.data.name)
 
                 let _s = e.data.sample

@@ -1,5 +1,6 @@
 * {
     margin: 0;
+    /* font-family: Inconsolata, monospace */
     /* padding: 0;
     outline: 0; */
     /* etc */
@@ -9,6 +10,7 @@
     position:relative;
 }
 
+p,
 .text {
     font-family: Inconsolata, monospace
 }
@@ -17,3 +19,33 @@
     position: fixed;
     float: left;
 } */
+
+#logo {
+    align-self: center;
+    align-content: center;
+    margin-right: auto;
+    letter-spacing:5px;
+    /* font-family: 'Anton', sans-serif; */
+    /* font-family: 'Rubik', sans-serif; */
+    font-family: B612 Mono;
+    /* font-family: 'Kaushan Script', cursive; */
+    font-weight: bold;
+    color: #dddddd
+}
+
+a:link,a:visited{
+    color: #949494;
+    text-shadow: 0.1px 0.1px #949494;
+    text-decoration:none;
+}
+a:hover{
+    text-decoration:none;
+}
+
+a {
+    text-decoration:none;
+}
+
+.fork {
+    color: bluedrf
+}

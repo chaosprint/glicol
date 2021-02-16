@@ -1,7 +1,7 @@
 import './App.css'
-import { BrowserRouter as Router, Switch, Route, useHistory } from "react-router-dom";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import React, { useRef, useState, useEffect } from 'react'
-import { AppBar, Toolbar, IconButton, TextField, Fade } from '@material-ui/core'
+import { AppBar, Toolbar, IconButton } from '@material-ui/core'
 import { Drawer, Divider, Typography, Modal, Tooltip } from '@material-ui/core'
 import { FormGroup, FormControlLabel, Switch as IO} from '@material-ui/core'
 import { ThemeProvider } from '@material-ui/styles';
@@ -10,7 +10,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 
 // import clsx from 'clsx';
 import { useStyles, theme } from './styles'
-import {Run, Reset, Pause, Menu, Update } from './components/ToolButton'
+import {Run, Reset, Pause, Menu, Update, Fork } from './components/ToolButton'
 import MyList from "./components/MyList"
 
 import handleError from './handleError'
@@ -20,6 +20,8 @@ import {sampleList} from './samples.js';
 import {hello, am, fm, usesample, envelope, filter, demo2, demo1, welcome} from './examples'
 
 import Editor from './Editor'
+// import HelpStepper from './HelpStepper'
+import ForkStepper from './Fork'
 import { CodeContext } from './Context'
 import docs from './docs'
 
@@ -29,55 +31,52 @@ import "ace-builds/src-noconflict/theme-glicol-night";
 // import { setCompleters } from "ace-builds/src-noconflict/ext-language_tools";
 // import comp from "./completion"
 
-function Text() {
-  let history = useHistory();
+// function Text() {
+//   let history = useHistory();
 
-  function handleRoomSubmit(e) {
-    e.preventDefault()
-    // console.log("push", window.room)
-    history.push("/"+window.room);
-  }
+//   function handleRoomSubmit(e) {
+//     e.preventDefault()
+//     // console.log("push", window.room)
+//     history.push("/"+window.room);
+//   }
 
-  return (
-    <form onSubmit={handleRoomSubmit}>
-       {/* <TextField id="room" label="Filled" variant="filled" /> */}
-    <TextField
-      // id="room"
-      // className={classes.text}
-      label="Room"
-      type="text"
-      // name="room"
-      variant="filled"
-      onChange={e=>{window.room=e.target.value}}
-      size="medium"
-      fullWidth={true}
-      // onChange={}
-    />
-  </form>  
-  )
-}
+//   return (
+//     <form onSubmit={handleRoomSubmit}>
+//        {/* <TextField id="room" label="Filled" variant="filled" /> */}
+//     <TextField
+//       // id="room"
+//       // className={classes.text}
+//       label="Room"
+//       type="text"
+//       // name="room"
+//       variant="filled"
+//       onChange={e=>{window.room=e.target.value}}
+//       size="medium"
+//       fullWidth={true}
+//       // onChange={}
+//     />
+//   </form>  
+//   )
+// }
 
 export default function App() {
 
   const classes = useStyles();
   const encoder = new TextEncoder('utf-8');
-  // const actx = useRef()
-  // const node = useRef()
   const codeRef = useRef(welcome)
-
   const [code, setCode] = useState(welcome)
   const [height, setHeight] = useState(800)
   const [width, setWidth] = useState(600)
   const [running, setRunning] = useState(false)
-  // const loaded = useRef(false)
   const [prog, setProg] = useState(0)
   const [loading, setLoading] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const [sideOpen, setSideOpen] = useState(false)
+  // const [helpOpen, setHelpOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [forkOpen, setForkOpen] = useState(false)
   const [useSamples, setUseSamples] = useState(false)
-  // const [showTutorial, setShowTutorial] = useState(false)
-  // const history = useHistory();
+
 
   window.docs = docs
 
@@ -207,7 +206,7 @@ export default function App() {
           console.log(error.code);
           console.log(error.message);
       });
-  } catch {}
+    } catch {}
   }, []);
 
   window.addArray = async (name, arr) => {
@@ -415,13 +414,17 @@ export default function App() {
     window.code = codetemp
   }
 
-  const handleSettings = () => {
-    setSettingsOpen(true)
-  }
+  const handleSettings = () => { setSettingsOpen(true) }
 
-  const handleSettingsClose = () => {
-    setSettingsOpen(false)
-  }
+  const handleSettingsClose = () => {setSettingsOpen(false)}
+
+  // const handleHelp = () => { setHelpOpen(true) }
+
+  // const handleHelpClose = () => {setHelpOpen(false)}
+
+  const handleFork = () => {setForkOpen(true)}
+
+  const handleForkClose = () => { setForkOpen(false) }
 
   const handleUseSamples = (e) => {
     setUseSamples(e.target.checked)
@@ -458,13 +461,9 @@ export default function App() {
           id="AppBar"
         >
         <Toolbar>
-
-        <div className={classes.menu} >
-        <Menu onClick = {()=>setSideOpen(true)} />
-        </div>
-
-        {loading ? <div></div> : <div id="text"><Text /></div> }
-
+        <div className={classes.menu} ><Menu onClick = {()=>setSideOpen(true)} /></div>
+        <div id="logo"><h2><a href="/">GLICOL</a></h2></div>
+        
         <div id="control">
         {loading ?
         <Typography className={classes.text}
@@ -475,6 +474,7 @@ export default function App() {
         (<Pause onClick={handlePause}/> )}
         <Update onClick={handleUpdate} />
         <Reset onClick={handleStop} />
+        
 
         <Tooltip title="settings">
         <IconButton
@@ -485,6 +485,9 @@ export default function App() {
         <SettingsIcon fontSize="large" />
         </IconButton>
         </Tooltip>
+        <Fork onClick={handleFork} />
+        {/* <Help onClick={handleHelp} /> */}
+        
        </div>}
        </div>
       
@@ -501,7 +504,7 @@ export default function App() {
         <Toolbar>
         <Typography>v0.1.0</Typography>
         <IconButton
-          href="https://github.com/glicol/"
+          href="https://github.com/chaosprint/glicol/"
           target="_blank"
           rel="noopener noreferrer"
           color="inherit"
@@ -520,62 +523,65 @@ export default function App() {
         <MyList onClick={()=>handleList(envelope)} title="envelope." />
         <Divider />
         <MyList onClick={()=>handleList(filter)} title="filter." />
-        {/* <MyList onClick={()=>{handleList("lead: sin 110.0")}}
-          title="template - synthesis." />
-        <MyList onClick={()=>{
-          handleList("bd: seq 60 >> sampler \\bd", sampleList.selected)}}
-          title="template - use samples." /> */}
+
         <Divider />
-        <MyList onClick={()=>{
-          handleList(demo1)}}
-          title="demo 1." />
-         <MyList onClick={()=>{
-          handleList(demo2)}}
-          title="demo 2." />
+        <MyList onClick={()=>{handleList(demo1)}} title="demo 1." />
+        <MyList onClick={()=>{handleList(demo2)}} title="demo 2." />
         </Drawer>
 
         </Toolbar> 
         </AppBar>
         <Toolbar />
+
+        {/* <Modal
+          className={classes.modal}
+          open={helpOpen}
+          onClose={handleHelpClose}
+        >
+        <div className={classes.paper}>
+          <HelpStepper />
+        </div>
+        </Modal> */}
+
+        <Modal
+          className={classes.modal}
+          open={forkOpen}
+          onClose={handleForkClose}
+          
+          onRendered={() => {document.getElementById("password-input").focus()}}
+        >
+        <div className={classes.paper}>
+          <ForkStepper />
+        </div>
+        </Modal>
         
         <Modal
-          aria-labelledby="transition-modal-title"
-          aria-describedby="transition-modal-description"
           className={classes.modal}
           open={settingsOpen}
           onClose={handleSettingsClose}
-          closeAfterTransition
           // onRendered={() => modalRef.current.children[1].children[0].focus()}
           // BackdropComponent={Backdrop}
-          BackdropProps={{
-            timeout: 500,
-          }}
         >
-          <Fade in={settingsOpen}>
-            <div className={classes.paper}>
-            <FormGroup>
-            <FormControlLabel
-              control={
-                <IO
-                  checked={useSamples}
-                  onChange={handleUseSamples}
-                  name="useSamples"
-                  color="primary"
-                />
-              }
-              label="use samples?"
-              labelPlacement="start"
+        <div className={classes.paper}>
+        <FormGroup>
+        <FormControlLabel
+          control={
+            <IO
+              checked={useSamples}
+              onChange={handleUseSamples}
+              name="useSamples"
+              color="inherit"
             />
-            </FormGroup>
-            </div>
-          </Fade>
+          }
+          label="use samples?"
+          labelPlacement="start"
+        />
+        </FormGroup>
+        </div>
         </Modal>
-
         </ThemeProvider>
      </div>
-     {/* <div> */}
-      {/* <button onClick={()=>{console.log(code)}}>run</button> */}
-      {/* <h2>Accounts</h2> */}
+
       <Switch>
         <Route exact path="/" children={
             <div>
@@ -587,7 +593,7 @@ export default function App() {
                 height = {height+"px"}
                 width = {width+"px"}
                 // style={{ height: "100%", width: "100%"}}
-                fontFamily = "Inconsolata"
+                fontFamily = "B612 Mono"
                 value = {code}
                 onChange={change}
                 name="UNIQUE_ID_OF_DIV"
@@ -618,7 +624,6 @@ export default function App() {
           handlePause={handlePause}
         />} />
       </Switch>
-    {/* </div> */}
     </CodeContext.Provider>
      </Router>
   )

@@ -5,7 +5,8 @@ import PauseCircleFilledIcon from '@material-ui/icons/PauseCircleFilled';
 import UpdateIcon from '@material-ui/icons/Update';
 import RotateLeftIcon from '@material-ui/icons/RotateLeft';
 import MenuIcon from '@material-ui/icons/Menu';
-
+import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
+import PermContactCalendarIcon from '@material-ui/icons/PermContactCalendar';
 
 const ToolButton = ({title, onClick, icon}) => {
   // Declare a new state variable, which we'll call "count"
@@ -94,4 +95,31 @@ const Menu = ({onClick}) => (
 //   ></ToolButton>
 // )
 
-export {Run, Pause, Reset, Menu, Update}
+const Help = ({onClick}) => (
+  // <div className={classes.menu}>
+  <IconButton
+    color="inherit"
+    aria-label="open drawer"
+    edge="end"
+    onClick={onClick}
+    style={{marginLeft: 'auto'}}
+    // className={clsx(sideOpen && classes.hide)}
+  >
+  <HelpOutlineIcon fontSize="large"/>
+  </IconButton>
+  // </div>
+)
+
+
+const Fork = ({onClick}) => {
+  return (
+    <ToolButton
+      title = "fork to a permanent sharable link for collaboration"
+      onClick = {onClick}
+      icon = {<PermContactCalendarIcon fontSize="large" />}
+    ></ToolButton>
+  )
+}
+
+
+export {Run, Pause, Reset, Menu, Update, Help, Fork}

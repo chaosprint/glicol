@@ -1,7 +1,5 @@
 import { makeStyles } from '@material-ui/core/styles';
 import { createMuiTheme } from '@material-ui/core/styles';
-import { red, green  } from '@material-ui/core/colors';
-// grey
 
 const theme = createMuiTheme({
   spacing: 0,
@@ -20,16 +18,9 @@ const theme = createMuiTheme({
   }
 });
 
-
-const buttonTheme = createMuiTheme({
-  borderRadius: 0,
-  palette: {
-    primary: green,
-    secondary: red,
-  },
-});
-
 const drawerWidth = 240;
+
+const dark = '#202020'
 
 const useStyles = makeStyles((theme) => ({
   modal: {
@@ -38,8 +29,7 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'center',
   },
   paper: {
-    backgroundColor: theme.palette.background.paper,
-    border: '2px solid #000',
+    backgroundColor: dark,
     boxShadow: theme.shadows[5],
     padding: theme.spacing(2, 4, 3),
   },
@@ -85,11 +75,6 @@ const useStyles = makeStyles((theme) => ({
   drawerHeader: {
     // display: 'flex',
     marginLeft: 'auto',
-    // margin: theme.spacing(1),
-    // alignItems: 'center',
-    // padding: theme.spacing(0, 1),
-    // necessary for content to be below app bar
-    // ...theme.mixins.toolbar,
     color: '#fff',
     // justifyContent: 'flex-start',
   },
@@ -121,84 +106,16 @@ const useStyles = makeStyles((theme) => ({
   editor: {
     margin: theme.spacing(0, 0),
     position: 'fixed',
-    // width: "100%",
-    // height: 700
+    fontFamily: "B612 Mono",
   },
+  fork: {
+    minHeight: 200,
+  },
+  forkpaper: {
+    textAlign: "center",
+    alignContent: "center",
+    backgroundColor: dark,
+  }
 }));
 
-// const useStyles = makeStyles(theme => ({
-//   root: {
-//     flexGrow: 1,
-//   },
-//   text: {
-//     margin: theme.spacing(1),
-//     [`& fieldset`]: {
-//       borderRadius: 0,
-//     },
-//     // textAlign: "center",
-//     width: 120
-//   },
-//   password: {
-//     width: "50%",
-//     position: 'relative'
-//   },
-//   button: {
-//     width: 80,
-//     margin: theme.spacing(1),
-//   },
-//   room: {
-//     marginLeft: 'auto',
-//     textAlign: "center",
-//     [`& fieldset`]: {
-//       borderRadius: 0,
-//     },
-//   },
-//   paper: {
-//     position: 'absolute',
-//     backgroundColor: theme.palette.background.paper,
-//     boxShadow: theme.shadows[5],
-//     padding: theme.spacing(4),
-//     outline: 'none',
-//   },
-//   fab: {
-//     position: 'fixed',
-//     zIndex: 2000,
-//     // button: "10%",
-//     // right: "5%"
-//     bottom: theme.spacing(2),
-//     right: theme.spacing(2),
-//   },
-//   firepad: {
-//     position: 'absolote',
-//     width: "100%",
-//     height: 700
-//   },
-//   inside: {
-//     padding: theme.spacing(3, 2),
-//     [`& fieldset`]: {
-//       borderRadius: 0,
-//     },
-//   },
-//   link: {
-//     margin: theme.spacing(1),
-//   },
-//   back: {
-//     position: 'absolute',
-//     left: '50%',
-//     textAlign: "center",
-//     [`& fieldset`]: {
-//       borderRadius: 0,
-//     },
-//     top: '50%',
-//     transform: 'translate(-50%, -50%)',
-//     zIndex:"-2000",
-//   }
-// }));
-
-const modalStyle = {
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-}
-
-export {useStyles, theme, buttonTheme, modalStyle};
+export {useStyles, theme};
