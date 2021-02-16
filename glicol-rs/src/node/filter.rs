@@ -1,5 +1,6 @@
 use dasp_graph::{Buffer, Input, Node};
-use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError, handle_params};
+use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, 
+    NodeResult, EngineError, handle_params};
 use dasp_ring_buffer as ring_buffer;
 
 pub struct LPF {
@@ -14,26 +15,15 @@ pub struct LPF {
 }
 
 impl LPF {
-    pub fn new(paras: &mut Pairs<Rule>) -> 
-    Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+    pub fn new(paras: &mut Pairs<Rule>) -> NodeResult {
 
         // TODO: figure out paras handling
         // let mut paras = paras.next().unwrap().into_inner();
         // println!("paras {:?}", paras);
-
-        // let seq = 
-
         let para_a: String = paras.next().unwrap().as_str().to_string();
         // .chars().filter(|c| !c.is_whitespace()).collect();
-
-        // println!("'{}'", para_a);
-        // ;
-
-        // println!("{:?}", paras.as_str());
         let para_b: String = paras.next().unwrap().as_str().to_string();
         // .chars().filter(|c| !c.is_whitespace()).collect();
-
-        // let cutoff = para_a.parse::<f32>();
         
         let q = para_b.parse::<f32>().unwrap();
 
@@ -56,8 +46,8 @@ impl LPF {
     }
 }
 
-impl Node for LPF {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for LPF {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
 
         if !self.has_mod {
             let theta_c = 2.0 * std::f32::consts::PI * self.cutoff / 44100.0;
@@ -69,8 +59,8 @@ impl Node for LPF {
             let a2 = (0.5 + beta - gama) / 2.0;
             let b1 = -2.0 * gama;
             let b2 = 2.0 * beta;
-            assert!(inputs.len()>0, "no input to the filter");
-            for i in 0..64 {
+            // assert!(inputs.len()>0, "no input to the filter");
+            for i in 0..128 {
                 // output[0][i] = inputs[0].buffers()[0][i];
                 let x0 = inputs[0].buffers()[0][i];
                 let y = a0 * self.x0 + a1 * self.x1 + a2 * self.x2 
@@ -87,7 +77,7 @@ impl Node for LPF {
                 // let input_buf = &mut inputs[0].buffers();
                 // let mod_buf = &mut inputs[1].buffers();
             // println!("input len{}", inputs.len());
-            assert!(inputs.len()>1, "no sidechain info");
+            // assert!(inputs.len()>1, "no sidechain info");
             
             let theta_c = 2.0 * std::f32::consts::PI * inputs[0].buffers()[0][0] / 44100.0;
             let d = 1.0 / self.q;
@@ -99,7 +89,7 @@ impl Node for LPF {
             let b1 = -2.0 * gama;
             let b2 = 2.0 * beta;
 
-            for i in 0..64 {
+            for i in 0..128 {
                 // output[0][i] = inputs[0].buffers()[0][i];  
                 let x0 = inputs[1].buffers()[0][i]; // strange order hard code, this should be 0
                 let y = a0 * self.x0 + a1 * self.x1 + a2 * self.x2 - b1 * self.y1 - b2 * self.y2;
@@ -126,8 +116,7 @@ pub struct HPF {
 }
 
 impl HPF {
-    pub fn new(paras: &mut Pairs<Rule>) -> 
-    Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+    pub fn new(paras: &mut Pairs<Rule>) -> NodeResult {
 
         let para_a: String = paras.next().unwrap().as_str().to_string()
         .chars().filter(|c| !c.is_whitespace()).collect();
@@ -157,8 +146,8 @@ impl HPF {
     }
 }
 
-impl Node for HPF {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for HPF {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
 
         if !self.has_mod {
             let theta_c = 2.0 * std::f32::consts::PI * self.cutoff / 44100.0;
@@ -174,7 +163,7 @@ impl Node for HPF {
             // let d0 = 0.0;
             // let y = 
             if inputs.len() > 0 {
-                for i in 0..64 {
+                for i in 0..128 {
                     // output[0][i] = inputs[0].buffers()[0][i];
                     let x0 = inputs[0].buffers()[0][i];
                     let y = a0 * self.x0 + a1 * self.x1 + a2 * self.x2 - b1 * self.y1 - b2 * self.y2;
@@ -202,7 +191,7 @@ impl Node for HPF {
                 let b1 = -2.0 * gama;
                 let b2 = 2.0 * beta;
 
-                for i in 0..64 {
+                for i in 0..128 {
                     // output[0][i] = inputs[0].buffers()[0][i];  
                     let x0 = inputs[1].buffers()[0][i]; // strange order hard code
                     let y = a0 * self.x0 + a1 * self.x1 + a2 * self.x2 - b1 * self.y1 - b2 * self.y2;
@@ -279,8 +268,8 @@ impl Allpass {
     // }
 }
 
-impl Node for Allpass {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for Allpass {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
         // output[0] = inputs[0].buffers()[0].clone();
 
         // y(n) = -a * x(n) + x(n-D) + a * y(n-D)
@@ -288,7 +277,7 @@ impl Node for Allpass {
         // let decay = (self.decay * 44100.0) as usize;
         let a = (0.001_f32.log10() * (self.delay / self.decay)).exp();
 
-        for i in 0..64 {
+        for i in 0..128 {
             // println!("{:?}", self.buf);
             let xn = inputs[0].buffers()[0][i];
             let yn = -a as f32 * xn + self.bufx[0] + a as f32 * self.bufy[0];
@@ -365,8 +354,8 @@ impl Comb {
     // }
 }
 
-impl Node for Comb {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for Comb {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
         // output[0] = inputs[0].buffers()[0].clone();
 
         let a = self.gain;
@@ -374,7 +363,7 @@ impl Node for Comb {
         let c = self.back;
         // println!("{:?}",self.bufx);
 
-        for i in 0..64 {
+        for i in 0..128 {
             let xn = inputs[0].buffers()[0][0];
             let xn_d = self.bufx[0];
             let yn_d = self.bufy[0];
@@ -402,12 +391,12 @@ impl OnePole {
     });
 }
 
-impl Node for OnePole {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for OnePole {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
         match self.sidechain_ids.len() {
             0 => {
                 let input_sig = inputs[0].buffers()[0].clone();
-                for i in 0..64 {
+                for i in 0..128 {
                     let y = input_sig[i] + self.a * self.y1;
                     output[0][i] = y;
                     self.y1 = y;
@@ -416,7 +405,7 @@ impl Node for OnePole {
             1 => {
                 let modulator = inputs[0].buffers()[0].clone();
                 let input_sig = inputs[1].buffers()[0].clone();
-                for i in 0..64 {
+                for i in 0..128 {
                     let y = input_sig[i] + modulator[i] * self.y1;
                     output[0][i] = y;
                     self.y1 = y;
@@ -455,11 +444,11 @@ impl AllpassGain {
     ]);
 }
 
-impl Node for AllpassGain {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for AllpassGain {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
         match self.sidechain_ids.len() {
             0 => {
-                for i in 0..64 {
+                for i in 0..128 {
                     // println!("{:?}", self.buf);
                     let xn = inputs[0].buffers()[0][i];
                     let yn = -self.a * xn
@@ -477,7 +466,7 @@ impl Node for AllpassGain {
                 let new_delay_samples = (modulator[0] / 44100.0) as usize;
                 let length = self.bufx.len();
                 
-                for i in 0..64 {
+                for i in 0..128 {
                     // println!("{:?}", self.buf);
                     let xn = insig[i];
                     let yn = -self.a * xn

@@ -1,6 +1,7 @@
 use dasp_graph::{Buffer, Input, Node};
 use dasp_ring_buffer as ring_buffer;
-use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError, handle_params};
+use super::super::{Pairs, Rule, NodeData, 
+    NodeResult, BoxedNodeSend, EngineError, handle_params};
 
 type Fixed = ring_buffer::Fixed<Vec<f32>>;
 
@@ -20,9 +21,9 @@ impl DelayN {
     })]);
 }
 
-impl Node for DelayN {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
-        for i in 0..64 {
+impl Node<128> for DelayN {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
+        for i in 0..128 {
             output[0][i] = self.buf[0];
             // save new input to ring buffer
             self.buf.push(inputs[0].buffers()[0][i]);
@@ -72,11 +73,11 @@ impl Delay {
     
 }
 
-impl Node for Delay {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for Delay {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
         match self.sidechain_ids.len() {
             0 => {
-                for i in 0..64 {
+                for i in 0..128 {
                     output[0][i] = self.buf[0];
                     // save new input to ring buffer
                     self.buf.push(inputs[0].buffers()[0][i]);
@@ -87,7 +88,7 @@ impl Node for Delay {
                 let modulator = inputs[0].buffers()[0].clone();
                 let delay_len = (modulator[0] / 1000.0 * 44100.0 ) as usize;
                 self.buf.set_first(self.buf.len() - delay_len);
-                for i in 0..64 {
+                for i in 0..128 {
                     output[0][i] = self.buf[0];
                     self.buf.push(input_sig[i]);
                 }

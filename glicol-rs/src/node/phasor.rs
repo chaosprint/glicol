@@ -1,5 +1,6 @@
 use dasp_graph::{Buffer, Input, Node};
-use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError};
+use super::super::{Pairs, Rule, NodeData,
+    NodeResult, BoxedNodeSend, EngineError};
 
 pub struct Phasor {
     step: usize,
@@ -7,8 +8,7 @@ pub struct Phasor {
 }
 
 impl Phasor {
-    pub fn new(paras: &mut Pairs<Rule>) -> Result<
-    (NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+    pub fn new(paras: &mut Pairs<Rule>) -> NodeResult {
         let p = paras.as_str();
         let freq = match p.parse::<f32>() {
             Ok(v) => v,
@@ -24,10 +24,10 @@ impl Phasor {
     }
 }
 
-impl Node for Phasor {
-    fn process(&mut self, _inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for Phasor {
+    fn process(&mut self, _inputs: &[Input<128>], output: &mut [Buffer<128>]) {
 
-        for i in 0..64 {
+        for i in 0..128 {
             let out = self.step % self.period;
             output[0][i] = out as f32 / self.period as f32;
             self.step += 1;

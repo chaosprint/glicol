@@ -1,6 +1,6 @@
 use dasp_graph::{Buffer, Input, Node};
 use pest::iterators::Pairs;
-use super::super::{HashMap, Rule, NodeData, BoxedNodeSend, EngineError, handle_params};
+use super::super::{HashMap, Rule, NodeData, BoxedNodeSend, NodeResult, handle_params};
 
 // pub struct
 
@@ -15,7 +15,7 @@ pub struct Sequencer {
 
 impl Sequencer {
     pub fn new(paras: &mut Pairs<Rule>, sr: f32, bpm: f32)
-        -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+        -> NodeResult {
 
         let mut events = Vec::<(f64, String)>::new();
         let mut sidechains = Vec::<String>::new();
@@ -65,8 +65,8 @@ impl Sequencer {
     }
 }
 
-impl Node for Sequencer {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for Sequencer {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
 
         let mut step = inputs[inputs.len()-1].buffers()[0][0] as usize;
         
@@ -94,7 +94,7 @@ impl Node for Sequencer {
         // let relative_time = event.0;
         // let relative_pitch = event.1; a ratio for midi 60 freq
         let bar_length = 240.0 / self.bpm as f64 * self.sr as f64 / self.speed as f64;
-        for i in 0..64 {
+        for i in 0..128 {
             output[0][i] = 0.0;
 
             for event in &self.events {
@@ -140,8 +140,8 @@ impl Speed {
     });
 }
 
-impl Node for Speed {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for Speed {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
 
         if self.sidechain_ids.len() > 0 {
             let mod_buf = &mut inputs[0].buffers();

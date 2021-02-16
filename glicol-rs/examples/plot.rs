@@ -5,7 +5,7 @@ use glicol::EngineError;
 
 fn main () -> Result<(), EngineError> {
     let mut engine = Engine::new();
-    engine.set_code("aa: imp ~mod >> sampler \\imp");
+    engine.set_code("aa: sin 10");
 
     // engine.update();
     engine.make_graph()?;

@@ -1,8 +1,22 @@
-pub mod adc; pub mod operator; pub mod sequencer; pub mod envelope;
-pub mod filter; pub mod oscillator; pub mod sampler; pub mod noise;
-pub mod pass; pub mod map; pub mod rand; pub mod phasor;
-pub mod buf; pub mod state; pub mod pan; pub mod delay;
-pub mod system; pub mod reverb; pub mod source;
+// pub mod adc;
+pub mod operator;
+pub mod sequencer;
+pub mod envelope;
+pub mod filter; 
+pub mod oscillator; 
+pub mod sampler; 
+pub mod noise;
+pub mod pass;
+pub mod map; 
+pub mod rand; 
+pub mod phasor;
+pub mod buf; 
+pub mod state; 
+pub mod pan; 
+pub mod delay;
+pub mod system;
+pub mod reverb;
+pub mod source;
 use std::{collections::HashMap};
 use super::{Pairs, Rule, NodeResult};
 

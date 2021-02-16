@@ -1,6 +1,6 @@
 use dasp_graph::{Buffer, Input, Node};
 use pest::iterators::Pairs;
-use super::super::{Rule, HashMap, NodeData, BoxedNodeSend, EngineError};
+use super::super::{Rule, HashMap, NodeData, BoxedNodeSend, NodeResult, EngineError};
 
 pub struct Sampler {
     // pub sig: Vec< Box<dyn Signal<Frame=[f32;1]> + 'static + Send>>,
@@ -13,7 +13,7 @@ impl Sampler {
     pub fn new(
         paras: &mut Pairs<Rule>,
         samples_dict: &HashMap<String, &'static[f32]>
-    ) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+    ) -> NodeResult {
         let p = paras.next().unwrap();
         let key = p.as_str();
         let pos = (p.as_span().start(), p.as_span().end());
@@ -32,15 +32,15 @@ impl Sampler {
     }
 }
 
-impl Node for Sampler {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for Sampler {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
         output[0].silence();
         if inputs.len() < 2 { () };
         let mut clock = inputs[1].buffers()[0][0] as usize;
         // the input of sampler should be a pitch, and series of 0
         let input_buf = &mut inputs[0].buffers();
 
-        for i in 0..64 {
+        for i in 0..128 {
             if input_buf[0][i] > 0.0 {
                 let dur = self.len as f64 / input_buf[0][i] as f64;
                 self.playback.push((clock, dur));

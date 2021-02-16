@@ -1,5 +1,6 @@
 use dasp_graph::{Buffer, Input, Node};
-use super::super::{HashMap, Pairs, Rule, NodeData, BoxedNodeSend, EngineError};
+use super::super::{HashMap, Pairs, Rule, NodeData, 
+    NodeResult, BoxedNodeSend, EngineError};
 
 pub struct Buf {
     // pub sig: Vec< Box<dyn Signal<Frame=[f32;1]> + 'static + Send>>,
@@ -11,7 +12,7 @@ impl Buf {
     pub fn new(
         paras: &mut Pairs<Rule>,
         samples_dict: &HashMap<String, &'static[f32]>,
-    ) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+    ) -> NodeResult {
         let p = paras.next().unwrap();
         let pos = (p.as_span().start(), p.as_span().end());
         let key = p.as_str();
@@ -25,15 +26,15 @@ impl Buf {
     }
 }
 
-impl Node for Buf {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for Buf {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
         // output[0].silence();
         // if inputs.len() > 0 {
         // each input value is between 0-1
         let input_buf = &mut inputs[0].buffers();
         let len = self.sample.len() - 1;
 
-        for i in 0..64 {
+        for i in 0..128 {
             let index = input_buf[0][i] * len as f32;
             output[0][i] = match index {
                 x if x == 0.0 => self.sample[0],

@@ -1,5 +1,6 @@
 use dasp_graph::{Buffer, Input, Node};
-use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError, handle_params};
+use super::super::{Pairs, Rule, NodeData, NodeResult,
+    BoxedNodeSend, EngineError, handle_params};
 
 // pub enum Env {
 //     Perc(f64, f64, u32),
@@ -44,8 +45,8 @@ impl EnvPerc {
     // }
 }
 
-impl Node for EnvPerc {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for EnvPerc {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
 
         if self.sidechain_ids.len() < 1 {
             let attack_len = (self.attack * 44100.0) as u32;
@@ -53,7 +54,7 @@ impl Node for EnvPerc {
             let dur = attack_len + decay_len;      
             let buf = &mut inputs[0].buffers();
     
-            for i in 0..64 {
+            for i in 0..128 {
                 if buf[0][i] > 0.0 {
                     self.pos = 0;
                     self.scale = buf[0][i];

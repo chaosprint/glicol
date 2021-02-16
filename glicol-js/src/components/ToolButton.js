@@ -13,7 +13,7 @@ const ToolButton = ({title, onClick, icon}) => {
   return (
     <Tooltip title={title}>
     <IconButton
-      color="inherit"
+      // color="inherit"
       edge="end"
       onClick={onClick}
     >
@@ -75,7 +75,7 @@ const Reset = ({onClick}) => {
 const Menu = ({onClick}) => (
   // <div className={classes.menu}>
   <IconButton
-    color="inherit"
+    // color="inherit"
     aria-label="open drawer"
     edge="end"
     onClick={onClick}
@@ -98,7 +98,7 @@ const Menu = ({onClick}) => (
 const Help = ({onClick}) => (
   // <div className={classes.menu}>
   <IconButton
-    color="inherit"
+    // color="inherit"
     aria-label="open drawer"
     edge="end"
     onClick={onClick}

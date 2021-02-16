@@ -1,7 +1,8 @@
 use dasp_graph::{Buffer, Input, Node};
 use pest::iterators::Pairs;
 use dasp_signal::{self as signal, Signal};
-use super::super::{Rule, NodeData, BoxedNodeSend, EngineError};
+use super::super::{Rule, NodeData, NodeResult, 
+    BoxedNodeSend, EngineError};
 // use rand_core::{RngCore, OsRng};
 // use rand::Rng;
 // use rand::rngs::OsRng;
@@ -15,7 +16,7 @@ pub struct Choose {
 }
 
 impl Choose {
-    pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+    pub fn new(paras: &mut Pairs<Rule>) -> NodeResult {
         // let mut paras = paras.next().unwrap().into_inner();
         // let v: Vec<f32> = 
         // println!(">{:?}<", v);
@@ -46,8 +47,8 @@ impl Choose {
     }
 }
 
-impl Node for Choose {
-    fn process(&mut self, _inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for Choose {
+    fn process(&mut self, _inputs: &[Input<128>], output: &mut [Buffer<128>]) {
         // let id = self.rng.gen_range(0, self.note_list.len());
         // let note = self.note_list[id];
         let mut id = ((self.sig.next() * 0.5 + 0.5) * self.note_list.len() as f64) as usize;

@@ -1,5 +1,6 @@
 use dasp_graph::{Buffer, Input, Node};
-use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError};
+use super::super::{Pairs, Rule, NodeData,
+    NodeResult, BoxedNodeSend, EngineError};
 
 
 pub struct State {
@@ -9,8 +10,7 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(paras: &mut Pairs<Rule>) -> Result<
-    (NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+    pub fn new(paras: &mut Pairs<Rule>) -> NodeResult {
         
         let coma_sep: Vec<&str> = paras.as_str().split(",").collect();
        
@@ -29,12 +29,12 @@ impl State {
     }
 }
 
-impl Node for State {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for State {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
 
         let mut clock = inputs[0].buffers()[0][0] as usize;
 
-        for i in 0..64 {
+        for i in 0..128 {
             if self.state >= self.info.len() - 1 {
                 output[0][i] = self.info[self.info.len()-1][1];
                 self.state = 0;

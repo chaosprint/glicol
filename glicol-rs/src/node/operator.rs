@@ -22,8 +22,8 @@ impl MonoSum {
     }
 }
 
-impl Node for MonoSum {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for MonoSum {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
         let n = inputs.len();
         // clock input[n-1]
         output[0].silence();
@@ -77,8 +77,8 @@ impl Mul {
     //     }
     // }
 }
-impl Node for Mul {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for Mul {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
 
         if !(self.sidechain_ids.len() > 0) {
             output[0] = inputs[0].buffers()[0].clone();
@@ -104,7 +104,7 @@ impl Node for Mul {
                 self.transit = false;
             }
 
-            for i in 0..64 {
+            for i in 0..128 {
                 // output[0][i] = self.window[self.transit_index] as f32;
                 // self.transit_index += 1;
                 output[0][i] = match self.transit {
@@ -147,14 +147,14 @@ impl Add {
     //     }
     // }
 }
-impl Node for Add {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for Add {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
 
         if self.sidechain_ids.len() > 0 {
             // assert!(inputs.len() > 1);
             let buf = &mut inputs[0].buffers();
             let mod_buf = &mut inputs[1].buffers();
-            for i in 0..64 {
+            for i in 0..128 {
                 output[0][i] = mod_buf[0][i] + buf[0][i];
             }
         } else {

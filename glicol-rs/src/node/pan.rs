@@ -1,5 +1,6 @@
 use dasp_graph::{Buffer, Input, Node};
-use super::super::{Rule, NodeData, BoxedNodeSend, EngineError, midi_or_float};
+use super::super::{Rule, NodeData, BoxedNodeSend,
+    NodeResult, EngineError, midi_or_float};
 use pest::iterators::Pairs;
 
 pub struct Pan {
@@ -8,8 +9,7 @@ pub struct Pan {
 }
 
 impl Pan {
-    pub fn new(paras: &mut Pairs<Rule>) -> Result<
-    (NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+    pub fn new(paras: &mut Pairs<Rule>) -> NodeResult {
 
         let pan = paras.as_str().to_string();
         // .to_string().chars().filter(|c| !c.is_whitespace()).collect()
@@ -31,8 +31,8 @@ impl Pan {
     }
 }
 
-impl Node for Pan {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for Pan {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
         
         if self.has_mod {
             assert!(inputs.len() > 0);
@@ -50,7 +50,7 @@ impl Node for Pan {
                 _ => {unimplemented!()}
             };
             
-            for i in 0..64 {
+            for i in 0..128 {
                 let p = mod_buf[0][i];
                 output[0][i] *= 1.0 - (p+1.)/2.;
                 output[1][i] *= (p+1.)/2.;
@@ -80,16 +80,15 @@ impl Node for Pan {
 
 pub struct Mix2 {}
 impl Mix2 {
-    pub fn new(paras: &mut Pairs<Rule>) -> Result<
-    (NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+    pub fn new(paras: &mut Pairs<Rule>) -> NodeResult {
         let para_a: String = paras.next().unwrap().as_str().to_string();
         let para_b: String = paras.next().unwrap().as_str().to_string();        
         return Ok((NodeData::new2(BoxedNodeSend::new(Self {})), vec![para_a, para_b]))
     }
 }
 
-impl Node for Mix2 {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for Mix2 {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
         // let _clock = inputs[2].clone();
         let left = inputs[1].buffers()[0].clone();
         let right = inputs[0].buffers()[0].clone();

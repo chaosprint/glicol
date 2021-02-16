@@ -1,14 +1,9 @@
-// extern crate pest;
-// #[macro_use]
-// extern crate pest_derive;
-
 #[macro_use]
 extern crate lazy_static;
 
 use std::sync::{Mutex};
 use std::{slice::from_raw_parts_mut};
 
-// mod engine;
 extern crate glicol;
 use glicol::Engine;
 
@@ -46,14 +41,14 @@ pub extern fn process_u8(out_ptr: *mut u8) {
     let mut engine = ENGINE.lock().unwrap();
     // engine.set_code("~ss: sin 440".to_string());
     // engine.update();
-    let buf = engine.gen_next_buf_64(&mut [0.0; 64]).unwrap();
+    let buf = engine.gen_next_buf_128(&mut [0.0; 128]).unwrap();
     // float *const [f32; 64]
     // let mut bytes: [u8; 256] = [0; 256];
     let out_buf: &mut [u8] = unsafe { std::slice::from_raw_parts_mut(out_ptr, 256) };
-    for i in 0..64 {
+    for i in 0..128 {
         // let b = 0.5_f32.to_le_bytes();
         // assert!(buf[i] == 0.0);
-        let b = buf[i].to_le_bytes();
+        let b = buf.0[i].to_le_bytes();
         for j in 0..4 {
             out_buf[i*4 + j] = b[j];
         }
@@ -61,7 +56,6 @@ pub extern fn process_u8(out_ptr: *mut u8) {
     // &mut out_buf
 }
 
-// Mutex<engine::Engine>
 #[no_mangle]
 pub extern "C" fn process(in_ptr: *mut f32, out_ptr: *mut f32, size: usize)-> *mut u8 {
     let mut engine = ENGINE.lock().unwrap();

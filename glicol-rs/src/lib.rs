@@ -1,15 +1,11 @@
 use std::{collections::HashMap};
-// , num::ParseFloatError}
 
-// extern crate pest;
-// extern crate pest_derive;
-use pest::Parser;
-use pest::iterators::Pairs;
 mod parser;
 use parser::*;
+use pest::Parser;
+use pest::iterators::Pairs;
 
-// #[macro_use]
-extern crate apodize;
+use apodize;
 
 use dasp_graph::{NodeData, BoxedNodeSend, Processor};
 use petgraph::graph::{NodeIndex};
@@ -18,20 +14,20 @@ use petgraph::stable_graph::{StableGraph, StableDiGraph};
 
 mod node;
 use node::make_node;
-use node::adc::{Adc, AdcSource};
+// use node::adc::{Adc, AdcSource};
 use node::system::{Clock, AudioIn};
 
 mod utili;
 use utili::{midi_or_float, preprocess_sin,
     preprocess_mul, lcs, process_error_info};
 
-pub type NodeResult =Result<
-    (NodeData<BoxedNodeSend>, Vec<String>), EngineError>;
+pub type MyNodeData = NodeData<BoxedNodeSend<128>, 128>;
+pub type NodeResult =Result<(MyNodeData, Vec<String>), EngineError>;
 
 pub struct Engine {
     pub elapsed_samples: usize,
-    pub graph: StableGraph<NodeData<BoxedNodeSend>, (), Directed, u32>,
-    processor: Processor<StableDiGraph<NodeData<BoxedNodeSend>, (), u32>>,
+    pub graph: StableGraph<MyNodeData, (), Directed, u32>,
+    processor: Processor<StableDiGraph<MyNodeData, (), u32>, 128>,
     sidechains_list: Vec<(NodeIndex, String)>,
     pub adc_source_nodes: Vec<NodeIndex>,
     pub adc_nodes: Vec<NodeIndex>,
@@ -47,8 +43,6 @@ pub struct Engine {
     code_backup: String,
     pub update: bool,
     track_amp: f32,
-    // fade: usize,
-    // window: Vec<f64>,
     pub modified: Vec<String>,
     pub all_refs: Vec<String>, // for always using current code
 }
@@ -56,9 +50,9 @@ pub struct Engine {
 impl Engine {
     pub fn new() -> Engine {
         // Chose a type of graph for audio processing.
-        type MyGraph = StableGraph<NodeData<BoxedNodeSend>, (), Directed, u32>;
+        type MyGraph = StableGraph<MyNodeData, (), Directed, u32>;
         // Create a short-hand for our processor type.
-        type MyProcessor = Processor<MyGraph>;
+        type MyProcessor = Processor<MyGraph, 128>;
 
         let max_nodes = 1024;
         let max_edges = 1024;
@@ -84,8 +78,6 @@ impl Engine {
             elapsed_samples: 0,
             update: false,
             track_amp: 1.0,
-            // fade: 0,
-            // window: apodize::hanning_iter(4096).collect::<Vec<f64>>(),
             modified: Vec::new(),
             all_refs: Vec::new(),
         }
@@ -347,66 +339,34 @@ impl Engine {
     // }
 
     // for bela
-    pub fn make_adc_node(&mut self, chan:usize) {
-        for _ in 0..chan {
-            let index = self.graph.add_node(
-                NodeData::new1( BoxedNodeSend::new( Adc {} ) )
-            );
+    // pub fn make_adc_node(&mut self, chan:usize) {
+    //     for _ in 0..chan {
+    //         let index = self.graph.add_node(
+    //             NodeData::new1( BoxedNodeSend::new( Adc {} ) )
+    //         );
 
-            self.adc_nodes.push(index);
-            let source = self.graph.add_node( 
-                NodeData::new1( BoxedNodeSend::new( AdcSource {} ) )
-            );
+    //         self.adc_nodes.push(index);
+    //         let source = self.graph.add_node( 
+    //             NodeData::new1( BoxedNodeSend::new( AdcSource {} ) )
+    //         );
 
-            self.adc_source_nodes.push(source);
-            self.graph.add_edge(source, index, ());
-        }
-    }
+    //         self.adc_source_nodes.push(source);
+    //         self.graph.add_edge(source, index, ());
+    //     }
+    // }
 
-    pub fn set_adc_node_buffer(&mut self, buf: &[f32], chan: usize,
-        frame: usize, _interleave: bool) {
-        // , _chan: u8, _frame: u16, _interleave: bool
-        for c in 0..chan {
-            for f in 0..frame {
-                self.graph[
-                    self.adc_source_nodes[c]
-                ].buffers[0][f] = buf[c*frame+f];
-            }
-        }
-    }
+    // pub fn set_adc_node_buffer(&mut self, buf: &[f32], chan: usize,
+    //     frame: usize, _interleave: bool) {
+    //     // , _chan: u8, _frame: u16, _interleave: bool
+    //     for c in 0..chan {
+    //         for f in 0..frame {
+    //             self.graph[
+    //                 self.adc_source_nodes[c]
+    //             ].buffers[0][f] = buf[c*frame+f];
+    //         }
+    //     }
+    // }
 
-    pub fn gen_next_buf_64(&mut self, inbuf: &mut [f32])
-    -> Result<[f32; 128], EngineError> {
-        
-        // using self.buffer will cause errors on bela
-        let mut output: [f32; 128] = [0.0; 128];
-        for (refname, v) in &self.node_by_chain {
-            if refname.contains("~") {
-                continue;
-            };
-            self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
-            for i in 0..64 {
-                self.graph[self.node_by_chain["~input"][0].0
-                ].buffers[0][i] = inbuf[i];
-            }
-            self.processor.process(&mut self.graph, v.last().unwrap().0);
-
-            let bufleft = &self.graph[v.last().unwrap().0].buffers[0];
-            let bufright = match &self.graph[v.last().unwrap().0].buffers.len() {
-                1 => {bufleft},
-                2 => {&self.graph[v.last().unwrap().0].buffers[1]},
-                _ => {unimplemented!()}
-            };
-            for i in 0..64 {
-                output[i] += bufleft[i] * self.track_amp;
-                output[i+64] += bufright[i] * self.track_amp;
-            }
-        }
-        self.elapsed_samples += 64;
-        Ok(output)
-    }
-
-    // for wasm live coding
     pub fn gen_next_buf_128(&mut self, inbuf: &mut [f32])
     -> Result<([f32; 256], [u8;256]), EngineError> {
         // don't use self.buffer
@@ -465,13 +425,13 @@ impl Engine {
             }
         }
 
-        // process 0..64
+        // process 0..128
         for (refname, v) in &self.node_by_chain {
             if refname.contains("~") {
                 continue;
             }
             self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
-            for i in 0..64 {
+            for i in 0..128 {
                 self.graph[
                     self.node_by_chain["~input"][0].0
                 ].buffers[0][i] = inbuf[i];
@@ -479,7 +439,7 @@ impl Engine {
             self.processor.process(&mut self.graph, v.last().unwrap().0);
         }
 
-        // sendout 0..64
+        // sendout 0..128
         for (refname, v) in &self.node_by_chain {
             if refname.contains("~") {
                 continue;
@@ -491,7 +451,7 @@ impl Engine {
                 _ => {unimplemented!()}
             };
 
-            for i in 0..64 {
+            for i in 0..128 {
                 // let s = match self.fade {
                 //     k if k > 4095 => 1.0,
                 //     _ => self.window[self.fade] as f32 * -1.0 + 1.0
@@ -504,49 +464,7 @@ impl Engine {
                 // output[i+128] += s;
             }
         }
-        self.elapsed_samples += 64;
-
-        // process 64..128
-        for (refname, v) in &self.node_by_chain {
-            if refname.contains("~") {
-                continue;
-            }
-            self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
-            for i in 0..64 {
-                self.graph[
-                    self.node_by_chain["~input"][0].0
-                ].buffers[0][i] = inbuf[i+64];
-            }
-            self.processor.process(&mut self.graph, v.last().unwrap().0);
-        }
-
-        // sendout 64..128
-        for (refname, v) in &self.node_by_chain {
-            if refname.contains("~") {
-                continue;
-            }
-
-            let bufleft = &self.graph[v.last().unwrap().0].buffers[0];
-            let bufright = match &self.graph[v.last().unwrap().0].buffers.len() {
-                1 => {bufleft},
-                2 => {&self.graph[v.last().unwrap().0].buffers[1]},
-                _ => {unimplemented!()}
-            };
-            for i in 0..64 {
-                // let s = clamp(((self.fade-4095) as f32/4095.0).powi(6), -1.0, 1.0);
-                // let s = match self.fade {
-                //     k if k > 4095 => 1.0,
-                //     _ => self.window[self.fade] as f32 * -1.0 + 1.0
-                // };
-                // self.fade += 1;
-                // let scale = 1.0;bufleft[i] * bufright[i] * 
-                output[i+64] += bufleft[i] * self.track_amp;
-                output[i+128+64] += bufright[i] * self.track_amp;
-                // output[i+64] += s;
-                // output[i+128+64] += s;
-            }
-        }
-        self.elapsed_samples += 64;
+        self.elapsed_samples += 128;
 
         Ok((output, console))
     }
@@ -577,7 +495,7 @@ macro_rules! handle_params {
         $(,[$( ( $related: ident, $extra_id: ident, $handler: expr) ),* ])?
     ) => {
         pub fn new(paras: &mut Pairs<Rule>) ->
-        Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+        NodeResult {
 
             let mut sidechains = Vec::<String>::new();
             let mut params_val = std::collections::HashMap::<&str, f32>::new();
@@ -636,7 +554,7 @@ macro_rules! ndef {
         
         impl $struct_name {
             pub fn new(paras: &mut Pairs<Rule>) -> Result<
-            (NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+            (NodeData<BoxedNodeSend<128>, 128>, Vec<String>), EngineError> {
                 let mut engine = Engine::new();
                 engine.set_code(&format!($code_str, a=paras.as_str()));
                 engine.make_graph()?;
@@ -646,21 +564,21 @@ macro_rules! ndef {
             }
         }
         
-        impl Node for $struct_name {
-            fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+        impl Node<128> for $struct_name {
+            fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
                 // self.engine.input(inputs); // mono or stereo?
                 let mut input = inputs[0].buffers()[0].clone();
-                let buf = self.engine.gen_next_buf_64(&mut input).unwrap();
+                let buf = self.engine.gen_next_buf_128(&mut input).unwrap();
                 match output.len() {
                     1 => {
-                        for i in 0..64 {
-                            output[0][i] = buf[i];
+                        for i in 0..128 {
+                            output[0][i] = buf.0[i];
                         }
                     },
                     2 => {
-                        for i in 0..64 {
-                            output[0][i] = buf[i];
-                            output[1][i] = buf[i+64];
+                        for i in 0..128 {
+                            output[0][i] = buf.0[i];
+                            output[1][i] = buf.0[i+128];
                         }
                     },
                     _ => {}

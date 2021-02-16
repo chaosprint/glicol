@@ -1,13 +1,13 @@
 use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNodeSend};
 use pest::iterators::Pairs;
-use super::super::{Rule, EngineError, handle_params};
+use super::super::{Rule, EngineError, NodeResult, handle_params};
 
 #[allow(dead_code)]
 pub struct SinOsc {
     _freq: f32,
     phase: f32,
     clock: usize,
-    buffer: Buffer,
+    buffer: Buffer<128>,
     sidechain_ids: Vec<u8>
 }
 
@@ -17,13 +17,13 @@ impl SinOsc {
     }, {
         phase: 0.0,
         clock: 0
-    }, [(_freq, buffer, |_freq: f32|->Buffer {
+    }, [(_freq, buffer, |_freq: f32|-> Buffer<128> {
         Buffer::default()
     })]);
 }
 
-impl Node for SinOsc {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for SinOsc {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
         if inputs.len() < 2 { return () };
         let clock = inputs[1].buffers()[0][0] as usize;
         if self.clock != 0 && self.clock == clock {
@@ -31,7 +31,7 @@ impl Node for SinOsc {
             return ()
         };
         let mod_buf = &mut inputs[0].buffers();
-        for i in 0..64 {
+        for i in 0..128 {
             output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
             self.phase += mod_buf[0][i] / 44100.0;
             if self.phase > 1.0 {
@@ -51,7 +51,7 @@ pub struct Impulse {
 }
 
 impl Impulse {
-    pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+    pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend<128>, 128>, Vec<String>), EngineError> {
 
         let para_a: String = paras.as_str().to_string()
         .chars().filter(|c| !c.is_whitespace()).collect();
@@ -78,8 +78,8 @@ impl Impulse {
     }
 }
 
-impl Node for Impulse {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for Impulse {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
 
         self.clock = inputs[0].buffers()[0][0] as usize;
 
@@ -88,7 +88,7 @@ impl Node for Impulse {
         //     o.iter_mut().for_each(|s| *s = self.sig.next() as f32);
         // }
 
-        for i in 0..64 {
+        for i in 0..128 {
             let out = (self.clock % self.period == 0) as u8;
             output[0][i] = out as f32;
             self.clock += 1;
@@ -102,22 +102,22 @@ pub struct Saw {
     freq: f32,
     phase_n: usize,
     clock: usize,
-    buffer: Buffer,
+    buffer: Buffer<128>,
     sidechain_ids: Vec<u8>
 }
 
 impl Saw {
     handle_params!({freq: 100.0}, {phase_n: 0, clock: 0},
-        [(freq, buffer, |_freq: f32|->Buffer {
+        [(freq, buffer, |_freq: f32|->Buffer<128> {
             Buffer::default()
         })]);
 }
 
-impl Node for Saw {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for Saw {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
         if inputs.len() < 2 { return () };
         let mut clock = inputs[1].buffers()[0][0] as usize;
-        for i in 0..64 {
+        for i in 0..128 {
             let mod_buf = &mut inputs[0].buffers();
             if mod_buf[0][i] != 0.0 {
                 self.freq = mod_buf[0][i];
@@ -135,7 +135,7 @@ pub struct Square {
     freq: f32,
     phase_n: usize,
     clock: usize,
-    buffer: Buffer,
+    buffer: Buffer<128>,
     sidechain_ids: Vec<u8>
 }
 
@@ -146,17 +146,17 @@ impl Square {
         phase_n: 0,
         clock: 0
     }, [
-        (freq, buffer, |_freq: f32|->Buffer {
+        (freq, buffer, |_freq: f32|->Buffer<128> {
             Buffer::default()
         })
     ]);
 }
 
-impl Node for Square {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for Square {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
         if inputs.len() < 2 { return () };
         let mut clock = inputs[1].buffers()[0][0] as usize;
-        for i in 0..64 {
+        for i in 0..128 {
             let mod_buf = &mut inputs[0].buffers();
             if mod_buf[0][i] != 0.0 {
                 self.freq = mod_buf[0][i];

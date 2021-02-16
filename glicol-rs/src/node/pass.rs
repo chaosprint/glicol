@@ -1,9 +1,9 @@
 use dasp_graph::{Buffer, Input, Node};
-use super::super::{NodeData, BoxedNodeSend, EngineError};
+use super::super::{NodeData, BoxedNodeSend, NodeResult};
 
 pub struct Pass {}
 impl Pass {
-    pub fn new(name: &str) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+    pub fn new(name: &str) -> NodeResult {
 
         // let mut paras = paras.next().unwrap().into_inner();
         let destination: String = name.to_string()
@@ -14,8 +14,8 @@ impl Pass {
     }
 }
 
-impl Node for Pass {
-    fn process(&mut self, inputs: &[Input], output: &mut [Buffer]) {
+impl Node<128> for Pass {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
         // println!("{}", inputs.len());
         output[0] = inputs[0].buffers()[0].clone();
     }

@@ -4,8 +4,8 @@ use dasp_graph::{Buffer, Input, Node};
 
 pub struct Clock {}
 
-impl Node for Clock {
-    fn process(&mut self, _inputs: &[Input], _output: &mut [Buffer]) {
+impl Node<128> for Clock {
+    fn process(&mut self, _inputs: &[Input<128>], _output: &mut [Buffer<128>]) {
         // we set the output buffer manually
     }
 }
@@ -22,8 +22,8 @@ impl AudioIn {
     // }
 }
 
-impl Node for AudioIn {
-    fn process(&mut self, _inputs: &[Input], _output: &mut [Buffer]) {
+impl Node<128> for AudioIn {
+    fn process(&mut self, _inputs: &[Input<128>], _output: &mut [Buffer<128>]) {
         // we set the output buffer manually
     }
 }

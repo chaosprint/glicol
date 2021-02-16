@@ -479,7 +479,7 @@ export default function App() {
 
         <Tooltip title="settings">
         <IconButton
-          color="inherit"
+          // color="inherit"
           edge="end"
           onClick={handleSettings}
         >
@@ -508,7 +508,7 @@ export default function App() {
           href="https://github.com/chaosprint/glicol/"
           target="_blank"
           rel="noopener noreferrer"
-          color="inherit"
+          // color="inherit"
           style={{marginLeft: 'auto'}}
         ><GitHubIcon /></IconButton>
         </Toolbar>
@@ -571,7 +571,7 @@ export default function App() {
               checked={useSamples}
               onChange={handleUseSamples}
               name="useSamples"
-              color="inherit"
+              // color="inherit"
             />
           }
           label="use samples?"
