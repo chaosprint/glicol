@@ -10,7 +10,7 @@ window.help = (token) => {
     console.clear()
     if (token in window.docs.about) {
         console.log("%c"+window.art, "color: #3E999F")
-        console.log("\n\nAbout:")
+        console.log("\n\n%c About: ", "background: black; color:white; font-weight: bold")
         // console.log("about")
         console.log("%c"+token, `color: yellow`, `${window.docs.about[token]}`)
     }  else {
@@ -20,7 +20,7 @@ window.help = (token) => {
     }
 
     if (token in window.docs.params) {
-        console.log("\n\nParameters:")
+        console.log("\n\n%c Parameters: ", "background: black; color:white; font-weight: bold")
         // console.log("para")${window.docs.color[token]}
         let p = window.docs.params[token];
         
@@ -33,12 +33,12 @@ window.help = (token) => {
     }
 
     if (token in window.docs.example) {
-        console.log("\n\nExample:")
+        console.log("\n\n%c Example: ", "background: black; color:white; font-weight: bold")
         console.log(...window.docs.example[token])
     }
 
     if (token in window.docs.note) {
-        console.log("\n\nNote:")
+        console.log("\n\n%c Note: ", "background: black; color:white; font-weight: bold")
         console.log(window.docs.note[token])
     }
         // console.log("\n\nNote:")
