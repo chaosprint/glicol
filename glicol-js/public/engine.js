@@ -20,7 +20,7 @@ class GlicolEngine extends AudioWorkletProcessor {
             return {ptr: ptr, len: len}
         }
 
-        this.o = { index: 0, value: 0 };
+        this._codeArray = new Uint8Array(4096);
         this.port.onmessage = e => {
             // this.port.postMessage({value: "hi"})
             
@@ -111,7 +111,7 @@ class GlicolEngine extends AudioWorkletProcessor {
                 // for updating, no need to pass in samples
                 this._wasm.exports.update(codeUint8ArrayPtr, codeLen)
             } else if (e.data.type === "sab") {
-                this._param_reader = new ParameterReader(new RingBuffer(e.data.data, Uint8Array));
+                this._param_reader = new TextParameterReader(new RingBuffer(e.data.data, Uint8Array));
             } else {
                 throw "unexpected.";
             }
@@ -123,9 +123,18 @@ class GlicolEngine extends AudioWorkletProcessor {
             return true
         }
 
-        if (this._param_reader.dequeue_change(this.o)) {
-            console.log("param change: ", this.o.index, this.o.value);
+        let size = this._param_reader.dequeue(this._codeArray)
+        if (size) {
+            // let code = this._codeArray.filter(x=>x!==0)
+            console.log("param change: ", this._codeArray.slice(0, size));
             // this.amp = this.o.value;
+            // let codeLen = e.data.value.byteLength
+            let codeUint8ArrayPtr = this._wasm.exports.alloc_uint8array(size);
+            let codeUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, codeUint8ArrayPtr, size);
+            codeUint8Array.set(this._codeArray.slice(0, size));
+
+            // for updating, no need to pass in samples
+            this._wasm.exports.update(codeUint8ArrayPtr, size)
         }
 
         if (inputs[0][0]) {

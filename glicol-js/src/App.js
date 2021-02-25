@@ -133,21 +133,23 @@ export default function App() {
     setRunning(true)
     try {
       window.actx.resume()
-      window.node.port.postMessage({
-        type: "update",
-        value: encoder.encode(window.code?window.code:"")
-      })
-
-      console.log(encoder.encode(window.code?window.code:"").length)
-      window.paramWriter.enqueue_change(0, encoder.encode(window.code?window.code:"")[0])
-
-      window.node.onmessage = (event) => {
-        // Handling data from the processor.
-        console.log(event);
-      };
+      // window.node.port.postMessage({
+      //   type: "update",
+      //   value: encoder.encode(window.code?window.code:"")
+      // })
     } catch (e) {
       console.log(e)
     }
+
+    console.log(encoder.encode(window.code?window.code:"").length)
+    if (window.paramWriter.available_write()) {
+      window.paramWriter.enqueue(encoder.encode(window.code?window.code:""))
+    }
+    window.node.onmessage = (event) => {
+      // Handling data from the processor.
+      console.log(event);
+    };
+
   }
 
   const handleRun = () => {

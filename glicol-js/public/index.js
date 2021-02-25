@@ -3,69 +3,18 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-// Send audio interleaved audio frames between threads, wait-free.
-//
-// Those classes allow communicating between a non-real time thread (browser
-// main thread or worker) and a real-time thread (in an AudioWorkletProcessor).
-// Write and Reader cannot change role after setup, unless externally
-// synchronized.
-//
-// GC _can_ happen during the initial construction of this object when hopefully
-// no audio is being output. This depends on how implementations schedule GC
-// passes. After the setup phase no GC is triggered on either side of the queue..
-
-// Interleaved -> Planar audio buffer conversion
-//
-// `input` is an array of n*128 frames arrays, interleaved, where n is the
-// channel count.
-// output is an array of 128-frames arrays.
-//
-// This is useful to get data from a codec, the network, or anything that is
-// interleaved, into planar format, for example a Web Audio API AudioBuffer or
-// the output parameter of an AudioWorkletProcessor.
-function deinterleave(input, output) {
-  var channel_count = input.length / 256;
-  if (output.length != channel_count) {
-    throw "not enough space in output arrays";
-  }
-  for (var i = 0; i < channelCount; i++) {
-    let out_channel = output[i];
-    let interleaved_idx = i;
-    for (var j = 0; j < 128; ++j) {
-      out_channel[j] = input[interleaved_idx];
-      interleaved_idx += channel_count;
-    }
-  }
-}
-// Planar -> Interleaved audio buffer conversion
-//
-// Input is an array of `n` 128 frames Float32Array that hold the audio data.
-// output is a Float32Array that is n*128 elements long. This function is useful
-// to get data from the Web Audio API (that does planar audio), into something
-// that codec or network streaming library expect.
-function interleave(input, output) {
-  if (input.length * 128 != output.length) {
-    throw "input and output of incompatible sizes";
-  }
-  var out_idx = 0;
-  for (var i = 0; i < 128; i++) {
-    for (var channel = 0; j < output.length; j++) {
-      output[out_idx] = input[channel][i];
-      out_idx++;
-    }
-  }
-}
-
-class AudioWriter {
-  // From a RingBuffer, build an object that can enqueue enqueue audio in a ring
-  // buffer.
+// customised for Glicol
+// TextParameter has a varied length
+class TextParameterWriter {
+  // From a RingBuffer, build an object that can enqueue a parameter change in
+  // the queue.
   constructor(ringbuf) {
-    if (ringbuf.type() != "Float32Array") {
-      throw "This class requires a ring buffer of Float32Array";
+    if (ringbuf.type() != "Uint8Array") {
+      throw "This class requires a ring buffer of Uint8Array";
     }
-    this.ringbuf = ringbuf;
+    // const SIZE_ELEMENT = 5;
+    this.ringbuf = ringbuf
   }
-  // Enqueue a buffer of interleaved audio into the ring buffer.
   // Returns the number of samples that have been successfuly written to the
   // queue. `buf` is not written to during this call, so the samples that
   // haven't been written to the queue are still available.
@@ -79,10 +28,11 @@ class AudioWriter {
   }
 }
 
-class AudioReader {
+// customised for Glicol
+class TextParameterReader {
   constructor(ringbuf) {
-    if (ringbuf.type() != "Float32Array") {
-      throw "This class requires a ring buffer of Float32Array";
+    if (ringbuf.type() != "Uint8Array") {
+      throw "This class requires a ring buffer of Uint8Array";
     }
     this.ringbuf = ringbuf;
   }
@@ -99,71 +49,6 @@ class AudioReader {
   // can be read with a guarantee of success.
   available_read() {
     return this.ringbuf.available_read();
-  }
-}
-
-// Communicate parameter changes, lock free, no gc.
-//
-// between a UI thread (browser main thread or worker) and a real-time thread
-// (in an AudioWorkletProcessor). Write and Reader cannot change role after
-// setup, unless externally synchronized.
-//
-// GC can happen during the initial construction of this object when hopefully
-// no audio is being output. This depends on the implementation.
-//
-// Parameter changes are like in the VST framework: an index and a float value
-// (no restriction on the value).
-//
-// This class supports up to 256 parameters, but this is easy to extend if
-// needed.
-//
-// An element is a index, that is an unsigned byte, and a float32, which is 4
-// bytes.
-
-class ParameterWriter {
-  // From a RingBuffer, build an object that can enqueue a parameter change in
-  // the queue.
-  constructor(ringbuf) {
-    if (ringbuf.type() != "Uint8Array") {
-      throw "This class requires a ring buffer of Uint8Array";
-    }
-    const SIZE_ELEMENT = 5;
-    this.ringbuf = ringbuf;
-    this.mem = new ArrayBuffer(SIZE_ELEMENT);
-    this.array = new Uint8Array(this.mem);
-    this.view = new DataView(this.mem);
-  }
-  // Enqueue a parameter change for parameter of index `index`, with a new value
-  // of `value`.
-  // Returns true if enqueuing suceeded, false otherwise.
-  enqueue_change(index, value) {
-    const SIZE_ELEMENT = 5;
-    this.view.setUint8(0, index);
-    this.view.setFloat32(1, value);
-    if (this.ringbuf.available_write() < SIZE_ELEMENT) {
-      return false;
-    }
-    return this.ringbuf.push(this.array) == SIZE_ELEMENT;
-  }
-}
-
-class ParameterReader {
-  constructor(ringbuf) {
-    const SIZE_ELEMENT = 5;
-    this.ringbuf = ringbuf;
-    this.mem = new ArrayBuffer(SIZE_ELEMENT);
-    this.array = new Uint8Array(this.mem);
-    this.view = new DataView(this.mem);
-  }
-  dequeue_change(o) {
-    if (this.ringbuf.empty()) {
-      return false;
-    }
-    var rv = this.ringbuf.pop(this.array);
-    o.index = this.view.getUint8(0);
-    o.value = this.view.getFloat32(1);
-
-    return true;
   }
 }
 
@@ -334,11 +219,13 @@ class RingBuffer {
   }
 }
 
-exports.AudioReader = AudioReader;
-exports.AudioWriter = AudioWriter;
-exports.ParameterReader = ParameterReader;
-exports.ParameterWriter = ParameterWriter;
+// exports.AudioReader = AudioReader;
+// exports.AudioWriter = AudioWriter;
+// exports.ParameterReader = ParameterReader;
+// exports.ParameterWriter = ParameterWriter;
+exports.TextParameterReader = TextParameterReader;
+exports.TextParameterWriter = TextParameterWriter;
 exports.RingBuffer = RingBuffer;
-exports.deinterleave = deinterleave;
-exports.interleave = interleave;
+// exports.deinterleave = deinterleave;
+// exports.interleave = interleave;
 // sourceMappingURL=index.js.map

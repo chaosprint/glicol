@@ -19,21 +19,21 @@ window.loadModule = async () => {
       window.actx.destination.channelInterpretation = "discrete";
       window.node.connect(window.actx.destination)
 
-      let sab2 = exports.RingBuffer.getStorageForCapacity(1024, Uint8Array);
-      let rb2 = new exports.RingBuffer(sab2, Uint8Array);
-      window.paramWriter = new ParameterWriter(rb2);
+      let sab = exports.RingBuffer.getStorageForCapacity(2048, Uint8Array);
+      let rb = new exports.RingBuffer(sab, Uint8Array);
+      window.paramWriter = new TextParameterWriter(rb);
       window.node.port.postMessage({
           type: "sab",
-          data: sab2
+          data: sab
       });
 
       console.clear();
       console.log("%c"+window.art, "color: #3E999F")
-      console.log(`\n\nAvailable nodes:`) //, "background: green; font-weight: bold");
-      console.log(Object.keys(window.docs.about))
+      console.log(`\n\n%c Available nodes: `, "background: black; color:white; font-weight: bold");
+      console.log(["sin", "saw", "squ", "mul", "add", "imp", "sampler", "sp", "buf", "seq", "linrange", "lpf", "hpf", "spd", "speed", "noiz", "choose", "envperc", "pha", "state", "pan", "delay", "apf", "comb", "mix", "plate", "onepole", "allpass", "delayn", "monosum", "const"])
   
-      console.log(`\n\nFetch help files by:`) //, "background: grey; font-weight: bold");
-      console.log(`typing help("the node name") in the console, e.g. help("sin");\n\nor move the cursor to a keyword and press Ctrl+Shift+/`) //, "background: green");
+      console.log(`\n\n%c Fetch help files by: `, "background: black; color:white; font-weight: bold")
+      console.log(`typing %chelp("the node name")%c in the console, e.g. %chelp("sin")%c;\n\nor move the cursor to a keyword and press %cCtrl+Shift+/`, "color: green", "color: default", "color: green", "color: default", "color: purple");
 
       // paramWriter.enqueue_change(0, e.target.value)
     })
