@@ -1,7 +1,7 @@
 use dasp_graph::{Buffer, Input, Node};
 use dasp_ring_buffer as ring_buffer;
 use super::super::{Pairs, Rule, NodeData, 
-    NodeResult, BoxedNodeSend, EngineError, handle_params};
+    NodeResult, BoxedNodeSend, handle_params};
 
 type Fixed = ring_buffer::Fixed<Vec<f32>>;
 

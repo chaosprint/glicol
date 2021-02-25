@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import firebaseConfig from './firebaseConfig'
 import LockIcon from '@material-ui/icons/Lock';
 import {Modal, TextField, Fab, ThemeProvider} from '@material-ui/core/'
-import { useStyles, theme } from './styles';
+import { useStyles, theme } from '../styles/styles';
 
 export default function Editor(props) {
     const classes = useStyles();
@@ -104,7 +104,7 @@ export default function Editor(props) {
             exec: props.handlePause
         }, {
             name: 'help',
-            bindKey: {win: 'Ctrl-\\', mac: 'Command-\\'},
+            bindKey: {win: 'Ctrl-Shift-/', mac: 'Command-Shift-/'},
             exec: ()=>{
                 var pos = window.editor.getCursorPosition();
                 // var sel = window.editor.getSelectedText();

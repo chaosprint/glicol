@@ -1,11 +1,10 @@
+var exports = {};
+
+console.log(exports)
+
 class GlicolEngine extends AudioWorkletProcessor {
     static get parameterDescriptors() {
-        return [
-          {
-            name: 'amp',
-            defaultValue: 1.0
-          }
-        ]
+        return []
     }
     constructor() {
         super()
@@ -21,7 +20,7 @@ class GlicolEngine extends AudioWorkletProcessor {
             return {ptr: ptr, len: len}
         }
 
-
+        this.o = { index: 0, value: 0 };
         this.port.onmessage = e => {
             // this.port.postMessage({value: "hi"})
             
@@ -111,6 +110,10 @@ class GlicolEngine extends AudioWorkletProcessor {
 
                 // for updating, no need to pass in samples
                 this._wasm.exports.update(codeUint8ArrayPtr, codeLen)
+            } else if (e.data.type === "sab") {
+                this._param_reader = new ParameterReader(new RingBuffer(e.data.data, Uint8Array));
+            } else {
+                throw "unexpected.";
             }
         }
     }
@@ -120,10 +123,11 @@ class GlicolEngine extends AudioWorkletProcessor {
             return true
         }
 
-        // console.log(outputs)
-        // let output = outputs[0]
-        // console.log("outlen", output.length);
-        // for (let channel = 0; channel < output.length; ++channel) {
+        if (this._param_reader.dequeue_change(this.o)) {
+            console.log("param change: ", this.o.index, this.o.value);
+            // this.amp = this.o.value;
+        }
+
         if (inputs[0][0]) {
             this._inPtr = this._wasm.exports.alloc(128)
             this._inBuf = new Float32Array(
@@ -147,28 +151,13 @@ class GlicolEngine extends AudioWorkletProcessor {
             resultPtr,
             256
         )
-    
+
         if (result[0] !== 0) {
-            // console.log("%cNon exist sample.", "color: white; background: red")
-            // console.log("%cAt line "+String(result[1]+1)+".", "color: white; background: green")
-            // this.port.postMessage(result.slice(2))
             this.port.postMessage(result)
         }
-            // console.log(result[0])
+
         outputs[0][0].set(this._outBuf.slice(0, 128))
         outputs[0][1].set(this._outBuf.slice(128, 256))
-            // outputs[0][0].set(this._inBuf);
-            // console.log(this._inBuf);
-        // console.log(this._inBuf);
-
-
-
-        // if (inputs[0][0]) {
-        //     outputs[0][0].set(inputs[0][0]);
-        // }
-        // outputs[0][0].set(this._outBuf.slice(0, 128))
-        // outputs[0][1].set(this._outBuf.slice(128, 256))
-        // console.log(outputs[0][0], outputs[0][1])
         return true
     }
 }

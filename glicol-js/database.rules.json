@@ -1,6 +1,6 @@
 {
   "rules": {
-    ".read": true,
+    ".read": "auth.uid !== null",
     ".write": "auth.uid !== null"
   }
 }

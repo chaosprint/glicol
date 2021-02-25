@@ -43,7 +43,7 @@ const Run = ({onClick, disabled}) => {
 const Update = ({onClick}) => {
   return (
     <ToolButton
-      title = "update [shift + enter]"
+      title = "update [shift + enter]; the music will be updated at the beginning of a new bar."
       onClick = {onClick}
       icon = {<UpdateIcon fontSize="large" />}
     ></ToolButton>
@@ -64,7 +64,7 @@ const Pause = ({onClick}) => {
 const Reset = ({onClick}) => {
   return (
     <ToolButton
-      title = "reset [ctrl + shift + .] (cmd + shift + . on Mac)"
+      title = "restart audio engine [Ctrl + Shift + . on Windows] (command + shift + . on Mac); this will also clear all the samples loaded."
       onClick = {onClick}
       icon = {<RotateLeftIcon fontSize="large" />}
     ></ToolButton>

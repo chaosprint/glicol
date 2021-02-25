@@ -51,7 +51,7 @@ pub struct Impulse {
 }
 
 impl Impulse {
-    pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend<128>, 128>, Vec<String>), EngineError> {
+    pub fn new(paras: &mut Pairs<Rule>) -> NodeResult {
 
         let para_a: String = paras.as_str().to_string()
         .chars().filter(|c| !c.is_whitespace()).collect();

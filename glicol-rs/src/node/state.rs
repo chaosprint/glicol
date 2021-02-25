@@ -2,7 +2,6 @@ use dasp_graph::{Buffer, Input, Node};
 use super::super::{Pairs, Rule, NodeData,
     NodeResult, BoxedNodeSend, EngineError};
 
-
 pub struct State {
     // sig: Box<dyn Signal<Frame=f64> + Send>
     info: Vec::<Vec<f32>>,
