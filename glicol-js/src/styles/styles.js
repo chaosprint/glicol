@@ -106,7 +106,7 @@ const useStyles = makeStyles((theme) => ({
   editor: {
     margin: theme.spacing(0, 0),
     position: 'fixed',
-    fontFamily: "B612 Mono",
+    fontFamily: 'B612 Mono',
   },
   fork: {
     minHeight: 200,

@@ -6,7 +6,7 @@ window.ace.define("ace/theme/tomorrow-night",["require","exports","module","ace/
     exports.cssClass = "ace-tomorrow-night";
     exports.cssText = `
     .ace-tomorrow-night .ace_gutter {
-        background: #25282c;
+        background: #1D1F21;
         color: #C5C8C6
     }
       
@@ -21,8 +21,10 @@ window.ace.define("ace/theme/tomorrow-night",["require","exports","module","ace/
       }
       
       .ace-tomorrow-night .ace_cursor {
-        color: #AEAFAD;
-        width: 20px
+        border: 0!important;
+        background-color: rgba(255,255,255,0.5);
+        color: rgba(255,255,255,0.8);
+        opacity: 0.5;
       }
       
       .ace-tomorrow-night .ace_marker-layer .ace_selection {
@@ -47,7 +49,7 @@ window.ace.define("ace/theme/tomorrow-night",["require","exports","module","ace/
       }
       
       .ace-tomorrow-night .ace_gutter-active-line {
-        background-color: #282A2E
+        background-color: #1D1F21
       }
       
       .ace-tomorrow-night .ace_marker-layer .ace_selected-word {

@@ -1,6 +1,6 @@
 use dasp_graph::{Buffer, Input, Node};
 use super::super::{Pairs, Rule, NodeData, NodeResult,
-    BoxedNodeSend, EngineError, handle_params};
+    BoxedNodeSend, handle_params};
 
 // pub enum Env {
 //     Perc(f64, f64, u32),

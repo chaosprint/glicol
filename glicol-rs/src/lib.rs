@@ -83,11 +83,7 @@ impl Engine {
         }
     }
 
-    pub fn reset(&mut self) {
-        self.elapsed_samples = 0;
-        self.update = false;
-        self.code = "".to_string();
-        self.code_backup = "".to_string();
+    pub fn soft_reset(&mut self) {
         self.sidechains_list.clear();
         self.node_by_chain.clear();
         self.chain_info.clear();
@@ -95,16 +91,12 @@ impl Engine {
         self.graph.clear();
     }
 
-    pub fn soft_reset(&mut self) {
-        // self.elapsed_samples = 0;
-        // self.update = false;
-        // self.code = "".to_string();
-        // self.code_backup = "".to_string();
-        self.sidechains_list.clear();
-        self.node_by_chain.clear();
-        self.chain_info.clear();
-        self.chain_string.clear();
-        self.graph.clear();
+    pub fn reset(&mut self) {
+        self.elapsed_samples = 0;
+        self.update = false;
+        self.code = "".to_string();
+        self.code_backup = "".to_string();
+        self.soft_reset();
     }
 
     pub fn set_code(&mut self, code: &str) {
@@ -144,13 +136,13 @@ impl Engine {
 
         let lines = match GlicolParser::parse(Rule::block, &mut b) {
             Ok(mut v) => v.next().unwrap(),
-            Err(e) => { println!("{:?}", e); return Err(EngineError::ParsingError)}
+            Err(e) => { println!("{:?}", e); return Err(EngineError::ParsingError(e))}
         };
 
         // let mut previous_nodes = Vec::<NodeIndex>::new();
         let mut current_ref_name: &str = "";
 
-        // add function to Engine HashMap Function Chain Vec accordingly
+        // add nodes to nodes chain vectors in the HashMap with ref as key
         for line in lines.into_inner() {
             let inner_rules = line.into_inner();
             for element in inner_rules {
@@ -162,6 +154,7 @@ impl Engine {
                         self.all_refs.push(current_ref_name.to_string());
                         let refname = current_ref_name.to_string();
 
+                        // TODO: this should be solved by parser
                         let new: Vec<String> = element.clone().into_inner()
                         .map(|v|v.as_str().to_string().chars()
                         .filter(|c| !c.is_whitespace()).collect()).collect();
@@ -415,7 +408,14 @@ impl Engine {
                             info[1] = 0;
                             info
                         },
-                        _ => unimplemented!()
+                        EngineError::ParsingError(_e) => {
+                            info[0] = 5;
+                            info[1] = 0;
+                            if self.code == "" {
+                                self.code_backup = "~dump: const 0.0".to_string();
+                            }
+                            info
+                        }
                     };
                     self.soft_reset();
                     // self.code = self.code_backup.clone();
@@ -472,139 +472,29 @@ impl Engine {
 
 #[derive(Debug)]
 pub enum EngineError {
-    ParsingError,
+    ParsingError(pest::error::Error<parser::Rule>),
     HandleNodeError,
     NonExistControlNodeError(String),
     ParameterError((usize, usize)),
     SampleNotExistError((usize, usize))
 }
 
-// impl std::convert::From<ParseFloatError> for EngineError {
-//     fn from(_error: ParseFloatError) -> Self {
-//         EngineError::ParameterError
-//     }
-// }
-
-#[macro_export]
-/// this works well for nodes whose inner states are only floats
-/// e.g. oscillator, filter, operator
-macro_rules! handle_params {
-    (
-        { $($id: ident: $default: expr),* }
-        $(,{$( $extra_params: ident : $val: expr),* })?
-        $(,[$( ( $related: ident, $extra_id: ident, $handler: expr) ),* ])?
-    ) => {
-        pub fn new(paras: &mut Pairs<Rule>) ->
-        NodeResult {
-
-            let mut sidechains = Vec::<String>::new();
-            let mut params_val = std::collections::HashMap::<&str, f32>::new();
-            let mut sidechain_ids = Vec::<u8>::new();
-            let mut _sidechain_id: u8 = 0;
-
-            // TODO: need to handle unwarp
-            $(
-                let current_param: String = paras.next().unwrap().as_str().to_string();
-                let parse_result = current_param.parse::<f32>();
-                match parse_result {
-                    Ok(val) => {
-                        params_val.insert(stringify!($id), val);
-                    },
-                    Err(_) => {
-                        sidechains.push(current_param);
-                        params_val.insert(stringify!($id), $default);
-                        sidechain_ids.push(_sidechain_id);
-                    }
-                };
-                _sidechain_id += 1;
-            )*
-
-            $(
-                $(
-                    let $extra_id = $handler(params_val[stringify!($related)]);
-                )*
-            )?
-
-            Ok((NodeData::new1( BoxedNodeSend::new( Self {
-                $(
-                    $id: params_val[stringify!($id)],
-                )*
-                $(
-                    $(
-                        $extra_params: $val,
-                    )*
-                )?
-                $(
-                    $(
-                        $extra_id,
-                    )*
-                )?
-                sidechain_ids
-            })), sidechains))
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! ndef {
-    ($struct_name: ident, $channel_num: ident, {$code_str: expr}) => {
-        pub struct $struct_name {
-            engine: Engine
-        }
-        
-        impl $struct_name {
-            pub fn new(paras: &mut Pairs<Rule>) -> Result<
-            (NodeData<BoxedNodeSend<128>, 128>, Vec<String>), EngineError> {
-                let mut engine = Engine::new();
-                engine.set_code(&format!($code_str, a=paras.as_str()));
-                engine.make_graph()?;
-                Ok((NodeData::$channel_num(BoxedNodeSend::new( Self {
-                    engine
-                })), vec![]))
-            }
-        }
-        
-        impl Node<128> for $struct_name {
-            fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
-                // self.engine.input(inputs); // mono or stereo?
-                let mut input = inputs[0].buffers()[0].clone();
-                let buf = self.engine.gen_next_buf_128(&mut input).unwrap();
-                match output.len() {
-                    1 => {
-                        for i in 0..128 {
-                            output[0][i] = buf.0[i];
-                        }
-                    },
-                    2 => {
-                        for i in 0..128 {
-                            output[0][i] = buf.0[i];
-                            output[1][i] = buf.0[i+128];
-                        }
-                    },
-                    _ => {}
-                }
-            }
-        }
-    };
-}
-
 #[cfg(test)]
 mod tests {
+
     #[test]
-    fn test() {
-        use super::*;
+    fn test_update() {
+        use super::Engine;
         let mut engine = Engine::new();
-        engine.set_code("aa: sin 60 >> mul ~am
-    
-        ~am: sin 0.3 >> linrange 0.1 0.9");
-    
+        engine.set_code("");
+
         engine.make_graph();
 
         for _ in 0..(43000.0/128.0) as usize {
             let out = engine.gen_next_buf_128(&mut [0.0;128]).unwrap().0;
         }
         engine.set_code("aa: sin 80 >> mul ~am
-    
+
         ~am: sin 0.3 >> linrange 0.1 0.9");
 
         engine.make_graph();
