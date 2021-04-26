@@ -4,10 +4,11 @@
 // AudioWorklet. This is useful to be able to use multiple files (utils, data
 // structure, main DSP, etc.) without either using static imports, eval, manual
 // concatenation with or without a build step, etc.
+
 function URLFromFiles(files) {
+
   const promises = files
-    .map((file) => fetch(file)
-      .then((response) => response.text()));
+    .map(file => fetch(file).then( response => response.text() ))
 
   return Promise
     .all(promises)

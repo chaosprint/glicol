@@ -27,15 +27,16 @@ window.loadModule = async () => {
           data: sab
       });
 
-      console.clear();
-      console.log("%c"+window.art, "color: #3E999F")
+      // console.clear();
+      console.log("%c"+window.art, "color: grey") //#3E999F
       console.log(`\n\n%c Available nodes: `, "background: black; color:white; font-weight: bold");
       console.log(["sin", "saw", "squ", "mul", "add", "imp", "sampler", "sp", "buf", "seq", "linrange", "lpf", "hpf", "spd", "speed", "noiz", "choose", "envperc", "pha", "state", "pan", "delay", "apf", "comb", "mix", "plate", "onepole", "allpass", "delayn", "monosum", "const"])
   
       console.log(`\n\n%c Fetch help files by: `, "background: black; color:white; font-weight: bold")
-      console.log(`typing %chelp("the node name")%c in the console, e.g. %chelp("sin")%c;\n\nor move the cursor to a keyword and press %cCtrl+Shift+/`, "color: green", "color: default", "color: green", "color: default", "color: purple");
+      console.log(`Method 1: typing %chelp("the node name")%c in the console, e.g. %chelp("sin")%c;\n\nMethod 2: move the cursor to a keyword and press %cCtrl+Shift+/`, "color: green", "color: default", "color: green", "color: default", "color: grey");
 
-      // paramWriter.enqueue_change(0, e.target.value)
+      // console.log(`\n\n%c Useful console commands: `, "background: black; color:white; font-weight: bold")
+      // console.log(``);
     })
   })
 }

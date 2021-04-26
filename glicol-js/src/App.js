@@ -64,7 +64,7 @@ export default function App() {
 
   const loadSamples = async (list) => {
     console.clear()
-    console.log("\n\navailable samples:")
+    console.log("\n\n%c Available samples: ", "background: black; color:white; font-weight: bold")
     console.log(list.sort())
     let tempcode = window.code
     setLoading(true)
@@ -141,7 +141,7 @@ export default function App() {
       console.log(e)
     }
 
-    console.log(encoder.encode(window.code?window.code:"").length)
+    // console.log(encoder.encode(window.code?window.code:"").length)
     if (window.paramWriter.available_write()) {
       window.paramWriter.enqueue(encoder.encode(window.code?window.code:""))
     }
@@ -250,7 +250,6 @@ export default function App() {
         <Update onClick={handleUpdate} />
         <Reset onClick={handleStop} />
         
-
         <Tooltip title="settings">
         <IconButton
           // color="inherit"

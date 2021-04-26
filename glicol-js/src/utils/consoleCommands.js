@@ -9,7 +9,7 @@ window.code = intro
 window.help = (token) => {
     console.clear()
     if (token in window.docs.about) {
-        console.log("%c"+window.art, "color: #3E999F")
+        console.log("%c"+window.art, "color: grey")
         console.log("\n\n%c About: ", "background: black; color:white; font-weight: bold")
         // console.log("about")
         console.log("%c"+token, `color: yellow`, `${window.docs.about[token]}`)

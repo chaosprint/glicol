@@ -1,18 +1,21 @@
 const welcome =
 
-`~a: noiz 0 >> mul 1 >> add 40
+`~a: choose 48 55 51 58
 
-~b: choose 35 45 0
+~b: choose 36 60 0 0 0 0 0
 
-~trigger: speed 8.0 >> seq ~a ~b
+// how about changing the speed to 4.0 and click the update button above?
+~trigger: speed 8.0 >> seq ~a ~b >> mul 2.0
 
-~env: ~trigger >> envperc 0.01 0.1 >> mul 0.5
+~env: ~trigger >> envperc 0.01 0.1 >> mul 0.2
 
 ~pitch: ~trigger >> mul 261.626
 
-lead: saw ~pitch >> mul ~env >> lpf ~cut 6.0
+// how about changing the parameter below from 0.6 to 0.0?
+lead: saw ~pitch >> mul ~env >> lpf ~cut 3.0 >> mul 0.6 >> plate 0.1
 
-~cut: squ 0.5 >> linrange 300.0 3000.0`
+// try to change any numbers in this example to see how it works
+~cut: squ 0.5 >> linrange 300.0 8000.0`
 
 const hello = 
 `hi: sin 440.0

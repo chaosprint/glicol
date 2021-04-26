@@ -493,9 +493,9 @@ mod tests {
         for _ in 0..(43000.0/128.0) as usize {
             let out = engine.gen_next_buf_128(&mut [0.0;128]).unwrap().0;
         }
-        engine.set_code("aa: sin 80 >> mul ~am
-
-        ~am: sin 0.3 >> linrange 0.1 0.9");
+        engine.set_code("~aa: sin 440
+        
+        out: ~aa 44");
 
         engine.make_graph();
 

@@ -1,6 +1,6 @@
 var exports = {};
 
-console.log(exports)
+// console.log(exports)
 
 class GlicolEngine extends AudioWorkletProcessor {
     static get parameterDescriptors() {
@@ -126,7 +126,7 @@ class GlicolEngine extends AudioWorkletProcessor {
         let size = this._param_reader.dequeue(this._codeArray)
         if (size) {
             // let code = this._codeArray.filter(x=>x!==0)
-            console.log("param change: ", this._codeArray.slice(0, size));
+            // console.log("param change: ", this._codeArray.slice(0, size));
             // this.amp = this.o.value;
             // let codeLen = e.data.value.byteLength
             let codeUint8ArrayPtr = this._wasm.exports.alloc_uint8array(size);

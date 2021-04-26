@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import './Editor.css'
 import { useParams } from "react-router-dom";
-import firebaseConfig from './firebaseConfig'
+import firebaseConfig from '../firebaseConfig'
 import LockIcon from '@material-ui/icons/Lock';
 import {Modal, TextField, Fab, ThemeProvider} from '@material-ui/core/'
 import { useStyles, theme } from '../styles/styles';
