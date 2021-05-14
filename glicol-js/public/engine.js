@@ -162,7 +162,12 @@ class GlicolEngine extends AudioWorkletProcessor {
         )
 
         if (result[0] !== 0) {
-            this.port.postMessage(result)
+            // console.log(result.slice(0,256))
+            // if (window.resultWriter.available_write()) {
+            //     window.resultWriter.enqueue(result)
+            // }
+            // this._result_reader.enqueue(result)
+            this.port.postMessage(result.slice(0,256))
         }
 
         outputs[0][0].set(this._outBuf.slice(0, 128))

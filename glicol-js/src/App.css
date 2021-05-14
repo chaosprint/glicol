@@ -21,15 +21,17 @@ p,
 } */
 
 #logo {
-    align-self: center;
-    align-content: center;
-    margin-right: auto;
+    /* align-self: center; */
+    /* align-content: center; */
+    /* margin-right: auto; */
+    /* position: relative; */
+    /* left:100px; */
     letter-spacing:5px;
     /* font-family: 'Anton', sans-serif; */
-    /* font-family: 'Rubik', sans-serif; */
-    font-family: B612 Mono;
+    font-family: 'Monoton', cursive;
+    /* font-family: B612 Mono; */
     /* font-family: 'Kaushan Script', cursive; */
-    font-weight: bold;
+    /* font-weight: bold; */
     color: #dddddd
 }
 

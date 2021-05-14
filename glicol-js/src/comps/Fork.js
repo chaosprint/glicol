@@ -1,7 +1,7 @@
 import React from 'react';
 import { useStyles, theme } from '../styles/styles';
 import {Stepper,Step,  TextField, StepLabel, Button, ThemeProvider} from '@material-ui/core/'
-import firebaseConfig from './firebaseConfig'
+import firebaseConfig from '../firebaseConfig'
 import { useHistory } from "react-router-dom";
 
 export default function HorizontalLabelPositionBelowStepper() {

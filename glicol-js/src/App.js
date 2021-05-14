@@ -12,6 +12,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import { useStyles, theme } from './styles/styles'
 import {Run, Reset, Pause, Menu, Update, Fork } from './comps/ToolButton'
 import MyList from "./comps/MyList"
+import firebaseConfig from './firebaseConfig'
 
 import handleError from './utils/handleError'
 import { WaveFile } from 'wavefile';
@@ -52,14 +53,30 @@ export default function App() {
       // loadModule()
     } catch (e) {console.log(e)}
     try {
+      if (!window.firebase.apps.length) {
+        window.firebase.initializeApp(firebaseConfig);
+      };
+      const defaultAnalytics = window.firebase.analytics();
       window.firebase.auth().signInAnonymously()
-      .then(() => {
-      })
+      .then()
       .catch((error) => {
           console.log(error.code);
           console.log(error.message);
       });
-    } catch {}
+
+      window.firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+          // User is signed in, see docs for a list of available properties
+          // https://firebase.google.com/docs/reference/js/firebase.User
+          var uid = user.uid;
+          // const method = user.credential.signInMethod;
+          defaultAnalytics.logEvent("login", {uid})
+        } else {
+          // User is signed out
+          // ...
+        }
+      });
+    } catch (e) {console.log(e)}
   }, []);
 
   const loadSamples = async (list) => {
@@ -237,7 +254,7 @@ export default function App() {
         >
         <Toolbar>
         <div className={classes.menu} ><Menu onClick = {()=>setSideOpen(true)} /></div>
-        <div id="logo"><h2><a href="/">GLICOL</a></h2></div>
+        {/* <div id="logo"><h2><a href="/">GLICOL</a></h2></div> */}
         
         <div id="control">
         {loading ?
@@ -334,7 +351,6 @@ export default function App() {
               checked={useSamples}
               onChange={handleUseSamples}
               name="useSamples"
-              // color="inherit"
             />
           }
           label="use samples?"
