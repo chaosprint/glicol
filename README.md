@@ -1,11 +1,53 @@
 # Introduction
-Glicol is a graph-oriented live coding language developed with Rust, WebAssembly and AudioWorklet.
 
-It is currently running on its collaborative web-based IDE with documentation and tutorials built in the browser console:
+Glicol (graph-oriented live coding language) is a computer music language written in Rust.
+
+Despite its versatility, Glicol is currently targeting browser-based collaborative live coding.
+
+# Why Glicol?
+
+## Intuitive
+
+Glicol uses a graph-oriented syntax, bypassing paradigms such as OOP or FP. For example, you can synthesise kick drum like this:
+
+```
+bd: sin ~pitch >> mul ~env >> mul 0.9
+
+~trigger: speed 4.0 >> seq 60
+
+~env: ~trigger >> envperc 0.01 0.4
+
+~env_pitch: ~trigger >> envperc 0.01 0.1
+
+~pitch: ~env_pitch >> mul 80 >> add 60
+```
+
+Play with the code at: https://glicol.web.app/4CY8UM
+
+## Fast
+Glicol has both its language and DSP engines written in Rust. With the zero-cost abstractions in Rust, Glicol is very fast.
+
+## Safe
+Glicol has reliable error-handling strategies written in Rust, so you do not need to worry about typos in live performances. If an error is detected, the engine will continue playing the previous error-free codes.
+
+## Browser-based
+Using WebAssembly, AudioWorklet and SharedArrayBuffer, browsers can now have lock-free real-time audio processing capacity. Glicol has used all these technologies to provide a zero-installation experience. Just visit the website and you can start live coding.
+
+## What you see is what you get
+Just run the code. What you see on screen is what you hear.
+Commenting out a line of code is equivalent to muting a tract.
+
+# Where to start?
+
+Glicol has launched its official website at: 
+
+https://glicol.org
+
+Still, the old web app will remain as the playground:
 
 https://glicol.web.app
 
-Feel free to try it as a live coding language or a tool for quick audio effect prototyping. If you find bugs, have any questions, or simply hope to add some features for your project, please open new issues and pull request are welcomed.
+*On both website, opening the browser console is important as the helps and some key commands are exported there.*
 
 # Repository structure and development
 
@@ -14,35 +56,22 @@ This repository has three folders:
 - ```glicol-wasm```
 - ```glicol-js```
 
-The ```glicol-rs``` folder contains the main Rust code for the language parser and audio engine.
+The ```glicol-rs``` folder contains the main Rust code for the language parsing and DSP engine.
 The ```glicol-wasm``` folder is for compiling the Rust code into a WebAssembly module.
-The ```glicol-js``` contains the JS code for the collaborative web-based IDE and the AudioWorklet engine.
+The ```glicol-js``` contains the JS code, which can be used as a CDN link.
 
+See the README on each folder for details.
 
-```
-cd glicol-rs
-zsh plot.sh // or `plot.bat` on windows
-```
+# Contribution
 
-```
-cd glicol-wasm
-cargo build --target wasm32-unknown-unknown --release
-```
-
-```
-cd glicol-js
-yarn
-zsh test.sh  // or `test.bat` on windows
-```
+Suggestions, bug reporting, or PR are warmly welcomed.
 
 # Acknowledgement
-https://pest.rs/
 
 https://crates.io/crates/dasp_graph
 
-https://firepad.io/
-
 # License
+
 The MIT License (MIT)
 
-Copyright (c) 2020 Qichao Lan
+Copyright (c) 2020 - present Qichao Lan (chaosprint)
