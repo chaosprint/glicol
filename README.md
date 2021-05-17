@@ -6,9 +6,16 @@ Despite its versatility, Glicol is currently targeting browser-based collaborati
 
 # Why Glicol?
 
-## Intuitive
+***Glicol is fast.*** Glicol has both its language and DSP engines written in Rust. With the zero-cost abstractions in Rust, Glicol is very fast.
 
-Glicol uses a graph-oriented syntax, bypassing paradigms such as OOP or FP. For example, you can synthesise kick drum like this:
+***Glicol is reliable.*** Glicol has reliable error-handling strategies written in Rust, so you do not need to worry about typos in live performances. If an error is detected, the engine will continue playing the previous error-free codes.
+
+***Glicol is easy to access.*** Using WebAssembly, AudioWorklet and SharedArrayBuffer, browsers can now have lock-free real-time audio processing capacity. Glicol has used all these technologies to provide a zero-installation experience. Just visit the website and you can start live coding.
+
+***Glicol is interaction-friendly.*** Just run the code. What you see on screen is what you hear.
+Commenting out a line of code is equivalent to muting a track.
+
+***Glicol is intuitive.*** Glicol uses a graph-oriented syntax, bypassing paradigms such as OOP or FP. For example, you can synthesise kick drum like this:
 
 ```
 bd: sin ~pitch >> mul ~env >> mul 0.9
@@ -22,20 +29,9 @@ bd: sin ~pitch >> mul ~env >> mul 0.9
 ~pitch: ~env_pitch >> mul 80 >> add 60
 ```
 
+Just like playing module synth.
+
 Play with the code at: https://glicol.web.app/4CY8UM
-
-## Fast
-Glicol has both its language and DSP engines written in Rust. With the zero-cost abstractions in Rust, Glicol is very fast.
-
-## Safe
-Glicol has reliable error-handling strategies written in Rust, so you do not need to worry about typos in live performances. If an error is detected, the engine will continue playing the previous error-free codes.
-
-## Browser-based
-Using WebAssembly, AudioWorklet and SharedArrayBuffer, browsers can now have lock-free real-time audio processing capacity. Glicol has used all these technologies to provide a zero-installation experience. Just visit the website and you can start live coding.
-
-## What you see is what you get
-Just run the code. What you see on screen is what you hear.
-Commenting out a line of code is equivalent to muting a tract.
 
 # Where to start?
 
