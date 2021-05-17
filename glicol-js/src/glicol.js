@@ -252,7 +252,6 @@ window.addSample = async (name, url) => {
 
 // https://github.com/padenot/ringbuf.js
 // customised for Glicol
-
 exports = {}
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -269,9 +268,6 @@ class TextParameterWriter {
     // const SIZE_ELEMENT = 5;
     this.ringbuf = ringbuf
   }
-  // Returns the number of samples that have been successfuly written to the
-  // queue. `buf` is not written to during this call, so the samples that
-  // haven't been written to the queue are still available.
   enqueue(buf) {
     return this.ringbuf.push(buf);
   }
@@ -289,9 +285,6 @@ class TextParameterReader {
     }
     this.ringbuf = ringbuf;
   }
-  // Attempt to dequeue at most `buf.length` samples from the queue. This
-  // returns the number of samples dequeued. If greater than 0, the samples are
-  // at the beginning of `buf`
   dequeue(buf) {
     if (this.ringbuf.empty()) {
       return 0;
@@ -318,14 +311,11 @@ class RingBuffer {
     var bytes = 8 + (capacity + 1) * type.BYTES_PER_ELEMENT;
     return new SharedArrayBuffer(bytes);
   }
-  // `sab` is a SharedArrayBuffer with a capacity calculated by calling
-  // `getStorageForCapacity` with the desired capacity.
   constructor(sab, type) {
     if (!ArrayBuffer.__proto__.isPrototypeOf(type) &&
       type.BYTES_PER_ELEMENT !== undefined) {
       throw "Pass a concrete typed array class as second argument";
     }
-
     // Maximum usable size is 1<<32 - type.BYTES_PER_ELEMENT bytes in the ring
     // buffer for this version, easily changeable.
     // -4 for the write ptr (uint32_t offsets)
@@ -343,9 +333,6 @@ class RingBuffer {
   type() {
     return this._type.name;
   }
-  // Push bytes to the ring buffer. `bytes` is an typed array of the same type
-  // as passed in the ctor, to be written to the queue.
-  // Returns the number of elements written to the queue.
   push(elements) {
     var rd = Atomics.load(this.read_ptr, 0);
     var wr = Atomics.load(this.write_ptr, 0);
@@ -371,10 +358,6 @@ class RingBuffer {
 
     return to_write;
   }
-  // Read `elements.length` elements from the ring buffer. `elements` is a typed
-  // array of the same type as passed in the ctor.
-  // Returns the number of elements read from the queue, they are placed at the
-  // beginning of the array passed as parameter.
   pop(elements) {
     var rd = Atomics.load(this.read_ptr, 0);
     var wr = Atomics.load(this.write_ptr, 0);
@@ -463,8 +446,6 @@ class RingBuffer {
     return this.capacity;
   }
 
-  // Copy `size` elements from `input`, starting at offset `offset_input`, to
-  // `output`, starting at offset `offset_output`.
   _copy(input, offset_input, output, offset_output, size) {
     for (var i = 0; i < size; i++) {
       output[offset_output + i] = input[offset_input + i];
@@ -516,11 +497,11 @@ window.loadModule = async () => {
     sampleRate: 44100
   })
 
-  URLFromFiles(['./src/glicol-engine.js']).then((e) => {
+  URLFromFiles(['https://cdn.jsdelivr.net/gh/chaosprint/glicol/glicol-js/src/glicol-engine.js']).then((e) => {
     
     window.actx.audioWorklet.addModule(e).then(() => {
       window.node = new AudioWorkletNode(window.actx, 'glicol-engine', {outputChannelCount: [2]})
-      fetch('./src/glicol_wasm.wasm')
+      fetch('https://cdn.jsdelivr.net/gh/chaosprint/glicol/glicol-js/src/glicol_wasm.wasm')
       .then(response => response.arrayBuffer())
       .then(arrayBuffer => {
         window.node.port.postMessage({
