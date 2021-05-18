@@ -8,16 +8,11 @@ It has both its language and DSP engine written in Rust.
 
 When compiled to WebAssembly, it can be used in browsers.
 
-*NOTE: If you are reading this from NPM, please see the GitHub repository instead.*
-
 # Example
-
-The `example` folder shows how you can use this JavaScript library.
 
 To run the demo:
 
 ```
-cd example
 npm i
 npm run dev
 ```
@@ -27,7 +22,7 @@ npm run dev
 Just include this into your `index.html`:
 
 ```
-<script src="https://cdn.jsdelivr.net/npm/glicol@0.1.1/src/glicol.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/chaosprint/glicol@0.1.0/src/glicol.js"></script>
 ```
 
 The `run()` function is bind to the window.
