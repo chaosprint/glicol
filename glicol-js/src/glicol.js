@@ -506,7 +506,7 @@ window.updateCode = (code) => {
   };
 }
 
-window.runGlicolCode = (code) =>{
+window.run = (code) =>{
 
   if (!window.isGlicolRunning) {
     window.runCode(code)
