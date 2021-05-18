@@ -24,14 +24,13 @@
       </div>
     </main>
 
-    <!-- two options: one is to copy the src folder; the other is to use cdn -->
-    <!-- <script src="src/glicol.js"></script> -->
-    <script src="https://cdn.jsdelivr.net/gh/chaosprint/glicol/glicol-js/src/glicol.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/glicol@0.1.1/src/glicol.js"></script>
+    
     <script>
       document.getElementById("code").value = window.code
       document.getElementById("run").addEventListener("click", ()=>{
         let currentCode = document.getElementById("code").value;
-        window.runGlicolCode(currentCode) // main function to run code; edit the code and run again will update music automatically
+        window.run(currentCode) // main function to run code; edit the code and run again will update music automatically
       })
       document.getElementById("stop").addEventListener("click", ()=>{
         window.stop(); // stop function binding to window

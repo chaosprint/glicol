@@ -1,13 +1,27 @@
 {
   "name": "glicol",
   "version": "0.1.1",
-  "description": "Glicol as an independent JavaScript library.",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "serve": "vite preview"
+  "description": "A language and DSP engine for browser-based live coding.",
+  "main": "src/glicol.js",
+  "directories": {
+    "example": "example"
   },
-  "devDependencies": {
-    "vite": "^2.3.0"
-  }
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "chaosprint/glicol/glicol-js"
+  },
+  "keywords": [
+    "live",
+    "coding",
+    "rust",
+    "audio",
+    "DSP",
+    "music",
+    "sound"
+  ],
+  "author": "Qichao Lan (chaosprint)",
+  "license": "MIT"
 }
