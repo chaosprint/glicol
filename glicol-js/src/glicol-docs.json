@@ -1,89 +1,103 @@
 {
     "sin": {
+        "description": "",
         "parameters": [{"name": "freq", "modulable": true}],
         "input": null,
         "output": {"description": "Sine wave float number streams.", "range": {"low": -1, "high": 1}},
         "example": ["example: sin 440", "fm_example: sin ~freq\n\n~freq: sin 20 >> mul 100 >> add 300"]
     },
     "squ": {
+        "description": "",
         "parameters": [{"name": "freq", "modulable": true}],
         "input": null,
         "output": {"description": "Square wave float number streams.", "range": {"low": -1, "high": 1}},
         "example": ["example: squ 100", "mod_example: squ ~freq\n\n~freq: squ 0.5 >> mul 100 >> add 300"]
     },
     "saw": {
+        "description": "",
         "parameters": [{"name": "freq", "modulable": true}],
         "input": null,
         "output": {"description": "Sawtooth wave float number streams.", "range": {"low": -1, "high": 1}},
         "example": ["example: saw 100", "mod_example: saw ~freq\n\n~freq: saw 0.1 >> mul 100 >> add 300"]
     },
     "tri": {
+        "description": "",
         "parameters": [{"name": "freq", "modulable": true}],
         "input": null,
         "output": {"description": "Triangle wave float number streams.", "range": {"low": -1, "high": 1}},
         "example": ["example: tri 100", "mod_example: tri ~freq\n\n~freq: tri 0.1 >> mul 100 >> add 300"]
     },
     "pwm": {
+        "description": "",
         "parameters": [{"name": "freq", "modulable": true}, {"name": "pulse width", "modulable": true}],
         "input": null,
         "output": {"description": "Pulse width modulation float number streams.", "range": {"low": -1, "high": 1}},
         "example": ["wip"]
     },
     "imp": {
+        "description": "",
         "parameters": [{"name": "freq", "modulable": true}],
         "input": null,
         "output": {"description": "Impuse signal float number streams.", "range": {"low": -1, "high": 1}},
         "example": ["pls_load_samples_first: imp 1.0 >> sp \\808bd"]
     },
     "lpf": {
+        "description": "",
         "parameters": [{"name": "cut_off_frequency", "modulable": true}, {"name": "q", "modulable": false}],
         "input": {"description": "Signal float streams for low pass filter.", "range": "depends on the input signal"},
-        "output": {"description": "Signal float streams filtered by the low-pass filter", "range": "depends on the input signal"},
+        "output": {"description": "Signal float streams filtered by the low-pass filter", "range": "Range depends on the input signal"},
         "example": ["basic: saw 300 >> lpf 100 1.0", "mod_example: saw 300 >> lpf ~mod 1.0\n\n~mod: sin 0.2 >> mul 100 >> add 100"]
     },
     "hpf": {
+        "description": "",
         "parameters": [{"name": "cut_off_frequency", "modulable": true}, {"name": "q", "modulable": false}],
         "input": {"description": "Signal float streams for high pass filter.", "range": "depends on the input signal"},
-        "output": {"description": "Signal float streams filtered by the high-pass filter", "range": "depends on the input signal"},
+        "output": {"description": "Signal float streams filtered by the high-pass filter", "range": "Range depends on the input signal"},
         "example": ["basic: saw 1000 >> hpf 100 1.0", "mod_example: saw 1000 >> hpf ~mod 1.0\n\n~mod: sin 0.2 >> mul 100 >> add 100"]
     },
     "noiz": {
-        "parameters": [{"name": "seed: keep the same seed will result in same random patttern", "modulable": false}],
+        "description": "",
+        "parameters": [{"name": "seed", "modulable": false}],
         "input": null,
         "output": {"description": "Random noise float number streams.", "range": {"low": -1, "high": 1}},
         "example": ["aa: noiz 42"]
     },
     "plate": {
-        "parameters": [{"name": "mix: recommand to use 0.1", "modulable": false}],
+        "description": "",
+        "parameters": [{"name": "mix: 0.1 recommand", "modulable": false}],
         "input": {"description": "Dry signal.", "range": "depends on the input signal"},
         "output": {"description": "Dry and wet signals in mix.", "range": "depends on the input signal"},
         "example": ["test: imp 1.0 >> mul 0.6 >> plate 0.1"]
     },
     "choose": {
-        "parameters": [{"name": "Unlimited number of midi notes seperated by spaces. Zero means rest.", "modulable": false}],
+        "description": "Unlimited number of midi notes seperated by spaces. Zero means rest.",
+        "parameters": [{"name": "Note sequence", "modulable": false}],
         "input": null,
         "output": {"description": "MIDI notes converted to relative pitch. MIDI 60 outputs 1.0; 72 outputs 2.0; 48 outputs 0.5.",  "range": {"low": 0, "high": "infinity but usually around 1 based on the pitch"}},
         "example": ["~a: choose 60 48 0 72\n\npls_load_samples_first: seq ~a _~a >> sp \\808lt"]
     },
     "seq": {
-        "parameters": [{"name": "Unlimited number of midi notes seperated by spaces. Underscore means rest. Compound note consists of underscrores and midi notes. One bar will first divided based on spaces. Then each compound note will further be divided equally.", "modulable": false}],
+        "description": "Unlimited number of midi notes seperated by spaces. Underscore means rest. Compound note consists of underscrores and midi notes. One bar will first divided based on spaces. Then each compound note will further be divided equally.",
+        "parameters": [{"name": "Note sequence", "modulable": "with *choose*"}],
         "input": {"description": "Please only use 'speed' node for 'seq' node input", "range": {"low": 0.0000001, "high": "infinity; you can experiment with it."}},
         "output": {"description": "Relative pitch converted by the MIDI notes (60=>1.0; 72=>2.0; 48=>0.5). This pitch float will only come once based on the timing in pattern. The rest of the float stream will be zeroes.",  "range": {"low": 0, "high": "infinity but usually around 1 based on the pitch"}},
         "example": ["pls_load_samples_first: speed 1.0 >> seq 60 _60 _ _60_60 >> sp \\808lt"]
     },
     "sp":  {
+        "description": "",
         "parameters": [{"name": "sample name", "modulable": false}],
         "input": {"description": "Float streams. Any none zero value will trigger the sample playback. 1.0 triggers default pitch. 0.5 octave lower.", "range": {"low": 0, "high": "infinity"}},
         "output": {"description": "The sample playback audio streams.",  "range": "depends on the sample"},
         "example": ["pls_load_samples_first: speed 1.0 >> seq 60 _60 _ _60_60 >> sp \\808lt"]
-    },    
-    "speed": {},
+    },
     "envperc": {
+        "description": "",
         "parameters": [{"name": "attack", "modulable": false}, {"name": "decay", "modulable": false}],
         "input": {"description": "Float streams. Any none zero value will trigger the envelope. The number determines the amplitude of the env.", "range": {"low": 0, "high": "recommanded to be no more than 1"}},
         "output": {"description": "The float streams of the envelope shape.",  "range": "depends on the input"},
         "example": ["out: sin 100 >> mul ~env\n\n~env: imp 1.0 >> envperc 0.001 0.1"]
-    },    
+    },
+    "speed": {}, 
     "linrange": {},
     "delay": {},
     "delayn": {},

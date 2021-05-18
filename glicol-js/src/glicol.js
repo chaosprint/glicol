@@ -6,6 +6,7 @@ window.sampleList = {
 
 window.loadDocs = async () => {
   fetch('https://cdn.jsdelivr.net/gh/chaosprint/glicol/glicol-js/src/glicol-docs.json')
+  // fetch("./src/glicol-docs.json")
   .then(response => response.json())
   .then(data => window.docs = data)
 }
@@ -13,9 +14,18 @@ window.loadDocs = async () => {
 window.loadDocs()
 
 window.help = (token) => {
-    // clear()
     if (token in window.docs) {
-        log(window.docs.token)
+        clear()
+        let node = window.docs[token]
+        log(`%cName: %c${token}`, "color: red", "")
+        log(`%cParameters: %c${"description" in node ? node["description"] : null }`, "color: orange", "")
+        table(node["parameters"])
+        log(`%cIutput: %c${node["input"] !== null ? node["input"].description : null }`, "color: yellow", "")
+        if (node["input"] !== null) {table(node["input"].range)}
+        log(`%cOutput: %c${node["output"].description}`, "color: green", "")
+        table(node["output"].range)
+        log(`%cExample:`, "color: cyan")
+        node["example"].forEach(e=>log(e))
     }  else {
         warn(`Move your cursor to an non-empty place where you wish to search.
         \nFor example, if you wish to search "sin", your cursor should be inside "sin" like this: s|in`)
@@ -358,6 +368,10 @@ function URLFromFiles(files) {
 
 window.log = function consoleWithNoSource(...params) {
   setTimeout(console.log.bind(console, ...params));
+}
+
+window.table = function consoleWithNoSource(...params) {
+  setTimeout(console.table.bind(console, ...params));
 }
 
 window.clear = function consoleClear() {
