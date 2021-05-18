@@ -74,7 +74,7 @@ window.loadSamples = async (arg) => {
       try {
         let sound = window.sampleDict[key][0];
         log(`Sample %c${key} %cloaded`, "color: green; font-weight: bold", "")
-        let u = 'https://cdn.jsdelivr.net/gh/chaosprint/Dirt-Samples/master/'
+        let u = 'https://cdn.jsdelivr.net/gh/chaosprint/Dirt-Samples/'
         // 'https://raw.githubusercontent.com/chaosprint/Dirt-Samples/master/'
         + key + '/' + sound
         let myRequest = new Request(u);
