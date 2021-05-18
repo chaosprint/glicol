@@ -18,7 +18,7 @@ window.help = async (token) => {
       await window.loadDocs()
     }
     if (token in window.docs) {
-        clear()
+        // clear()
         let node = window.docs[token]
         log(`%cName: %c${token}`, "color: red", "")
         log(`%cParameters: %c${"description" in node ? node["description"] : null }`, "color: orange", "")
