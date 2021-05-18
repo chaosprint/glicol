@@ -22,7 +22,7 @@ npm run dev
 Just include this into your `index.html`:
 
 ```
-<script src="https://cdn.jsdelivr.net/gh/chaosprint/glicol@0.1.0/glicol-js/src/glicol.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/chaosprint/glicol@0.1.2/glicol-js/src/glicol.js"></script>
 ```
 
 The `run()` function is bind to the window.
