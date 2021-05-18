@@ -13,7 +13,10 @@ window.loadDocs = async () => {
 
 window.loadDocs()
 
-window.help = (token) => {
+window.help = async (token) => {
+    if (!window.docs) {
+      await window.loadDocs()
+    }
     if (token in window.docs) {
         clear()
         let node = window.docs[token]
