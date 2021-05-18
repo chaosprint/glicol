@@ -13,11 +13,11 @@ window.loadDocs = async () => {
 window.loadDocs()
 
 window.help = (token) => {
-    clear()
+    // clear()
     if (token in window.docs) {
         log(window.docs.token)
     }  else {
-        error(`Move your cursor to an non-empty place where you wish to search.
+        warn(`Move your cursor to an non-empty place where you wish to search.
         \nFor example, if you wish to search "sin", your cursor should be inside "sin" like this: s|in`)
     }
 }
@@ -427,11 +427,11 @@ window.loadModule = async () => {
       log(`\n\n%c Available nodes: `, "background: black; color:white; font-weight: bold");
       log(["sin", "saw", "squ", "mul", "add", "imp", "sampler", "sp", "buf", "seq", "linrange", "lpf", "hpf", "spd", "speed", "noiz", "choose", "envperc", "pha", "state", "pan", "delay", "apf", "comb", "mix", "plate", "onepole", "allpass", "delayn", "monosum", "const"])
   
-      log(`\n\n%c Fetch help files by: `, "background: black; color:white; font-weight: bold")
-      log(`Method 1: typing %chelp("the node name")%c in the console, e.g. %chelp("sin")%c;\n\nMethod 2: move the cursor to a keyword and press %cAlt+D`, "color:green;font-weight:bold", "color: default", "color:green; font-weight:bold", "color:default", "color: green; font-weight:bold");
+      // log(`\n\n%c Fetch help files by: `, "background: black; color:white; font-weight: bold")
+      // log(`Move the cursor to a keyword and press %cAlt+D`, "color:green;font-weight:bold", "color: default", "color:green; font-weight:bold", "color:default", "color: green; font-weight:bold");
 
       log(`\n\n%c Useful console commands: `, "background: black; color:white; font-weight: bold")
-      log(`\n%cloadSamples()\n%cKeep the argument empty to load the selected samples by us.\n\n%cbpm()\n%cSet the BPM. The default is 120.\n\n%caddSample()\n%cAdd your own samples. The first argument is the sample name you wish to call, and the second arg is the url to the wav file. Keep the augument empty to load local samples. The files should end with .wav. The file name will become the keys. Only lowercase letters and numbers are valid keys, e.g 808bd.`, "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "");
+      log(`\n%chelp()\n%cGet docs for a node, e.g. help("sin").\n\n%cloadSamples()\n%cKeep the argument empty to load the selected samples by us.\n\n%cbpm()\n%cSet the BPM. The default is 120.\n\n%caddSample()\n%cAdd your own samples. The first argument is the sample name you wish to call, and the second arg is the url to the wav file. Keep the augument empty to load local samples. The files should end with .wav. The file name will become the keys. Only lowercase letters and numbers are valid keys, e.g 808bd.`, "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "");
     })
   })
 }
