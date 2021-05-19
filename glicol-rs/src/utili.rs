@@ -143,9 +143,10 @@ pub fn lcs(old: &Vec<String>, new: &Vec<String>)
 
 pub fn process_error_info(code: String, error: usize, s: usize, e: usize) -> [u8; 256] {
     let mut info: [u8; 256] = [0; 256];
-    let l = code[..s].matches("\n").count() as u8;
+    println!("{:?} {:?}", code, s);
+    let line = code[..s].matches("\n").count() as u8;
     info[0] = error as u8;
-    info[1] = l;
+    info[1] = line;
     let word = code[s..e].as_bytes();
     if word.len() < 254 {
         for i in 2..word.len()+2 {

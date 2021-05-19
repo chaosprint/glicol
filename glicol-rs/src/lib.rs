@@ -22,7 +22,7 @@ use utili::{midi_or_float, preprocess_sin,
     preprocess_mul, lcs, process_error_info};
 
 pub type MyNodeData = NodeData<BoxedNodeSend<128>, 128>;
-pub type NodeResult =Result<(MyNodeData, Vec<String>), EngineError>;
+pub type NodeResult = Result<(MyNodeData, Vec<String>), EngineError>;
 
 pub struct Engine {
     pub elapsed_samples: usize,

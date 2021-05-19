@@ -14,6 +14,11 @@ impl LinRange {
     pub fn new(paras: &mut Pairs<Rule>) -> NodeResult {
 
         let p = paras.as_str().split(" ").collect::<Vec<&str>>();
+        if p.len() != 2 {
+            let p = paras.next().unwrap();
+            let pos = (p.as_span().start(), p.as_span().end());
+            return Err(EngineError::ParameterError(pos));
+        }
         let para_a = p[0].to_string();
         let para_b = p[1].to_string();
 
