@@ -64,7 +64,7 @@ Suggestions, bug reporting, or PR are warmly welcomed.
 
 # Acknowledgement
 
-https://crates.io/crates/dasp_graph
+This work was partially supported by the Research Council of Norway through its Centres of Excellence scheme, project number 262762 and by NordForsk's Nordic University Hub Nordic Sound and Music Computing Network NordicSMC, project number 86892.
 
 # License
 
