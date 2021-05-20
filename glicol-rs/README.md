@@ -2,15 +2,19 @@
 
 Glicol is a **g**raph-based **li**ve **co**ding **l**anguage written in Rust.
 
-### Usage
-The easist way to try it is via the browser, thanks to AudioWorklet and WebAssembly.
+The easist way to try it is via the browser, thanks to WebAssembly, AudioWorklet and SharedArrayBuffer.
 
 See:
 
 [glicol.web.app](https://glicol.web.app)
 
-### Test and development
-If you hope to test the Rust code with plotting:
+# Usage
+
+This folder contains the Rust source code of Glicol, with the language and DSP modules wrapped as one `Engine` struct.
+
+In the `exmaple` folder there are two examples showing how to use Glicol APIs in Rust.
+
+You should install gnuplot on your OS before you run:
 ```
 cargo run --example plot
 ```
@@ -18,4 +22,9 @@ Or:
 ```
 cargo run --example update
 ```
-You should install gnuplot on your OS.
+
+# License
+
+The MIT License (MIT)
+
+Copyright (c) 2020 - present Qichao Lan (chaosprint)

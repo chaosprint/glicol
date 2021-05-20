@@ -12,7 +12,7 @@ use petgraph::graph::{NodeIndex};
 use petgraph::Directed;
 use petgraph::stable_graph::{StableGraph, StableDiGraph};
 
-mod node;
+pub mod node;
 use node::make_node;
 // use node::adc::{Adc, AdcSource};
 use node::system::{Clock, AudioIn};
@@ -21,13 +21,13 @@ mod utili;
 use utili::{midi_or_float, preprocess_sin,
     preprocess_mul, lcs, process_error_info};
 
-pub type MyNodeData = NodeData<BoxedNodeSend<128>, 128>;
-pub type NodeResult = Result<(MyNodeData, Vec<String>), EngineError>;
+pub type GlicolNodeData = NodeData<BoxedNodeSend<128>, 128>;
+pub type NodeResult = Result<(GlicolNodeData, Vec<String>), EngineError>;
 
 pub struct Engine {
     pub elapsed_samples: usize,
-    pub graph: StableGraph<MyNodeData, (), Directed, u32>,
-    processor: Processor<StableDiGraph<MyNodeData, (), u32>, 128>,
+    pub graph: StableGraph<GlicolNodeData, (), Directed, u32>,
+    pub processor: Processor<StableDiGraph<GlicolNodeData, (), u32>, 128>,
     sidechains_list: Vec<(NodeIndex, String)>,
     pub adc_source_nodes: Vec<NodeIndex>,
     pub adc_nodes: Vec<NodeIndex>,
@@ -50,7 +50,7 @@ pub struct Engine {
 impl Engine {
     pub fn new() -> Engine {
         // Chose a type of graph for audio processing.
-        type MyGraph = StableGraph<MyNodeData, (), Directed, u32>;
+        type MyGraph = StableGraph<GlicolNodeData, (), Directed, u32>;
         // Create a short-hand for our processor type.
         type MyProcessor = Processor<MyGraph, 128>;
 
@@ -83,32 +83,7 @@ impl Engine {
         }
     }
 
-    pub fn soft_reset(&mut self) {
-        self.sidechains_list.clear();
-        self.node_by_chain.clear();
-        self.chain_info.clear();
-        self.chain_string.clear();
-        self.graph.clear();
-    }
-
-    pub fn reset(&mut self) {
-        self.elapsed_samples = 0;
-        self.update = false;
-        self.code = "".to_string();
-        self.code_backup = "".to_string();
-        self.soft_reset();
-    }
-
-    pub fn set_code(&mut self, code: &str) {
-        self.code = code.to_string();
-        self.update = true;
-    }
-
-    pub fn set_track_amp(&mut self, amp: f32) {
-        self.track_amp = amp;
-    }
-
-    // error only comes from this method
+    /// The main function to convert the code input string into graph structure inside the engine
     pub fn make_graph(&mut self) -> Result<(), EngineError>{
         // self.node_by_chain.clear();
         self.samples_dict.insert("\\imp".to_string(), &[1.0]);
@@ -116,7 +91,6 @@ impl Engine {
         self.all_refs.clear();
         // self.modified.clear();
         // self.sidechains_list.clear();
-
         if self.graph.node_count() < 2 {
             self.clock = self.graph.add_node(
                 NodeData::new1(BoxedNodeSend::new(Clock{})));
@@ -124,17 +98,18 @@ impl Engine {
                 NodeData::new1(BoxedNodeSend::new(AudioIn{})));
         }
 
+        // dummy input reference
         self.all_refs.push("~input".to_string());
         self.node_by_chain.insert(
             "~input".to_string(),
             vec![(self.audio_in, "~input".to_string())]
         );
 
-        let mut b = preprocess_sin(&mut self.code)?;
-        b = preprocess_mul(&mut b)?;
-        println!("{}",&b);
+        self.code = preprocess_sin(&mut self.code)?;
+        self.code = preprocess_mul(&mut self.code)?;
+        println!("code after preprocess: {}",&self.code);
 
-        let lines = match GlicolParser::parse(Rule::block, &mut b) {
+        let lines = match GlicolParser::parse(Rule::block, &mut self.code) {
             Ok(mut v) => v.next().unwrap(),
             Err(e) => { println!("{:?}", e); return Err(EngineError::ParsingError(e))}
         };
@@ -360,6 +335,7 @@ impl Engine {
     //     }
     // }
 
+    /// The main interface for WebAssembly module to get the new block of audio.
     pub fn gen_next_buf_128(&mut self, inbuf: &mut [f32])
     -> Result<([f32; 256], [u8;256]), EngineError> {
         // don't use self.buffer
@@ -373,7 +349,6 @@ impl Engine {
         // }
 
         if self.update && (n + 128) % one_bar <= 128 {
-            // println!("update, {}", self.code);
             self.update = false;
             match self.make_graph() {
                 Ok(_) => {
@@ -418,7 +393,6 @@ impl Engine {
                         }
                     };
                     self.soft_reset();
-                    // self.code = self.code_backup.clone();
                     self.set_code(&self.code_backup.clone());
                     self.make_graph()?;
                 }
@@ -468,6 +442,31 @@ impl Engine {
 
         Ok((output, console))
     }
+
+    pub fn soft_reset(&mut self) {
+        self.sidechains_list.clear();
+        self.node_by_chain.clear();
+        self.chain_info.clear();
+        self.chain_string.clear();
+        self.graph.clear();
+    }
+
+    pub fn reset(&mut self) {
+        self.elapsed_samples = 0;
+        self.update = false;
+        self.code = "".to_string();
+        self.code_backup = "".to_string();
+        self.soft_reset();
+    }
+
+    pub fn set_code(&mut self, code: &str) {
+        self.code = code.to_string();
+        self.update = true;
+    }
+
+    pub fn set_track_amp(&mut self, amp: f32) {
+        self.track_amp = amp;
+    }
 }
 
 #[derive(Debug)]
@@ -477,30 +476,4 @@ pub enum EngineError {
     NonExistControlNodeError(String),
     ParameterError((usize, usize)),
     SampleNotExistError((usize, usize))
-}
-
-#[cfg(test)]
-mod tests {
-
-    #[test]
-    fn test_update() {
-        use super::Engine;
-        let mut engine = Engine::new();
-        engine.set_code("");
-
-        engine.make_graph();
-
-        for _ in 0..(43000.0/128.0) as usize {
-            let out = engine.gen_next_buf_128(&mut [0.0;128]).unwrap().0;
-        }
-        engine.set_code("~aa: sin 440
-        
-        out: ~aa 44");
-
-        engine.make_graph();
-
-        for _ in 0..(43000.0/128.0) as usize {
-            let out = engine.gen_next_buf_128(&mut [0.0;128]).unwrap().0;
-        }
-    }
 }

@@ -1,25 +1,42 @@
 use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNodeSend};
 use pest::iterators::Pairs;
-use super::super::{Rule, EngineError, NodeResult, handle_params};
+use super::super::{Rule, EngineError, GlicolNodeData, NodeResult, mono_node};
+use super::{Para};
 
-#[allow(dead_code)]
+/// St
 pub struct SinOsc {
-    _freq: f32,
+    freq: f32,
     phase: f32,
     clock: usize,
     buffer: Buffer<128>,
-    sidechain_ids: Vec<u8>
+    // pub sidechain_info: Vec<u8>
 }
 
 impl SinOsc {
-    handle_params!({
-        _freq: 440.0
-    }, {
-        phase: 0.0,
-        clock: 0
-    }, [(_freq, buffer, |_freq: f32|-> Buffer<128> {
-        Buffer::default()
-    })]);
+    pub fn new(freq: Para) -> GlicolNodeData {
+        let freq = match freq {
+            Para::Number(v) => v,
+            // Para::NodeIndex(n) => 440.,
+            _ => unimplemented!()
+            // Para::Ref(s) => { sidechain_info.push(s.to_string()); 0.01 },
+            // Para::Symbol(s) => unimplemented!()
+        };
+        return mono_node!( Self {
+            freq,
+            phase: 0.,
+            clock: 0,
+            buffer: Buffer::<128>::default(),
+            // sidechain_info
+        })
+    }
+    // handle_params!({
+    //     _freq: 440.0
+    // }, {
+    //     phase: 0.0,
+    //     clock: 0
+    // }, [(_freq, buffer, |_freq: f32|-> Buffer<128> {
+    //     Buffer::default()
+    // })]);
 }
 
 impl Node<128> for SinOsc {
@@ -50,33 +67,33 @@ pub struct Impulse {
     // sig: GenMut<(dyn Signal<Frame=f32> + 'static + Sized), f32>
 }
 
-impl Impulse {
-    pub fn new(paras: &mut Pairs<Rule>) -> NodeResult {
+// impl Impulse {
+//     pub fn new(paras: &mut Pairs<Rule>) -> NodeResult {
 
-        let para_a: String = paras.as_str().to_string()
-        .chars().filter(|c| !c.is_whitespace()).collect();
-        let p = paras.next().unwrap();
-        let pos = (p.as_span().start(), p.as_span().end());
+//         let para_a: String = paras.as_str().to_string()
+//         .chars().filter(|c| !c.is_whitespace()).collect();
+//         let p = paras.next().unwrap();
+//         let pos = (p.as_span().start(), p.as_span().end());
 
-        let freq = match para_a.parse::<f32>() {
-            Ok(v) => v,
-            Err(_) => return Err(EngineError::ParameterError(pos))
-        };
-        let period = (44100.0 / freq) as usize;
+//         let freq = match para_a.parse::<f32>() {
+//             Ok(v) => v,
+//             Err(_) => return Err(EngineError::ParameterError(pos))
+//         };
+//         let period = (44100.0 / freq) as usize;
 
-        // let mut i: usize = 0;
-        // let s = signal::gen_mut(move || {
-        //     let imp = (i % p == 0) as u8;
-        //     i += 1;
-        //     imp as f32
-        // });
-        Ok((NodeData::new1(BoxedNodeSend::new(Self {
-            // sig: Box::new(s)
-            clock: 0,
-            period: period,
-        })), vec![]))
-    }
-}
+//         // let mut i: usize = 0;
+//         // let s = signal::gen_mut(move || {
+//         //     let imp = (i % p == 0) as u8;
+//         //     i += 1;
+//         //     imp as f32
+//         // });
+//         Ok((NodeData::new1(BoxedNodeSend::new(Self {
+//             // sig: Box::new(s)
+//             clock: 0,
+//             period: period,
+//         })), vec![]))
+//     }
+// }
 
 impl Node<128> for Impulse {
     fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
@@ -106,12 +123,12 @@ pub struct Saw {
     sidechain_ids: Vec<u8>
 }
 
-impl Saw {
-    handle_params!({freq: 100.0}, {phase_n: 0, clock: 0},
-        [(freq, buffer, |_freq: f32|->Buffer<128> {
-            Buffer::default()
-        })]);
-}
+// impl Saw {
+//     handle_params!({freq: 100.0}, {phase_n: 0, clock: 0},
+//         [(freq, buffer, |_freq: f32|->Buffer<128> {
+//             Buffer::default()
+//         })]);
+// }
 
 impl Node<128> for Saw {
     fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
@@ -139,18 +156,18 @@ pub struct Square {
     sidechain_ids: Vec<u8>
 }
 
-impl Square {
-    handle_params!({
-        freq: 100.0
-    }, {
-        phase_n: 0,
-        clock: 0
-    }, [
-        (freq, buffer, |_freq: f32|->Buffer<128> {
-            Buffer::default()
-        })
-    ]);
-}
+// impl Square {
+//     handle_params!({
+//         freq: 100.0
+//     }, {
+//         phase_n: 0,
+//         clock: 0
+//     }, [
+//         (freq, buffer, |_freq: f32|->Buffer<128> {
+//             Buffer::default()
+//         })
+//     ]);
+// }
 
 impl Node<128> for Square {
     fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {

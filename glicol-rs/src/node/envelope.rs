@@ -1,5 +1,5 @@
 use dasp_graph::{Buffer, Input, Node};
-use super::super::{Pairs, Rule, NodeData, NodeResult,
+use super::super::{Pairs, Rule, NodeData, NodeResult, EngineError,
     BoxedNodeSend, handle_params};
 
 // pub enum Env {
@@ -17,32 +17,32 @@ pub struct EnvPerc {
 }
 
 impl EnvPerc {
-    handle_params!({
-        attack: 0.01,
-        decay: 0.3
-    }, {
-        pos: 0,
-        scale: 1.0
-    });
-    // pub fn new(paras: &mut Pairs<Rule>) -> Result<
-    // (NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+    // handle_params!({
+    //     attack: 0.01,
+    //     decay: 0.3
+    // }, {
+    //     pos: 0,
+    //     scale: 1.0
+    // });
+    pub fn new(attack: f32, decay: f32) -> NodeResult {
 
-    //     let para_a: String = paras.next().unwrap().as_str().to_string();
-    //     // .chars().filter(|c| !c.is_whitespace()).collect();
+        // let para_a: String = paras.next().unwrap().as_str().to_string();
+        // .chars().filter(|c| !c.is_whitespace()).collect();
 
-    //     let para_b: String = paras.next().unwrap().as_str().to_string();
-    //     // .chars().filter(|c| !c.is_whitespace()).collect();
+        // let para_b: String = paras.next().unwrap().as_str().to_string();
+        // .chars().filter(|c| !c.is_whitespace()).collect();
 
-    //     let attack = para_a.parse::<f32>()?;
-    //     let decay = para_b.parse::<f32>()?;
+        // let attack = para_a.parse::<f32>()?;
+        // let decay = para_b.parse::<f32>()?;
 
-    //     Ok((NodeData::new1( BoxedNodeSend::new( Self {
-    //         attack: attack,
-    //         decay: decay,
-    //         pos: 0,
-    //         scale: 1.0
-    //     })), vec![]))
-    // }
+        Ok((NodeData::new1( BoxedNodeSend::new( Self {
+            attack,
+            decay,
+            pos: 0,
+            scale: 1.0,
+            sidechain_ids: vec![]
+        })), vec![]))
+    }
 }
 
 impl Node<128> for EnvPerc {

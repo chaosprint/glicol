@@ -1,43 +1,42 @@
 // pub mod adc;
-pub mod operator;
-pub mod sequencer;
-pub mod envelope;
-pub mod filter; 
+// pub mod operator;
+// pub mod sequencer;
+// pub mod envelope;
+// pub mod filter; 
 pub mod oscillator; 
-pub mod sampler; 
-pub mod noise;
-pub mod pass;
-pub mod map; 
-pub mod rand; 
-pub mod phasor;
-pub mod buf; 
-pub mod state; 
-pub mod pan; 
-pub mod delay;
+// pub mod sampler; 
+// pub mod noise;
+// pub mod pass;
+// pub mod map; 
+// pub mod rand; 
+// pub mod phasor;
+// pub mod buf; 
+// pub mod state; 
+// pub mod pan; 
+// pub mod delay;
 pub mod system;
-pub mod reverb;
+// pub mod reverb;
 pub mod source;
 use std::{collections::HashMap};
-use super::{Pairs, Rule, NodeResult};
+use super::{Pairs, Rule, NodeResult, EngineError};
 
-use phasor::{Phasor};
-use oscillator::{SinOsc, Impulse, Saw, Square};
-use operator::{Add, Mul, MonoSum};
-use sampler::{Sampler};
-use sequencer::{Sequencer, Speed};
-use envelope::EnvPerc;
-use noise::Noise;
-use pass::Pass;
-use filter::{LPF, HPF, Allpass, Comb, OnePole, AllpassGain};
-use map::{LinRange};
-use rand::{Choose};
-use buf::{Buf};
-use state::{State};
-use pan::{Pan, Mix2};
-use delay::{Delay, DelayN};
-use reverb::{Plate};
+use oscillator::{SinOsc};
+// use operator::{Add, Mul};
+// use phasor::{Phasor};
+// use sampler::{Sampler};
+// use sequencer::{Sequencer, Speed};
+// use envelope::EnvPerc;
+// use noise::Noise;
+// use pass::Pass;
+// use filter::{LPF, HPF, Allpass, Comb, OnePole, AllpassGain};
+// use map::{LinRange};
+// use rand::{Choose};
+// use buf::{Buf};
+// use state::{State};
+// use pan::{Pan, Mix2};
+// use delay::{Delay, DelayN};
+// use reverb::{Plate};
 use source::{ConstSig};
-// use synth::{Synth};
 
 pub fn make_node(
     name: &str,
@@ -48,116 +47,166 @@ pub fn make_node(
 ) -> NodeResult {
 
     let result = match name {
-        "sin" => SinOsc::new(&mut paras)?,
-        "*" => Mul::new(&mut paras)?,
-        "mul" => Mul::new(&mut paras)?,
-        "add" => Add::new(&mut paras)?,
-        "imp" => Impulse::new(&mut paras)?,
-        "sp" => Sampler::new(&mut paras, 
-            samples_dict)?,
-        "sampler" => Sampler::new(&mut paras, 
-            samples_dict)?,
-        "buf" => Buf::new(&mut paras, 
-            samples_dict)?,
-        "seq" => Sequencer::new(&mut paras, sr, bpm)?,
-        "linrange" => LinRange::new(&mut paras)?,
-        "saw" => Saw::new(&mut paras)?,
-        "squ" => Square::new(&mut paras)?,
-        "lpf" => LPF::new(&mut paras)?,
-        "hpf" => HPF::new(&mut paras)?,
-        "spd" => Speed::new(&mut paras)?,
-        "speed" => Speed::new(&mut paras)?,
-        "noiz" => Noise::new(&mut paras)?,
-        "choose" => Choose::new(&mut paras)?,
-        "envperc" => EnvPerc::new(&mut paras)?,
-        "pha" => Phasor::new(&mut paras)?,
-        "state" => State::new(&mut paras)?,
-        "pan" => Pan::new(&mut paras)?,
-        "delay" => Delay::new(&mut paras)?,
-        "apf" => Allpass::new(&mut paras)?,
-        "comb" => Comb::new(&mut paras)?,
-        "mix" => Mix2::new(&mut paras)?,
-        "plate" => Plate::new(&mut paras)?,
-        "onepole" => OnePole::new(&mut paras)?,
-        "allpass" => AllpassGain::new(&mut paras)?,
-        "delayn" => DelayN::new(&mut paras)?,
-        "monosum" => MonoSum::new(&mut paras)?,
-        "const" => ConstSig::new(&mut paras)?,
-        // "synth" => Synth::new(&mut paras)?,
-        _ => Pass::new(name)?
+        "sin" => {
+            let (paras, refs) = process_parameters(paras, 1)?;
+            (SinOsc::new(paras[0].clone()), refs) 
+        },
+        "const" => {
+            let (paras, refs) = process_parameters(paras, 1)?;
+            (ConstSig::new(paras[0].clone()), refs) 
+        },
+        // "*" => Mul::new(&mut paras)?,
+        // "mul" => Mul::new(&mut paras)?,
+        // "add" => Add::new(&mut paras)?,
+        _ => unimplemented!()
+        // "imp" => Impulse::new(&mut paras)?,
+        // "sp" => Sampler::new(&mut paras, 
+        //     samples_dict)?,
+        // "sampler" => Sampler::new(&mut paras, 
+        //     samples_dict)?,
+        // "buf" => Buf::new(&mut paras, 
+        //     samples_dict)?,
+        // "seq" => Sequencer::new(&mut paras, sr, bpm)?,
+        // "linrange" => LinRange::new(&mut paras)?,
+        // "saw" => Saw::new(&mut paras)?,
+        // "squ" => Square::new(&mut paras)?,
+        // "lpf" => LPF::new(&mut paras)?,
+        // "hpf" => HPF::new(&mut paras)?,
+        // "spd" => Speed::new(&mut paras)?,
+        // "speed" => Speed::new(&mut paras)?,
+        // "noiz" => Noise::new(&mut paras)?,
+        // "choose" => Choose::new(&mut paras)?,
+        // "envperc" => EnvPerc::new(30.0, 50.0)?,
+        // "pha" => Phasor::new(&mut paras)?,
+        // "state" => State::new(&mut paras)?,
+        // "pan" => Pan::new(&mut paras)?,
+        // "delay" => Delay::new(&mut paras)?,
+        // "apf" => Allpass::new(&mut paras)?,
+        // "comb" => Comb::new(&mut paras)?,
+        // "mix" => Mix2::new(&mut paras)?,
+        // "plate" => Plate::new(&mut paras)?,
+        // "onepole" => OnePole::new(&mut paras)?,
+        // "allpass" => AllpassGain::new(&mut paras)?,
+        // "delayn" => DelayN::new(&mut paras)?,
+        // "monosum" => MonoSum::new(&mut paras)?,
+
+        // _ => Pass::new(name)?
     };
     Ok(result)
-    // match result {
-    //     Ok(good) => Ok(good),
-    //     Err(e) => {
-    //         match e {
-    //             // EngineError::NonExistControlNodeError(na) => Err(e),
-    //             EngineError::HandleNodeError => Err(e),
-    //             EngineError::ParameterError  => Err(e),
-    //             EngineError::SampleNotExistError(_pos) => Err(e),
-    //             _ => unimplemented!()
-    //         }
-    //     }
-    // }
 }
 
-#[macro_export]
+#[derive(Debug, Clone)]
+/// Parameter of a node can be f32, String, or NodeIndex for sidechain
+pub enum Para {
+    Number(f32),
+    Symbol(String),
+    NodeIndex(usize),
+    Ref(String)
+}
+
+/// This function process the struct Para
+/// 
+/// 
+pub fn process_parameters(mut paras: &mut Pairs<Rule>, num_paras: usize) -> Result<(Vec<Para>, Vec<String>), EngineError> {
+    let mut processed_paras = Vec::<Para>::new();
+    let mut refs = vec![];
+    for _ in 0..num_paras {
+        let para = paras.next();
+        let mut pos = (0, 0);
+        match para {
+            Some(p) => {
+                pos = (p.as_span().start(), p.as_span().end());
+                let key = p.as_str();
+                match key.parse::<f32>() {
+                    Ok(v) => processed_paras.push(Para::Number(v)),
+                    Err(_) => {
+                        if key.contains("~") {
+                            refs.push(key.to_string());
+                            processed_paras.push(Para::Ref(key.to_string()))
+                        } else if key.contains("\\") {
+                            processed_paras.push(Para::Symbol(key.to_string()))
+                        } else {
+                            return Err(EngineError::ParameterError(pos))
+                        }
+                    }
+                }                
+                // return Ok(processed_paras)
+            },
+            None => return Err(EngineError::ParameterError(pos))
+        // .chars().filter(|c| !c.is_whitespace()).collect();
+        };
+    };
+    return Ok((processed_paras, refs))
+}
+
+
+// #[macro_export]
 /// this works well for nodes whose inner states are only floats
 /// e.g. oscillator, filter, operator
-macro_rules! handle_params {
-    (
-        { $($id: ident: $default: expr),* }
-        $(,{$( $extra_params: ident : $val: expr),* })?
-        $(,[$( ( $related: ident, $extra_id: ident, $handler: expr) ),* ])?
-    ) => {
-        pub fn new(paras: &mut Pairs<Rule>) ->
-        NodeResult {
+/// should be deprecated because it's hard to read and trace error
+// macro_rules! handle_params {
+//     (
+//         { $($id: ident: $default: expr),* }
+//         $(,{$( $extra_params: ident : $val: expr),* })?
+//         $(,[$( ( $related: ident, $extra_id: ident, $handler: expr) ),* ])?
+//     ) => {
+//         pub fn new(paras: &mut Pairs<Rule>) ->
+//         NodeResult {
 
-            let mut sidechains = Vec::<String>::new();
-            let mut params_val = std::collections::HashMap::<&str, f32>::new();
-            let mut sidechain_ids = Vec::<u8>::new();
-            let mut _sidechain_id: u8 = 0;
+//             let mut sidechains = Vec::<String>::new();
+//             let mut params_val = std::collections::HashMap::<&str, f32>::new();
+//             let mut sidechain_ids = Vec::<u8>::new();
+//             let mut _sidechain_id: u8 = 0;
 
-            // TODO: need to handle unwarp
-            $(
-                let current_param: String = paras.next().unwrap().as_str().to_string();
-                let parse_result = current_param.parse::<f32>();
-                match parse_result {
-                    Ok(val) => {
-                        params_val.insert(stringify!($id), val);
-                    },
-                    Err(_) => {
-                        sidechains.push(current_param);
-                        params_val.insert(stringify!($id), $default);
-                        sidechain_ids.push(_sidechain_id);
-                    }
-                };
-                _sidechain_id += 1;
-            )*
+//             $(
+//                 let current_param: String = match paras.next() {
+//                     Some(v) => {v.as_str().to_string()},
+//                     None => {"error".to_string()}
+//                 };
+//                 let parse_result = current_param.parse::<f32>();
+//                 match parse_result {
+//                     Ok(val) => {
+//                         params_val.insert(stringify!($id), val);
+//                     },
+//                     Err(_) => {
+//                         sidechains.push(current_param);
+//                         params_val.insert(stringify!($id), $default);
+//                         sidechain_ids.push(_sidechain_id);
+//                     }
+//                 };
+//                 _sidechain_id += 1;
+//             )*
 
-            $(
-                $(
-                    let $extra_id = $handler(params_val[stringify!($related)]);
-                )*
-            )?
+//             $(
+//                 $(
+//                     let $extra_id = $handler(params_val[stringify!($related)]);
+//                 )*
+//             )?
 
-            Ok((NodeData::new1( BoxedNodeSend::new( Self {
-                $(
-                    $id: params_val[stringify!($id)],
-                )*
-                $(
-                    $(
-                        $extra_params: $val,
-                    )*
-                )?
-                $(
-                    $(
-                        $extra_id,
-                    )*
-                )?
-                sidechain_ids
-            })), sidechains))
-        }
+//             Ok((NodeData::new1( BoxedNodeSend::new( Self {
+//                 $(
+//                     $id: params_val[stringify!($id)],
+//                 )*
+//                 $(
+//                     $(
+//                         $extra_params: $val,
+//                     )*
+//                 )?
+//                 $(
+//                     $(
+//                         $extra_id,
+//                     )*
+//                 )?
+//                 sidechain_ids
+//             })), sidechains))
+//         }
+//     };
+// }
+
+#[macro_export]
+macro_rules! mono_node {
+    ($body:expr) => {
+        NodeData::new1( BoxedNodeSend::new(($body)))
     };
 }
 

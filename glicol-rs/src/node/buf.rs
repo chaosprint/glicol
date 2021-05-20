@@ -7,7 +7,7 @@ pub struct Buf {
     // pub sig: Box<dyn Signal<Frame=[f32;1]> + Send>,
     pub sample: &'static[f32],
 }
-// samples: &'static[f32]
+
 impl Buf {
     pub fn new(
         paras: &mut Pairs<Rule>,

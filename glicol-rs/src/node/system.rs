@@ -10,17 +10,15 @@ impl Node<128> for Clock {
     }
 }
 
-pub struct AudioIn {
+pub struct AudioIn {}
 
-}
-
-impl AudioIn {
-    // pub fn new() ->
-    // Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
-    //     Ok((NodeData::new1( BoxedNodeSend::new( Self {
-    //     })), vec![]))
-    // }
-}
+// impl AudioIn {
+//     // pub fn new() ->
+//     // Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
+//     //     Ok((NodeData::new1( BoxedNodeSend::new( Self {
+//     //     })), vec![]))
+//     // }
+// }
 
 impl Node<128> for AudioIn {
     fn process(&mut self, _inputs: &[Input<128>], _output: &mut [Buffer<128>]) {

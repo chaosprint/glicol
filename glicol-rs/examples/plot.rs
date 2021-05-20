@@ -5,9 +5,7 @@ use glicol::EngineError;
 
 fn main () -> Result<(), EngineError> {
     let mut engine = Engine::new();
-    engine.set_code("aa: sin 10");
-
-    // engine.update();
+    engine.set_code("aa: sin 440");
     engine.make_graph()?;
 
     println!("node_by_chain {:?}", engine.node_by_chain);
