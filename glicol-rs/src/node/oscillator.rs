@@ -9,14 +9,16 @@ pub struct SinOsc {
     phase: f32,
     clock: usize,
     buffer: Buffer<128>,
-    // pub sidechain_info: Vec<u8>
+    sidechain_info: Vec<u8>
 }
 
 impl SinOsc {
     pub fn new(freq: Para) -> GlicolNodeData {
+        let mut sidechain_info = vec![];
         let freq = match freq {
             Para::Number(v) => v,
-            // Para::NodeIndex(n) => 440.,
+            Para::Index(_) => { sidechain_info.push(0); 0.01 },
+            Para::Ref(_) => { sidechain_info.push(0); 0.01 },
             _ => unimplemented!()
             // Para::Ref(s) => { sidechain_info.push(s.to_string()); 0.01 },
             // Para::Symbol(s) => unimplemented!()
@@ -26,7 +28,7 @@ impl SinOsc {
             phase: 0.,
             clock: 0,
             buffer: Buffer::<128>::default(),
-            // sidechain_info
+            sidechain_info
         })
     }
     // handle_params!({
@@ -39,24 +41,57 @@ impl SinOsc {
     // })]);
 }
 
+/// The inputs.len() has two possible situation
+/// One is using Glicol as a standalone audio lib
+/// This will be zero, or any
+/// We should find out a way to differ standalone and live coding
+/// This is by seeing if the first input is a clock
+/// The clock is like 88280, 0, 0, 0
 impl Node<128> for SinOsc {
     fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
-        if inputs.len() < 2 { return () };
-        let clock = inputs[1].buffers()[0][0] as usize;
-        if self.clock != 0 && self.clock == clock {
-            output[0] = self.buffer.clone();
-            return ()
-        };
-        let mod_buf = &mut inputs[0].buffers();
-        for i in 0..128 {
-            output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
-            self.phase += mod_buf[0][i] / 44100.0;
-            if self.phase > 1.0 {
-                self.phase -= 1.0
+        // if inputs.len() < 2 { return () };
+        if self.sidechain_info.len() == 1 {
+            if inputs.len() == 2 {
+                // has clock input
+                let clock = inputs[1].buffers()[0][0] as usize;
+
+                // avoid process twice
+                // without this, when use this node to control two different things
+                // the phase += will be called more than once and cause errors and mess
+                if self.clock != 0 && self.clock == clock {
+                    output[0] = self.buffer.clone();
+                    return ()
+                };
+                let mod_buf = &mut inputs[0].buffers();
+                for i in 0..128 {
+                    output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
+                    self.phase += mod_buf[0][i] / 44100.0;
+                    if self.phase > 1.0 {
+                        self.phase -= 1.0
+                    }
+                }
+                self.buffer = output[0].clone();
+                self.clock = clock;
+            } else {
+                // in standalone mode, no mechanism to prevent double processing
+                let mod_buf = &mut inputs[0].buffers();
+                for i in 0..128 {
+                    output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
+                    self.phase += mod_buf[0][i] / 44100.0;
+                    if self.phase > 1.0 {
+                        self.phase -= 1.0
+                    }
+                }
+            }
+        } else {
+            for i in 0..128 {
+                output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
+                self.phase += self.freq / 44100.0;
+                if self.phase > 1.0 {
+                    self.phase -= 1.0
+                }
             }
         }
-        self.buffer = output[0].clone();
-        self.clock = clock;
     }
 }
 

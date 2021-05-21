@@ -1,13 +1,17 @@
 #[test]
 fn hello_standalone() {
     use glicol::Engine;
-    use glicol::node::oscillator::{SinOsc};
+    // use glicol::node::oscillator::{SinOsc};
     // use glicol::node::operator::{Mul};
+    use glicol::node::source::ConstSig;
     use glicol::node::Para::Number as Num;
     
     let mut engine = Engine::new();
-    let i = engine.graph.add_node(SinOsc::new(Num(440.0)));
+    let i = engine.graph.add_node(ConstSig::new(Num(42.0)));
     engine.processor.process(&mut engine.graph, i);
+    for i in engine.graph[i].buffers[0].iter() {
+        assert_eq!(*i, 42.)
+    }
     // println!("First block of buffer: {:?}", engine.graph[i].buffers[0]);
     // let i_sin_modulator = engine.graph.add_node(
     //     Map( vec![Num(-1.0), Num(1.0), Num(100.0), Num(300.0)] )

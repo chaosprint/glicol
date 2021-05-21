@@ -1,7 +1,8 @@
 use dasp_graph::{Buffer, Input, Node};
 use dasp_slice::add_in_place;
+use apodize;
 use super::super::{Pairs, Rule, NodeData, 
-    NodeResult, BoxedNodeSend, EngineError, handle_params, apodize};
+    NodeResult, BoxedNodeSend, GlicolNodeData, mono_node, Para};
 
 pub struct MonoSum {}
 
@@ -9,9 +10,7 @@ impl MonoSum {
     pub fn new(paras: &mut Pairs<Rule>) -> NodeResult {
         let inputs: Vec<String> = paras.as_str()
         .split(" ").map(|a|a.to_string()).collect();
-
-        println!("{:?}", inputs);
-
+        // println!("{:?}", inputs);
         Ok(
             (NodeData::new1(
                 BoxedNodeSend::new(
@@ -48,39 +47,29 @@ pub struct Mul {
     sidechain_ids: Vec<u8>
 }
 impl Mul {
-    handle_params!({
-        mul: 0.0
-    }, {
-        transit_begin: 0.0,
-        transit_end: 0.0,
-        transit_index: 0,
-        transit: false
-    }, [
-        (mul, window, |_mul:f32|->Vec<f64>{
-            apodize::hanning_iter(2048).collect::<Vec<f64>>()
+    pub fn new(mul: Para) -> GlicolNodeData {
+        let mut sidechain_ids = vec![];
+        let mul = match mul {
+            Para::Number(v) => v,
+            // Para::Sidechain => {sidechain_ids.push(0); 1.0}
+            Para::Ref(_) => {sidechain_ids.push(0); 1.0}
+            _ => unimplemented!()
+        };
+        return mono_node!( Self {
+            mul,
+            transit_begin: 0.0,
+            transit_end: 0.0,
+            transit_index: 0,
+            transit: false,
+            window: apodize::hanning_iter(2048).collect::<Vec<f64>>(),
+            sidechain_ids
         })
-    ]);
-    // pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
-
-    //     // let mut paras = paras.next().unwrap().into_inner();
-    //     // println!("{:?}", paras.as_str());
-    //     let mul: String = paras.as_str().to_string()
-    //     .chars().filter(|c| !c.is_whitespace()).collect();
-
-    //     let is_float = mul.parse::<f32>();
-    //     if is_float.is_ok() {
-    //         Ok((NodeData::new1(BoxedNodeSend::new(Self {mul: is_float.unwrap(), has_mod: false})),
-    //         vec![]))
-    //     } else {
-    //         Ok((NodeData::new1(BoxedNodeSend::new(Self {mul: 0.0, has_mod: true})),
-    //         vec![mul]))
-    //     }
-    // }
+    }
 }
 impl Node<128> for Mul {
     fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
 
-        if !(self.sidechain_ids.len() > 0) {
+        if self.sidechain_ids.len() == 0 {
             output[0] = inputs[0].buffers()[0].clone();
             output[0].iter_mut().for_each(|s| *s = *s * self.mul as f32);
         } else {
@@ -129,23 +118,19 @@ pub struct Add {
 }
 
 impl Add {
-    handle_params!({
-        inc: 0.0
-    });
-    // pub fn new(paras: &mut Pairs<Rule>) -> Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError>  {
-    //     let inc: String = paras.as_str().to_string()
-    //     .chars().filter(|c| !c.is_whitespace()).collect();
-
-    //     let is_float = inc.parse::<f32>();
-
-    //     if is_float.is_ok() {
-    //         Ok((NodeData::new1(BoxedNodeSend::new(Self {inc: is_float.unwrap(), has_mod: false})),
-    //         vec![]))
-    //     } else {
-    //         Ok((NodeData::new1(BoxedNodeSend::new(Self {inc: 0.0, has_mod: true})),
-    //         vec![inc]))
-    //     }
-    // }
+    pub fn new(inc: Para) -> GlicolNodeData {
+        let mut sidechain_ids = vec![];
+        let inc = match inc {
+            Para::Number(v) => v,
+            // Para::NodeIndex => {sidechain_ids.push(0); 0.0},
+            Para::Ref(_) => {sidechain_ids.push(0); 0.0},
+            _ => unimplemented!()
+        };
+        return mono_node!( Self {
+            inc,
+            sidechain_ids
+        })
+    }
 }
 impl Node<128> for Add {
     fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {

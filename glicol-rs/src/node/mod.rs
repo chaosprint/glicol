@@ -1,5 +1,5 @@
 // pub mod adc;
-// pub mod operator;
+pub mod operator;
 // pub mod sequencer;
 // pub mod envelope;
 // pub mod filter; 
@@ -18,10 +18,10 @@ pub mod system;
 // pub mod reverb;
 pub mod source;
 use std::{collections::HashMap};
-use super::{Pairs, Rule, NodeResult, EngineError};
+use super::{Pairs, Rule, NodeResult, NodeIndex, process_parameters};
 
 use oscillator::{SinOsc};
-// use operator::{Add, Mul};
+use operator::{Add, Mul};
 // use phasor::{Phasor};
 // use sampler::{Sampler};
 // use sequencer::{Sequencer, Speed};
@@ -55,9 +55,18 @@ pub fn make_node(
             let (paras, refs) = process_parameters(paras, 1)?;
             (ConstSig::new(paras[0].clone()), refs) 
         },
-        // "*" => Mul::new(&mut paras)?,
-        // "mul" => Mul::new(&mut paras)?,
-        // "add" => Add::new(&mut paras)?,
+        "*" => {
+            let (paras, refs) = process_parameters(paras, 1)?;
+            (Mul::new(paras[0].clone()), refs)
+        },
+        "mul" => {
+            let (paras, refs) = process_parameters(paras, 1)?;
+            (Mul::new(paras[0].clone()), refs)
+        },
+        "add" => {
+            let (paras, refs) = process_parameters(paras, 1)?;
+            (Add::new(paras[0].clone()), refs)
+        },
         _ => unimplemented!()
         // "imp" => Impulse::new(&mut paras)?,
         // "sp" => Sampler::new(&mut paras, 
@@ -100,43 +109,8 @@ pub fn make_node(
 pub enum Para {
     Number(f32),
     Symbol(String),
-    NodeIndex(usize),
+    Index(NodeIndex),
     Ref(String)
-}
-
-/// This function process the struct Para
-/// 
-/// 
-pub fn process_parameters(mut paras: &mut Pairs<Rule>, num_paras: usize) -> Result<(Vec<Para>, Vec<String>), EngineError> {
-    let mut processed_paras = Vec::<Para>::new();
-    let mut refs = vec![];
-    for _ in 0..num_paras {
-        let para = paras.next();
-        let mut pos = (0, 0);
-        match para {
-            Some(p) => {
-                pos = (p.as_span().start(), p.as_span().end());
-                let key = p.as_str();
-                match key.parse::<f32>() {
-                    Ok(v) => processed_paras.push(Para::Number(v)),
-                    Err(_) => {
-                        if key.contains("~") {
-                            refs.push(key.to_string());
-                            processed_paras.push(Para::Ref(key.to_string()))
-                        } else if key.contains("\\") {
-                            processed_paras.push(Para::Symbol(key.to_string()))
-                        } else {
-                            return Err(EngineError::ParameterError(pos))
-                        }
-                    }
-                }                
-                // return Ok(processed_paras)
-            },
-            None => return Err(EngineError::ParameterError(pos))
-        // .chars().filter(|c| !c.is_whitespace()).collect();
-        };
-    };
-    return Ok((processed_paras, refs))
 }
 
 

@@ -1,3 +1,9 @@
+//! # Glicol: A Computer Music Language Written in Rust
+//! This is the engine of Glicol
+//! The engine has two part one is the language and the other is the audio
+//! The audio engine can be useful for some real world projects
+//! If you are targeting WebAssembly, this can be a useful resource.
+
 use std::{collections::HashMap};
 
 mod parser;
@@ -5,21 +11,19 @@ use parser::*;
 use pest::Parser;
 use pest::iterators::Pairs;
 
-use apodize;
-
 use dasp_graph::{NodeData, BoxedNodeSend, Processor};
 use petgraph::graph::{NodeIndex};
 use petgraph::Directed;
 use petgraph::stable_graph::{StableGraph, StableDiGraph};
 
 pub mod node;
+use node::Para;
 use node::make_node;
 // use node::adc::{Adc, AdcSource};
 use node::system::{Clock, AudioIn};
 
 mod utili;
-use utili::{midi_or_float, preprocess_sin,
-    preprocess_mul, lcs, process_error_info};
+use utili::{preprocess_sin, preprocess_mul, lcs, process_error_info};
 
 pub type GlicolNodeData = NodeData<BoxedNodeSend<128>, 128>;
 pub type NodeResult = Result<(GlicolNodeData, Vec<String>), EngineError>;
@@ -50,14 +54,14 @@ pub struct Engine {
 impl Engine {
     pub fn new() -> Engine {
         // Chose a type of graph for audio processing.
-        type MyGraph = StableGraph<GlicolNodeData, (), Directed, u32>;
+        type GlicolGraph = StableGraph<GlicolNodeData, (), Directed, u32>;
         // Create a short-hand for our processor type.
-        type MyProcessor = Processor<MyGraph, 128>;
+        type GlicolProcessor = Processor<GlicolGraph, 128>;
 
         let max_nodes = 1024;
         let max_edges = 1024;
-        let g = MyGraph::with_capacity(max_nodes, max_edges);
-        let p = MyProcessor::with_capacity(max_nodes);
+        let g = GlicolGraph::with_capacity(max_nodes, max_edges);
+        let p = GlicolProcessor::with_capacity(max_nodes);
 
         Engine {
             graph: g,
@@ -91,6 +95,9 @@ impl Engine {
         self.all_refs.clear();
         // self.modified.clear();
         // self.sidechains_list.clear();
+        
+        // The reason to have a dummy clock is to make sure when using the reference
+        // node such as sin is not calculated twice or more
         if self.graph.node_count() < 2 {
             self.clock = self.graph.add_node(
                 NodeData::new1(BoxedNodeSend::new(Clock{})));
