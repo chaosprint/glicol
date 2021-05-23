@@ -1,13 +1,12 @@
-/// The node module has many nodes
-/// `MyNode::new("a str")`
-/// 
-
+pub mod sin_osc; use sin_osc::{SinOsc};
+pub mod const_sig; use const_sig::{ConstSig};
+pub mod system;
+use super::*;
 // pub mod adc;
-pub mod operator;
+// pub mod operator;
 // pub mod sequencer;
 // pub mod envelope;
 // pub mod filter; 
-pub mod oscillator; 
 // pub mod sampler; 
 // pub mod noise;
 // pub mod pass;
@@ -18,14 +17,8 @@ pub mod oscillator;
 // pub mod state; 
 // pub mod pan; 
 // pub mod delay;
-pub mod system;
 // pub mod reverb;
-pub mod source;
 
-use std::{collections::HashMap};
-use super::*;
-
-use oscillator::{SinOsc};
 // use operator::*;
 // use phasor::{Phasor};
 // use sampler::{Sampler};
@@ -41,8 +34,6 @@ use oscillator::{SinOsc};
 // use pan::{Pan, Mix2};
 // use delay::{Delay, DelayN};
 // use reverb::{Plate};
-// use source::{ConstSig};
-
 
 /// This function handles the parameters and pass back a result (nodedata, refs)
 /// There are several steps to check if the parameters are valid
@@ -69,8 +60,8 @@ pub fn make_node(
     let (p, refs) = process_parameters(paras, modulable)?;
 
     let nodedata = match name {
-        "sin" => sin!{freq: get_num(&p[0]), sr: sr},
-        // "const" => ConstSig::new(&p[0]),
+        "sin" => sin_osc!{freq: get_num(&p[0]), sr: sr},
+        "const" => const_sig!(get_num(&p[0])),
         // "lpf" => lpf!{cutoff: &p[0], q: &p[1]},
         // "mul" => Mul::new(&p[0]),
         // "add" => Add::new(&p[0]),
@@ -140,70 +131,6 @@ fn get_string(p: Para) -> String {
         _ => unimplemented!()
     }
 }
-
-
-// #[macro_export]
-/// this works well for nodes whose inner states are only floats
-/// e.g. oscillator, filter, operator
-/// should be deprecated because it's hard to read and trace error
-// macro_rules! handle_params {
-//     (
-//         { $($id: ident: $default: expr),* }
-//         $(,{$( $extra_params: ident : $val: expr),* })?
-//         $(,[$( ( $related: ident, $extra_id: ident, $handler: expr) ),* ])?
-//     ) => {
-//         pub fn new(paras: &mut Pairs<Rule>) ->
-//         NodeResult {
-
-//             let mut sidechains = Vec::<String>::new();
-//             let mut params_val = std::collections::HashMap::<&str, f32>::new();
-//             let mut sidechain_ids = Vec::<u8>::new();
-//             let mut _sidechain_id: u8 = 0;
-
-//             $(
-//                 let current_param: String = match paras.next() {
-//                     Some(v) => {v.as_str().to_string()},
-//                     None => {"error".to_string()}
-//                 };
-//                 let parse_result = current_param.parse::<f32>();
-//                 match parse_result {
-//                     Ok(val) => {
-//                         params_val.insert(stringify!($id), val);
-//                     },
-//                     Err(_) => {
-//                         sidechains.push(current_param);
-//                         params_val.insert(stringify!($id), $default);
-//                         sidechain_ids.push(_sidechain_id);
-//                     }
-//                 };
-//                 _sidechain_id += 1;
-//             )*
-
-//             $(
-//                 $(
-//                     let $extra_id = $handler(params_val[stringify!($related)]);
-//                 )*
-//             )?
-
-//             Ok((NodeData::new1( BoxedNodeSend::new( Self {
-//                 $(
-//                     $id: params_val[stringify!($id)],
-//                 )*
-//                 $(
-//                     $(
-//                         $extra_params: $val,
-//                     )*
-//                 )?
-//                 $(
-//                     $(
-//                         $extra_id,
-//                     )*
-//                 )?
-//                 sidechain_ids
-//             })), sidechains))
-//         }
-//     };
-// }
 
 #[macro_export]
 macro_rules! mono_node {

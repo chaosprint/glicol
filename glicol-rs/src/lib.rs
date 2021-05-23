@@ -4,24 +4,23 @@
 //! The audio engine can be useful for some real world projects
 //! If you are targeting WebAssembly, this can be a useful resource.
 
+// extern dependancies
 use std::{collections::HashMap};
-
-mod parser;
-use parser::*;
-use pest::Parser;
-use pest::iterators::Pairs;
-
 use dasp_graph::{NodeData, BoxedNodeSend, Processor};
 use petgraph::graph::{NodeIndex};
 use petgraph::Directed;
 use petgraph::stable_graph::{StableGraph, StableDiGraph};
+use pest::Parser;
+use pest::iterators::Pairs;
 
 pub mod node;
-// use node::*;
 use node::Para;
 use node::make_node;
-// use node::adc::{Adc, AdcSource};
 use node::system::{Clock, AudioIn};
+// use node::adc::{Adc, AdcSource};
+
+mod parser;
+use parser::*;
 
 mod utili;
 use utili::{preprocess_sin, preprocess_mul, lcs, process_error_info};
