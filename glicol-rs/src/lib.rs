@@ -17,6 +17,7 @@ use petgraph::Directed;
 use petgraph::stable_graph::{StableGraph, StableDiGraph};
 
 pub mod node;
+// use node::*;
 use node::Para;
 use node::make_node;
 // use node::adc::{Adc, AdcSource};
@@ -36,7 +37,7 @@ pub struct Engine {
     pub adc_source_nodes: Vec<NodeIndex>,
     pub adc_nodes: Vec<NodeIndex>,
     pub samples_dict: HashMap<String, &'static[f32]>,
-    pub sr: u32,
+    pub sr: usize,
     pub bpm: f32,
     pub chain_string: HashMap<String, String>,
     pub node_by_chain: HashMap<String, Vec<(NodeIndex, String)>>,
@@ -52,7 +53,7 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub fn new() -> Engine {
+    pub fn new(sr: usize) -> Engine {
         // Chose a type of graph for audio processing.
         type GlicolGraph = StableGraph<GlicolNodeData, (), Directed, u32>;
         // Create a short-hand for our processor type.
@@ -77,7 +78,7 @@ impl Engine {
             chain_info: HashMap::new(),
             clock: NodeIndex::new(0),
             audio_in: NodeIndex::new(1),
-            sr: 44100,
+            sr,
             bpm: 120.0,
             elapsed_samples: 0,
             update: false,
@@ -201,7 +202,7 @@ impl Engine {
                                     let (node_data, sidechains) = make_node(
                                         name, &mut paras,
                                         &self.samples_dict,
-                                        self.sr as f32,
+                                        self.sr,
                                         self.bpm
                                     )?;
 
@@ -397,7 +398,8 @@ impl Engine {
                                 self.code_backup = "~dump: const 0.0".to_string();
                             }
                             info
-                        }
+                        },
+                        _ => unimplemented!()
                     };
                     self.soft_reset();
                     self.set_code(&self.code_backup.clone());
@@ -474,6 +476,17 @@ impl Engine {
     pub fn set_track_amp(&mut self, amp: f32) {
         self.track_amp = amp;
     }
+
+    // pub fn new_node(&mut self, name: &str, paras: Vec<&str>) -> NodeIndex {
+    //     let (node_data, sidechains) = make_node(
+    //         name, 
+    //         &mut paras,
+    //         &self.samples_dict,
+    //         self.sr,
+    //         self.bpm
+    //     ).unwrap();
+    //     self.graph.add_node(node_data)
+    // }
 }
 
 #[derive(Debug)]
@@ -482,5 +495,13 @@ pub enum EngineError {
     HandleNodeError,
     NonExistControlNodeError(String),
     ParameterError((usize, usize)),
-    SampleNotExistError((usize, usize))
+    SampleNotExistError((usize, usize)),
+    InsufficientParameter((usize, usize)),
+    NotModuableError((usize, usize)),
+    ParaTypeError((usize, usize)),
+
 }
+
+// macro_rules! make_graph {
+
+// }

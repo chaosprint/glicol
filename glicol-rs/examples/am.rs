@@ -5,37 +5,52 @@
 
 use glicol::Engine;
 use glicol::node::oscillator::{SinOsc};
-use glicol::node::source::ConstSig;
 use glicol::node::operator::{Mul, Add};
-use glicol::node::Para::Number;
-use glicol::node::Para::Ref;
 
 fn main () {
-    let mut engine = Engine::new();
+    let mut engine = Engine::new(44100);
 
-    // let i_source = engine.graph.add_node(SinOsc::new(Number(440.)));
-    // let i_sourcemul = engine.graph.add_node(Mul::new(Number(0.5)));
-    // let i_mod = engine.graph.add_node(SinOsc::new(Number(0.2)));
-    // let i_modmul = engine.graph.add_node(Mul::new(Number(0.1)));
-    // let i_modadd = engine.graph.add_node(Add::new(Number(0.5)));
+    let i_source = engine.graph.add_node(SinOsc::new("440"));
+    let i_sourcemul = engine.graph.add_node(Mul::new(""));
+    let i_mod = engine.graph.add_node(SinOsc::new("10"));
+    let i_modmul = engine.graph.add_node(Mul::new("0.1"));
+    let i_modadd = engine.graph.add_node(Add::new("0.6"));
 
-    // engine.graph.add_edge(i_mod, i_modmul, ());
-    // engine.graph.add_edge(i_modmul, i_modadd, ());
-    // engine.graph.add_edge(i_source, i_sourcemul, ());
+    engine.graph.add_edge(i_source, i_sourcemul, ());
+    engine.graph.add_edge(i_mod, i_modmul, ());
+    engine.graph.add_edge(i_modmul, i_modadd, ());
+    engine.graph.add_edge(i_modadd, i_sourcemul, ());
 
-     // lazy evaluation
+    // process
+    engine.processor.process(&mut engine.graph, i_sourcemul);
+
+    // fetch the output
+    println!("{:?}", engine.graph[i_sourcemul].buffers[0]);
+
+    let from = engine.new_node("sin", ["440"]);
+    // let to = engine.new_node("mul", 0.5);
+    // engine.chain([from, to, engine.output]);
+    // let buffers = engine.process();
+    // println!("{:?}", buffers[0])
+
+
+    // lazy evaluation + dummy self.clock
     // make_graph! {
-    //     source = chain![SinOsc(440.), Mul(modulator)];
-    //     modulator = chain![SinOsc(0.2), Mul(0.1), Add(0.5)];
+    //     source: [SinOsc(440.), Mul(_modulator)],
+    //     _modulator: [SinOsc(0.2), Mul(0.1), Add(0.5)]
     // };
 
-    for (refname, nodelist) in &engine.node_by_chain {
-        if refname.contains("~") {
-            continue;
-        }
-        let last = nodelist.len() - 1;
-        engine.processor.process(&mut engine.graph, nodelist[last].0);
-    }
+    // engine.process();
+    // engine.buffers[0];
+
+    // for _ in 0..2 { // 2 blocks
+    //     let chains = engine.node_by_chain.iter().filter( |&(k, v)| {k.starts_with("_")});
+    //     for (_, chain) in chains {
+    //         let last = chain.len() - 1;
+    //         engine.processor.process(&mut engine.graph, chain[last].0);
+    //     }
+        // engine.update_clock();
+    // }
 
     // for _ in engine. {
     //     engine.processor.process(&mut engine.graph, source);

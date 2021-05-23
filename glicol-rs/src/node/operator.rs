@@ -47,14 +47,18 @@ pub struct Mul {
     sidechain_ids: Vec<u8>
 }
 impl Mul {
-    pub fn new(mul: Para) -> GlicolNodeData {
+    pub fn new(mul: &str) -> GlicolNodeData {
         let mut sidechain_ids = vec![];
-        let mul = match mul {
-            Para::Number(v) => v,
-            // Para::Sidechain => {sidechain_ids.push(0); 1.0}
-            Para::Ref(_) => {sidechain_ids.push(0); 1.0}
-            _ => unimplemented!()
+        let mul = match mul.parse::<f32>() {
+            Ok(v) => v,
+            Err(_) =>  {sidechain_ids.push(0); 1.0}
         };
+        // let mul = match mul {
+        //     Para::Number(v) => v,
+        //     // Para::Sidechain => {sidechain_ids.push(0); 1.0}
+        //     Para::Ref(_) => {sidechain_ids.push(0); 1.0}
+        //     _ => unimplemented!()
+        // };
         return mono_node!( Self {
             mul,
             transit_begin: 0.0,
@@ -118,14 +122,18 @@ pub struct Add {
 }
 
 impl Add {
-    pub fn new(inc: Para) -> GlicolNodeData {
+    pub fn new(inc: &str) -> GlicolNodeData {
         let mut sidechain_ids = vec![];
-        let inc = match inc {
-            Para::Number(v) => v,
-            // Para::NodeIndex => {sidechain_ids.push(0); 0.0},
-            Para::Ref(_) => {sidechain_ids.push(0); 0.0},
-            _ => unimplemented!()
+        let inc = match inc.parse::<f32>() {
+            Ok(v) => v,
+            Err(_) =>  {sidechain_ids.push(0); 1.0}
         };
+        // let inc = match inc {
+        //     Para::Number(v) => v,
+        //     // Para::NodeIndex => {sidechain_ids.push(0); 0.0},
+        //     Para::Ref(_) => {sidechain_ids.push(0); 0.0},
+        //     _ => unimplemented!()
+        // };
         return mono_node!( Self {
             inc,
             sidechain_ids

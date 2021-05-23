@@ -1,14 +1,15 @@
-block = {((line|comment) ~ "\n"*) +}
+block = {( (line|comment) ~ (";"|("\n"*)) ) +}
 comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE+ ~ !NEWLINE}
 line = { reference ~ ":"? ~ chain}
 chain = { (func ~ ("\n")? ~ (">>")? )+ }
 func = { name? ~ paras+ }
+
+// issues:
 // midi | reference can be regarded as seq
 // loop 50 50 paras -> seq -> compound -> midi
 // linrange 40 70 ambiguity paras -> seq -> compound -> midi
-// lpf &mod 1.0 only get `lpf &mod 1`
+// lpf ~mod 1.0 only get `lpf ~mod 1`
 paras = {  float | symbol | seq }
-// minichain = { ":" ~ chain ~ ":"}
 float = @{ (("+" | "-")? ~ ASCII_DIGIT+) ~ "." ~ ASCII_DIGIT* ~ (^"e" ~ midi)? }
 symbol = { "\\" ~ ASCII_ALPHANUMERIC* }
 seq = ${ compound+}

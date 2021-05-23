@@ -3,34 +3,102 @@ use pest::iterators::Pairs;
 use super::super::{Rule, EngineError, GlicolNodeData, NodeResult, mono_node};
 use super::{Para};
 
-/// St
+/// Sine Wave Oscillator Node Builder
 pub struct SinOsc {
     freq: f32,
     phase: f32,
     clock: usize,
     buffer: Buffer<128>,
-    sidechain_info: Vec<u8>
+    sidechain_info: Vec<u8>,
+    sr: usize,
 }
 
 impl SinOsc {
-    pub fn new(freq: Para) -> GlicolNodeData {
-        let mut sidechain_info = vec![];
-        let freq = match freq {
-            Para::Number(v) => v,
-            Para::Index(_) => { sidechain_info.push(0); 0.01 },
-            Para::Ref(_) => { sidechain_info.push(0); 0.01 },
-            _ => unimplemented!()
-            // Para::Ref(s) => { sidechain_info.push(s.to_string()); 0.01 },
-            // Para::Symbol(s) => unimplemented!()
-        };
-        return mono_node!( Self {
-            freq,
+    pub fn new() -> Self {
+        Self {
+            freq: 0.01,
             phase: 0.,
             clock: 0,
             buffer: Buffer::<128>::default(),
-            sidechain_info
-        })
+            sidechain_info: vec![],
+            sr: 44100,
+        }
     }
+
+    pub fn freq(self, freq: f32) -> Self {
+        Self {freq, ..self}
+    }
+
+    pub fn sr(self, sr: usize) -> Self {
+        Self {sr, ..self}
+    }
+
+    pub fn build(self) -> GlicolNodeData {
+        mono_node! {
+            self
+        }
+    }
+}
+
+#[macro_export]
+macro_rules! sin {
+    {$($para: ident: $data:expr),*} => {
+         (
+            SinOsc::new()$(.$para($data))*.build()
+        )
+    }
+}
+
+// NodeData::new1(
+//     BoxedNodeSend::new(
+//         SinOsc {
+//             $($para: $data,)*
+//             ..Default::default()
+//         }
+//     )
+// )
+
+// impl SinOsc {
+//     pub fn new(paras: &str) -> GlicolNodeData {
+        // let mut sidechain_info = vec![];
+        // let paras: Vec<&str> = paras.split(" ").collect();
+        // let (freq, sr) = match paras.len() {
+        //     0 =>{ sidechain_info.push(0); (0.01, 44100) },
+        //     1 => { 
+        //         match paras[0].parse::<f32>() {
+        //             Ok(v) => (v, 44100),
+        //             Err(_) => (0.01, 44100)
+        //         }
+        //     },
+        //     2 => {
+        //         match paras[0].parse::<f32>() {
+        //             Ok(v) => (v, 44100),
+        //             Err(_) => (0.01, 44100)
+        //         }
+        //     },
+        //     _ => unimplemented!()
+        // };
+        // let freq = match freq.parse::<f32>() {
+        //     Ok(v) => v,
+        //     Err(_) => { sidechain_info.push(0); 0.01 }
+        // };
+        // let freq = match freq {
+        //     Para::Number(v) => v,
+        //     Para::Index(_) => { sidechain_info.push(0); 0.01 },
+        //     Para::Ref(_) => { sidechain_info.push(0); 0.01 },
+        //     _ => unimplemented!()
+        //     // Para::Ref(s) => { sidechain_info.push(s.to_string()); 0.01 },
+        //     // Para::Symbol(s) => unimplemented!()
+        // };
+    //     return mono_node!( Self {
+    //         freq,
+    //         phase: 0.,
+    //         clock: 0,
+    //         buffer: Buffer::<128>::default(),
+    //         sidechain_info,
+    //         sr,
+    //     })
+    // }
     // handle_params!({
     //     _freq: 440.0
     // }, {
@@ -39,7 +107,7 @@ impl SinOsc {
     // }, [(_freq, buffer, |_freq: f32|-> Buffer<128> {
     //     Buffer::default()
     // })]);
-}
+// }
 
 /// The inputs.len() has two possible situation
 /// One is using Glicol as a standalone audio lib
@@ -65,7 +133,7 @@ impl Node<128> for SinOsc {
                 let mod_buf = &mut inputs[0].buffers();
                 for i in 0..128 {
                     output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
-                    self.phase += mod_buf[0][i] / 44100.0;
+                    self.phase += mod_buf[0][i] / self.sr as f32;
                     if self.phase > 1.0 {
                         self.phase -= 1.0
                     }
@@ -77,7 +145,7 @@ impl Node<128> for SinOsc {
                 let mod_buf = &mut inputs[0].buffers();
                 for i in 0..128 {
                     output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
-                    self.phase += mod_buf[0][i] / 44100.0;
+                    self.phase += mod_buf[0][i] / self.sr as f32;
                     if self.phase > 1.0 {
                         self.phase -= 1.0
                     }
@@ -86,7 +154,7 @@ impl Node<128> for SinOsc {
         } else {
             for i in 0..128 {
                 output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
-                self.phase += self.freq / 44100.0;
+                self.phase += self.freq / self.sr as f32;
                 if self.phase > 1.0 {
                     self.phase -= 1.0
                 }

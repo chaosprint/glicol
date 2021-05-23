@@ -9,11 +9,15 @@ pub struct ConstSig {
 }
 
 impl ConstSig {
-    pub fn new(val: Para) -> GlicolNodeData {
-        let val = match val {
-            Para::Number(v) => v,
-            _ => unimplemented!()
+    pub fn new(val: &str) -> GlicolNodeData {
+        let val = match val.parse::<f32>() {
+            Ok(v) => v,
+            Err(_) => 0.0
         };
+        // let val = match val {
+        //     Para::Number(v) => v,
+        //     _ => unimplemented!()
+        // };
         return mono_node!( Self {
             val
             // sidechain_info
@@ -23,9 +27,9 @@ impl ConstSig {
 
 impl Node<128> for ConstSig {
     fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
-        if inputs.len() > 1 {
-            self.val = inputs[0].buffers()[0][0];
-        }
+        // if inputs.len() > 1 {
+        //     self.val = inputs[0].buffers()[0][0];
+        // }
         for o in output {
             o.iter_mut().for_each(|s| *s = self.val);
         }
