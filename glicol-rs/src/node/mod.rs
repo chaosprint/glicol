@@ -1,4 +1,7 @@
 pub mod sin_osc; use sin_osc::SinOsc;
+pub mod saw_osc; use saw_osc::SawOsc;
+pub mod squ_osc; use squ_osc::SquOsc;
+pub mod tri_osc; use tri_osc::TriOsc;
 pub mod const_sig; use const_sig::ConstSig;
 pub mod mul; use mul::Mul;
 pub mod add; use add::Add;
@@ -51,11 +54,14 @@ pub fn make_node(
 
     let modulable = match name {
         "sin" => vec![Para::Modulable],
+        "saw" => vec![Para::Modulable],
+        "squ" => vec![Para::Modulable],
+        "tri" => vec![Para::Modulable],
         "const" => vec![Para::Number(0.0)],
         "mul" => vec![Para::Modulable],
         "add" => vec![Para::Modulable],
         "sampler" => vec![], // bypass the process_parameters
-        _ => unimplemented!()
+        _ => vec![]
     };
 
     // this func checks if the parameters are correct
@@ -66,6 +72,9 @@ pub fn make_node(
         "const" => const_sig!(get_num(&p[0])),
         "mul" => mul!(get_num(&p[0])),
         "add" => add!(get_num(&p[0])),
+        "saw" => saw_osc!({freq: get_num(&p[0]), sr: sr}),
+        "squ" => squ_osc!({freq: get_num(&p[0]), sr: sr}),
+        "tri" => tri_osc!({freq: get_num(&p[0]), sr: sr}),
         // "lpf" => lpf!{cutoff: &p[0], q: &p[1]},
         // "mul" => Mul::new(&p[0]),
         // "add" => Add::new(&p[0]),
