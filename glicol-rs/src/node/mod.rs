@@ -1,5 +1,7 @@
-pub mod sin_osc; use sin_osc::{SinOsc};
-pub mod const_sig; use const_sig::{ConstSig};
+pub mod sin_osc; use sin_osc::SinOsc;
+pub mod const_sig; use const_sig::ConstSig;
+pub mod mul; use mul::Mul;
+pub mod add; use add::Add;
 pub mod system;
 use super::*;
 // pub mod adc;
@@ -60,8 +62,10 @@ pub fn make_node(
     let (p, refs) = process_parameters(paras, modulable)?;
 
     let nodedata = match name {
-        "sin" => sin_osc!{freq: get_num(&p[0]), sr: sr},
+        "sin" => sin_osc!({freq: get_num(&p[0]), sr: sr}),
         "const" => const_sig!(get_num(&p[0])),
+        "mul" => mul!(get_num(&p[0])),
+        "add" => add!(get_num(&p[0])),
         // "lpf" => lpf!{cutoff: &p[0], q: &p[1]},
         // "mul" => Mul::new(&p[0]),
         // "add" => Add::new(&p[0]),

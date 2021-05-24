@@ -38,7 +38,7 @@ impl SinOsc {
 
 #[macro_export]
 macro_rules! sin_osc {
-    {$($para: ident: $data:expr),*} => {
+    ({$($para: ident: $data:expr),*}) => {
          (
             SinOsc::new()$(.$para($data))*.build()
         )

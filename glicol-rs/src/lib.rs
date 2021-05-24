@@ -6,7 +6,7 @@
 
 // extern dependancies
 use std::{collections::HashMap};
-use dasp_graph::{NodeData, BoxedNodeSend, Processor};
+use dasp_graph::{NodeData, BoxedNodeSend, Processor, Buffer, Input, Node};
 use petgraph::graph::{NodeIndex};
 use petgraph::Directed;
 use petgraph::stable_graph::{StableGraph, StableDiGraph};
@@ -28,6 +28,9 @@ use utili::{preprocess_sin, preprocess_mul, lcs, process_error_info};
 pub type GlicolNodeData = NodeData<BoxedNodeSend<128>, 128>;
 pub type NodeResult = Result<(GlicolNodeData, Vec<String>), EngineError>;
 
+/// The engine of Glicol
+/// This engine can takes Glicol code, convert it to audio graph and process it
+/// The engine can also be used independantly as a wrapper to dasp_graph crate (see the examples folder)
 pub struct Engine {
     pub elapsed_samples: usize,
     pub graph: StableGraph<GlicolNodeData, (), Directed, u32>,
@@ -476,6 +479,27 @@ impl Engine {
         self.track_amp = amp;
     }
 
+    pub fn make_chain(&mut self, mut nodes: Vec<GlicolNodeData>) -> Vec<NodeIndex> {
+        let mut indexes = vec![];
+        while nodes.len() > 0 {
+            let head = nodes.remove(0);
+            let index = self.graph.add_node(head);
+            let i_len = indexes.len();
+            if i_len > 0 {
+                self.graph.add_edge(indexes[i_len-1], index, ());
+            }
+            indexes.push(index);
+        }
+        indexes
+    }
+
+    pub fn make_edge(&mut self, from: NodeIndex, to: NodeIndex) {
+        self.graph.add_edge(from, to, ());
+    }
+
+    pub fn process(&mut self, target: NodeIndex) {
+        self.processor.process(&mut self.graph, target);
+    }
     // pub fn new_node(&mut self, name: &str, paras: Vec<&str>) -> NodeIndex {
     //     let (node_data, sidechains) = make_node(
     //         name, 
@@ -486,6 +510,17 @@ impl Engine {
     //     ).unwrap();
     //     self.graph.add_node(node_data)
     // }
+
+    // pub fn get_buffers(&mut self, target: NodeIndex) -> Vec<Buffer<128>> {
+    //     self.graph[target].buffers
+    // }
+}
+
+#[macro_export]
+macro_rules! chain {
+    ([$($node: expr),*] in $engine:ident) => {
+        $engine.make_chain(vec![$($node,)*])   
+    };
 }
 
 #[derive(Debug)]

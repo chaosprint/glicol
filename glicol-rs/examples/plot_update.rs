@@ -4,7 +4,7 @@ use glicol::Engine;
 use glicol::EngineError;
 
 fn main () -> Result<(), EngineError> {
-    let mut engine = Engine::new();
+    let mut engine = Engine::new(44100);
     engine.set_code("aa: sin 440 >> linrange 100");
     // engine.update = true;
     // engine.make_graph()?;
