@@ -1,4 +1,5 @@
-const cdn = "https://cdn.jsdelivr.net/gh/chaosprint/glicol@0.1.2/glicol-js/src/"
+// const source = "https://cdn.jsdelivr.net/gh/chaosprint/glicol@0.1.2/glicol-js/src/"
+const source = "src/"
 
 window.sampleDict = {"808":["RS.WAV"],"909":["BT0A0A7.WAV"],"ab":["009_ab2ride.wav"],"bd":["BT0A0DA.wav"],"jazz":["007_SN.wav"],"casio":["high.wav"],"bass":["000_bass1.wav"],"coins":["coins.wav"],"wind":["002_wind2.wav"],"pluck":["BSC3PI.wav"],"short":["sampleoftheday-gtt-snare-drum-020.wav"],"crow":["001_crow2.wav"],"stomp":["004_3.wav"],"tink":["000_tink1.wav"],"perc":["000_perc0.wav"],"cr":["RIDED0.wav"],"bass3":["83249__zgump__bass-0205.wav"],"gtr":["0001_cleanC.wav"],"sax":["005_notes121c.wav"],"lt":["LTAD7.wav"],"peri":["hhx.wav"],"sid":["001_bas.wav"],"rm":["RIMA.wav"],"cc":["CSHD8.wav"],"psr":["002_03.wav"],"arp":["001_arp.wav"],"tech":["tn1kick1.wav"],"can":["006_2.wav"],"sf":["000_bass.wav"],"808ht":["HT75.WAV"],"808lt":["LT00.WAV"],"808bd":["BD7550.WAV"],"808sd":["SD7575.WAV"],"bassdm":["016_BT7A0DA.WAV"],"v":["000_b_blipp01.wav"],"jungle":["jungle4perc2.wav"],"techno":["006_7.wav"],"popkick":["10.wav"],"control":["1.wav"],"tabla2":["23689_loofa_bahia017.wav"],"glitch2":["007_SN.wav"],"808oh":["OH25.WAV"],"voodoo":["003_VoodooSnare.wav"],"tok":["000_0.wav"],"dr2":["000_DR110CHT.WAV"],"hand":["hand7-mono.wav"],"diphone":["023_kd1_025.wav"],"mash":["0.wav"],"tabla":["012_hi_hit3.wav"],"bin":["000_bin1.wav"],"msg":["000_msg0.wav"],"dork2":["4.wav"],"toys":["MusicalMedley-Words.wav"],"feelfx":["doing.wav"],"hmm":["hmm.wav"],"latibro":["002_Sound4.wav"],"ulgab":["gab1.wav"],"jvbass":["002_03.wav"],"h":["4_tock.wav"],"blip":["001_blipp02.wav"],"breaks165":["000_RAWCLN.WAV"]}
 
@@ -7,7 +8,7 @@ window.sampleList = {
 }
 
 window.loadDocs = async () => {
-  fetch(cdn+'glicol-docs.json')
+  fetch(source+'glicol-docs.json')
   // fetch("./src/glicol-docs.json")
   .then(response => response.json())
   .then(data => window.docs = data)
@@ -85,7 +86,7 @@ window.loadSamples = async (arg) => {
           window.node.port.postMessage({
             type: "samples",
             sample: new Int16Array(arrayBuffer),
-            name: encoder.encode("\\" + key)
+            name: encoder.encode(key)
           })
         }).catch(e=>log(e));
       } catch(e) {log(e)}
@@ -112,7 +113,7 @@ window.addSample = async (name, url) => {
                         await window.node.port.postMessage({
                             type: "samples",
                             sample: new Int16Array(e.target.result),
-                            name: encoder.encode("\\" + key.replace(".wav", ""))
+                            name: encoder.encode(key.replace(".wav", ""))
                         })
                         log(`Sample %c${key.replace(".wav", "")} %cloaded`, "color: green; font-weight: bold", "")
                     };
@@ -394,11 +395,11 @@ window.loadModule = async () => {
     sampleRate: 44100
   })
 
-  URLFromFiles([cdn+'glicol-engine.js']).then((e) => {
+  URLFromFiles([source+'glicol-engine.js']).then((e) => {
     
     window.actx.audioWorklet.addModule(e).then(() => {
       window.node = new AudioWorkletNode(window.actx, 'glicol-engine', {outputChannelCount: [2]})
-      fetch(cdn+'glicol_wasm.wasm')
+      fetch(source+'glicol_wasm.wasm')
       .then(response => response.arrayBuffer())
       .then(arrayBuffer => {
         window.node.port.postMessage({

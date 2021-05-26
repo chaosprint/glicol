@@ -8,8 +8,7 @@
 use std::{collections::HashMap};
 use dasp_graph::{NodeData, BoxedNodeSend, Processor, Buffer, Input, Node};
 use petgraph::graph::{NodeIndex};
-use petgraph::Directed;
-use petgraph::stable_graph::{StableGraph, StableDiGraph};
+use petgraph::stable_graph::{StableDiGraph};
 use pest::Parser;
 use pest::iterators::Pairs;
 
@@ -26,6 +25,8 @@ mod utili;
 use utili::{preprocess_sin, preprocess_mul, lcs, process_error_info};
 
 pub type GlicolNodeData = NodeData<BoxedNodeSend<128>, 128>;
+pub type GlicolGraph = StableDiGraph<GlicolNodeData, (), u32>;
+pub type GlicolProcessor = Processor<GlicolGraph, 128>;
 pub type NodeResult = Result<(GlicolNodeData, Vec<String>), EngineError>;
 
 /// The engine of Glicol
@@ -33,8 +34,8 @@ pub type NodeResult = Result<(GlicolNodeData, Vec<String>), EngineError>;
 /// The engine can also be used independantly as a wrapper to dasp_graph crate (see the examples folder)
 pub struct Engine {
     pub elapsed_samples: usize,
-    pub graph: StableGraph<GlicolNodeData, (), Directed, u32>,
-    pub processor: Processor<StableDiGraph<GlicolNodeData, (), u32>, 128>,
+    pub graph: GlicolGraph,
+    pub processor: GlicolProcessor,
     sidechains_list: Vec<(NodeIndex, String)>,
     pub adc_source_nodes: Vec<NodeIndex>,
     pub adc_nodes: Vec<NodeIndex>,
@@ -56,11 +57,6 @@ pub struct Engine {
 
 impl Engine {
     pub fn new(sr: usize) -> Engine {
-        // Chose a type of graph for audio processing.
-        type GlicolGraph = StableGraph<GlicolNodeData, (), Directed, u32>;
-        // Create a short-hand for our processor type.
-        type GlicolProcessor = Processor<GlicolGraph, 128>;
-
         let max_nodes = 1024;
         let max_edges = 1024;
         let g = GlicolGraph::with_capacity(max_nodes, max_edges);
@@ -93,7 +89,7 @@ impl Engine {
     /// The main function to convert the code input string into graph structure inside the engine
     pub fn make_graph(&mut self) -> Result<(), EngineError>{
         // self.node_by_chain.clear();
-        self.samples_dict.insert("\\imp".to_string(), &[1.0]);
+        self.samples_dict.insert("imp".to_string(), &[1.0]);
         self.graph.clear_edges();
         self.all_refs.clear();
         // self.modified.clear();
@@ -352,13 +348,12 @@ impl Engine {
         let mut output: [f32; 256] = [0.0; 256];
         let mut console: [u8;256] = [0; 256];
         let one_bar = (240.0 / self.bpm * self.sr as f32) as usize;
-        let n = self.elapsed_samples;
 
         // if self.update && (n + 128 + 2048) % one_bar < 128 {
         //     self.fade = 0;
         // }
 
-        if self.update && (n + 128) % one_bar <= 128 {
+        if self.update && (self.elapsed_samples + 128) % one_bar <= 128 {
             self.update = false;
             match self.make_graph() {
                 Ok(_) => {

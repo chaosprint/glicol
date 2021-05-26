@@ -1,20 +1,19 @@
-pub mod sin_osc; use sin_osc::SinOsc;
-pub mod saw_osc; use saw_osc::SawOsc;
-pub mod squ_osc; use squ_osc::SquOsc;
-pub mod tri_osc; use tri_osc::TriOsc;
-pub mod const_sig; use const_sig::ConstSig;
-pub mod mul; use mul::Mul;
-pub mod add; use add::Add;
-pub mod system;
-use super::*;
+pub mod sin_osc; use sin_osc::SinOsc; pub mod saw_osc; use saw_osc::SawOsc;
+pub mod squ_osc; use squ_osc::SquOsc; pub mod tri_osc; use tri_osc::TriOsc;
+pub mod const_sig; use const_sig::ConstSig; pub mod noise; use noise::Noise;
+pub mod mul; use mul::Mul; pub mod add; use add::Add;
+pub mod filter; use filter::lpf::*; use filter::hpf::*;
+pub mod imp; use imp::*;
+pub mod system; use super::*;
+pub mod seq; use seq::*;
+pub mod sampler; use sampler::*;
+pub mod speed; use speed::*;
+pub mod pass; use pass::*;
+
 // pub mod adc;
 // pub mod operator;
-// pub mod sequencer;
 // pub mod envelope;
 // pub mod filter; 
-// pub mod sampler; 
-// pub mod noise;
-// pub mod pass;
 // pub mod map; 
 // pub mod rand; 
 // pub mod phasor;
@@ -26,11 +25,7 @@ use super::*;
 
 // use operator::*;
 // use phasor::{Phasor};
-// use sampler::{Sampler};
-// use sequencer::{Sequencer, Speed};
 // use envelope::EnvPerc;
-// use noise::Noise;
-// use pass::Pass;
 // use filter::{LPF, HPF, Allpass, Comb, OnePole, AllpassGain};
 // use map::{LinRange};
 // use rand::{Choose};
@@ -51,8 +46,14 @@ pub fn make_node(
     sr: usize,
     bpm: f32,
 ) -> NodeResult {
+    
+    let alias = match name {
+        "sp" => "sampler",
+        "*" => "mul",
+        _ => name
+    };
 
-    let modulable = match name {
+    let modulable = match alias {
         "sin" => vec![Para::Modulable],
         "saw" => vec![Para::Modulable],
         "squ" => vec![Para::Modulable],
@@ -60,52 +61,53 @@ pub fn make_node(
         "const" => vec![Para::Number(0.0)],
         "mul" => vec![Para::Modulable],
         "add" => vec![Para::Modulable],
-        "sampler" => vec![], // bypass the process_parameters
-        _ => vec![]
+        "lpf" => vec![Para::Modulable, Para::Number(1.0)],
+        "hpf" => vec![Para::Modulable, Para::Number(1.0)],
+        "sampler" => {
+            if !samples_dict.contains_key(&paras.as_str().replace("\\", "")) {
+                let p = paras.next().unwrap();
+                let pos = (p.as_span().start(), p.as_span().end());
+                return Err(EngineError::SampleNotExistError(pos))
+            }
+            vec![]
+        }, // bypass the process_parameters
+        "seq" => vec![], // do no comsume paras
+        _ => vec![Para::Modulable], // pass
     };
 
     // this func checks if the parameters are correct
     let (p, refs) = process_parameters(paras, modulable)?;
-
-    let nodedata = match name {
+    
+    let nodedata = match alias {
         "sin" => sin_osc!({freq: get_num(&p[0]), sr: sr}),
-        "const" => const_sig!(get_num(&p[0])),
-        "mul" => mul!(get_num(&p[0])),
-        "add" => add!(get_num(&p[0])),
         "saw" => saw_osc!({freq: get_num(&p[0]), sr: sr}),
         "squ" => squ_osc!({freq: get_num(&p[0]), sr: sr}),
         "tri" => tri_osc!({freq: get_num(&p[0]), sr: sr}),
-        // "lpf" => lpf!{cutoff: &p[0], q: &p[1]},
-        // "mul" => Mul::new(&p[0]),
-        // "add" => Add::new(&p[0]),
-        // "imp" => Impulse::new(&p[0])?,
-        // "sp" => Sampler::new(paras.as_str(), 
-        //     samples_dict)?,
-        // "sampler" => Sampler::new(paras.as_str(), 
-        //     samples_dict)?,
-        // "seq" => Sequencer::new(&mut paras, sr, bpm)?,
-        _ => unimplemented!()
-        // "imp" => Impulse::new(&mut paras)?,
-        // "sp" => Sampler::new(&mut paras, 
-        //     samples_dict)?,
-        // "sampler" => Sampler::new(&mut paras, 
-        //     samples_dict)?,
-        // "buf" => Buf::new(&mut paras, 
-        //     samples_dict)?,
-        // "seq" => Sequencer::new(&mut paras, sr, bpm)?,
-        // "linrange" => LinRange::new(&mut paras)?,
-        // "saw" => Saw::new(&mut paras)?,
-        // "squ" => Square::new(&mut paras)?,
-        // "lpf" => LPF::new(&mut paras)?,
-        // "hpf" => HPF::new(&mut paras)?,
-        // "spd" => Speed::new(&mut paras)?,
-        // "speed" => Speed::new(&mut paras)?,
-        // "noiz" => Noise::new(&mut paras)?,
+        "const" => const_sig!(get_num(&p[0])),
+        "mul" => mul!(get_num(&p[0])),
+        "add" => add!(get_num(&p[0])),
+        "lpf" => rlpf!({cutoff: get_num(&p[0]), q: get_num(&p[1])}),
+        "hpf" => rhpf!({cutoff: get_num(&p[0]), q: get_num(&p[1])}),
+        "noiz" => noise!(get_num(&p[0]) as u64),
+        "noise" => noise!(get_num(&p[0]) as u64),
+        "imp" => imp!({freq: get_num(&p[0]), sr: sr}),
+        "sampler" => {
+            println!("samplers{:?}", samples_dict[&paras.as_str().replace("\\", "")]);
+            sampler!(samples_dict[&paras.as_str().replace("\\", "")])},
+        "seq" => {
+            seq!({pattern: paras.as_str(), sr: sr, bpm: bpm})
+        },
+        "speed" => speed!(get_num(&p[0])),
+        _ => Pass::new()
+
         // "choose" => Choose::new(&mut paras)?,
         // "envperc" => EnvPerc::new(30.0, 50.0)?,
+        // "pan" => Pan::new(&mut paras)?,
+        // "buf" => Buf::new(&mut paras, 
+        //     samples_dict)?,
+        // "linrange" => LinRange::new(&mut paras)?,
         // "pha" => Phasor::new(&mut paras)?,
         // "state" => State::new(&mut paras)?,
-        // "pan" => Pan::new(&mut paras)?,
         // "delay" => Delay::new(&mut paras)?,
         // "apf" => Allpass::new(&mut paras)?,
         // "comb" => Comb::new(&mut paras)?,

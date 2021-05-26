@@ -30,9 +30,7 @@ impl SinOsc {
     }
 
     pub fn build(self) -> GlicolNodeData {
-        mono_node! {
-            self
-        }
+        mono_node! ( self )
     }
 }
 

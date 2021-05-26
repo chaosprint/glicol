@@ -279,7 +279,7 @@ class GlicolEngine extends AudioWorkletProcessor {
                 lenArr.push(sampleLength)
 
                 sampleArray.set(s);
-
+                
                 let nameLen = e.data.name.byteLength
                 let namePtr = this._wasm.exports.alloc_uint8array(nameLen);
                 let name = new Uint8Array(this._wasm.exports.memory.buffer, namePtr, nameLen);

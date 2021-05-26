@@ -33,7 +33,7 @@ pub extern "C" fn alloc_uint32array(length: usize) -> *mut f32 {
 
 lazy_static! {
     // static ref ENGINE:Arc<Mutex<Engine>> = Arc::new(Mutex::new(Engine::new()));
-    static ref ENGINE:Mutex<Engine> = Mutex::new(Engine::new());
+    static ref ENGINE:Mutex<Engine> = Mutex::new(Engine::new(44100));
 }
 
 #[no_mangle] // 64 f32 float // -> *mut [u8; 256] 

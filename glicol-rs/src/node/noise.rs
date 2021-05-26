@@ -1,24 +1,28 @@
 use dasp_graph::{Buffer, Input, Node};
 use dasp_signal::{self as signal, Signal};
-use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError, NodeResult};
+use super::super::{ GlicolNodeData, mono_node, NodeData, BoxedNodeSend};
 
 pub struct Noise {
     sig: Box<dyn Signal<Frame=f64> + Send>
 }
 
 impl Noise {
-    pub fn new(paras: &mut Pairs<Rule>) ->NodeResult {
-        let p = paras.next().unwrap();
-        let pos = (p.as_span().start(), p.as_span().end());
-        let seed = match p.as_str().parse::<f32>() {
-            Ok(v) => v,
-            Err(_) => return Err(EngineError::ParameterError(pos))
-        };        
-        let sig = signal::noise(seed as u64);
-        Ok((NodeData::new1(BoxedNodeSend::new( Self {
-            sig: Box::new(sig)
-        })), vec![]))
+    pub fn new(seed: u64) -> GlicolNodeData {
+        mono_node! ( Self {
+            sig: Box::new(signal::noise(seed as u64))
+        })
     }
+}
+
+#[macro_export]
+macro_rules! noise {
+    () => { // controlled by modulator, no need for value
+        Noise::new(42)
+    };
+
+    ($data: expr) => {
+        Noise::new($data)
+    };
 }
 
 impl Node<128> for Noise {

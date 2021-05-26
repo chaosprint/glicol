@@ -5,16 +5,17 @@ use glicol::EngineError;
 
 fn main () -> Result<(), EngineError> {
     let mut engine = Engine::new(44100);
-    engine.set_code("aa: sin 10");
+    engine.set_code("aa: seq 60 _48 72 55 >> sp \\imp");
     engine.make_graph()?;
 
     println!("node_by_chain {:?}", engine.node_by_chain);
+    
     let mut x = Vec::<i32>::new();
     let mut y = Vec::<f32>::new();
     let mut y2 = Vec::<f32>::new();
     let mut n = 0;
 
-    for _ in 0..(90000.0/128.0) as usize {
+    for _ in 0..(44100.0/128.0) as usize {
         let out = engine.gen_next_buf_128(&mut [0.0;128]).unwrap().0;
         // let out = engine.gen_next_buf_64().unwrap();
         for i in 0..128 {
@@ -23,6 +24,7 @@ fn main () -> Result<(), EngineError> {
             y.push(out[i]);
             y2.push(out[i+128])
         }
+        print!("out: {:?}", out);
     }
     let mut fg = Figure::new();
     fg.axes2d()
