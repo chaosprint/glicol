@@ -5,10 +5,8 @@ use glicol::Engine;
 
 fn main () {
     let mut engine = Engine::new(44100);
-    engine.set_code("aa: speed 2.0 >> seq ~a >> sp \\imp
-
-    ~a: choose 60 72 0");
-    plot(engine, 44100*4);
+    engine.set_code("bb: imp 4.41 >> mul 0.5");
+    plot(engine, 88200);
 }
 
 fn plot(mut engine: Engine, step: usize) {

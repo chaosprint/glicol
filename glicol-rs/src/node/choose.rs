@@ -1,5 +1,4 @@
 use dasp_graph::{Buffer, Input, Node};
-use pest::iterators::Pairs;
 use dasp_signal::{self as signal, Signal};
 use super::super::{GlicolNodeData, NodeData, mono_node, BoxedNodeSend};
 

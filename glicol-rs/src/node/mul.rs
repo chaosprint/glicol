@@ -37,28 +37,30 @@ macro_rules! mul {
 impl Node<128> for Mul {
     fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
 
-        if inputs.len() == 1 {
-            output[0] = inputs[0].buffers()[0].clone();
-            output[0].iter_mut().for_each(|s| *s = *s * self.mul as f32);
-        } else {
+        let l = inputs.len();
+        if l < 1 { return ()};
+        let has_clock = inputs[l-1].buffers()[0][0] % 128. == 0. && inputs[l-1].buffers()[0][1] == 0.;
+
+        if l - has_clock as usize > 0 {
+
             let buf = &mut inputs[1].buffers();
             let mod_buf = &mut inputs[0].buffers();
-
+    
             self.transit = self.transit_begin != mod_buf[0][0]
             && mod_buf[0][0] == mod_buf[0][63];
-
+    
             if self.transit {
                 self.transit_end = mod_buf[0][0];
             }
-
+    
             let distance = self.transit_begin - self.transit_end;
-
+    
             if self.transit_index == 1024 {
                 self.transit_index = 0;
                 self.transit_begin = self.transit_end.clone();
                 self.transit = false;
             }
-
+    
             for i in 0..128 {
                 output[0][i] = match self.transit {
                     true => {
@@ -72,6 +74,10 @@ impl Node<128> for Mul {
                     }
                 };
             }
+        } else {
+            output[0] = inputs[0].buffers()[0].clone();
+            output[0].iter_mut().for_each(|s| *s = *s * self.mul as f32);
         }
+        
     }
 }

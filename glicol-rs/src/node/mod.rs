@@ -1,15 +1,21 @@
-pub mod sin_osc; use sin_osc::SinOsc; pub mod saw_osc; use saw_osc::SawOsc;
-pub mod squ_osc; use squ_osc::SquOsc; pub mod tri_osc; use tri_osc::TriOsc;
-pub mod const_sig; use const_sig::ConstSig; pub mod noise; use noise::Noise;
-pub mod mul; use mul::Mul; pub mod add; use add::Add;
-pub mod filter; use filter::lpf::*; use filter::hpf::*;
-pub mod imp; use imp::*;
 pub mod system; use super::*;
+pub mod sin_osc; use sin_osc::SinOsc;
+pub mod saw_osc; use saw_osc::SawOsc;
+pub mod squ_osc; use squ_osc::SquOsc;
+pub mod tri_osc; use tri_osc::TriOsc;
+pub mod imp; use imp::*;
+pub mod const_sig; use const_sig::ConstSig;
+pub mod noise; use noise::Noise;
+pub mod mul; use mul::Mul;
+pub mod add; use add::Add;
+pub mod filter; use filter::lpf::*; use filter::hpf::*;
 pub mod seq; use seq::*;
 pub mod sampler; use sampler::*;
 pub mod speed; use speed::*;
 pub mod pass; use pass::*;
 pub mod choose; use choose::*;
+pub mod delayn; use delayn::*;
+pub mod delay; use delay::*;
 // pub mod adc;
 // pub mod operator;
 // pub mod envelope;
@@ -50,6 +56,7 @@ pub fn make_node(
     let alias = match name {
         "sp" => "sampler",
         "*" => "mul",
+        "noiz" => "noise",
         _ => name
     };
 
@@ -74,6 +81,8 @@ pub fn make_node(
         }, // bypass the process_parameters
         "seq" => vec![],
         "choose" => { vec![] },
+        "delayn" => vec![Para::Number(1.0)],
+        "delay" => vec![Para::Modulable],
         _ => vec![Para::Modulable], // pass
     };
 
@@ -92,7 +101,7 @@ pub fn make_node(
         "add" => add!(get_num(&p[0])),
         "lpf" => rlpf!({cutoff: get_num(&p[0]), q: get_num(&p[1])}),
         "hpf" => rhpf!({cutoff: get_num(&p[0]), q: get_num(&p[1])}),
-        "noiz" => noise!(get_num(&p[0]) as u64),
+
         "noise" => noise!(get_num(&p[0]) as u64),
         "imp" => imp!({freq: get_num(&p[0]), sr: sr}),
         "sampler" => {
@@ -103,6 +112,8 @@ pub fn make_node(
         }
         "speed" => speed!(get_num(&p[0])),
         "choose" => choose!(get_notes(paras)?),
+        "delayn" => delayn!(get_num(&p[0]) as usize),
+        "delay" => delay!({delay: get_num(&p[0]), sr: sr}),
         _ => Pass::new()
 
         // "choose" => Choose::new(&mut paras)?,

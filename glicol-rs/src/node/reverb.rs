@@ -9,7 +9,7 @@ ndef!(Plate, new2, {
     >> delay 50.0 >> allpass 4.771 0.75 >> allpass 3.595 0.75
     >> allpass 12.72 0.625 >> allpass 9.307 0.625
     >> add ~back
-    >> allpass ~mod 0.7
+    >> allpass ~mod 0.7X
     
     ~mod: sin 0.1 >> linrange 26.0 35.0
     

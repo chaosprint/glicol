@@ -1,101 +1,70 @@
 use dasp_graph::{Buffer, Input, Node};
 use dasp_ring_buffer as ring_buffer;
-use super::super::{Pairs, Rule, NodeData, EngineError,
-    NodeResult, BoxedNodeSend, handle_params};
+use super::super::{GlicolNodeData, NodeData, BoxedNodeSend, mono_node};
 
 type Fixed = ring_buffer::Fixed<Vec<f32>>;
 
-#[allow(dead_code)]
-pub struct DelayN {
-    sidechain_ids: Vec<u8>,
-    n: f32,
-    buf: Fixed
+pub struct Delay {
+    buf: Fixed,
+    sr: usize
 }
 
-#[allow(dead_code)]
-impl DelayN {
-    handle_params!({
-        n: 44100.0
-    }, [(n, buf, |delay: f32|->Fixed {
-        ring_buffer::Fixed::from(vec![0.0; delay as usize])
-    })]);
-}
+impl Delay {
 
-impl Node<128> for DelayN {
-    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
-        for i in 0..128 {
-            output[0][i] = self.buf[0];
-            // save new input to ring buffer
-            self.buf.push(inputs[0].buffers()[0][i]);
-        }
+    pub fn new() -> Self {
+        Self { buf: ring_buffer::Fixed::from(vec![0.0]), sr: 44100 }
+    }
+
+    pub fn delay(self, delay: f32) -> Self {
+        let size;
+        if delay == 0.0 {
+            size = (10.0 * self.sr as f32) as usize;
+        } else {
+            size = (delay * self.sr as f32) as usize
+        };
+        Self { buf: ring_buffer::Fixed::from(vec![0.0; size]),..self}
+    }
+
+    pub fn sr(self, sr:usize) -> Self {
+        Self {sr, ..self}
+    }
+
+    pub fn build(self) -> GlicolNodeData {
+        mono_node!(self)
     }
 }
 
-#[allow(dead_code)]
-pub struct Delay {
-    sidechain_ids: Vec<u8>,
-    delay: f32,
-    buf: Fixed
-}
-
-#[allow(dead_code)]
-impl Delay {
-    handle_params!({
-        delay: 5000.0
-    }, [(delay, buf, |d: f32|->Fixed {
-            let size = (d / 1000.0 * 44100.0) as usize;
-            ring_buffer::Fixed::from(vec![0.0; size])
-        })
-    ]);
-
-    // pub fn new(paras: &mut Pairs<Rule>) -> 
-    // Result<(NodeData<BoxedNodeSend>, Vec<String>), EngineError> {
-    //     let delay = paras.as_str().to_string();
-    //     match delay.parse::<f32>() {
-    //         Ok(value) => {
-    //             // const v: usize = value as usize;
-    //             Ok((NodeData::new1(BoxedNodeSend::new( Self {
-    //                 buf:  ring_buffer::Fixed::from(vec![0.0; value as usize]),
-    //                 delay: 0.1,
-    //                 sidechain_ids: vec![]
-    //             })), vec![delay]))
-    //         },
-    //         Err(_) => {
-    //             Ok((NodeData::new1(BoxedNodeSend::new( Self {
-    //                 buf: ring_buffer::Fixed::from(vec![0.0; 88200]),
-    //                 delay: 0.1,
-    //                 sidechain_ids: vec![]
-    //             })), vec![delay]))
-    //         }
-    //     }
-    //     // let sig = signal::noise(0);
-    // }
-    
+#[macro_export]
+macro_rules! delay {
+    ({$($para: ident: $data:expr),*}) => {
+         (
+            Delay::new()$(.$para($data))*.build()
+        )
+    }
 }
 
 impl Node<128> for Delay {
     fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
-        match self.sidechain_ids.len() {
-            0 => {
-                for i in 0..128 {
-                    output[0][i] = self.buf[0];
-                    // save new input to ring buffer
-                    self.buf.push(inputs[0].buffers()[0][i]);
-                }
-            },
-            1 => {
-                let input_sig = inputs[1].buffers()[0].clone();
-                let modulator = inputs[0].buffers()[0].clone();
-                let delay_len = (modulator[0] / 1000.0 * 44100.0 ) as usize;
-                self.buf.set_first(self.buf.len() - delay_len);
-                for i in 0..128 {
-                    output[0][i] = self.buf[0];
-                    self.buf.push(input_sig[i]);
-                }
-            },
-            _ => {
-                unimplemented!()
+        let l = inputs.len();
+        if l < 1 { return ()};
+        let has_clock = inputs[l-1].buffers()[0][0] % 128. == 0. && inputs[l-1].buffers()[0][1] == 0.;
+
+        // println!("{}{}",l ,has_clock );
+        if l - has_clock as usize > 1 { // has mod
+            let input_sig = inputs[1].buffers()[0].clone();
+            let modulator = inputs[0].buffers()[0].clone();
+            let delay_len = (modulator[0] / 1000.0 * self.sr as f32 ) as usize;
+            self.buf.set_first(self.buf.len() - delay_len);
+            for i in 0..128 {
+                output[0][i] = self.buf[0];
+                self.buf.push(input_sig[i]);
             }
-        };
+        } else {               
+            for i in 0..128 {
+                output[0][i] = self.buf[0];
+                // save new input to ring buffer
+                self.buf.push(inputs[0].buffers()[0][i]);
+            }
+        }
     }
 }
