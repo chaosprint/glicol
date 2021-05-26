@@ -9,7 +9,7 @@ pub mod seq; use seq::*;
 pub mod sampler; use sampler::*;
 pub mod speed; use speed::*;
 pub mod pass; use pass::*;
-
+pub mod choose; use choose::*;
 // pub mod adc;
 // pub mod operator;
 // pub mod envelope;
@@ -64,6 +64,7 @@ pub fn make_node(
         "lpf" => vec![Para::Modulable, Para::Number(1.0)],
         "hpf" => vec![Para::Modulable, Para::Number(1.0)],
         "sampler" => {
+            // check potential errors
             if !samples_dict.contains_key(&paras.as_str().replace("\\", "")) {
                 let p = paras.next().unwrap();
                 let pos = (p.as_span().start(), p.as_span().end());
@@ -71,12 +72,15 @@ pub fn make_node(
             }
             vec![]
         }, // bypass the process_parameters
-        "seq" => vec![], // do no comsume paras
+        "seq" => vec![],
+        "choose" => { vec![] },
         _ => vec![Para::Modulable], // pass
     };
 
     // this func checks if the parameters are correct
-    let (p, refs) = process_parameters(paras, modulable)?;
+    let (p, mut refs) = process_parameters(paras, modulable)?;
+
+    if name == "seq" {refs = process_seq(paras.as_str())?.2}
     
     let nodedata = match alias {
         "sin" => sin_osc!({freq: get_num(&p[0]), sr: sr}),
@@ -92,12 +96,13 @@ pub fn make_node(
         "noise" => noise!(get_num(&p[0]) as u64),
         "imp" => imp!({freq: get_num(&p[0]), sr: sr}),
         "sampler" => {
-            println!("samplers{:?}", samples_dict[&paras.as_str().replace("\\", "")]);
             sampler!(samples_dict[&paras.as_str().replace("\\", "")])},
         "seq" => {
-            seq!({pattern: paras.as_str(), sr: sr, bpm: bpm})
-        },
+            let info = process_seq(paras.as_str()).unwrap();
+            seq!({events: info.0, sidechain_lib: info.1, sr: sr, bpm: bpm})
+        }
         "speed" => speed!(get_num(&p[0])),
+        "choose" => choose!(get_notes(paras)?),
         _ => Pass::new()
 
         // "choose" => Choose::new(&mut paras)?,
@@ -140,12 +145,59 @@ fn get_num(p: &Para) -> f32 {
     }
 }
 
-fn get_string(p: Para) -> String {
-    match p {
-        Para::Symbol(v) => v,
-        _ => unimplemented!()
+type Events = Vec::<(f64, String)>;
+type Sidechain = HashMap::<String, usize>;
+
+fn process_seq(pattern: &str) -> Result<(Events, Sidechain, Vec<String>), EngineError> {
+    let mut events = Vec::<(f64, String)>::new();
+    let mut sidechain_count = 0;
+    let mut sidechains = Vec::new();
+    let mut sidechain_lib = Sidechain::new();
+    let split: Vec<&str> = pattern.split(" ").collect();
+    let len_by_space = split.len();
+    let compound_unit = 1.0 / len_by_space as f64;
+
+    for (i, compound) in split.iter().enumerate() {
+        let c = compound.replace("_", "$_$");
+        let notes = c.split("$").filter(|x|x!=&"").collect::<Vec<_>>();
+
+        let notes_len = notes.len();
+        for (j, x) in notes.iter().enumerate() {
+            let relative_time = i as f64 / len_by_space as f64 
+            + (j as f64/ notes_len as f64 ) * compound_unit;
+
+            if x.contains("~") {
+                sidechains.push(x.to_string());
+                sidechain_lib.insert(x.to_string(), sidechain_count);
+                sidechain_count += 1;
+            }
+
+            if x != &"_" {
+                events.push((relative_time, x.to_string()))
+            }
+        }
     }
+    Ok((events, sidechain_lib, sidechains))
 }
+
+fn get_notes(paras: &mut Pairs<Rule>) -> Result<Vec::<f32>, EngineError> {
+    let split: Vec<&str> = paras.as_str().split(" ").collect();
+    let mut note_list = Vec::<f32>::new();
+    println!("split{:?}", split);
+    for note in split {
+        match note.parse::<f32>() {
+            Ok(v) => note_list.push(v),
+            Err(_) => {
+                let p = paras.next().unwrap();
+                let pos = (p.as_span().start(), p.as_span().end());
+                return Err(EngineError::ParameterError(pos))
+            }
+        }
+    }
+    println!("note_list{:?}", note_list);
+    Ok(note_list)
+}
+
 
 #[macro_export]
 macro_rules! mono_node {

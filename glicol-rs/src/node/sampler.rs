@@ -95,7 +95,7 @@ impl Node<128> for Sampler {
                     for (begin, dur) in &self.playback {
                         let pos = (clock - begin) as f64 / dur;
                         if pos <= 1.0 {
-                            println!("{}, {}, {}", begin, dur, pos);
+                            // println!("{}, {}, {}", begin, dur, pos);
                             let val = match pos {
                                 x if x == 0.0 => self.sample[0],
                                 x if x == 1.0 => self.sample[self.endindex],
@@ -110,7 +110,7 @@ impl Node<128> for Sampler {
                                 _ => 0.0
                             };
                             output[0][i] += val;
-                            println!("val {}", val);
+                            // println!("val {}", val);
                         }
                     }
         

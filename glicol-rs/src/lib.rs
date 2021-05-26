@@ -47,7 +47,7 @@ pub struct Engine {
     pub chain_info: HashMap<String, Vec<String>>,
     pub clock: NodeIndex,
     audio_in: NodeIndex,
-    code: String,
+    pub code: String,
     code_backup: String,
     pub update: bool,
     track_amp: f32,
@@ -111,6 +111,7 @@ impl Engine {
             vec![(self.audio_in, "~input".to_string())]
         );
 
+        println!("code before preprocess: {}",&self.code);
         self.code = preprocess_sin(&mut self.code)?;
         self.code = preprocess_mul(&mut self.code)?;
         println!("code after preprocess: {}",&self.code);
@@ -353,7 +354,8 @@ impl Engine {
         //     self.fade = 0;
         // }
 
-        if self.update && (self.elapsed_samples + 128) % one_bar <= 128 {
+        if self.update && (self.elapsed_samples + 128) % one_bar < 128 {
+            // println!("updating... at {}", (self.elapsed_samples + 128) % one_bar);
             self.update = false;
             match self.make_graph() {
                 Ok(_) => {
@@ -398,6 +400,7 @@ impl Engine {
                         },
                         _ => unimplemented!()
                     };
+                    println!("debug {:?}", console);
                     self.soft_reset();
                     self.set_code(&self.code_backup.clone());
                     self.make_graph()?;
@@ -495,20 +498,7 @@ impl Engine {
     pub fn process(&mut self, target: NodeIndex) {
         self.processor.process(&mut self.graph, target);
     }
-    // pub fn new_node(&mut self, name: &str, paras: Vec<&str>) -> NodeIndex {
-    //     let (node_data, sidechains) = make_node(
-    //         name, 
-    //         &mut paras,
-    //         &self.samples_dict,
-    //         self.sr,
-    //         self.bpm
-    //     ).unwrap();
-    //     self.graph.add_node(node_data)
-    // }
 
-    // pub fn get_buffers(&mut self, target: NodeIndex) -> Vec<Buffer<128>> {
-    //     self.graph[target].buffers
-    // }
 }
 
 #[macro_export]
@@ -530,7 +520,3 @@ pub enum EngineError {
     ParaTypeError((usize, usize)),
 
 }
-
-// macro_rules! make_graph {
-
-// }

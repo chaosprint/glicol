@@ -11,7 +11,6 @@ pub struct Sequencer {
     sr: usize,
     pub step: usize,
     sidechain_lib: HashMap<String, usize>,
-    sidechain_id: usize,
 }
 
 impl Sequencer {
@@ -24,39 +23,13 @@ impl Sequencer {
     pub fn bpm(self, bpm: f32) -> Self {
         Self {bpm, ..self}
     }
-    pub fn pattern(mut self, pattern: &str) -> Self {
-        let mut events = Vec::<(f64, String)>::new();
-        // let mut sidechains = Vec::<String>::new();
-        // let mut sidechain_id = 0;
-        // let mut sidechain_lib = HashMap::<String, usize>::new();
-        let split: Vec<&str> = pattern.split(" ").collect();
-        let len_by_space = split.len();
-        let compound_unit = 1.0 / len_by_space as f64;
 
-        for (i, compound) in split.iter().enumerate() {
-            let c = compound.replace("_", "$_$");
-            let notes = c.split("$").filter(|x|x!=&"").collect::<Vec<_>>();
+    pub fn sidechain_lib(self, sidechain_lib: HashMap<String, usize>) -> Self {
+        Self {sidechain_lib, ..self}
+    }
 
-            let notes_len = notes.len();
-
-            // println!("len = {}", notes_len);
-
-            for (j, x) in notes.iter().enumerate() {
-                let relative_time = i as f64 / len_by_space as f64 
-                + (j as f64/ notes_len as f64 ) * compound_unit;
-
-                if x.contains("~") {
-                    // sidechains.push(x.to_string());
-                    self.sidechain_lib.insert(x.to_string(), self.sidechain_id);
-                    self.sidechain_id += 1;
-                }
-
-                if x != &"_" {
-                    events.push((relative_time, x.to_string()))
-                }
-            }
-        }
-        Self { events, ..self}
+    pub fn events(self, events: Vec::<(f64, String)>) -> Self {
+        Self {events, ..self}
     }
 
     pub fn build(self) -> GlicolNodeData {
@@ -78,41 +51,33 @@ macro_rules! seq {
 /// The inputs can be clock, speed or many sidechains
 impl Node<128> for Sequencer {
     fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
+        let mut has_speed_input = false;
+        let mut has_clock = false;        
 
-        let num_sidechain = self.sidechain_lib.len();
-        // let mut has_speed_input = false;
-
-        match inputs.len() as i8 - num_sidechain as i8 {
-            0 => { // standalone mode, no clock, no speed, just sidechain
-                
-            },
-            1 => {
-                //  clock or speed
-                // speed input is set as [ f32, 0.0, 0.0 ... ], so it's identical
-                // NOTE! inputs are in reverse order
-        
-                let m = inputs.len()-1;
-                if inputs[m].buffers()[0][0] % 128. == 0. && inputs[m].buffers()[0][1] == 0. {
-                    // this is very likely to be a clock
-                    self.step = inputs[m].buffers()[0][0] as usize;
-
-                } else if inputs[m].buffers()[0][0] % 128. > 0. && inputs[m].buffers()[0][1] == 0. {
-                    // this can be a speed
-                    self.speed = inputs[m].buffers()[0][0];
-                } else {
-                    // this is viewed as a sidechain note
-                    return ()
+        if inputs.len() == 1 {
+            if inputs[0].buffers()[0][0] % 128. == 0. && inputs[0].buffers()[0][1] == 0. {
+                self.step = inputs[0].buffers()[0][0] as usize;
+                has_clock = true;
+            } else if inputs[0].buffers()[0][0] % 128. > 0. && inputs[0].buffers()[0][1] == 0. {
+                self.speed = inputs[0].buffers()[0][0];
+                has_speed_input = true;
+            }
+        } else if inputs.len() > 1 {
+            let m = inputs.len() - 1;
+            if inputs[m].buffers()[0][0] % 128. == 0. && inputs[m].buffers()[0][1] == 0. {
+                self.step = inputs[m].buffers()[0][0] as usize;
+                has_clock = true;
+                if inputs[m-1].buffers()[0][0] % 128. > 0. && inputs[m-1].buffers()[0][1] == 0. {
+                    self.speed = inputs[m-1].buffers()[0][0];
+                    has_speed_input = true;
                 }
-            },
-            2 => {
-                // with both speed and clock
-                self.step = inputs[inputs.len()-1].buffers()[0][0] as usize;
-                self.speed = inputs[inputs.len()-2].buffers()[0][0];
-                // has_speed_input = true;
-            },
-            _ => {return ()}
-        };
+            } else if inputs[m].buffers()[0][0] % 128. > 0. && inputs[m].buffers()[0][1] == 0. {
+                self.speed = inputs[m].buffers()[0][0];
+                has_speed_input = true;
+            }
+        }
 
+        println!("{}{}", has_clock, has_speed_input);
         // let relative_time = event.0;
         // let relative_pitch = event.1; a ratio for midi 60 freq
         let bar_length = 240.0 / self.bpm as f64 * self.sr as f64 / self.speed as f64;
@@ -121,7 +86,7 @@ impl Node<128> for Sequencer {
 
             for event in &self.events {
                 if (self.step % (bar_length as usize)) == ((event.0 * bar_length) as usize) {
-
+                    // println!("{}", (event.0 * bar_length) );
                     let midi = match event.1.parse::<f32>() {
                         Ok(val) => val,
                         Err(_) => {
@@ -130,15 +95,10 @@ impl Node<128> for Sequencer {
                             // - no speed input, but has several sidechains
                             // - one speed input, no sidechain,
                             // - one speed input. several sidechains
-
-                            // let index = len - 2 - 
-                            // self.sidechain_lib[&event.1] - has_speed_input as usize;
-                            // println!("index {}", index);
-                            if inputs.len() as i8 - 1 > self.sidechain_lib[&event.1] as i8 {
-                                inputs[self.sidechain_lib[&event.1]].buffers()[0][i]
-                            } else {
-                                return ()
-                            }                         
+                            // if inputs.len() as i8 - 1 > self.sidechain_lib[&event.1] as i8 {
+                            let index = inputs.len() - 1 - has_clock as usize - has_speed_input as usize
+                            - self.sidechain_lib[&event.1];
+                            inputs[index].buffers()[0][i]
                         }
                     };
 
