@@ -11,11 +11,10 @@ use petgraph::stable_graph::{StableDiGraph};
 use pest::Parser;
 use pest::iterators::Pairs;
 
-pub mod node;
-use node::{oscillator, signal, filter, operation, sampling, effect, pass::*};
-use node::Para;
-use node::make_node;
-use node::signal::dummy::{Clock, AudioIn};
+use glicol_node::{oscillator, signal, filter, operation, sampling, effect, pass::*};
+use glicol_node::Para;
+use glicol_node::make_node;
+use glicol_node::signal::dummy::{Clock, AudioIn};
 use oscillator::sin_osc::SinOsc;
 use oscillator::saw_osc::SawOsc;
 use oscillator::squ_osc::SquOsc;
@@ -75,13 +74,13 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub fn new(sr: usize) -> Engine {
+    pub fn new(sr: usize) -> Self {
         let max_nodes = 1024;
         let max_edges = 1024;
         let g = GlicolGraph::with_capacity(max_nodes, max_edges);
         let p = GlicolProcessor::with_capacity(max_nodes);
 
-        Engine {
+        Self {
             graph: g,
             processor: p,
             code: "".to_string(),
@@ -124,10 +123,10 @@ impl Engine {
         }
 
         // dummy input reference
-        self.all_refs.push("~input".to_string());
+        self.all_refs.push("_input".to_string());
         self.node_by_chain.insert(
-            "~input".to_string(),
-            vec![(self.audio_in, "~input".to_string())]
+            "_input".to_string(),
+            vec![(self.audio_in, "_input".to_string())]
         );
 
         println!("code before preprocess: {}",&self.code);
@@ -283,7 +282,7 @@ impl Engine {
         // println!("connect clock to {:?}", self.node_by_chain);
         // connect clocks to all the nodes
         for (refname, nodes) in &self.node_by_chain {
-            if refname != "~input" {
+            if refname != "_input" {
                 for n in nodes {
                     self.graph.add_edge(self.clock, n.0,());
                 }
@@ -362,7 +361,7 @@ impl Engine {
     // }
 
     /// The main interface for WebAssembly module to get the new block of audio.
-    pub fn gen_next_buf_128(&mut self, inbuf: &mut [f32])
+    pub fn gen_next_buf_128(mut self, inbuf: &mut [f32])
     -> Result<([f32; 256], [u8;256]), EngineError> {
         // don't use self.buffer
         let mut output: [f32; 256] = [0.0; 256];
@@ -413,7 +412,7 @@ impl Engine {
                             info[0] = 5;
                             info[1] = 0;
                             if self.code == "" {
-                                self.code_backup = "~dump: const 0.0".to_string();
+                                self.code_backup = "_dummy: const 0.0".to_string();
                             }
                             info
                         },
@@ -421,7 +420,8 @@ impl Engine {
                     };
                     println!("debug {:?}", console);
                     self.soft_reset();
-                    self.set_code(&self.code_backup.clone());
+                    let backup = self.code_backup.clone();
+                    self = self.set_code(&backup);
                     self.make_graph()?;
                 }
             }
@@ -429,13 +429,13 @@ impl Engine {
 
         // process 0..128
         for (refname, v) in &self.node_by_chain {
-            if refname.contains("~") {
+            if refname.contains("~") || refname.contains("_") {
                 continue;
             }
             self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
             for i in 0..128 {
                 self.graph[
-                    self.node_by_chain["~input"][0].0
+                    self.node_by_chain["_input"][0].0
                 ].buffers[0][i] = inbuf[i];
             }
             self.processor.process(&mut self.graph, v.last().unwrap().0);
@@ -443,7 +443,7 @@ impl Engine {
 
         // sendout 0..128
         for (refname, v) in &self.node_by_chain {
-            if refname.contains("~") {
+            if refname.contains("~") || refname.contains("_") {
                 continue;
             }
             let bufleft = &self.graph[v.last().unwrap().0].buffers[0];
@@ -487,9 +487,10 @@ impl Engine {
         self.soft_reset();
     }
 
-    pub fn set_code(&mut self, code: &str) {
-        self.code = code.to_string();
-        self.update = true;
+    pub fn set_code(self, code: &str) -> Self {
+        // self.code = code.to_string();
+        // self.update = true;
+        Self {code: code.to_string(), update: true, ..self}
     }
 
     pub fn set_track_amp(&mut self, amp: f32) {
@@ -518,25 +519,17 @@ impl Engine {
         self.processor.process(&mut self.graph, target);
     }
 
+    pub fn next_block(mut self) -> Result<([f32; 256], [u8;256]), EngineError> {
+        println!("{}", self.code);
+        self.make_graph()?;
+        self.gen_next_buf_128(&mut [0.0;128])
+    }
 }
 
 #[macro_export]
 macro_rules! chain {
     ([$($node: expr),*] in $engine:ident) => {
         $engine.make_chain(vec![$($node,)*])   
-    };
-}
-
-
-#[macro_export]
-macro_rules! lazy_graph {
-    (
-        $engine:ident: {
-            $name:ident  : $node:ident $($paras:expr)* $(=> $morenode:ident $($moreparas:expr)*)*
-        }
-    ) => {
-        println!(stringify!($name, $node));
-        $(println!(stringify!($morenode));)*
     };
 }
 

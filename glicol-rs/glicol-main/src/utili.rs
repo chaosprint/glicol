@@ -50,17 +50,19 @@ pub fn preprocess_sin(a: &String) -> Result<String, EngineError> {
 
 pub fn preprocess_mul(a: &String) -> Result<String, EngineError> {
     let q: String = a.replace("\n", " \n ");
-    let v: Vec<&str> = q.split(" ").collect();
-    // println!("{:?}", v);
+    let v: Vec<&str> = q.split(" ").filter(|c| c != &"").collect();
+    // e.g ["out", ":", "const", "441.0", ">>", "sin", "1", ";"]
+    
     let mut b = "".to_string();
     let mut current_ref = "";
     let x = "abcdefghijklmnopqrstuvwxyz".to_string();
     let mut append = Vec::<(&str, &str, &str)>::new();
     let mut find = false;
     let mut index:usize = 0;
+
     for (i, c) in v.iter().enumerate() {
         if c.contains(":") {
-            current_ref = &c[1..c.len()-1];
+            current_ref = v[i-1];
             index = 0;
             b += c;
             b += " ";
@@ -72,7 +74,7 @@ pub fn preprocess_mul(a: &String) -> Result<String, EngineError> {
             b += c;
             b += " ";
         } else if find == true {
-            let s = format!("~{}mulconst{}",
+            let s = format!("_{}mulconst{}",
             append.last().unwrap().0, append.last().unwrap().1);
             b += &s;
             b += " ";
@@ -87,7 +89,7 @@ pub fn preprocess_mul(a: &String) -> Result<String, EngineError> {
         
     }
     for x in append {
-        b += &format!("\n\n~{}mulconst{}: const {}", x.0, x.1, x.2);
+        b += &format!("\n\n_{}mulconst{}: const {};", x.0, x.1, x.2);
     }
     Ok(b)
 }

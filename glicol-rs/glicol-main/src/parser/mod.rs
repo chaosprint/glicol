@@ -29,7 +29,7 @@ pub fn process_parameters(paras: &mut Pairs<Rule>, mut modulable: Vec<Para>) -> 
                 match key.parse::<f32>() {
                     Ok(v) => modulable[i] = Para::Number(v),
                     Err(_) => {
-                        if key.contains("~") {
+                        if key.contains("~") || key.contains("_"){
                             if modulable[i] != Para::Modulable { 
                                 return Err(EngineError::NotModuableError(pos)) 
                             } else {
