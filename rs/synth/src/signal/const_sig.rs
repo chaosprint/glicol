@@ -21,3 +21,10 @@ impl Node<128> for ConstSig {
         }
     }
 }
+
+#[macro_export]
+macro_rules! const_sig {
+    ($data: expr) => {
+        ConstSig::new($data)
+    };
+}

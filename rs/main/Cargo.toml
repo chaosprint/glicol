@@ -30,4 +30,6 @@ petgraph = "*"
 gnuplot = "0.0.37"
 lcs-diff = "0.1.1"
 
-glicol_node =  { path = "../glicol-node" }
+glicol_synth =  { path = "../synth" }
+glicol_parser =  { path = "../parser" }
+glicol_ext =  { path = "../ext" }

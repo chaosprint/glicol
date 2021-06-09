@@ -22,6 +22,10 @@ pub fn make_graph(input: TokenStream) -> TokenStream {
             code.push_str(&item);
             code.push_str(&item);
             i.next();
+        } else if &item == "~" {
+            code.push_str(&item);
+            f = i.next();
+            code.push_str(&f.unwrap().to_string());
         } else {
             code.push_str(&item);
             code.push_str(" ");

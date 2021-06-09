@@ -11,41 +11,18 @@ use petgraph::stable_graph::{StableDiGraph};
 use pest::Parser;
 use pest::iterators::Pairs;
 
-use glicol_node::{oscillator, signal, filter, operation, sampling, effect, pass::*};
-use glicol_node::Para;
-use glicol_node::make_node;
-use glicol_node::signal::dummy::{Clock, AudioIn};
-use oscillator::sin_osc::SinOsc;
-use oscillator::saw_osc::SawOsc;
-use oscillator::squ_osc::SquOsc;
-use oscillator::tri_osc::TriOsc;
-use signal::imp::*;
-use signal::const_sig::ConstSig;
-use signal::noise::Noise;
-use operation::mul::Mul;
-use operation::add::Add;
-use filter::lpf::*; use filter::hpf::*; 
-use filter::apfgain::*;
-use filter::apfdecay::*; 
-use filter::onepole::*;
-use filter::comb::*;
-use sampling::seq::*;
-use sampling::sampler::*;
-use sampling::speed::*;
-use sampling::choose::*;
-use effect::delayn::*;
-use effect::delay::*;
+use glicol_synth::Para;
+use glicol_synth::make_node;
+use glicol_synth::signal::dummy::{Clock, AudioIn};
+use glicol_synth::{oscillator, signal, filter, operation, sampling, effect, pass::*};
+use glicol_synth::{GlicolNodeData, GlicolGraph, GlicolProcessor, NodeResult};
 
-mod parser;
-use parser::*;
+use glicol_parser::*;
+
+use glicol_ext::make_node_ext;
 
 mod utili;
 use utili::{preprocess_sin, preprocess_mul, lcs, process_error_info};
-
-pub type GlicolNodeData = NodeData<BoxedNodeSend<128>, 128>;
-pub type GlicolGraph = StableDiGraph<GlicolNodeData, (), u32>;
-pub type GlicolProcessor = Processor<GlicolGraph, 128>;
-pub type NodeResult = Result<(GlicolNodeData, Vec<String>), EngineError>;
 
 /// The engine of Glicol
 /// This engine can takes Glicol code, convert it to audio graph and process it
@@ -123,23 +100,22 @@ impl Engine {
         }
 
         // dummy input reference
-        self.all_refs.push("_input".to_string());
+        self.all_refs.push("~input".to_string());
         self.node_by_chain.insert(
-            "_input".to_string(),
-            vec![(self.audio_in, "_input".to_string())]
+            "~input".to_string(),
+            vec![(self.audio_in, "~input".to_string())]
         );
 
-        println!("code before preprocess: {}",&self.code);
+        // println!("code before preprocess: {}",&self.code);
         self.code = preprocess_sin(&mut self.code)?;
         self.code = preprocess_mul(&mut self.code)?;
-        println!("code after preprocess: {}",&self.code);
+        // println!("code after preprocess: {}",&self.code);
 
         let lines = match GlicolParser::parse(Rule::block, &mut self.code) {
             Ok(mut v) => v.next().unwrap(),
             Err(e) => { println!("{:?}", e); return Err(EngineError::ParsingError(e))}
         };
-
-        // let mut previous_nodes = Vec::<NodeIndex>::new();
+        
         let mut current_ref_name: &str = "";
 
         // add nodes to nodes chain vectors in the HashMap with ref as key
@@ -282,7 +258,7 @@ impl Engine {
         // println!("connect clock to {:?}", self.node_by_chain);
         // connect clocks to all the nodes
         for (refname, nodes) in &self.node_by_chain {
-            if refname != "_input" {
+            if refname != "~input" {
                 for n in nodes {
                     self.graph.add_edge(self.clock, n.0,());
                 }
@@ -435,7 +411,7 @@ impl Engine {
             self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
             for i in 0..128 {
                 self.graph[
-                    self.node_by_chain["_input"][0].0
+                    self.node_by_chain["~input"][0].0
                 ].buffers[0][i] = inbuf[i];
             }
             self.processor.process(&mut self.graph, v.last().unwrap().0);

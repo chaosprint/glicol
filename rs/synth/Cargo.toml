@@ -1,5 +1,5 @@
 [package]
-name = "glicol_audio"
+name = "glicol_synth"
 version = "0.1.0"
 authors = ["chaosprint <chaosprint@gmail.com>"]
 edition = "2018"

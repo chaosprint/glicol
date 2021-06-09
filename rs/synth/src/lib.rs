@@ -6,11 +6,13 @@ use pest::Parser;
 use pest::iterators::Pairs;
 use glicol_parser::*;
 
+pub mod macros; use macros::*;
+
 pub mod oscillator; use oscillator::*;
 use {sin_osc::*, saw_osc::SawOsc, squ_osc::SquOsc, tri_osc::TriOsc};
 
 pub mod signal; use signal::*;
-use {imp::*, const_sig::ConstSig, noise::Noise, dummy::Clock};
+use {imp::*, const_sig::ConstSig, noise::Noise, dummy::Clock, dummy::AudioIn};
 
 pub mod operation; use operation::*;
 use {mul::Mul, add::Add};
@@ -39,7 +41,6 @@ pub enum GlicolError {
     InsufficientParameter((usize, usize)),
     NotModuableError((usize, usize)),
     ParaTypeError((usize, usize)),
-
 }
 
 // pub mod adc; // pub mod operator;
@@ -71,7 +72,7 @@ pub fn make_node(
         "saw" => vec![Para::Modulable],
         "squ" => vec![Para::Modulable],
         "tri" => vec![Para::Modulable],
-        "const" => vec![Para::Number(0.0)],
+        "const_sig" => vec![Para::Number(0.0)],
         "mul" => vec![Para::Modulable],
         "add" => vec![Para::Modulable],
         "lpf" => vec![Para::Modulable, Para::Number(1.0)],
@@ -93,7 +94,7 @@ pub fn make_node(
         "comb" => vec![Para::Number(10.), Para::Number(0.9), Para::Number(0.5), Para::Number(0.5)],
         "apfdecay" => vec![Para::Number(10.), Para::Number(0.8)],
         "apfgain" => vec![Para::Number(10.), Para::Number(0.5)],
-        _ => vec![Para::Modulable], // pass
+        _ => vec![], // pass
     };
 
     // this func checks if the parameters are correct
@@ -106,7 +107,7 @@ pub fn make_node(
         "saw" => saw_osc!({freq: get_num(&p[0]), sr: sr}),
         "squ" => squ_osc!({freq: get_num(&p[0]), sr: sr}),
         "tri" => tri_osc!({freq: get_num(&p[0]), sr: sr}),
-        "const" => const_sig!(get_num(&p[0])),
+        "const_sig" => const_sig!(get_num(&p[0])),
         "mul" => mul!(get_num(&p[0])),
         "add" => add!(get_num(&p[0])),
         "lpf" => rlpf!({cutoff: get_num(&p[0]), q: get_num(&p[1])}),
@@ -129,8 +130,6 @@ pub fn make_node(
         "apfdecay" => apfdecay!({delay: get_num(&p[0]), decay: get_num(&p[1])}),
         "apfgain" => apfgain!({delay: get_num(&p[0]), gain: get_num(&p[1])}),
         _ => Pass::new()
-
-        // "choose" => Choose::new(&mut paras)?,
         // "envperc" => EnvPerc::new(30.0, 50.0)?,
         // "pan" => Pan::new(&mut paras)?,
         // "buf" => Buf::new(&mut paras, 
@@ -138,16 +137,9 @@ pub fn make_node(
         // "linrange" => LinRange::new(&mut paras)?,
         // "pha" => Phasor::new(&mut paras)?,
         // "state" => State::new(&mut paras)?,
-        // "delay" => Delay::new(&mut paras)?,
-        // "apf" => Allpass::new(&mut paras)?,
-        // "comb" => Comb::new(&mut paras)?,
         // "mix" => Mix2::new(&mut paras)?,
         // "plate" => Plate::new(&mut paras)?,
-        // "onepole" => OnePole::new(&mut paras)?,
-        // "allpass" => AllpassGain::new(&mut paras)?,
-        // "delayn" => DelayN::new(&mut paras)?,
         // "monosum" => MonoSum::new(&mut paras)?,
-        // _ => Pass::new(name)?
     };
     Ok((nodedata, refs))
 }
@@ -237,6 +229,7 @@ pub fn process_parameters(paras: &mut Pairs<Rule>, mut modulable: Vec<Para>) -> 
                     Err(_) => {
                         if key.contains("~") || key.contains("_"){
                             if modulable[i] != Para::Modulable { 
+                                println!("{:?}", key);
                                 return Err(GlicolError::NotModuableError(pos)) 
                             } else {
                                 refs.push(key.to_string());
@@ -256,158 +249,12 @@ pub fn process_parameters(paras: &mut Pairs<Rule>, mut modulable: Vec<Para>) -> 
     return Ok((modulable, refs))
 }
 
-#[macro_export]
-macro_rules! mono_node {
-    ($body:expr) => {
-        NodeData::new1( BoxedNodeSend::new(($body)))
-    };
-}
-
-#[macro_export]
-macro_rules! ndef {
-    ($struct_name: ident, $channel_num: ident, {$code_str: expr}) => {
-        pub struct $struct_name {
-            engine: Engine
-        }
-        
-        impl $struct_name {
-            pub fn new(paras: &mut Pairs<Rule>) -> Result<
-            (NodeData<BoxedNodeSend<128>, 128>, Vec<String>), EngineError> {
-                let mut engine = Engine::new();
-                engine.set_code(&format!($code_str, a=paras.as_str()));
-                engine.make_graph()?;
-                Ok((NodeData::$channel_num(BoxedNodeSend::new( Self {
-                    engine
-                })), vec![]))
-            }
-        }
-        
-        impl Node<128> for $struct_name {
-            fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
-                // self.engine.input(inputs); // mono or stereo?
-                let mut input = inputs[0].buffers()[0].clone();
-                let buf = self.engine.gen_next_buf_128(&mut input).unwrap();
-                match output.len() {
-                    1 => {
-                        for i in 0..128 {
-                            output[0][i] = buf.0[i];
-                        }
-                    },
-                    2 => {
-                        for i in 0..128 {
-                            output[0][i] = buf.0[i];
-                            output[1][i] = buf.0[i+128];
-                        }
-                    },
-                    _ => {}
-                }
-            }
-        }
-    };
-}
-
-// TODO: make the all in 3 macros
-
-#[macro_export]
-macro_rules! const_sig {
-    ($data: expr) => {
-        ConstSig::new($data)
-    };
-}
-
-#[macro_export]
-macro_rules! imp {
-    ({$($para: ident: $data:expr),*}) => {
-         (
-            Impulse::new()$(.$para($data))*.build()
-        )
-    }
-}
-
-#[macro_export]
-macro_rules! noise {
-    () => { // controlled by modulator, no need for value
-        Noise::new(42)
-    };
-
-    ($data: expr) => {
-        Noise::new($data)
-    };
-}
-
-#[macro_export]
-macro_rules! speed {
-    ($data: expr) => {
-        Speed::new($data)
-    };
-}
-
-#[macro_export]
-macro_rules! mul {
-    () => { // controlled by modulator, no need for value
-        Mul::new(0.0)
-    };
-
-    ($data: expr) => {
-        Mul::new($data)
-    };
-}
-
-#[macro_export]
-macro_rules! add {
-    () => {
-        Add::new(0.0)
-    };
-
-    ($data: expr) => {
-        Add::new($data)
-    };
-}
-
-
-#[macro_export]
-macro_rules! sin_osc {
-    ({$($para: ident: $data:expr),*}) => {
-         (
-            SinOsc::new()$(.$para($data))*.build()
-        )
-    }
-}
-
-#[macro_export]
-macro_rules! tri_osc {
-    ({$($para: ident: $data:expr),*}) => {
-         (
-            TriOsc::new()$(.$para($data))*.build()
-        )
-    }
-}
-
-#[macro_export]
-macro_rules! squ_osc {
-    ({$($para: ident: $data:expr),*}) => {
-         (
-            SquOsc::new()$(.$para($data))*.build()
-        )
-    }
-}
-
-#[macro_export]
-macro_rules! saw_osc {
-    ({$($para: ident: $data:expr),*}) => {
-         (
-            SawOsc::new()$(.$para($data))*.build()
-        )
-    }
-}
-
 pub struct SimpleGraph {
-    graph: GlicolGraph,
+    pub graph: GlicolGraph,
     processor: GlicolProcessor,
     clock: NodeIndex,
     elapsed_samples: usize,
-    node_by_chain: HashMap<String, Vec<NodeIndex>>,
-    sidechains_list: Vec<(NodeIndex, String)>
+    pub node_by_chain: HashMap<String, Vec<NodeIndex>>,
 }
 
 impl SimpleGraph {
@@ -420,6 +267,12 @@ impl SimpleGraph {
 
         let clock = graph.add_node(
             NodeData::new1(BoxedNodeSend::new(Clock{})));
+        let audio_in = graph.add_node(
+                NodeData::new1(BoxedNodeSend::new(AudioIn{})));
+        node_by_chain.insert(
+            "~input".to_string(),
+            vec![audio_in]
+        );
 
         let mut parsing_result = GlicolParser::parse(Rule::block, code).unwrap();
         let mut current_ref_name: &str = "";
@@ -444,13 +297,13 @@ impl SimpleGraph {
                             // let pos = (p.as_span().start(), p.as_span().end());
                             let name = first.as_str();
 
-                            // if the name is "~am"
+                            // if the name is sth like "_source" only
                             let dest = match first.as_rule() {
                                 Rule::paras => format!("@rev{}", first.as_str()),
                                 _ => "".to_string()
                             };
 
-                            println!("{} {:?}",name, &paras);
+                            println!("add {} {:?} ",name, &paras);
                             let (node_data, sidechains) = make_node(
                                 name, &mut paras,
                                 &HashMap::new(),
@@ -474,11 +327,11 @@ impl SimpleGraph {
                                 };
 
                                 list.push(node_index);
-
-                                // println!("insert{} at{}",id.clone(),info.1);
                                 node_by_chain.insert(
                                     refname.clone(),list);
                             };
+
+                            println!("add {} {:?} as {:?}",name, &paras, node_index);
 
                             for sidechain in sidechains.into_iter() {
                                 sidechains_list.push(
@@ -494,7 +347,7 @@ impl SimpleGraph {
 
         // connect clocks to all the nodes
         for (refname, nodes) in &node_by_chain {
-            if refname != "_input" {
+            if refname != "~input" {
                 for n in nodes {
                     graph.add_edge(clock, *n,());
                 }
@@ -513,9 +366,8 @@ impl SimpleGraph {
         
         // make edges cross chain
         for pair in &sidechains_list {
-            // println!("sidechain conncect {:?}", pair);
+            // println!("work on sidechain pair: {:?}", pair);
             if pair.1.contains("@rev") {
-                
                 let name = &pair.1[4..];
                 // println!("reversed connection for {}", name);
                 if !node_by_chain.contains_key(name) {
@@ -533,28 +385,28 @@ impl SimpleGraph {
         };
         Self {
             graph,
-            processor: GlicolProcessor::with_capacity(1024),
             clock,
+            processor: GlicolProcessor::with_capacity(1024),
             elapsed_samples: 0,
-            node_by_chain,
-            sidechains_list
+            node_by_chain
         }
     }
 
     pub fn next_block(&mut self, inbuf: &mut [f32]) -> [f32; 256] {
         let mut output: [f32; 256] = [0.0; 256];
 
+        // println!("node_by_chain{:?}", self.node_by_chain);
         // process 0..128
         for (refname, v) in &self.node_by_chain {
             if refname.contains("~") || refname.contains("_") {
                 continue;
             }
             self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
-            // for i in 0..128 {
-            //     self.graph[
-            //         self.node_by_chain["_input"][0].0
-            //     ].buffers[0][i] = inbuf[i];
-            // }
+            for i in 0..128 {
+                self.graph[
+                    self.node_by_chain["~input"][0]
+                ].buffers[0][i] = inbuf[i];
+            }
             self.processor.process(&mut self.graph, *v.last().unwrap());
         }
 
