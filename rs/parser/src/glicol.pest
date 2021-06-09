@@ -1,0 +1,25 @@
+block = {( (line|comment) ~ (";" ~ ("\n"*)) ) +}
+comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE+ ~ !NEWLINE}
+line = { reference ~ ":"? ~ chain}
+chain = { (func ~ ("\n")? ~ (">>")? )+ }
+func = { name? ~ paras+ }
+
+// issues:
+// midi | reference can be regarded as seq
+// loop 50 50 paras -> seq -> compound -> midi
+// linrange 40 70 ambiguity paras -> seq -> compound -> midi
+// lpf ~mod 1.0 only get `lpf ~mod 1`
+paras = {  float | symbol | seq }
+float = @{ (("+" | "-")? ~ ASCII_DIGIT+) ~ "." ~ ASCII_DIGIT* ~ (^"e" ~ midi)? }
+symbol = { "\\" ~ ASCII_ALPHANUMERIC* }
+seq = ${ compound+}
+compound = @{ note+ }
+note = ${ midi | rest | reference }
+reference = ${ (("~")|("_"))? ~ ASCII_ALPHA_LOWER+ ~ (("_")~(ASCII_ALPHA_LOWER+) )* }
+name = ${"seq"|"speed"|"choose"|"mul"|"add"|"linrange"|"apfdecay"|"delayn"|
+"sin"|"saw"|"squ"|"imp"|"envperc"|"sampler"|"noiz"|"lpf"|"plate"|"onepole"|
+"hpf"|"pha"|"buf"|"state"|"freeverb"|"pan"|"delay"|"apfgain"|"comb"|"mix"|"monosum"|
+"const"|"*"|"sp"|"spd"|"tri"|"noise"}
+rest = { "_" }
+midi = ${ (ASCII_DIGIT)+ ~ !"." }
+WHITESPACE = _{" "|":"|","}

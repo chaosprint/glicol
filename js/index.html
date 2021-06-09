@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>glicol.js minimal demo</title>
+    <style>
+      html, body, main {
+        height:100%;
+        width:100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div id="inner">
+      <textarea id="code" cols="40" rows="5" style="min-height: 300px; min-width: 400px"></textarea>
+      <br />
+      <button id="run">run</button>
+      <button id="stop">stop</button>
+      </div>
+    </main>
+
+    <!-- two options: copy the src folder or use the cdn link -->
+    <script src="src/glicol.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/gh/chaosprint/glicol@latest/glicol-js/src/glicol.js"></script> -->
+    <script>
+      document.getElementById("code").value = window.code
+      document.getElementById("run").addEventListener("click", ()=>{
+        let currentCode = document.getElementById("code").value;
+        window.run(currentCode) // main function to run code; edit the code and run again will update music automatically
+      })
+      document.getElementById("stop").addEventListener("click", ()=>{
+        window.stop(); // stop function binding to window
+      })
+    </script>
+  </body>
+</html>
