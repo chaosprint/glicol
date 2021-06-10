@@ -47,6 +47,8 @@ https://glicol.web.app
 
 # Repository structure
 
+The structure shows that Glicol can be used independently as a JavaScript library in the browser, or used as an audio library for other Rust projects:
+
 ```
 js/
 ├─ src/
@@ -84,6 +86,8 @@ glicol_ext = glicol_synth + glicol_parser + glicol_macro
 glicol = glicol_parser + glicol_synth + glicol_ext
 ```
 The `rs/wasm` is basically the glue code for compiling the `glicol` crate into a WebAssembly file.
+
+See the `README.md` in `rs` folder for details.
 
 ## JavaScript
 
