@@ -23,9 +23,9 @@ impl Node<128> for Add {
             && inputs[l-1].buffers()[0][1] == 0.
         };
         // println!("l - has_clock as usize is {:?}", l - has_clock as usize);
-        println!("has_clock is {:?}",  has_clock);
-        println!(" self.inc {:?}",  self.inc);
-        println!("inputs to add node {:?}", inputs);
+        // println!("has_clock is {:?}",  has_clock);
+        // println!(" self.inc {:?}",  self.inc);
+        // println!("inputs to add node {:?}", inputs);
         match l {
             1 => {
                 output[0] = inputs[0].buffers()[0].clone();
@@ -37,7 +37,7 @@ impl Node<128> for Add {
                     // panic!();
                     output[0] = inputs[0].buffers()[0].clone();
                     output[0].iter_mut().for_each(|s| *s = *s + self.inc as f32);
-                    println!("output[0] should be {:?}", output[0]);
+                    // println!("output[0] should be {:?}", output[0]);
                 } else {
                     let buf = &mut inputs[0].buffers();
                     let mod_buf = &mut inputs[1].buffers();

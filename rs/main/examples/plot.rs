@@ -5,7 +5,8 @@ use glicol::Engine;
 
 fn main () {
     let mut engine = Engine::new(44100);
-    engine.set_code("bb: sin 44 >> amplfo 10");
+    // engine.set_code("bb: imp 1.0 >> plate 0.1");
+    engine.set_code("tt: sin 44 >> amplfo 10");
     plot(engine, 88200);
 }
 

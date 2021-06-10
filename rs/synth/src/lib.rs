@@ -95,14 +95,14 @@ pub fn make_node(
         "onepole" => vec![Para::Modulable],
         "comb" => vec![Para::Number(10.), Para::Number(0.9), Para::Number(0.5), Para::Number(0.5)],
         "apfdecay" => vec![Para::Number(10.), Para::Number(0.8)],
-        "apfgain" => vec![Para::Number(10.), Para::Number(0.5)],
+        "apfgain" => vec![Para::Modulable, Para::Number(0.5)],
         _ => vec![], // pass
     };
 
-    println!("{:?}", paras);
+    // println!("{:?}", paras);
     // this func checks if the parameters are correct
     let (p, mut refs) = process_parameters(paras, modulable)?;
-    println!("{:?}", p);
+    // println!("{:?}", p);
 
     if name == "seq" {refs = process_seq(paras.as_str())?.2}
     
@@ -383,8 +383,8 @@ impl SimpleGraph {
                     panic!("NonExistControlNodeError {}", name.to_string());
                 }
                 let control_node = *node_by_chain[name].last().unwrap();
-                // println!("reversed connection for {} {:?} {:?}", name, pair.0, control_node);
-                graph.add_edge(control_node, pair.0, ());
+                println!("reversed connection for {} {:?} {:?}", name, pair.0, control_node);
+                graph.add_edge(pair.0, control_node, ());
             } else {
                 if !node_by_chain.contains_key(&pair.1) {
                     panic!("NonExistControlNodeError {}", pair.1.to_string());

@@ -25,7 +25,7 @@ impl Mul {
 
 impl Node<128> for Mul {
     fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
-        println!("inputs from mul {:?}", inputs);
+        // println!("inputs from mul {:?}", inputs);
         
         let min_user_input = 1;
         let max_user_input = 2;
@@ -119,6 +119,6 @@ impl Node<128> for Mul {
             },
             _ => return ()
         }
-        println!("output from mul {:?}", output);
+        // println!("output from mul {:?}", output);
     }
 }

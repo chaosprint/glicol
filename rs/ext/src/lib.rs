@@ -7,6 +7,7 @@ use pest::iterators::Pairs;
 use std::{collections::HashMap};
 
 pub mod amplfo; use amplfo::AmpLFO;
+pub mod plate; use plate::Plate;
 
 pub fn make_node_ext(
     name: &str,
@@ -17,6 +18,7 @@ pub fn make_node_ext(
 ) -> Option<GlicolNodeData> {
     let n = match name {
         "amplfo" => 1,
+        "plate" => 1,
         _ => return None
     };
     let mut pv = vec![];
@@ -26,7 +28,6 @@ pub fn make_node_ext(
             Some(v) => v.as_str(),
             None => return None
         };
-        println!("p{}",p);
         // while p.is_some() {
         //     v = p.unwrap();
         //     p = v.clone().into_inner().next();
@@ -39,6 +40,7 @@ pub fn make_node_ext(
     
     let node = match name {
         "amplfo" => amplfo!(pv[0]),
+        "plate" => plate!(pv[0]),
         _ => unimplemented!()
     };
     Some(node)
