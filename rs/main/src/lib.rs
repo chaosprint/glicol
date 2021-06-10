@@ -3,7 +3,7 @@
 //! The engine has two part one is the language and the other is the audio
 //! The audio engine can be useful for some real world projects
 //! If you are targeting WebAssembly, this can be a useful resource.
-
+#![allow(warnings)]
 use std::{collections::HashMap};
 use dasp_graph::{NodeData, BoxedNodeSend};
 use petgraph::graph::{NodeIndex};
@@ -107,10 +107,10 @@ impl Engine {
             vec![(self.audio_in, "~input".to_string())]
         );
 
-        // println!("code before preprocess: {}",&self.code);
+        println!("code before preprocess: {}",&self.code);
         self.code = preprocess_sin(&mut self.code)?;
         self.code = preprocess_mul(&mut self.code)?;
-        // println!("code after preprocess: {}",&self.code);
+        println!("code after preprocess: {}",&self.code);
 
         let lines = match GlicolParser::parse(Rule::block, &mut self.code) {
             Ok(mut v) => v.next().unwrap(),
@@ -193,6 +193,7 @@ impl Engine {
                                 // println!("info {:?} != {:?} ?", &id, &info.0);
                                 if info.0 == id {
 
+                                    println!("name{}", name);
                                     let (node_data, sidechains) = match make_node_ext(
                                         name, &mut paras,
                                         &self.samples_dict,
@@ -405,18 +406,19 @@ impl Engine {
                     };
                     println!("debug {:?}", console);
                     self.soft_reset();
-                    let backup = self.code_backup.clone();
-                    self.set_code(&backup);
+                    self.set_code(&self.code_backup.clone());
                     self.make_graph()?;
                 }
             }
         }
 
+        // println!("&self.node_by_chain{:?}", &self.node_by_chain);
         // process 0..128
         for (refname, v) in &self.node_by_chain {
             if refname.contains("~") || refname.contains("_") {
                 continue;
             }
+            // this must be inside to prevent double processing
             self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
             for i in 0..128 {
                 self.graph[
@@ -432,6 +434,7 @@ impl Engine {
                 continue;
             }
             let bufleft = &self.graph[v.last().unwrap().0].buffers[0];
+            // println!(" {} bufleft {:?}", refname, bufleft);
             let bufright = match &self.graph[v.last().unwrap().0].buffers.len() {
                 1 => {bufleft},
                 2 => {&self.graph[v.last().unwrap().0].buffers[1]},

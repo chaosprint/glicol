@@ -1,3 +1,4 @@
+#![allow(warnings)]
 use std::{collections::HashMap};
 use dasp_graph::{NodeData, BoxedNodeSend, Processor, Buffer, Input, Node};
 use petgraph::graph::{NodeIndex};
@@ -300,14 +301,14 @@ impl SimpleGraph {
                             let first = paras.next().unwrap();
                             // let pos = (p.as_span().start(), p.as_span().end());
                             let name = first.as_str();
+                            // println!("name inside {}",name );
 
                             // if the name is sth like "_source" only
                             let dest = match first.as_rule() {
                                 Rule::paras => format!("@rev{}", first.as_str()),
                                 _ => "".to_string()
                             };
-
-                            println!("add {} {:?} ",name, &paras);
+                            // println!("dest {}",dest);
                             let (node_data, sidechains) = make_node(
                                 name, &mut paras,
                                 &HashMap::new(),
@@ -316,27 +317,29 @@ impl SimpleGraph {
                             ).unwrap();
 
                             let node_index = graph.add_node(node_data);
+
+                            // println!("name {} got thie index {:?}", name, node_index);
                                 
                             if !node_by_chain.contains_key(&refname) {
                                 // head of chain
                                 node_by_chain.insert(refname.clone(),
                                 vec![node_index]);
+                                if &dest != "" {
+                                    sidechains_list.push(
+                                        (node_index, 
+                                        dest));
+                                };
                             } else {
                                 let mut list = node_by_chain[&refname].clone();
-
                                 if &dest != "" {
                                     sidechains_list.push(
                                         (*list.last().unwrap(), 
-                                        dest.clone()));
+                                        dest));
                                 };
-
                                 list.push(node_index);
                                 node_by_chain.insert(
                                     refname.clone(),list);
                             };
-
-                            println!("add {} {:?} as {:?}",name, &paras, node_index);
-
                             for sidechain in sidechains.into_iter() {
                                 sidechains_list.push(
                                     (node_index, sidechain));
@@ -361,6 +364,7 @@ impl SimpleGraph {
         // make edges in each chain
         for (_refname, node_chains) in &node_by_chain {
             if node_chains.len() >= 2 {
+                println!("connect for _refname {} node_chains {:?}", _refname, node_chains);
                 graph.add_edge(node_chains[0],node_chains[1],());
                 for i in 0..(node_chains.len()-2) {
                     graph.add_edge(node_chains[i+1],node_chains[i+2],());
@@ -368,6 +372,7 @@ impl SimpleGraph {
             };
         }
         
+        // println!("sidechain_list {:?}", sidechains_list);
         // make edges cross chain
         for pair in &sidechains_list {
             // println!("work on sidechain pair: {:?}", pair);
@@ -378,7 +383,8 @@ impl SimpleGraph {
                     panic!("NonExistControlNodeError {}", name.to_string());
                 }
                 let control_node = *node_by_chain[name].last().unwrap();
-                graph.add_edge(pair.0, control_node, ());
+                // println!("reversed connection for {} {:?} {:?}", name, pair.0, control_node);
+                graph.add_edge(control_node, pair.0, ());
             } else {
                 if !node_by_chain.contains_key(&pair.1) {
                     panic!("NonExistControlNodeError {}", pair.1.to_string());
@@ -387,6 +393,7 @@ impl SimpleGraph {
                 graph.add_edge(control_node, pair.0, ());
             }
         };
+        // println!("node_by_chain {:?}", node_by_chain);
         Self {
             graph,
             clock,
@@ -399,18 +406,20 @@ impl SimpleGraph {
     pub fn next_block(&mut self, inbuf: &mut [f32]) -> [f32; 256] {
         let mut output: [f32; 256] = [0.0; 256];
 
-        // println!("node_by_chain{:?}", self.node_by_chain);
+        // println!("&self.node_by_chain in SimpleGraph {:?}", &self.node_by_chain);
         // process 0..128
         for (refname, v) in &self.node_by_chain {
             if refname.contains("~") || refname.contains("_") {
                 continue;
             }
+            // this must be inside
             self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
             for i in 0..128 {
                 self.graph[
                     self.node_by_chain["~input"][0]
                 ].buffers[0][i] = inbuf[i];
             }
+            // println!("*v.last().unwrap(){:?}",*v.last().unwrap());
             self.processor.process(&mut self.graph, *v.last().unwrap());
         }
 
@@ -427,16 +436,8 @@ impl SimpleGraph {
             };
 
             for i in 0..128 {
-                // let s = match self.fade {
-                //     k if k > 4095 => 1.0,
-                //     _ => self.window[self.fade] as f32 * -1.0 + 1.0
-                // };
-                // self.fade += 1;
-                // let scale = 1.0;bufleft[i] * bufright[i] * 
                 output[i] += bufleft[i];
                 output[i+128] += bufright[i];
-                // output[i] += s;
-                // output[i+128] += s;
             }
         }
         self.elapsed_samples += 128;

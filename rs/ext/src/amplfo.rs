@@ -15,24 +15,27 @@ impl AmpLFO {
         // assert!(low >= 0.0);
         // let ad = mul + low;
         let graph = make_graph!{
-            out: _input >> _am;
-            _am: sin #freq >> mul 0.3 >> add 0.5;
+            out: ~input >> mul ~am;
+            ~am: sin #freq >> mul 0.3 >> add 0.5;
         };
         mono_node!( Self { graph } )
     }
 }
+//  ~am: sin #freq >> mul 0.3 >> add 0.5;
 
 impl Node<128> for AmpLFO {
-    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
+    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {       
         let mut input = [0.0; 128];
         for i in 0..128 {
             input[i] = inputs[0].buffers()[0][i];
         }
+        // println!("inputs {:?}", input);
         let out = self.graph.next_block(&mut input);
         for i in 0..128 {
             output[0][i] = out[i];
-            output[1][i] = out[i+128];
+            // output[1][i] = out[i+128];
         }
+        // println!("out {:?}", out);
     }
 }
 

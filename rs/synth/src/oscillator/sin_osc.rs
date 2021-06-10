@@ -43,8 +43,19 @@ impl SinOsc {
 /// The clock is like [12345, 0, 0, 0, ...] * 128
 impl Node<128> for SinOsc {
     fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
-        // if inputs.len() < 2 { return () };
-        match inputs.len() {
+        
+        let min_user_input = 0;
+        let l = inputs.len();
+        // println!("sin l is {}", l);
+        let max_user_input = 1;
+        if l < min_user_input {return ()};
+        let has_clock = match l {
+            0 => false,
+            _ => inputs[l-1].buffers()[0][0] % 128. == 0. 
+            && inputs[l-1].buffers()[0][1] == 0.
+        };
+        
+        match l {
             0 => {
                 for i in 0..128 {
                     output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
@@ -57,12 +68,22 @@ impl Node<128> for SinOsc {
             1 => {
                 // in standalone mode, no mechanism to prevent double processing
                 // basic fm
-                let mod_buf = &mut inputs[0].buffers();
-                for i in 0..128 {
-                    output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
-                    self.phase += mod_buf[0][i] / self.sr as f32;
-                    if self.phase > 1.0 {
-                        self.phase -= 1.0
+                if has_clock {
+                    for i in 0..128 {
+                        output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
+                        self.phase += self.freq / self.sr as f32;
+                        if self.phase > 1.0 {
+                            self.phase -= 1.0
+                        }
+                    }
+                } else {
+                    let mod_buf = &mut inputs[0].buffers();
+                    for i in 0..128 {
+                        output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
+                        self.phase += mod_buf[0][i] / self.sr as f32;
+                        if self.phase > 1.0 {
+                            self.phase -= 1.0
+                        }
                     }
                 }
             },
@@ -77,6 +98,7 @@ impl Node<128> for SinOsc {
                     return ()
                 };
                 let mod_buf = &mut inputs[0].buffers();
+                // println!("{:?}", mod_buf[0]);
                 for i in 0..128 {
                     output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
                     self.phase += mod_buf[0][i] / self.sr as f32;
@@ -89,5 +111,6 @@ impl Node<128> for SinOsc {
             },
             _ => return ()
         }
+        // println!("output from sin {:?}", output);
     }
 }

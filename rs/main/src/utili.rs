@@ -25,7 +25,7 @@ pub fn preprocess_sin(a: &String) -> Result<String, EngineError> {
     for (i, c) in v.iter().enumerate() {
         if *c == "sin" || *c == "saw" || *c == "squ" {
             if v[i+1].parse::<f32>().is_ok() {
-                b += "const ";
+                b += "const_sig ";
                 b += v[i+1];
                 b += " >> ";
                 b += c;
@@ -97,7 +97,7 @@ pub fn preprocess_mul(a: &String) -> Result<String, EngineError> {
         
     }
     for x in append {
-        b += &format!("\n\n_{}mulconst{}: const {};", x.0, x.1, x.2);
+        b += &format!("\n\n_{}mulconst{}: const_sig {};", x.0, x.1, x.2);
     }
     Ok(b)
 }

@@ -87,17 +87,6 @@ macro_rules! mul {
     };
 }
 
-#[macro_export]
-macro_rules! add {
-    () => {
-        Add::new(0.0)
-    };
-
-    ($data: expr) => {
-        Add::new($data)
-    };
-}
-
 
 #[macro_export]
 macro_rules! sin_osc {
