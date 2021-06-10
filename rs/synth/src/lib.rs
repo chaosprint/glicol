@@ -68,6 +68,7 @@ pub fn make_node(
     };
 
     let modulable = match alias {
+        "imp" => vec![Para::Number(1.0)],
         "sin" => vec![Para::Modulable],
         "saw" => vec![Para::Modulable],
         "squ" => vec![Para::Modulable],
@@ -97,8 +98,10 @@ pub fn make_node(
         _ => vec![], // pass
     };
 
+    println!("{:?}", paras);
     // this func checks if the parameters are correct
     let (p, mut refs) = process_parameters(paras, modulable)?;
+    println!("{:?}", p);
 
     if name == "seq" {refs = process_seq(paras.as_str())?.2}
     
@@ -217,6 +220,7 @@ fn get_notes(paras: &mut Pairs<Rule>) -> Result<Vec::<f32>, GlicolError> {
 
 pub fn process_parameters(paras: &mut Pairs<Rule>, mut modulable: Vec<Para>) -> Result<(Vec<Para>, Vec<String>), GlicolError> {
     let mut refs = vec![];
+    // println!("{:?}{:?}", paras, modulable);
     for i in 0..modulable.len() {
         let para = paras.next();
         let mut pos = (0, 0);

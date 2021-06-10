@@ -5,7 +5,7 @@
 //! If you are targeting WebAssembly, this can be a useful resource.
 
 use std::{collections::HashMap};
-use dasp_graph::{NodeData, BoxedNodeSend, Processor, Buffer, Input, Node};
+use dasp_graph::{NodeData, BoxedNodeSend};
 use petgraph::graph::{NodeIndex};
 use petgraph::stable_graph::{StableDiGraph};
 use pest::Parser;
@@ -15,7 +15,8 @@ use glicol_synth::Para;
 use glicol_synth::make_node;
 use glicol_synth::signal::dummy::{Clock, AudioIn};
 use glicol_synth::{oscillator, signal, filter, operation, sampling, effect, pass::*};
-use glicol_synth::{GlicolNodeData, GlicolGraph, GlicolProcessor, NodeResult};
+use glicol_synth::{GlicolNodeData, GlicolGraph,
+    GlicolProcessor, NodeResult, GlicolError};
 
 use glicol_parser::*;
 
@@ -192,12 +193,20 @@ impl Engine {
                                 // println!("info {:?} != {:?} ?", &id, &info.0);
                                 if info.0 == id {
 
-                                    let (node_data, sidechains) = make_node(
+                                    let (node_data, sidechains) = match make_node_ext(
                                         name, &mut paras,
                                         &self.samples_dict,
                                         self.sr,
                                         self.bpm
-                                    )?;
+                                    ) {
+                                        Some(v) => (v, vec![]),
+                                        None => make_node(
+                                                    name, &mut paras,
+                                                    &self.samples_dict,
+                                                    self.sr,
+                                                    self.bpm
+                                                )?
+                                    };
 
                                     let node_index = self.graph.add_node(node_data);
                                     
@@ -337,7 +346,7 @@ impl Engine {
     // }
 
     /// The main interface for WebAssembly module to get the new block of audio.
-    pub fn gen_next_buf_128(mut self, inbuf: &mut [f32])
+    pub fn gen_next_buf_128(&mut self, inbuf: &mut [f32])
     -> Result<([f32; 256], [u8;256]), EngineError> {
         // don't use self.buffer
         let mut output: [f32; 256] = [0.0; 256];
@@ -397,7 +406,7 @@ impl Engine {
                     println!("debug {:?}", console);
                     self.soft_reset();
                     let backup = self.code_backup.clone();
-                    self = self.set_code(&backup);
+                    self.set_code(&backup);
                     self.make_graph()?;
                 }
             }
@@ -463,10 +472,10 @@ impl Engine {
         self.soft_reset();
     }
 
-    pub fn set_code(self, code: &str) -> Self {
-        // self.code = code.to_string();
-        // self.update = true;
-        Self {code: code.to_string(), update: true, ..self}
+    pub fn set_code(&mut self, code: &str) {
+        self.code = code.to_string();
+        self.update = true;
+        // Self {code: code.to_string(), update: true, ..self}
     }
 
     pub fn set_track_amp(&mut self, amp: f32) {
@@ -511,7 +520,7 @@ macro_rules! chain {
 
 #[derive(Debug)]
 pub enum EngineError {
-    ParsingError(pest::error::Error<parser::Rule>),
+    ParsingError(pest::error::Error<glicol_parser::Rule>),
     HandleNodeError,
     NonExistControlNodeError(String),
     ParameterError((usize, usize)),
@@ -519,5 +528,11 @@ pub enum EngineError {
     InsufficientParameter((usize, usize)),
     NotModuableError((usize, usize)),
     ParaTypeError((usize, usize)),
+    SynthError
+}
 
+impl From<GlicolError> for EngineError {
+    fn from(e: GlicolError) -> EngineError {
+        return EngineError::SynthError;
+    }
 }

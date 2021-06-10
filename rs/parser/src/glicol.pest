@@ -19,7 +19,7 @@ reference = ${ (("~")|("_"))? ~ ASCII_ALPHA_LOWER+ ~ (("_")~(ASCII_ALPHA_LOWER+)
 name = ${"seq"|"speed"|"choose"|"mul"|"add"|"linrange"|"apfdecay"|"delayn"|
 "sin"|"saw"|"squ"|"imp"|"envperc"|"sampler"|"noiz"|"lpf"|"plate"|"onepole"|
 "hpf"|"pha"|"buf"|"state"|"freeverb"|"pan"|"delay"|"apfgain"|"comb"|"mix"|"monosum"|
-"const_sig"|"*"|"sp"|"spd"|"tri"|"noise"}
+"const_sig"|"*"|"sp"|"spd"|"tri"|"noise"|"amplfo"}
 rest = { "_" }
 midi = ${ (ASCII_DIGIT)+ ~ !"." }
 WHITESPACE = _{" "|":"|","}

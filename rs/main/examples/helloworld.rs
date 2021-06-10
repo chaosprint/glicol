@@ -1,7 +1,6 @@
-use glicol::*;
-use glicol::node::oscillator::sin_osc::*;
-// use dasp_graph::BoxedNodeSend;
-// use dasp_graph::NodeData;
+use glicol_synth::*;
+use glicol_synth::oscillator::sin_osc::*;
+use glicol::Engine;
 
 fn main () {
     let mut engine = Engine::new(44100);

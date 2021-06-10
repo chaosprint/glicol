@@ -60,12 +60,20 @@ pub fn preprocess_mul(a: &String) -> Result<String, EngineError> {
     let mut find = false;
     let mut index:usize = 0;
 
+    println!("{:?}", v);
     for (i, c) in v.iter().enumerate() {
         if c.contains(":") {
-            current_ref = v[i-1];
-            index = 0;
-            b += c;
-            b += " ";
+            if c == &":" {
+                current_ref = v[i-1];
+                index = 0;
+                b += c;
+                b += " ";
+            } else {
+                current_ref = &c[0..c.len()-2];
+                index = 0;
+                b += c;
+                b += " ";
+            }
         } else if c == &"mul" || c == &"*" {
             if v[i+1].parse::<f32>().is_ok() {
                 append.push((current_ref, &x[index..(index+1)], v[i+1]));
