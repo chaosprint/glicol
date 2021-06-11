@@ -193,7 +193,6 @@ impl Engine {
                                 // println!("info {:?} != {:?} ?", &id, &info.0);
                                 if info.0 == id {
 
-                                    println!("name{}", name);
                                     let (node_data, sidechains) = match make_node_ext(
                                         name, &mut paras,
                                         &self.samples_dict,
@@ -415,7 +414,7 @@ impl Engine {
         // println!("&self.node_by_chain{:?}", &self.node_by_chain);
         // process 0..128
         for (refname, v) in &self.node_by_chain {
-            if refname.contains("~") || refname.contains("_") {
+            if refname.contains("~") {
                 continue;
             }
             // this must be inside to prevent double processing
@@ -430,7 +429,7 @@ impl Engine {
 
         // sendout 0..128
         for (refname, v) in &self.node_by_chain {
-            if refname.contains("~") || refname.contains("_") {
+            if refname.contains("~") {
                 continue;
             }
             let bufleft = &self.graph[v.last().unwrap().0].buffers[0];

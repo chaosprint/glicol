@@ -17,7 +17,7 @@ impl Plate {
             >> apfgain 12.72 0.625 >> apfgain 9.307 0.625
             >> add ~back
             >> apfgain ~modu 0.7;
-            ~modu: sin 0.1 >> linrange 26.0 35.0;
+            ~modu: sin 0.1 >> mul 5.5 >> add 29.5;
             ~aa: ~wet >> delayn 394.0;
             ~ab: ~aa >> delayn 2800.0;
             ~ac: ~ab >> delayn 1204.0;
@@ -36,13 +36,19 @@ impl Plate {
             ~fa: ~eb >> apfgain 20.4 0.7 >> delayn 1578.0;
             ~fb: ~fa >> delayn 2378.0;
             ~back: ~fb >> delayn 2500.0 >> mul 0.3;
+            
             ~subtract_left: ~bb >> add ~db >> add ~ea >> add ~fa >> mul -1.0;
+
             ~left: ~aa >> add ~ab >> add ~cb >> add ~subtract_left
             >> mul #mix >> add ~drym;
+
             ~sub_right: ~eb >> add ~ab >> add ~ba >> add ~ca >> mul -1.0;
+
             ~right ~da >> add ~db >> add ~fb >> add ~sub_right
             >> mul #mix >> add ~drym;
+
             ~drym: ~dry >> mul 0.9;
+
             out: mix ~left ~right;
         };
         mono_node!( Self { graph } )

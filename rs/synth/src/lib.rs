@@ -42,6 +42,7 @@ pub enum GlicolError {
     InsufficientParameter((usize, usize)),
     NotModuableError((usize, usize)),
     ParaTypeError((usize, usize)),
+    NodeNameError((String, usize, usize)),
 }
 
 // pub mod adc; // pub mod operator;
@@ -65,8 +66,16 @@ pub fn make_node(
         "sp" => "sampler",
         "*" => "mul",
         "noiz" => "noise",
-        _ => name
+        _ => {
+            if name.contains("~") {
+                "pass"
+            } else {
+                name
+            }
+        }
     };
+
+    // println!("name after alis {} {:?}", alias, paras.as_str());
 
     let modulable = match alias {
         "imp" => vec![Para::Number(1.0)],
@@ -96,6 +105,7 @@ pub fn make_node(
         "comb" => vec![Para::Number(10.), Para::Number(0.9), Para::Number(0.5), Para::Number(0.5)],
         "apfdecay" => vec![Para::Number(10.), Para::Number(0.8)],
         "apfgain" => vec![Para::Modulable, Para::Number(0.5)],
+        "pass" => vec![],
         _ => vec![], // pass
     };
 
@@ -104,7 +114,8 @@ pub fn make_node(
     let (p, mut refs) = process_parameters(paras, modulable)?;
     // println!("{:?}", p);
 
-    if name == "seq" {refs = process_seq(paras.as_str())?.2}
+    if alias == "seq" {refs = process_seq(paras.as_str())?.2}
+    if alias == "pass" {refs = vec![name.to_owned()]}
     
     let nodedata = match alias {
         "sin" => sin_osc!({freq: get_num(&p[0]), sr: sr}),
@@ -133,7 +144,12 @@ pub fn make_node(
         "comb" => comb!({delay: get_num(&p[0]), gain: get_num(&p[1]), feedforward: get_num(&p[2]), feedback: get_num(&p[3])}),
         "apfdecay" => apfdecay!({delay: get_num(&p[0]), decay: get_num(&p[1])}),
         "apfgain" => apfgain!({delay: get_num(&p[0]), gain: get_num(&p[1])}),
-        _ => Pass::new()
+        "pass" => Pass::new(),
+        _ => {
+            let a = paras.next().unwrap();
+            return Err(GlicolError::NodeNameError((a.as_str().to_string(), a.as_span().start(), a.as_span().end())))
+        }
+        
         // "envperc" => EnvPerc::new(30.0, 50.0)?,
         // "pan" => Pan::new(&mut paras)?,
         // "buf" => Buf::new(&mut paras, 
@@ -279,6 +295,7 @@ impl SimpleGraph {
             vec![audio_in]
         );
 
+        println!("code in simplegraph {}", code);
         let mut parsing_result = GlicolParser::parse(Rule::block, code).unwrap();
         let mut current_ref_name: &str = "";
 
@@ -303,7 +320,7 @@ impl SimpleGraph {
                             let name = first.as_str();
                             // println!("name inside {}",name );
 
-                            // if the name is sth like "_source" only
+                            // if the name is a ref
                             let dest = match first.as_rule() {
                                 Rule::paras => format!("@rev{}", first.as_str()),
                                 _ => "".to_string()
@@ -409,7 +426,7 @@ impl SimpleGraph {
         // println!("&self.node_by_chain in SimpleGraph {:?}", &self.node_by_chain);
         // process 0..128
         for (refname, v) in &self.node_by_chain {
-            if refname.contains("~") || refname.contains("_") {
+            if refname.contains("~") {
                 continue;
             }
             // this must be inside
@@ -425,7 +442,7 @@ impl SimpleGraph {
 
         // sendout 0..128
         for (refname, v) in &self.node_by_chain {
-            if refname.contains("~") || refname.contains("_") {
+            if refname.contains("~") {
                 continue;
             }
             let bufleft = &self.graph[*v.last().unwrap()].buffers[0];

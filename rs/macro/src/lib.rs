@@ -12,7 +12,7 @@ pub fn make_graph(input: TokenStream) -> TokenStream {
     let mut f = i.next();
     while f.is_some() {
         let item = f.unwrap().to_string();
-        println!("{}", item);
+        // println!("{}", item);
         if &item == "#" {
             code.push_str("{}");
             code.push_str(" ");
@@ -23,6 +23,11 @@ pub fn make_graph(input: TokenStream) -> TokenStream {
             code.push_str(&item);
             i.next();
         } else if &item == "~" {
+            code.push_str(&item);
+            f = i.next();
+            code.push_str(&f.unwrap().to_string());
+            code.push_str(" ");
+        } else if &item == "-" {
             code.push_str(&item);
             f = i.next();
             code.push_str(&f.unwrap().to_string());
