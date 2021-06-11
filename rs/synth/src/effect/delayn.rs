@@ -27,6 +27,6 @@ impl Node<128> for DelayN {
             output[0][i] = self.buf[0];
             self.buf.push(inputs[0].buffers()[0][i]);
         }
-        println!("{:?} {:?} self.buf{:?}",inputs[0].buffers()[0], output[0], self.buf);
+        // println!("{:?} {:?} self.buf{:?}",inputs[0].buffers()[0], output[0], self.buf);
     }
 }

@@ -1,8 +1,14 @@
-
 #[macro_export]
 macro_rules! mono_node {
     ($body:expr) => {
         NodeData::new1( BoxedNodeSend::new(($body)))
+    };
+}
+
+#[macro_export]
+macro_rules! stereo_node {
+    ($body:expr) => {
+        NodeData::new2( BoxedNodeSend::new(($body)))
     };
 }
 

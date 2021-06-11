@@ -27,7 +27,7 @@ use {seq::*, sampler::*,speed::*, choose::*};
 pub mod pass; use pass::*;
 
 pub mod effect; use effect::*;
-use {delayn::*, delay::*};
+use {delayn::*, delay::*, pan::*, balance::*};
 
 pub type GlicolNodeData = NodeData<BoxedNodeSend<128>, 128>;
 pub type GlicolGraph = StableDiGraph<GlicolNodeData, (), u32>;
@@ -105,6 +105,8 @@ pub fn make_node(
         "comb" => vec![Para::Number(10.), Para::Number(0.9), Para::Number(0.5), Para::Number(0.5)],
         "apfdecay" => vec![Para::Number(10.), Para::Number(0.8)],
         "apfgain" => vec![Para::Modulable, Para::Number(0.5)],
+        "pan" => vec![Para::Modulable],
+        "balance" => vec![Para::Modulable, Para::Modulable, Para::Number(0.5)],
         "pass" => vec![],
         _ => vec![], // pass
     };
@@ -144,21 +146,19 @@ pub fn make_node(
         "comb" => comb!({delay: get_num(&p[0]), gain: get_num(&p[1]), feedforward: get_num(&p[2]), feedback: get_num(&p[3])}),
         "apfdecay" => apfdecay!({delay: get_num(&p[0]), decay: get_num(&p[1])}),
         "apfgain" => apfgain!({delay: get_num(&p[0]), gain: get_num(&p[1])}),
+        "pan" => pan!(get_num(&p[0])),
+        "balance" => balance!(get_num(&p[2])),
         "pass" => Pass::new(),
         _ => {
             let a = paras.next().unwrap();
             return Err(GlicolError::NodeNameError((a.as_str().to_string(), a.as_span().start(), a.as_span().end())))
         }
-        
         // "envperc" => EnvPerc::new(30.0, 50.0)?,
-        // "pan" => Pan::new(&mut paras)?,
         // "buf" => Buf::new(&mut paras, 
         //     samples_dict)?,
         // "linrange" => LinRange::new(&mut paras)?,
         // "pha" => Phasor::new(&mut paras)?,
         // "state" => State::new(&mut paras)?,
-        // "mix" => Mix2::new(&mut paras)?,
-        // "plate" => Plate::new(&mut paras)?,
         // "monosum" => MonoSum::new(&mut paras)?,
     };
     Ok((nodedata, refs))

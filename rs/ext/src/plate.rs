@@ -49,7 +49,7 @@ impl Plate {
 
             ~drym: ~dry >> mul 0.9;
 
-            out: mix ~left ~right;
+            out: balance ~left ~right 0.5;
         };
         mono_node!( Self { graph } )
     }

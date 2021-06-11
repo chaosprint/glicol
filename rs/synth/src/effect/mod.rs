@@ -1,3 +1,4 @@
 pub mod delay;
 pub mod delayn;
-// pub mod plate;
+pub mod pan;
+pub mod balance;
