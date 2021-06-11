@@ -17,9 +17,10 @@ use super::{EngineError};
 // }
 
 pub fn preprocess_sin(a: &String) -> Result<String, EngineError> {
-    let q: String = a.replace("\n", " \n");
+    
+    let q: String = a.replace(";","\n\n").replace("\n", " \n");
     let v: Vec<&str> = q.split(" ").collect();
-    // println!("{:?}", v);
+    println!("preprocess_sin {:?}", v);
     let mut b = "".to_string();
     let mut skip = false;
     for (i, c) in v.iter().enumerate() {
@@ -82,8 +83,8 @@ pub fn preprocess_mul(a: &String) -> Result<String, EngineError> {
             b += c;
             b += " ";
         } else if find == true {
-            let s = format!("_{}mulconst{}",
-            append.last().unwrap().0, append.last().unwrap().1);
+            let s = format!("~{}mulconst{}",
+            append.last().unwrap().0.replace("~", ""), append.last().unwrap().1);
             b += &s;
             b += " ";
             find = false;
@@ -97,7 +98,7 @@ pub fn preprocess_mul(a: &String) -> Result<String, EngineError> {
         
     }
     for x in append {
-        b += &format!("\n\n_{}mulconst{}: const_sig {};", x.0, x.1, x.2);
+        b += &format!("\n\n~{}mulconst{}: const_sig {};", x.0.replace("~", ""), x.1, x.2);
     }
     Ok(b)
 }

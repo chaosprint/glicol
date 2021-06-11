@@ -50,25 +50,6 @@ impl AllpassGain {
     }
 }
 
-// impl AllpassGain {
-//     handle_params!({
-//         delay: 5000.0,
-//         a: 0.5
-//     }, [
-//         (
-//             delay, bufx, |d: f32| -> Fixed {
-//                 let size = (d / 1000.0 * 44100.0) as usize;
-//                 ring_buffer::Fixed::from(vec![0.0; size])
-//             }
-//         ), (
-//             delay, bufy, |d: f32| -> Fixed {
-//                 let size = (d / 1000.0 * 44100.0) as usize;
-//                 ring_buffer::Fixed::from(vec![0.0; size])
-//             }
-//         )
-//     ]);
-// }
-
 #[macro_export]
 macro_rules! apfgain {
     ({$($para: ident: $data:expr),*}) => {
@@ -88,7 +69,7 @@ impl Node<128> for AllpassGain {
         if l - has_clock as usize > 1 { // has mod
             let insig = inputs[1].buffers()[0].clone();
             let modulator = inputs[0].buffers()[0].clone();
-            let new_delay_samples = (modulator[0] / 44100.0) as usize;
+            let new_delay_samples = (modulator[0] * self.sr as f32) as usize;
             let length = self.bufx.len();
             
             for i in 0..128 {

@@ -7,7 +7,7 @@ use glicol_synth::{SimpleGraph};
 fn main() {
     // let num = 0.2;
     let mut g = make_graph!{
-        out: ~input >> add 6.0;
+        out: ~input;
     };
     println!("{:?}", g.next_block(&mut [5.0; 128]));
     println!("{:?}", g.next_block(&mut [5.0; 128]));

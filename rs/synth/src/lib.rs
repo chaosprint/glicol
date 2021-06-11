@@ -248,7 +248,7 @@ pub fn process_parameters(paras: &mut Pairs<Rule>, mut modulable: Vec<Para>) -> 
                 match key.parse::<f32>() {
                     Ok(v) => modulable[i] = Para::Number(v),
                     Err(_) => {
-                        if key.contains("~") || key.contains("_"){
+                        if key.contains("~") {
                             if modulable[i] != Para::Modulable { 
                                 println!("{:?}", key);
                                 return Err(GlicolError::NotModuableError(pos)) 
@@ -341,11 +341,6 @@ impl SimpleGraph {
                                 // head of chain
                                 node_by_chain.insert(refname.clone(),
                                 vec![node_index]);
-                                if &dest != "" {
-                                    sidechains_list.push(
-                                        (node_index, 
-                                        dest));
-                                };
                             } else {
                                 let mut list = node_by_chain[&refname].clone();
                                 if &dest != "" {

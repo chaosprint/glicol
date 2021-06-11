@@ -30,11 +30,9 @@ impl Node<128> for Add {
             1 => {
                 output[0] = inputs[0].buffers()[0].clone();
                 output[0].iter_mut().for_each(|s| *s = *s + self.inc as f32);
-
             },
             2 => {
                 if has_clock {
-                    // panic!();
                     output[0] = inputs[0].buffers()[0].clone();
                     output[0].iter_mut().for_each(|s| *s = *s + self.inc as f32);
                     // println!("output[0] should be {:?}", output[0]);
@@ -47,6 +45,7 @@ impl Node<128> for Add {
                 }
             },
             3 => {
+                // panic!();
                 let buf = &mut inputs[0].buffers();
                 let mod_buf = &mut inputs[1].buffers();
                 for i in 0..128 {
@@ -55,6 +54,7 @@ impl Node<128> for Add {
             },
             _ => return ()
         };
+        // println!("output from add node {:?}", output);
     }
 }
 
