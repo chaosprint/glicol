@@ -24,6 +24,9 @@ use {lpf::*, hpf::*, apfgain::*, apfdecay::*, onepole::*,comb::*};
 pub mod sampling; use sampling::*;
 use {seq::*, sampler::*,speed::*, choose::*};
 
+pub mod envelope; use envelope::*;
+use {envperc::*};
+
 pub mod pass; use pass::*;
 
 pub mod effect; use effect::*;
@@ -45,15 +48,6 @@ pub enum GlicolError {
     NodeNameError((String, usize, usize)),
 }
 
-// pub mod adc; // pub mod operator;
-// pub mod envelope; // pub mod map; 
-// pub mod phasor; // pub mod buf; 
-// pub mod state; // pub mod pan; 
-// pub mod delay; // pub mod reverb;
-// use phasor::{Phasor}; // use envelope::EnvPerc;
-// use map::{LinRange}; // use buf::{Buf};
-// use state::{State}; // use pan::{Pan, Mix2};
-// use reverb::{Plate};
 pub fn make_node(
     name: &str,
     paras: &mut Pairs<Rule>,
@@ -88,6 +82,7 @@ pub fn make_node(
         "add" => vec![Para::Modulable],
         "lpf" => vec![Para::Modulable, Para::Number(1.0)],
         "hpf" => vec![Para::Modulable, Para::Number(1.0)],
+        "envperc" => vec![Para::Number(0.01), Para::Number(0.1)],
         "sampler" => {
             // check potential errors
             if !samples_dict.contains_key(&paras.as_str().replace("\\", "")) {
@@ -98,6 +93,7 @@ pub fn make_node(
             vec![]
         }, // bypass the process_parameters
         "seq" => vec![],
+        "speed" => vec![Para::Modulable],
         "choose" => { vec![] },
         "delayn" => vec![Para::Number(1.0)],
         "delay" => vec![Para::Modulable],
@@ -149,6 +145,7 @@ pub fn make_node(
         "pan" => pan!(get_num(&p[0])),
         "balance" => balance!(get_num(&p[2])),
         "pass" => Pass::new(),
+        "envperc" => envperc!({attack: get_num(&p[0]), decay: get_num(&p[1]), sr: sr}),
         _ => {
             let a = paras.next().unwrap();
             return Err(GlicolError::NodeNameError((a.as_str().to_string(), a.as_span().start(), a.as_span().end())))
