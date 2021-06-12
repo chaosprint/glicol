@@ -472,7 +472,7 @@ window.code = `~a: choose 48 55 51 58
 lead: saw ~pitch >> mul ~env >> lpf ~cut 3.0 
 >> mul 0.6 >> plate 0.1
 
-~cut: squ 0.5 >> linrange 300.0 8000.0`
+~cut: squ 0.5 >> mul 1000.0 >> add 2000.0`
 
 
 window.isGlicolRunning = false

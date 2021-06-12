@@ -69,7 +69,7 @@ impl Node<128> for AllpassGain {
         if l - has_clock as usize > 1 { // has mod
             let insig = inputs[1].buffers()[0].clone();
             let modulator = inputs[0].buffers()[0].clone();
-            let new_delay_samples = (modulator[0] * self.sr as f32) as usize;
+            let new_delay_samples = (modulator[0] / self.sr as f32) as usize;
             let length = self.bufx.len();
             
             for i in 0..128 {
