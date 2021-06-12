@@ -12,22 +12,25 @@ For some extra nodes such as `plate` reverb, `glicol_ext` is used.
 
 `glicol_ext` depends on `glicol_synth`, `glicol_parser` and `glicol-macro`.
 
+Their relationship is as follows:
+
+```rust
+glicol_ext = glicol_synth + glicol_parser + glicol_macro
+```
+
+```rust
+glicol = glicol_parser + glicol_synth + glicol_ext
+```
+
 # As standalone audio lib
 
 Glicol can be used as an independent audio library for other Rust projects.
 
 There are two ways to use Glicol-rs independently. One is to use the big `glicol` crate, and the other is to only use the essential nodes in `glicol_synth` crate.
 
-Remember:
-```
-glicol_ext = glicol_synth + glicol_parser + glicol_macro
-```
-```
-glicol = glicol_parser + glicol_synth + glicol_ext
-```
-
 In the big `glicol` crate, users can use nodes from `glicol_ext`, but have to write more codes:
-```
+
+```rust
 use dasp_graph::{NodeData, BoxedNodeSend};
 use glicol::*;
 use glicol_synth::operation::{mul::*, add::*};
@@ -46,11 +49,10 @@ fn main() {
 
 But a more ergonomic way is to use those nodes with the `glicol_macro`:
 
-```
-use glicol_macro::*;
+```rust
+use glicol_macro::make_graph;
 use glicol_synth::{SimpleGraph};
 use glicol_parser::{Rule, GlicolParser};
-use pest::Parser;
 
 fn main() {
     let num = 0.1;
@@ -60,3 +62,22 @@ fn main() {
     println!("{:?}", g.next_block(&mut [0.0; 128]));
 }
 ```
+
+# Dependancies
+
+Note that to use Glicol-rs, you need to use a customised `dasp_graph` branch.
+
+```git
+cd THE_DEV_FOLDER
+git clone https://github.com/chaosprint/dasp.git
+cd dasp
+git checkout graph_const_generics
+cd ..
+```
+
+Then:
+```
+git clone https://github.com/chaosprint/glicol.git
+```
+
+In short, `glicol` and `dasp` should be under the same folder and `dasp` should be on `graph_const_generics` branch.
