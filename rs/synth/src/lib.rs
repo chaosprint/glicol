@@ -1,0 +1,455 @@
+#![allow(warnings)]
+use std::{collections::HashMap};
+use dasp_graph::{NodeData, BoxedNodeSend, Processor, Buffer, Input, Node};
+use petgraph::graph::{NodeIndex};
+use petgraph::stable_graph::{StableDiGraph};
+use pest::Parser;
+use pest::iterators::Pairs;
+use glicol_parser::*;
+
+pub mod macros; use macros::*;
+
+pub mod oscillator; use oscillator::*;
+use {sin_osc::*, saw_osc::SawOsc, squ_osc::SquOsc, tri_osc::TriOsc};
+
+pub mod signal; use signal::*;
+use {imp::*, const_sig::ConstSig, noise::Noise, dummy::Clock, dummy::AudioIn};
+
+pub mod operation; use operation::*;
+use {mul::Mul, add::Add};
+
+pub mod filter; use filter::*;
+use {lpf::*, hpf::*, apfgain::*, apfdecay::*, onepole::*,comb::*};
+
+pub mod sampling; use sampling::*;
+use {seq::*, sampler::*,speed::*, choose::*};
+
+pub mod envelope; use envelope::*;
+use {envperc::*};
+
+pub mod pass; use pass::*;
+
+pub mod effect; use effect::*;
+use {delayn::*, delay::*, pan::*, balance::*};
+
+pub type GlicolNodeData = NodeData<BoxedNodeSend<128>, 128>;
+pub type GlicolGraph = StableDiGraph<GlicolNodeData, (), u32>;
+pub type GlicolProcessor = Processor<GlicolGraph, 128>;
+pub type NodeResult = Result<(GlicolNodeData, Vec<String>), GlicolError>;
+
+#[derive(Debug)]
+pub enum GlicolError {
+    NonExistControlNodeError(String),
+    ParameterError((usize, usize)),
+    SampleNotExistError((usize, usize)),
+    InsufficientParameter((usize, usize)),
+    NotModuableError((usize, usize)),
+    ParaTypeError((usize, usize)),
+    NodeNameError((String, usize, usize)),
+}
+
+pub fn make_node(
+    name: &str,
+    paras: &mut Pairs<Rule>,
+    samples_dict: &HashMap<String, &'static[f32]>,
+    sr: usize,
+    bpm: f32,
+) -> NodeResult {
+    
+    let alias = match name {
+        "sp" => "sampler",
+        "*" => "mul",
+        "noiz" => "noise",
+        _ => {
+            if name.contains("~") {
+                "pass"
+            } else {
+                name
+            }
+        }
+    };
+
+    // println!("name after alis {} {:?}", alias, paras.as_str());
+
+    let modulable = match alias {
+        "imp" => vec![Para::Number(1.0)],
+        "sin" => vec![Para::Modulable],
+        "saw" => vec![Para::Modulable],
+        "squ" => vec![Para::Modulable],
+        "tri" => vec![Para::Modulable],
+        "const_sig" => vec![Para::Number(0.0)],
+        "mul" => vec![Para::Modulable],
+        "add" => vec![Para::Modulable],
+        "lpf" => vec![Para::Modulable, Para::Number(1.0)],
+        "hpf" => vec![Para::Modulable, Para::Number(1.0)],
+        "envperc" => vec![Para::Number(0.01), Para::Number(0.1)],
+        "sampler" => {
+            // check potential errors
+            if !samples_dict.contains_key(&paras.as_str().replace("\\", "")) {
+                let p = paras.next().unwrap();
+                let pos = (p.as_span().start(), p.as_span().end());
+                return Err(GlicolError::SampleNotExistError(pos))
+            }
+            vec![]
+        }, // bypass the process_parameters
+        "seq" => vec![],
+        "speed" => vec![Para::Modulable],
+        "choose" => { vec![] },
+        "delayn" => vec![Para::Number(1.0)],
+        "delay" => vec![Para::Modulable],
+        "onepole" => vec![Para::Modulable],
+        "comb" => vec![Para::Number(10.), Para::Number(0.9), Para::Number(0.5), Para::Number(0.5)],
+        "apfdecay" => vec![Para::Number(10.), Para::Number(0.8)],
+        "apfgain" => vec![Para::Modulable, Para::Number(0.5)],
+        "pan" => vec![Para::Modulable],
+        "balance" => vec![Para::Modulable, Para::Modulable, Para::Number(0.5)],
+        "pass" => vec![],
+        _ => vec![], // pass
+    };
+
+    // println!("{:?}", paras);
+    // this func checks if the parameters are correct
+    let (p, mut refs) = process_parameters(paras, modulable)?;
+    // println!("{:?}", p);
+
+    if alias == "seq" {refs = process_seq(paras.as_str())?.2}
+    if alias == "pass" {refs = vec![name.to_owned()]}
+    
+    let nodedata = match alias {
+        "sin" => sin_osc!({freq: get_num(&p[0]), sr: sr}),
+        "saw" => saw_osc!({freq: get_num(&p[0]), sr: sr}),
+        "squ" => squ_osc!({freq: get_num(&p[0]), sr: sr}),
+        "tri" => tri_osc!({freq: get_num(&p[0]), sr: sr}),
+        "const_sig" => const_sig!(get_num(&p[0])),
+        "mul" => mul!(get_num(&p[0])),
+        "add" => add!(get_num(&p[0])),
+        "lpf" => rlpf!({cutoff: get_num(&p[0]), q: get_num(&p[1])}),
+        "hpf" => rhpf!({cutoff: get_num(&p[0]), q: get_num(&p[1])}),
+
+        "noise" => noise!(get_num(&p[0]) as u64),
+        "imp" => imp!({freq: get_num(&p[0]), sr: sr}),
+        "sampler" => {
+            sampler!(samples_dict[&paras.as_str().replace("\\", "")])},
+        "seq" => {
+            let info = process_seq(paras.as_str()).unwrap();
+            seq!({events: info.0, sidechain_lib: info.1, sr: sr, bpm: bpm})
+        }
+        "speed" => speed!(get_num(&p[0])),
+        "choose" => choose!(get_notes(paras)?),
+        "delayn" => delayn!(get_num(&p[0]) as usize),
+        "delay" => delay!({delay: get_num(&p[0]), sr: sr}),
+        "onepole" => onepole!(get_num(&p[0])),
+        "comb" => comb!({delay: get_num(&p[0]), gain: get_num(&p[1]), feedforward: get_num(&p[2]), feedback: get_num(&p[3])}),
+        "apfdecay" => apfdecay!({delay: get_num(&p[0]), decay: get_num(&p[1])}),
+        "apfgain" => apfgain!({delay: get_num(&p[0]), gain: get_num(&p[1])}),
+        "pan" => pan!(get_num(&p[0])),
+        "balance" => balance!(get_num(&p[2])),
+        "pass" => Pass::new(),
+        "envperc" => envperc!({attack: get_num(&p[0]), decay: get_num(&p[1]), sr: sr}),
+        _ => {
+            let a = paras.next().unwrap();
+            return Err(GlicolError::NodeNameError((a.as_str().to_string(), a.as_span().start(), a.as_span().end())))
+        }
+        // "envperc" => EnvPerc::new(30.0, 50.0)?,
+        // "buf" => Buf::new(&mut paras, 
+        //     samples_dict)?,
+        // "linrange" => LinRange::new(&mut paras)?,
+        // "pha" => Phasor::new(&mut paras)?,
+        // "state" => State::new(&mut paras)?,
+        // "monosum" => MonoSum::new(&mut paras)?,
+    };
+    Ok((nodedata, refs))
+}
+
+
+#[derive(Debug, Clone, PartialEq)]
+/// Parameter of a node can be f32, String, or NodeIndex for sidechain
+pub enum Para {
+    Number(f32),
+    Symbol(String),
+    Index(NodeIndex),
+    Modulable
+}
+
+fn get_num(p: &Para) -> f32 {
+    match p {
+        Para::Number(v) => *v,
+        Para::Modulable => 0.0,
+        _ => 0.0
+    }
+}
+
+type Events = Vec::<(f64, String)>;
+type Sidechain = HashMap::<String, usize>;
+
+fn process_seq(pattern: &str) -> Result<(Events, Sidechain, Vec<String>), GlicolError> {
+    let mut events = Vec::<(f64, String)>::new();
+    let mut sidechain_count = 0;
+    let mut sidechains = Vec::new();
+    let mut sidechain_lib = Sidechain::new();
+    let split: Vec<&str> = pattern.split(" ").collect();
+    let len_by_space = split.len();
+    let compound_unit = 1.0 / len_by_space as f64;
+
+    for (i, compound) in split.iter().enumerate() {
+        let c = compound.replace("_", "$_$");
+        let notes = c.split("$").filter(|x|x!=&"").collect::<Vec<_>>();
+
+        let notes_len = notes.len();
+        for (j, x) in notes.iter().enumerate() {
+            let relative_time = i as f64 / len_by_space as f64 
+            + (j as f64/ notes_len as f64 ) * compound_unit;
+
+            if x.contains("~") {
+                sidechains.push(x.to_string());
+                sidechain_lib.insert(x.to_string(), sidechain_count);
+                sidechain_count += 1;
+            }
+
+            if x != &"_" {
+                events.push((relative_time, x.to_string()))
+            }
+        }
+    }
+    Ok((events, sidechain_lib, sidechains))
+}
+
+fn get_notes(paras: &mut Pairs<Rule>) -> Result<Vec::<f32>, GlicolError> {
+    let split: Vec<&str> = paras.as_str().split(" ").collect();
+    let mut note_list = Vec::<f32>::new();
+    println!("split{:?}", split);
+    for note in split {
+        match note.parse::<f32>() {
+            Ok(v) => note_list.push(v),
+            Err(_) => {
+                let p = paras.next().unwrap();
+                let pos = (p.as_span().start(), p.as_span().end());
+                return Err(GlicolError::ParameterError(pos))
+            }
+        }
+    }
+    println!("note_list{:?}", note_list);
+    Ok(note_list)
+}
+
+pub fn process_parameters(paras: &mut Pairs<Rule>, mut modulable: Vec<Para>) -> Result<(Vec<Para>, Vec<String>), GlicolError> {
+    let mut refs = vec![];
+    // println!("{:?}{:?}", paras, modulable);
+    for i in 0..modulable.len() {
+        let para = paras.next();
+        let mut pos = (0, 0);
+        match para {
+            Some(p) => {
+                pos = (p.as_span().start(), p.as_span().end());
+                let key = p.as_str();
+                match key.parse::<f32>() {
+                    Ok(v) => modulable[i] = Para::Number(v),
+                    Err(_) => {
+                        if key.contains("~") {
+                            if modulable[i] != Para::Modulable { 
+                                println!("{:?}", key);
+                                return Err(GlicolError::NotModuableError(pos)) 
+                            } else {
+                                refs.push(key.to_string());
+                            }
+                        } else if key.contains("\\") {
+                            modulable[i] =  Para::Symbol(key.to_string())
+                        } else {
+                            return Err(GlicolError::ParameterError(pos))
+                        }
+                    }
+                }
+            },
+            None => return Err(GlicolError::InsufficientParameter(pos))
+        // .chars().filter(|c| !c.is_whitespace()).collect();
+        };
+    };
+    return Ok((modulable, refs))
+}
+
+pub struct SimpleGraph {
+    pub graph: GlicolGraph,
+    processor: GlicolProcessor,
+    clock: NodeIndex,
+    elapsed_samples: usize,
+    pub node_by_chain: HashMap<String, Vec<NodeIndex>>,
+}
+
+impl SimpleGraph {
+
+    pub fn new(code: &str) -> Self {
+        let mut graph = GlicolGraph::with_capacity(1024, 1024);
+            // let processor = GlicolProcessor::with_capacity(1024);
+        let mut sidechains_list = Vec::<(NodeIndex, String)>::new();
+        let mut node_by_chain = HashMap::new();
+
+        let clock = graph.add_node(
+            NodeData::new1(BoxedNodeSend::new(Clock{})));
+        let audio_in = graph.add_node(
+                NodeData::new1(BoxedNodeSend::new(AudioIn{})));
+        node_by_chain.insert(
+            "~input".to_string(),
+            vec![audio_in]
+        );
+
+        println!("code in simplegraph {}", code);
+        let mut parsing_result = GlicolParser::parse(Rule::block, code).unwrap();
+        let mut current_ref_name: &str = "";
+
+        // add nodes to nodes chain vectors in the HashMap with ref as key
+        for line in parsing_result.next().unwrap().into_inner() {
+            let inner_rules = line.into_inner();
+            for element in inner_rules {
+                match element.as_rule() {
+                    Rule::reference => {
+                        current_ref_name = element.as_str();
+                    },
+                    Rule::chain => {
+                        // self.all_refs.push(current_ref_name.to_string());
+                        let refname = current_ref_name.to_string();
+                        
+                        for func in element.into_inner() {
+                            let mut paras = func.into_inner();
+                            // let id: String = paras.as_str().to_string()
+                            // .chars().filter(|c| !c.is_whitespace()).collect();
+                            let first = paras.next().unwrap();
+                            // let pos = (p.as_span().start(), p.as_span().end());
+                            let name = first.as_str();
+                            // println!("name inside {}",name );
+
+                            // if the name is a ref
+                            let dest = match first.as_rule() {
+                                Rule::paras => format!("@rev{}", first.as_str()),
+                                _ => "".to_string()
+                            };
+                            // println!("dest {}",dest);
+                            let (node_data, sidechains) = make_node(
+                                name, &mut paras,
+                                &HashMap::new(),
+                                44100,
+                                120.0
+                            ).unwrap();
+
+                            let node_index = graph.add_node(node_data);
+
+                            // println!("name {} got thie index {:?}", name, node_index);
+                                
+                            if !node_by_chain.contains_key(&refname) {
+                                // head of chain
+                                node_by_chain.insert(refname.clone(),
+                                vec![node_index]);
+                            } else {
+                                let mut list = node_by_chain[&refname].clone();
+                                if &dest != "" {
+                                    sidechains_list.push(
+                                        (*list.last().unwrap(), 
+                                        dest));
+                                };
+                                list.push(node_index);
+                                node_by_chain.insert(
+                                    refname.clone(),list);
+                            };
+                            for sidechain in sidechains.into_iter() {
+                                sidechains_list.push(
+                                    (node_index, sidechain));
+                            };
+                        }
+                    },
+                    _ => ()
+                }
+            }
+        }
+        // finish parsing, move to handle edge connection
+
+        // connect clocks to all the nodes
+        for (refname, nodes) in &node_by_chain {
+            if refname != "~input" {
+                for n in nodes {
+                    graph.add_edge(clock, *n,());
+                }
+            }
+        }
+
+        // make edges in each chain
+        for (_refname, node_chains) in &node_by_chain {
+            if node_chains.len() >= 2 {
+                println!("connect for _refname {} node_chains {:?}", _refname, node_chains);
+                graph.add_edge(node_chains[0],node_chains[1],());
+                for i in 0..(node_chains.len()-2) {
+                    graph.add_edge(node_chains[i+1],node_chains[i+2],());
+                };
+            };
+        }
+        
+        // println!("sidechain_list {:?}", sidechains_list);
+        // make edges cross chain
+        for pair in &sidechains_list {
+            // println!("work on sidechain pair: {:?}", pair);
+            if pair.1.contains("@rev") {
+                let name = &pair.1[4..];
+                // println!("reversed connection for {}", name);
+                if !node_by_chain.contains_key(name) {
+                    panic!("NonExistControlNodeError {}", name.to_string());
+                }
+                let control_node = *node_by_chain[name].last().unwrap();
+                println!("reversed connection for {} {:?} {:?}", name, pair.0, control_node);
+                graph.add_edge(pair.0, control_node, ());
+            } else {
+                if !node_by_chain.contains_key(&pair.1) {
+                    panic!("NonExistControlNodeError {}", pair.1.to_string());
+                }
+                let control_node = *node_by_chain[&pair.1].last().unwrap();
+                graph.add_edge(control_node, pair.0, ());
+            }
+        };
+        // println!("node_by_chain {:?}", node_by_chain);
+        Self {
+            graph,
+            clock,
+            processor: GlicolProcessor::with_capacity(1024),
+            elapsed_samples: 0,
+            node_by_chain
+        }
+    }
+
+    pub fn next_block(&mut self, inbuf: &mut [f32]) -> [f32; 256] {
+        let mut output: [f32; 256] = [0.0; 256];
+
+        // println!("&self.node_by_chain in SimpleGraph {:?}", &self.node_by_chain);
+        // process 0..128
+        for (refname, v) in &self.node_by_chain {
+            if refname.contains("~") {
+                continue;
+            }
+            // this must be inside
+            self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
+            for i in 0..128 {
+                self.graph[
+                    self.node_by_chain["~input"][0]
+                ].buffers[0][i] = inbuf[i];
+            }
+            // println!("*v.last().unwrap(){:?}",*v.last().unwrap());
+            self.processor.process(&mut self.graph, *v.last().unwrap());
+        }
+
+        // sendout 0..128
+        for (refname, v) in &self.node_by_chain {
+            if refname.contains("~") {
+                continue;
+            }
+            let bufleft = &self.graph[*v.last().unwrap()].buffers[0];
+            let bufright = match &self.graph[*v.last().unwrap()].buffers.len() {
+                1 => {bufleft},
+                2 => {&self.graph[*v.last().unwrap()].buffers[1]},
+                _ => {unimplemented!()}
+            };
+
+            for i in 0..128 {
+                output[i] += bufleft[i];
+                output[i+128] += bufright[i];
+            }
+        }
+        self.elapsed_samples += 128;
+        output
+    }
+}
