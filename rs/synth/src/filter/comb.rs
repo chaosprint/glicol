@@ -91,15 +91,13 @@ macro_rules! comb {
     }
 }
 
+// TODO: modulation?
+
 impl Node<128> for Comb {
     fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
-        // TODO: modulation?
-
         let a = self.gain;
         let b = self.feedforward;
         let c = self.feedback;
-        // println!("{:?}",self.bufx);
-
         for i in 0..128 {
             let xn = inputs[0].buffers()[0][0];
             let xn_d = self.bufx[0];

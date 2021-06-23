@@ -308,8 +308,8 @@ impl SimpleGraph {
                         // self.all_refs.push(current_ref_name.to_string());
                         let refname = current_ref_name.to_string();
                         
-                        for func in element.into_inner() {
-                            let mut paras = func.into_inner();
+                        for node in element.into_inner() {
+                            let mut paras = node.into_inner();
                             // let id: String = paras.as_str().to_string()
                             // .chars().filter(|c| !c.is_whitespace()).collect();
                             let first = paras.next().unwrap();

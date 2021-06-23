@@ -176,8 +176,8 @@ impl Engine {
                             self.node_by_chain.insert(refname.clone(), list);
                         };
                         
-                        for func in element.into_inner() {
-                            let mut paras = func.into_inner();
+                        for node in element.into_inner() {
+                            let mut paras = node.into_inner();
                             let id: String = paras.as_str().to_string()
                             .chars().filter(|c| !c.is_whitespace()).collect();
                             let first = paras.next().unwrap();
@@ -522,19 +522,28 @@ macro_rules! chain {
 
 #[derive(Debug)]
 pub enum EngineError {
-    ParsingError(pest::error::Error<glicol_parser::Rule>),
-    HandleNodeError,
     NonExistControlNodeError(String),
     ParameterError((usize, usize)),
     SampleNotExistError((usize, usize)),
     InsufficientParameter((usize, usize)),
     NotModuableError((usize, usize)),
     ParaTypeError((usize, usize)),
-    SynthError
+    NodeNameError((String, usize, usize)),
+    ParsingError(pest::error::Error<glicol_parser::Rule>),
+    HandleNodeError,
 }
 
 impl From<GlicolError> for EngineError {
     fn from(e: GlicolError) -> EngineError {
-        return EngineError::SynthError;
+        match e {
+            GlicolError::NonExistControlNodeError(v) => EngineError::NonExistControlNodeError(v),
+            GlicolError::ParameterError((s,e)) => EngineError::ParameterError((s,e)),
+            GlicolError::SampleNotExistError((s,e))  => EngineError::SampleNotExistError((s,e)),
+            GlicolError::InsufficientParameter((s,e)) => EngineError::InsufficientParameter((s,e)),
+            GlicolError::NotModuableError((s,e)) => EngineError::NotModuableError((s,e)),
+            GlicolError::ParaTypeError((s,e)) => EngineError::ParaTypeError((s,e)),
+            GlicolError::NodeNameError((st, s,e)) => EngineError::NodeNameError((st, s,e)),
+            _ => unimplemented!()
+        }
     }
 }
