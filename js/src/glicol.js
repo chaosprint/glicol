@@ -427,6 +427,9 @@ window.loadModule = async () => {
       ]
 
       window.node.port.onmessage = e => {
+        if (e.data[0] > errors.length) {
+          log(e.data[0]-1)
+        }
         log(`%cError: ${errors[e.data[0]-1]}`, "color: white; background: red")
         if (e.data[0] === 2) {
             let name = decoder.decode(e.data.slice(2).filter(v => v !== 0.0))
