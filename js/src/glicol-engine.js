@@ -262,10 +262,10 @@ class GlicolEngine extends AudioWorkletProcessor {
             } else if (e.data.type === "samples") {
                 if(this._wasm) {
                 // console.log("sample data: ", e.data.sample)
-                console.log(e.data.name)
+                // console.log(e.data.name)
 
-                let _s = e.data.sample
-                let s = Float32Array.from(_s, i => i/32768.0)
+                let s = e.data.sample
+                // let s = Float32Array.from(_s, i => i/32768.0)
 
                 sampleLength = s.length;
                 samplePtr = this._wasm.exports.alloc(sampleLength);
