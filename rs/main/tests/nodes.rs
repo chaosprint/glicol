@@ -1,4 +1,7 @@
 use glicol::*;
+use glicol_synth::signal::noise::*;
+use glicol_synth::operation::mul::*;
+use glicol_synth::*;
 
 #[test]
 fn noise() {

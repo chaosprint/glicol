@@ -1,9 +1,10 @@
 use gnuplot::*;
 use glicol::*;
-use glicol::node::saw_osc::*;
-use glicol::node::squ_osc::*;
-use glicol::node::tri_osc::*;
-use glicol::node::mul::*;
+use glicol_synth::*;
+use glicol_synth::oscillator::saw_osc::*;
+use glicol_synth::oscillator::squ_osc::*;
+use glicol_synth::oscillator::tri_osc::*;
+use glicol_synth::operation::mul::*;
 fn main () {
     let mut engine = Engine::new(44100);
     let out = engine.make_chain(vec![tri_osc!({freq: 441.0}), mul!(1.)]);

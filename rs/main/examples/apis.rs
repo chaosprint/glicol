@@ -1,9 +1,15 @@
+/// This exmaple shows how you can use Glicol as a basic audio library
+/// The backend is mainly dasp_graph which is further built on top of petgraph
+/// There are many DSP code in Glicol that can be reused
+/// But before you get started, you should know some basic APIs in the example
+
 use dasp_graph::{NodeData, BoxedNodeSend};
 use glicol::*;
-use glicol::node::operation::{mul::*, add::*};
-use glicol::node::oscillator::sin_osc::*;
-use glicol::node::signal::const_sig::*;
-use glicol::node::signal::dummy::Clock;
+use glicol_synth::*;
+use glicol_synth::operation::{mul::*, add::*};
+use glicol_synth::oscillator::sin_osc::*;
+use glicol_synth::signal::const_sig::*;
+use glicol_synth::signal::dummy::Clock;
 
 // very raw API
 fn raw() {
@@ -36,7 +42,7 @@ fn connection() {
 // for modifying the value, its better to have a dummy node and modify the node directly
 fn set_paras() {
     let mut engine = Engine::new(44100);
-    let out = chain!([const_sig!(42.), mul!(1.)] in engine); // yet another way to chain
+    let out = chain!([const_sig!(42.), mul!(1.)] in engine); // yet another way to make chain
     
     // Clock is a dummy node that requires mannual settings
     let dummy = engine.graph.add_node(  NodeData::new1(BoxedNodeSend::new(Clock{}))  );

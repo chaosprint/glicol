@@ -10,7 +10,7 @@ use glicol_parser::*;
 pub mod macros; use macros::*;
 
 pub mod oscillator; use oscillator::*;
-use {sin_osc::*, saw_osc::SawOsc, squ_osc::SquOsc, tri_osc::TriOsc};
+use {sin_osc::SinOsc, saw_osc::SawOsc, squ_osc::SquOsc, tri_osc::TriOsc};
 
 pub mod signal; use signal::*;
 use {imp::*, const_sig::ConstSig, noise::Noise, dummy::Clock, dummy::AudioIn};

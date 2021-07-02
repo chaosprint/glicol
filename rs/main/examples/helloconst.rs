@@ -1,5 +1,6 @@
 use glicol::*;
-use glicol::node::signal::const_sig::*;
+use glicol_synth::*;
+use glicol_synth::signal::const_sig::*;
 
 fn main() {
     let mut engine = Engine::new(44100);

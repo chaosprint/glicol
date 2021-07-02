@@ -1,6 +1,7 @@
 use glicol::*;
-use glicol::node::mul::*;
-use glicol::node::noise::*;
+use glicol_synth::*;
+use glicol_synth::operation::mul::*;
+use glicol_synth::signal::noise::*;
 
 fn main () {
     let mut e = Engine::new(44100);
