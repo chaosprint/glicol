@@ -1,7 +1,7 @@
 <div align="center">
   <br />
   <p>
-    <a href="https://glicol.org"><img src="./logo.png" width="546" /></a>
+    <a href="https://glicol.org"><img src="./logo.png" width="200" /></a>
   </p>
 </div>
 
