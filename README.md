@@ -1,10 +1,8 @@
-# Introduction
+<h1 align="center">Glicol</h1>
 
-Glicol (graph-oriented live coding language) is a computer music language written in Rust.
+<h3 align="center">A graph-oriented live coding language written in Rust.</h3>
 
-Despite its versatility, Glicol is currently targeting browser-based collaborative live coding.
-
-# Why Glicol?
+## Why Glicol?
 
 ***Glicol is fast.*** Glicol has both its language and DSP engines written in Rust. With the zero-cost abstractions in Rust, Glicol is very fast.
 
@@ -31,9 +29,11 @@ bd: sin ~pitch >> mul ~env >> mul 0.9
 
 Just like playing module synth.
 
-Play with the code at: https://glicol.web.app/4CY8UM
+Try the code at: https://glicol.web.app/4CY8UM
 
-# Where to start?
+***Glicol is more than a live coding language.*** Last but not least, Glicol can be used as a standalone audio or live coding library in either JavaScript or Rust. See the [Structure](#Structure) section down below for details.
+
+## Where to start?
 
 Glicol has launched its official website at: 
 
@@ -45,7 +45,7 @@ https://glicol.web.app
 
 *On both website, opening the browser console is important as the helps and some key commands are exported there.*
 
-# Repository structure
+## Structure
 
 The structure shows that Glicol can be used independently as a JavaScript library in the browser, or used as an audio library for other Rust projects:
 
@@ -66,7 +66,7 @@ rs/
 ├─ wasm/
 ```
 
-## Rust
+### Rust
 
 The `rs` folder contains the Rust code for Glicol.
 
@@ -79,17 +79,12 @@ The `rs/synth` is the `glicol_synth` crate, which contains the DSP code for Glic
 The `rs/macro` provides Rust macros for developing Glicol extensions.
 
 The `rs/ext` is the Glicol extensions, which replies on `glicol_synth`, `glicol_parser` and `glicol_macro`. The idea is to use the essential nodes in `glicol_synth` to form some more complicated nodes, e.g. reverb nodes. Developers can use the `glicol_macro` to write new node in Glicol syntax within Rust.
-```
-glicol_ext = glicol_synth + glicol_parser + glicol_macro
-```
-```
-glicol = glicol_parser + glicol_synth + glicol_ext
-```
+
 The `rs/wasm` is basically the glue code for compiling the `glicol` crate into a WebAssembly file.
 
-See the `README.md` in `rs` folder for details.
+See the [README.md](./rs/REAMDME.md) file in the `rs` folder for details.
 
-## JavaScript
+### JavaScript
 
 The `js` folder contains the Glicol distribution for the web platform.
 
@@ -101,15 +96,15 @@ The usage is very easy. Just include this into your `index.html`:
 
 See the `README.md` in `js` folder for details.
 
-# Contribution
+## Contribution
 
 Suggestions, bug reporting, or PR are warmly welcomed.
 
-# Acknowledgement
+## Acknowledgement
 
 This work was partially supported by the Research Council of Norway through its Centres of Excellence scheme, project number 262762 and by NordForsk's Nordic University Hub Nordic Sound and Music Computing Network NordicSMC, project number 86892.
 
-# License
+## License
 
 The MIT License (MIT)
 
