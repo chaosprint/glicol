@@ -1,6 +1,13 @@
-<h1 align="center">GLICOL</h1>
+<div align="center">
+  <br />
+  <p>
+    <a href="https://glicol.org"><img src="./logo.png" width="546" /></a>
+  </p>
+</div>
 
 ## Why Glicol?
+
+<!-- **TLDR: check out https://glicol.org to make sound instantly.** -->
 
 ***Glicol is fast.*** Glicol has both its language and DSP engines written in Rust. With the zero-cost abstractions in Rust, Glicol is very fast.
 
