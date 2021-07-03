@@ -1,6 +1,11 @@
-<h1 align="center">Glicol</h1>
-
-<h3 align="center">A graph-oriented live coding language written in Rust.</h3>
+```
+ ██████╗ ██╗     ██╗ ██████╗ ██████╗ ██╗     
+██╔════╝ ██║     ██║██╔════╝██╔═══██╗██║     
+██║  ███╗██║     ██║██║     ██║   ██║██║     
+██║   ██║██║     ██║██║     ██║   ██║██║     
+╚██████╔╝███████╗██║╚██████╗╚██████╔╝███████╗
+ ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
+```
 
 ## Why Glicol?
 
@@ -82,7 +87,7 @@ The `rs/ext` is the Glicol extensions, which replies on `glicol_synth`, `glicol_
 
 The `rs/wasm` is basically the glue code for compiling the `glicol` crate into a WebAssembly file.
 
-See the [README.md](./rs/REAMDME.md) file in the `rs` folder for details.
+See the [README.md](./rs/README.md) file in the `rs` folder for details.
 
 ### JavaScript
 
