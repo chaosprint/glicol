@@ -96,6 +96,62 @@ window.loadSamples = async (arg) => {
     }
 }
 
+window.sampleFolder = async () => {
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.webkitdirectory = true
+    input.directory = true
+    input.multiple = true
+
+    window.samples = {}
+    input.onchange = async (e) => {
+        var files = e.target.files;
+        log(`%cSome samples will be skiped as only mono samples are supported so far.`, "color: red; font-weight: bold", "")
+        for (var i = 0; i < files.length; i++) {
+            (async function(file) {
+                var reader = new FileReader();
+                reader.onload = async function(e) {
+                    if (file.type === "audio/wav") {
+                        let path = file.webkitRelativePath.split("/")
+                        path.shift()
+                        // log(path)
+                        if (path[0] in window.samples) {
+                          window.samples[path[0]] += 1
+                        } else {
+                          window.samples[path[0]] = 0
+                        }
+                        let key = path[0].toLowerCase() + "_" + String(window.samples[path[0]])
+                        // log(key)
+                        await window.actx.decodeAudioData(e.target.result, buffer => {
+                            if (buffer.numberOfChannels === 1) {
+                              window.node.port.postMessage({
+                                type: "samples",
+                                sample: buffer.getChannelData(0),
+                                name: encoder.encode(key.replace(".wav", ""))
+                              })
+                              log(`Sample %c${key.replace(".wav", "")} %cloaded`, "color: green; font-weight: bold", "")
+                            }
+                        })
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            })(files[i]);
+        }
+    }
+    input.click();
+}
+
+window.sampleCount = () => {
+  let a = []
+  for (let key in window.samples) {
+    let b = {}
+    b[key] = window.samples[key]
+    a.push(b)
+  }
+  log(...a)
+}
+
+
 window.addSample = async (name, url) => {
     if (url === undefined) {
 
@@ -132,16 +188,13 @@ window.addSample = async (name, url) => {
         let myRequest = new Request(url);
         await fetch(myRequest).then(response => response.arrayBuffer())
         .then(arrayBuffer => {
-            // console.log("downloaded", arrayBuffer)
-            // let buffer = new Uint8Array(arrayBuffer)
-            // let wav = new WaveFile(buffer);
-            // let sample = wav.getSamples(true, Int16Array)
-            // after loading, sent to audioworklet the sample array
-            // console.log("sampler \\" + key)
-            window.node.port.postMessage({
-            type: "samples",
-            sample: new Int16Array(arrayBuffer),
-            name: encoder.encode(name)
+            window.actx.decodeAudioData(arrayBuffer, buffer => {
+                // log(new Int16Array(buffer.getChannelData(0).buffer))
+                window.node.port.postMessage({
+                  type: "samples",
+                  sample: buffer.getChannelData(0),
+                  name: encoder.encode(name)
+                })
             })
         });
     }
@@ -451,13 +504,16 @@ window.loadModule = async () => {
       // log("%cGlicol has now launched an official website 🚀: \n\nhttps://glicol.org\n\nStill, this playground will continue to be used for quick prototyping, solo live coding and code sharing.", "font-size: 16px")
       log("%c"+window.art, "color: gray") //#3E999F
       log(`\n\n%c Available nodes: `, "background: black; color:white; font-weight: bold");
-      log(["sin", "saw", "squ", "mul", "add", "imp", "sampler", "sp", "buf", "seq", "linrange", "lpf", "hpf", "spd", "speed", "noiz", "choose", "envperc", "pha", "state", "pan", "delay", "apf", "comb", "mix", "plate", "onepole", "allpass", "delayn", "monosum", "const"])
+      log(["seq","speed","choose","mul","add",,"apfdecay","delayn",
+      "sin","saw","squ","imp","envperc","sampler","noiz","lpf","plate","onepole",
+      "hpf","pha","pan","delay","apfgain","comb","mix","monosum",
+      "const_sig","*","sp","spd","tri","noise","amplfo","balance"])
   
       // log(`\n\n%c Fetch help files by: `, "background: black; color:white; font-weight: bold")
       // log(`Move the cursor to a keyword and press %cAlt+D`, "color:green;font-weight:bold", "color: default", "color:green; font-weight:bold", "color:default", "color: green; font-weight:bold");
 
       log(`\n\n%c Useful console commands: `, "background: black; color:white; font-weight: bold")
-      log(`\n%chelp()\n%cGet docs for a node, e.g. help("sin").\n\n%cloadSamples()\n%cKeep the argument empty to load the selected samples by us.\n\n%cbpm()\n%cSet the BPM. The default is 120.\n\n%caddSample()\n%cAdd your own samples. The first argument is the sample name you wish to call, and the second arg is the url to the wav file. Keep the augument empty to load local samples. The files should end with .wav. The file name will become the keys. Only lowercase letters and numbers are valid keys, e.g 808bd.`, "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "");
+      log(`\n%chelp()\n%cGet docs for a node, e.g. help("sin").\n\n%cbpm()\n%cSet the BPM. The default is 120.\n\n%csampleFolder()\n%cLoad a folder that contains samples. Dirt samples are recommanded (https://github.com/chaosprint/Dirt-Samples). If you use your own samples there, the naming of sub-folders should follow the Dirt samples.\n\n%caddSample()\n%cAdd your own samples. The first argument is the sample name you wish to call, and the second arg is the url to the wav file. Keep the augument empty to load local samples. The files should end with .wav. The file name will become the keys. Only lowercase letters and numbers are valid keys, e.g 808bd.`, "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "");
     })
   })
 }
