@@ -5,38 +5,7 @@
   </p>
 </div>
 
-## Why Glicol?
-
-<!-- **TLDR: check out https://glicol.org to make sound instantly.** -->
-
-***Glicol is fast.*** Glicol has both its language and DSP engines written in Rust. With the zero-cost abstractions in Rust, Glicol is very fast.
-
-***Glicol is reliable.*** Glicol has reliable error-handling strategies written in Rust, so you do not need to worry about typos in live performances. If an error is detected, the engine will continue playing the previous error-free codes.
-
-***Glicol is easy to access.*** Using WebAssembly, AudioWorklet and SharedArrayBuffer, browsers can now have lock-free real-time audio processing capacity. Glicol has used all these technologies to provide a zero-installation experience. Just visit the website and you can start live coding.
-
-***Glicol is interaction-friendly.*** Just run the code. What you see on screen is what you hear.
-Commenting out a line of code is equivalent to muting a track.
-
-***Glicol is intuitive.*** Glicol uses a graph-oriented syntax, bypassing paradigms such as OOP or FP. For example, you can synthesise kick drum like this:
-
-```
-bd: sin ~pitch >> mul ~env >> mul 0.9
-
-~trigger: speed 4.0 >> seq 60
-
-~env: ~trigger >> envperc 0.01 0.4
-
-~env_pitch: ~trigger >> envperc 0.01 0.1
-
-~pitch: ~env_pitch >> mul 80 >> add 60
-```
-
-Just like playing module synth.
-
-Try the code at: https://glicol.web.app/4CY8UM
-
-***Glicol is more than a live coding language.*** Last but not least, Glicol can be used as a standalone audio or live coding library in either JavaScript or Rust. See the [Structure](#Structure) section down below for details.
+GLICOL (an acronym for "graph-oriented live coding language") is a computer music language written in Rust. This repository contains the source code of Glicol. The Rust code of Glicol can be used as a standalone Rust audio library and the JavaScript code can be embedded in any website using the CDN link.
 
 ## Where to start?
 
@@ -48,9 +17,9 @@ Still, the old web app will remain as the playground:
 
 https://glicol.web.app
 
-*On both website, opening the browser console is important as the helps and some key commands are exported there.*
+*On both website, opening the browser console is important. Help files and some essential commands are exported there.*
 
-## Structure
+## Repo structure
 
 The structure shows that Glicol can be used independently as a JavaScript library in the browser, or used as an audio library for other Rust projects:
 
