@@ -82,6 +82,7 @@ pub fn make_node(
         "add" => vec![Para::Modulable],
         "lpf" => vec![Para::Modulable, Para::Number(1.0)],
         "hpf" => vec![Para::Modulable, Para::Number(1.0)],
+        "noise" => vec![Para::Number(42.0)],
         "envperc" => vec![Para::Number(0.01), Para::Number(0.1)],
         "sampler" => {
             // check potential errors
