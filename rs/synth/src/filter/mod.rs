@@ -1,5 +1,5 @@
-pub mod lpf;
-pub mod hpf;
+pub mod rlpf;
+pub mod rhpf;
 pub mod apfgain;
 pub mod apfdecay;
 pub mod comb;

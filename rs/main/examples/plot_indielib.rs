@@ -5,9 +5,10 @@ use glicol_synth::oscillator::saw_osc::*;
 use glicol_synth::oscillator::squ_osc::*;
 use glicol_synth::oscillator::tri_osc::*;
 use glicol_synth::operation::mul::*;
+use glicol_synth::filter::rlpf::*;
 fn main () {
     let mut engine = Engine::new(44100);
-    let out = engine.make_chain(vec![tri_osc!({freq: 441.0}), mul!(1.)]);
+    let out = engine.make_chain(vec![tri_osc!({freq: 441.0}), rlpf!({cutoff: 300.0, q: 1.0})]);
     engine.process(out[1]); // this is a simplified method for calling processor on graph
     println!("{:?}", engine.graph[out[1]].buffers);
 

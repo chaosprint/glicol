@@ -41,14 +41,14 @@
         "output": {"description": "Impuse signal float number streams.", "range": {"low": -1, "high": 1}},
         "example": ["pls_load_samples_first: imp 1.0 >> sp \\808bd"]
     },
-    "lpf": {
+    "rlpf": {
         "description": "",
         "parameters": [{"name": "cut_off_frequency", "modulable": true}, {"name": "q", "modulable": false}],
         "input": {"description": "Signal float streams for low pass filter.", "range": "depends on the input signal"},
         "output": {"description": "Signal float streams filtered by the low-pass filter", "range": "Range depends on the input signal"},
         "example": ["basic: saw 300 >> lpf 100 1.0", "mod_example: saw 300 >> lpf ~mod 1.0\n\n~mod: sin 0.2 >> mul 100 >> add 100"]
     },
-    "hpf": {
+    "rhpf": {
         "description": "",
         "parameters": [{"name": "cut_off_frequency", "modulable": true}, {"name": "q", "modulable": false}],
         "input": {"description": "Signal float streams for high pass filter.", "range": "depends on the input signal"},

@@ -19,7 +19,7 @@ pub mod operation; use operation::*;
 use {mul::Mul, add::Add};
 
 pub mod filter; use filter::*;
-use {lpf::*, hpf::*, apfgain::*, apfdecay::*, onepole::*,comb::*};
+use {rlpf::*, rhpf::*, apfgain::*, apfdecay::*, onepole::*,comb::*};
 
 pub mod sampling; use sampling::*;
 use {seq::*, sampler::*,speed::*, choose::*};
@@ -60,6 +60,8 @@ pub fn make_node(
         "sp" => "sampler",
         "*" => "mul",
         "noiz" => "noise",
+        "lpf" => "rlpf",
+        "hpf" => "rhpf",
         _ => {
             if name.contains("~") {
                 "pass"
@@ -80,8 +82,8 @@ pub fn make_node(
         "const_sig" => vec![Para::Number(0.0)],
         "mul" => vec![Para::Modulable],
         "add" => vec![Para::Modulable],
-        "lpf" => vec![Para::Modulable, Para::Number(1.0)],
-        "hpf" => vec![Para::Modulable, Para::Number(1.0)],
+        "rlpf" => vec![Para::Modulable, Para::Number(1.0)],
+        "rhpf" => vec![Para::Modulable, Para::Number(1.0)],
         "noise" => vec![Para::Number(42.0)],
         "envperc" => vec![Para::Number(0.01), Para::Number(0.1)],
         "sampler" => {
@@ -124,8 +126,8 @@ pub fn make_node(
         "const_sig" => const_sig!(get_num(&p[0])),
         "mul" => mul!(get_num(&p[0])),
         "add" => add!(get_num(&p[0])),
-        "lpf" => rlpf!({cutoff: get_num(&p[0]), q: get_num(&p[1])}),
-        "hpf" => rhpf!({cutoff: get_num(&p[0]), q: get_num(&p[1])}),
+        "rlpf" => rlpf!({cutoff: get_num(&p[0]), q: get_num(&p[1]), sr: sr}),
+        "rhpf" => rhpf!({cutoff: get_num(&p[0]), q: get_num(&p[1]), sr: sr}),
 
         "noise" => noise!(get_num(&p[0]) as u64),
         "imp" => imp!({freq: get_num(&p[0]), sr: sr}),

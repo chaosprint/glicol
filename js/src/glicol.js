@@ -504,7 +504,7 @@ window.loadModule = async () => {
       // log("%cGlicol has now launched an official website 🚀: \n\nhttps://glicol.org\n\nStill, this playground will continue to be used for quick prototyping, solo live coding and code sharing.", "font-size: 16px")
       log("%c"+window.art, "color: gray") //#3E999F
       log(`\n\n%c Available nodes: `, "background: black; color:white; font-weight: bold");
-      log(["seq","speed","choose","mul","add",,"apfdecay","delayn",
+      log(["seq","speed","choose","mul","add","apfdecay","delayn",
       "sin","saw","squ","imp","envperc","sampler","noiz","lpf","plate","onepole",
       "hpf","pha","pan","delay","apfgain","comb","mix","monosum",
       "const_sig","*","sp","spd","tri","noise","amplfo","balance"])
@@ -531,7 +531,7 @@ window.code = `~a: choose 48 55 51 58
 
 ~pitch: ~trigger >> mul 261.626
 
-lead: saw ~pitch >> mul ~env >> lpf ~cut 3.0 
+lead: saw ~pitch >> mul ~env >> rlpf ~cut 3.0 
 >> mul 0.6 >> plate 0.1
 
 ~cut: squ 0.5 >> mul 3700.0 >> add 4000.0`
