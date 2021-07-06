@@ -27,3 +27,10 @@ fn rlpf() {
     engine.set_code("nn: noise 42 >> rlpf 300.0 1.0");
     engine.make_graph().unwrap();
 }
+
+#[test]
+fn spaceconst() {
+    let mut engine = Engine::new(44100);
+    engine.set_code("nn:const_sig 42");
+    engine.make_graph().unwrap();
+}
