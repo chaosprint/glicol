@@ -20,16 +20,19 @@ pest_derive = "2.0"
 # `git clone https://github.com/chaosprint/dasp.git`
 # `git checkout graph_const_generics`
 
-dasp_graph = { path = "../../../dasp/dasp_graph" }
-dasp_signal = { version = "*" }
-apodize = "1.0.0"
+
+petgraph = "0.5.1"
+
+dasp_signal = { version = "0.11.0" }
 dasp_ring_buffer = "0.11.0"
 dasp_slice = "0.11.0"
-dasp_interpolate = { version = "*", features = ["linear"] }
-petgraph = "*"
-gnuplot = "0.0.37"
-lcs-diff = "0.1.1"
+dasp_interpolate = { version = "0.11.0", features = ["linear"] }
 
+apodize = "1.0.0"
+lcs-diff = "0.1.1"
+gnuplot = "0.0.37"
+
+dasp_graph = { path = "../dasp_graph" }
 glicol_synth =  { path = "../synth" }
 glicol_parser =  { path = "../parser" }
 glicol_ext =  { path = "../ext" }

@@ -397,11 +397,30 @@ impl Engine {
                             info[0] = 5;
                             info[1] = 0;
                             if self.code == "" {
-                                self.code_backup = "_dummy: const 0.0".to_string();
+                                self.code_backup = "~dummy: const 0.0".to_string();
                             }
                             info
                         },
-                        _ => unimplemented!()
+                        EngineError::NodeNameError((n, s, e)) => {
+                            process_error_info(self.code.clone(), 6, s, e)
+                        },
+                        EngineError::ParaTypeError((s, e)) => {
+                            process_error_info(self.code.clone(), 7, s, e)
+                        },
+                        EngineError::NotModuableError((s, e)) => {
+                            process_error_info(self.code.clone(), 8, s, e)
+                        },
+                        EngineError::InsufficientParameter((s, e)) => {
+                            process_error_info(self.code.clone(), 9, s, e)
+                        },
+                        _ => {
+                            info[0] = 10; // type
+                            info[1] = 0; // unknown position
+                            if self.code == "" {
+                                self.code_backup = "~dummy: const 0.0".to_string();
+                            }
+                            info
+                        }
                     };
                     println!("debug {:?}", console);
                     self.soft_reset();
@@ -520,17 +539,17 @@ macro_rules! chain {
     };
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum EngineError {
-    NonExistControlNodeError(String),
-    ParameterError((usize, usize)),
-    SampleNotExistError((usize, usize)),
+    NonExistControlNodeError(String), // handled
+    ParameterError((usize, usize)), // handled
+    SampleNotExistError((usize, usize)), // handled
     InsufficientParameter((usize, usize)),
     NotModuableError((usize, usize)),
     ParaTypeError((usize, usize)),
-    NodeNameError((String, usize, usize)),
-    ParsingError(pest::error::Error<glicol_parser::Rule>),
-    HandleNodeError,
+    NodeNameError((String, usize, usize)),  // handled
+    ParsingError(pest::error::Error<glicol_parser::Rule>), // handled
+    HandleNodeError, // handled
 }
 
 impl From<GlicolError> for EngineError {

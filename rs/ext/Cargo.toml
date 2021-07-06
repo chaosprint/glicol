@@ -13,4 +13,4 @@ glicol_parser = {path="../parser"}
 pest = "2.0"
 pest_derive = "2.0"
 quote = "*"
-dasp_graph = {path="../../../dasp/dasp_graph"}
+dasp_graph = { path = "../dasp_graph" }

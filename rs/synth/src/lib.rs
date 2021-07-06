@@ -107,7 +107,10 @@ pub fn make_node(
         "pan" => vec![Para::Modulable],
         "balance" => vec![Para::Modulable, Para::Modulable, Para::Number(0.5)],
         "pass" => vec![],
-        _ => vec![], // pass
+        _ => {
+            let a = paras.next().unwrap();
+            return Err(GlicolError::NodeNameError((a.as_str().to_string(), a.as_span().start(), a.as_span().end())))
+        },
     };
 
     // println!("{:?}", paras);
@@ -153,7 +156,6 @@ pub fn make_node(
             let a = paras.next().unwrap();
             return Err(GlicolError::NodeNameError((a.as_str().to_string(), a.as_span().start(), a.as_span().end())))
         }
-        // "envperc" => EnvPerc::new(30.0, 50.0)?,
         // "buf" => Buf::new(&mut paras, 
         //     samples_dict)?,
         // "linrange" => LinRange::new(&mut paras)?,

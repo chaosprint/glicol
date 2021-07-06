@@ -483,10 +483,16 @@ window.loadModule = async () => {
       window.decoder = new TextDecoder('utf-8');
 
       const errors = [
-        "trying to use a non-existent sample.",
-        "trying to connect to an invalid reference.",
-        "this node parameter only accepts a number.",
-        "unable to build the node.",
+        "SampleNotExistError",
+        "NonExistControlNodeError",
+        "ParameterError",
+        "HandleNodeError",
+        "ParsingError",
+        "NodeNameError",
+        "ParaTypeError",
+        "NotModuableError",
+        "InsufficientParameter",
+        "UnknownError"
       ]
 
       window.node.port.onmessage = e => {
