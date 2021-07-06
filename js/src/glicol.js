@@ -1,11 +1,12 @@
-const source = "https://cdn.jsdelivr.net/gh/chaosprint/glicol@v0.2.10/js/src/"
+// when publish, change the exact version number
+const source = "https://cdn.jsdelivr.net/gh/chaosprint/glicol@v0.2.11/js/src/"
 // const source = "src/"
 
-window.sampleDict = {"808":["RS.WAV"],"909":["BT0A0A7.WAV"],"ab":["009_ab2ride.wav"],"bd":["BT0A0DA.wav"],"jazz":["007_SN.wav"],"casio":["high.wav"],"bass":["000_bass1.wav"],"coins":["coins.wav"],"wind":["002_wind2.wav"],"pluck":["BSC3PI.wav"],"short":["sampleoftheday-gtt-snare-drum-020.wav"],"crow":["001_crow2.wav"],"stomp":["004_3.wav"],"tink":["000_tink1.wav"],"perc":["000_perc0.wav"],"cr":["RIDED0.wav"],"bass3":["83249__zgump__bass-0205.wav"],"gtr":["0001_cleanC.wav"],"sax":["005_notes121c.wav"],"lt":["LTAD7.wav"],"peri":["hhx.wav"],"sid":["001_bas.wav"],"rm":["RIMA.wav"],"cc":["CSHD8.wav"],"psr":["002_03.wav"],"arp":["001_arp.wav"],"tech":["tn1kick1.wav"],"can":["006_2.wav"],"sf":["000_bass.wav"],"808ht":["HT75.WAV"],"808lt":["LT00.WAV"],"808bd":["BD7550.WAV"],"808sd":["SD7575.WAV"],"bassdm":["016_BT7A0DA.WAV"],"v":["000_b_blipp01.wav"],"jungle":["jungle4perc2.wav"],"techno":["006_7.wav"],"popkick":["10.wav"],"control":["1.wav"],"tabla2":["23689_loofa_bahia017.wav"],"glitch2":["007_SN.wav"],"808oh":["OH25.WAV"],"voodoo":["003_VoodooSnare.wav"],"tok":["000_0.wav"],"dr2":["000_DR110CHT.WAV"],"hand":["hand7-mono.wav"],"diphone":["023_kd1_025.wav"],"mash":["0.wav"],"tabla":["012_hi_hit3.wav"],"bin":["000_bin1.wav"],"msg":["000_msg0.wav"],"dork2":["4.wav"],"toys":["MusicalMedley-Words.wav"],"feelfx":["doing.wav"],"hmm":["hmm.wav"],"latibro":["002_Sound4.wav"],"ulgab":["gab1.wav"],"jvbass":["002_03.wav"],"h":["4_tock.wav"],"blip":["001_blipp02.wav"],"breaks165":["000_RAWCLN.WAV"]}
+// window.sampleDict = {"808":["RS.WAV"],"909":["BT0A0A7.WAV"],"ab":["009_ab2ride.wav"],"bd":["BT0A0DA.wav"],"jazz":["007_SN.wav"],"casio":["high.wav"],"bass":["000_bass1.wav"],"coins":["coins.wav"],"wind":["002_wind2.wav"],"pluck":["BSC3PI.wav"],"short":["sampleoftheday-gtt-snare-drum-020.wav"],"crow":["001_crow2.wav"],"stomp":["004_3.wav"],"tink":["000_tink1.wav"],"perc":["000_perc0.wav"],"cr":["RIDED0.wav"],"bass3":["83249__zgump__bass-0205.wav"],"gtr":["0001_cleanC.wav"],"sax":["005_notes121c.wav"],"lt":["LTAD7.wav"],"peri":["hhx.wav"],"sid":["001_bas.wav"],"rm":["RIMA.wav"],"cc":["CSHD8.wav"],"psr":["002_03.wav"],"arp":["001_arp.wav"],"tech":["tn1kick1.wav"],"can":["006_2.wav"],"sf":["000_bass.wav"],"808ht":["HT75.WAV"],"808lt":["LT00.WAV"],"808bd":["BD7550.WAV"],"808sd":["SD7575.WAV"],"bassdm":["016_BT7A0DA.WAV"],"v":["000_b_blipp01.wav"],"jungle":["jungle4perc2.wav"],"techno":["006_7.wav"],"popkick":["10.wav"],"control":["1.wav"],"tabla2":["23689_loofa_bahia017.wav"],"glitch2":["007_SN.wav"],"808oh":["OH25.WAV"],"voodoo":["003_VoodooSnare.wav"],"tok":["000_0.wav"],"dr2":["000_DR110CHT.WAV"],"hand":["hand7-mono.wav"],"diphone":["023_kd1_025.wav"],"mash":["0.wav"],"tabla":["012_hi_hit3.wav"],"bin":["000_bin1.wav"],"msg":["000_msg0.wav"],"dork2":["4.wav"],"toys":["MusicalMedley-Words.wav"],"feelfx":["doing.wav"],"hmm":["hmm.wav"],"latibro":["002_Sound4.wav"],"ulgab":["gab1.wav"],"jvbass":["002_03.wav"],"h":["4_tock.wav"],"blip":["001_blipp02.wav"],"breaks165":["000_RAWCLN.WAV"]}
 
-window.sampleList = {
-    selected: "808 909 ab bd jazz casio bass coins wind short crow stomp tink perc cr bass3 gtr sax lt peri sid rm cc psr arp tech can sf 808ht 808lt 808bd 808sd bassdm v jungle techno popkick control tabla2 glitch2 808oh voodoo tok dr2 hand diphone mash tabla bin msg dork2 toys feelfx hmm latibro ulgab jvbass h blip breaks165".split(" ")
-}
+// window.sampleList = {
+//     selected: "808 909 ab bd jazz casio bass coins wind short crow stomp tink perc cr bass3 gtr sax lt peri sid rm cc psr arp tech can sf 808ht 808lt 808bd 808sd bassdm v jungle techno popkick control tabla2 glitch2 808oh voodoo tok dr2 hand diphone mash tabla bin msg dork2 toys feelfx hmm latibro ulgab jvbass h blip breaks165".split(" ")
+// }
 
 window.loadDocs = async () => {
   fetch(source+'glicol-docs.json')
@@ -67,34 +68,34 @@ if (typeof amp === "number") {
 return `Execution time: ${(performance.now()-t0).toFixed(4)} ms`
 }
 
-window.loadSamples = async (arg) => {
-    let list = arg ? arg : window.sampleList.selected
-    window.actx.suspend()
-    let l = list.length
-    let count = l
-    for (const key of list) {
-      count -= 1
-      try {
-        let sound = window.sampleDict[key][0];
-        log(`Sample %c${key} %cloaded`, "color: green; font-weight: bold", "")
-        // let u = 'https://cdn.jsdelivr.net/gh/chaosprint/Dirt-Samples/'
-        let u = 'https://raw.githubusercontent.com/chaosprint/Dirt-Samples/master/'
-        + key + '/' + sound
-        let myRequest = new Request(u);
-        await fetch(myRequest).then(response => response.arrayBuffer())
-        .then(arrayBuffer => {
-            window.actx.decodeAudioData(arrayBuffer, buffer => {
-                // log(new Int16Array(buffer.getChannelData(0).buffer))
-                window.node.port.postMessage({
-                  type: "samples",
-                  sample: buffer.getChannelData(0),
-                  name: encoder.encode(key)
-                })
-            })
-        }).catch(e=>log(e));
-      } catch(e) {log(e)}
-    }
-}
+// window.loadSamples = async (arg) => {
+//     let list = arg ? arg : window.sampleList.selected
+//     window.actx.suspend()
+//     let l = list.length
+//     let count = l
+//     for (const key of list) {
+//       count -= 1
+//       try {
+//         let sound = window.sampleDict[key][0];
+//         log(`Sample %c${key} %cloaded`, "color: green; font-weight: bold", "")
+//         // let u = 'https://cdn.jsdelivr.net/gh/chaosprint/Dirt-Samples/'
+//         let u = 'https://raw.githubusercontent.com/chaosprint/Dirt-Samples/master/'
+//         + key + '/' + sound
+//         let myRequest = new Request(u);
+//         await fetch(myRequest).then(response => response.arrayBuffer())
+//         .then(arrayBuffer => {
+//             window.actx.decodeAudioData(arrayBuffer, buffer => {
+//                 // log(new Int16Array(buffer.getChannelData(0).buffer))
+//                 window.node.port.postMessage({
+//                   type: "samples",
+//                   sample: buffer.getChannelData(0),
+//                   name: encoder.encode(key)
+//                 })
+//             })
+//         }).catch(e=>log(e));
+//       } catch(e) {log(e)}
+//     }
+// }
 
 window.sampleFolder = async () => {
     var input = document.createElement('input');
@@ -112,18 +113,17 @@ window.sampleFolder = async () => {
                 var reader = new FileReader();
                 reader.onload = async function(e) {
                     if (file.type === "audio/wav") {
-                        let path = file.webkitRelativePath.split("/")
-                        path.shift()
-                        // log(path)
-                        if (path[0] in window.samples) {
-                          window.samples[path[0]] += 1
-                        } else {
-                          window.samples[path[0]] = 0
-                        }
-                        let key = path[0].toLowerCase() + "_" + String(window.samples[path[0]])
-                        // log(key)
+
                         await window.actx.decodeAudioData(e.target.result, buffer => {
                             if (buffer.numberOfChannels === 1) {
+                              let path = file.webkitRelativePath.split("/")
+                              path.shift()
+                              if (path[0] in window.samples) {
+                                window.samples[path[0]] += 1
+                              } else {
+                                window.samples[path[0]] = 1
+                              }
+                              let key = path[0].toLowerCase() + "_" + String(window.samples[path[0]])
                               window.node.port.postMessage({
                                 type: "samples",
                                 sample: buffer.getChannelData(0),
@@ -148,9 +148,16 @@ window.sampleCount = () => {
     b[key] = window.samples[key]
     a.push(b)
   }
+  a.sort((a, b) => {
+    if (String(a) > String(b)) {
+      return 1
+    } else {
+      return -1
+    }
+  })
   log(...a)
+  log("For example, if you load dirt samples, there are 25 808bd samples {808bd: 25}. You can write Glicol code:\n\n%cout: seq 60 >> sp \\808bd_24\n\n%cThe avalable range for samplename_index is from 0 to sampleAmount - 1.", "background-color: grey; font-weight: bold", "")
 }
-
 
 window.addSample = async (name, url) => {
     if (url === undefined) {
@@ -513,7 +520,15 @@ window.loadModule = async () => {
       // log(`Move the cursor to a keyword and press %cAlt+D`, "color:green;font-weight:bold", "color: default", "color:green; font-weight:bold", "color:default", "color: green; font-weight:bold");
 
       log(`\n\n%c Useful console commands: `, "background: black; color:white; font-weight: bold")
-      log(`\n%chelp()\n%cGet docs for a node, e.g. help("sin").\n\n%cbpm()\n%cSet the BPM. The default is 120.\n\n%csampleFolder()\n%cLoad a folder that contains samples. Dirt samples are recommanded (https://github.com/chaosprint/Dirt-Samples). If you use your own samples there, the naming of sub-folders should follow the Dirt samples.\n\n%caddSample()\n%cAdd your own samples. The first argument is the sample name you wish to call, and the second arg is the url to the wav file. Keep the augument empty to load local samples. The files should end with .wav. The file name will become the keys. Only lowercase letters and numbers are valid keys, e.g 808bd.`, "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "");
+      log(`\n%chelp()\n%cGet docs for a node, e.g. help("sin").
+      
+%cbpm()\n%cSet the BPM. The default is 120.
+
+%csampleFolder()\n%cChoose a folder that contains samples. The folder you select must have sub-folders that contain samples. For example, Dirt Samples are recommanded (https://github.com/chaosprint/Dirt-Samples). If you use your own samples there, the naming of sub-folders should follow the Dirt samples.
+
+%csampleCount()\n%cUse it after calling the "sampleFolder()" function to see the total number of each sample folder.
+
+%caddSample()\n%cAdd your own samples. The first argument is the sample name you wish to call, and the second arg is the url to the wav file. Keep the augument empty to load local samples. The files should end with .wav. The file name will become the keys. Only lowercase letters and numbers are valid keys, e.g 808bd.`, "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "");
     })
   })
 }
