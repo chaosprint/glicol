@@ -9,11 +9,9 @@ GLICOL (an acronym for "graph-oriented live coding language") is a computer musi
 
 Glicol is currently targeting web platforms and shipped as one single JavaScript package, which can be experienced at its official website:
 
-<a href="https://glicol.org" target="_blank" rel="noopener">
-  https://glicol.org
-</a>
+https://glicol.org
 
-The Rust code of Glicol can also be used as a standalone Rust audio library.
+Also, the Rust code of Glicol can be used as a standalone Rust audio library.
 
 ## Repo structure
 
