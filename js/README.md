@@ -1,4 +1,4 @@
-# Introduction
+## Introduction
 
 A language and DSP engine for live coding.
 
@@ -8,7 +8,7 @@ It has both its language and DSP engine written in Rust.
 
 When compiled to WebAssembly, it can be used in browsers.
 
-# Example
+## Example
 
 To run the demo:
 
@@ -17,7 +17,7 @@ npm i
 npm run dev
 ```
 
-# Usage
+## Usage
 
 Just include this into your `index.html`:
 
@@ -36,7 +36,7 @@ Glicol engine knows you are updating the code if you call the func again.
 
 Call `stop()` function will restart the engine.
 
-# License
+## License
 
 The MIT License (MIT)
 

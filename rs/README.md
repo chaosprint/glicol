@@ -1,4 +1,4 @@
-# Glicol-rs
+## Introduction
 
 This folder contains files for the engine of Glicol written in Rust.
 
@@ -22,7 +22,7 @@ glicol_ext = glicol_synth + glicol_parser + glicol_macro
 glicol = glicol_parser + glicol_synth + glicol_ext
 ```
 
-# As standalone audio lib
+## As standalone audio lib
 
 Glicol can be used as an independent audio library for other Rust projects.
 
@@ -63,21 +63,19 @@ fn main() {
 }
 ```
 
-# Dependancies
+## Try it out
 
-Note that to use Glicol-rs, you need to use a customised `dasp_graph` branch.
-
-```git
-cd THE_DEV_FOLDER
-git clone https://github.com/chaosprint/dasp.git
-cd dasp
-git checkout graph_const_generics
-cd ..
-```
+First you should have Rust compiler installed. Make sure you can call `cargo` in your terminal.
 
 Then:
 ```
 git clone https://github.com/chaosprint/glicol.git
+cd glicol/rs/main
+cargo run --example helloworld
 ```
 
-In short, `glicol` and `dasp` should be under the same folder and `dasp` should be on `graph_const_generics` branch.
+## License
+
+The MIT License (MIT)
+
+Copyright (c) 2020 - present Qichao Lan (chaosprint)

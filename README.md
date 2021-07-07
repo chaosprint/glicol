@@ -9,9 +9,11 @@ GLICOL (an acronym for "graph-oriented live coding language") is a computer musi
 
 Glicol is currently targeting web platforms and shipped as one single JavaScript package, which can be experienced at its official website:
 
-https://glicol.org
+<a href="https://glicol.org" target="_blank" rel="noopener">
+  https://glicol.org
+</a>
 
-This repository contains the source code of Glicol. The Rust code of Glicol can be used as a standalone Rust audio library and the JavaScript code can be embedded in any website using the CDN link.
+The Rust code of Glicol can also be used as a standalone Rust audio library.
 
 ## Repo structure
 
@@ -46,7 +48,7 @@ The `rs/synth` is the `glicol_synth` crate, which contains the DSP code for Glic
 
 The `rs/macro` provides Rust macros for developing Glicol extensions.
 
-The `rs/ext` is the Glicol extensions, which replies on `glicol_synth`, `glicol_parser` and `glicol_macro`. The idea is to use the essential nodes in `glicol_synth` to form some more complicated nodes, e.g. reverb nodes. Developers can use the `glicol_macro` to write new node in Glicol syntax within Rust.
+The `rs/ext` is the Glicol extensions, which relies on `glicol_synth`, `glicol_parser` and `glicol_macro`. The idea is to use the essential nodes in `glicol_synth` to form some more complicated nodes, e.g. reverb nodes. Developers can write new node with Glicol syntax in Rust.
 
 The `rs/wasm` is basically the glue code for compiling the `glicol` crate into a WebAssembly file.
 
