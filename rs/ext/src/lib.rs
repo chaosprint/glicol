@@ -12,6 +12,7 @@ pub mod plate; use plate::Plate;
 pub fn make_node_ext(
     name: &str,
     paras: &mut Pairs<Rule>,
+    pos: (usize, usize),
     samples_dict: &HashMap<String, &'static[f32]>,
     sr: usize,
     bpm: f32,

@@ -51,10 +51,16 @@ pub enum GlicolError {
 pub fn make_node(
     name: &str,
     paras: &mut Pairs<Rule>,
+    pos: (usize, usize),
     samples_dict: &HashMap<String, &'static[f32]>,
     sr: usize,
     bpm: f32,
 ) -> NodeResult {
+
+    // TODO: handle this in the parser
+    // if !["", ""].contains(&name) {
+    //     return Err(GlicolError::NodeNameError((paras.as_str().to_string(), paras.as_span().start(), paras.as_span().end())))
+    // };
     
     let alias = match name {
         "sp" => "sampler",
@@ -71,7 +77,7 @@ pub fn make_node(
         }
     };
 
-    // println!("name after alis {} {:?}", alias, paras.as_str());
+    println!("name after alis {} {:?}", alias, paras);
 
     let modulable = match alias {
         "imp" => vec![Para::Number(1.0)],
@@ -108,8 +114,10 @@ pub fn make_node(
         "balance" => vec![Para::Modulable, Para::Modulable, Para::Number(0.5)],
         "pass" => vec![],
         _ => {
-            let a = paras.next().unwrap();
-            return Err(GlicolError::NodeNameError((a.as_str().to_string(), a.as_span().start(), a.as_span().end())))
+            match paras.next() {
+                Some(_) => {vec![]},
+                None => return Err(GlicolError::NodeNameError((name.to_string(), pos.0, pos.1)))
+            }
         },
     };
 
@@ -153,8 +161,8 @@ pub fn make_node(
         "pass" => Pass::new(),
         "envperc" => envperc!({attack: get_num(&p[0]), decay: get_num(&p[1]), sr: sr}),
         _ => {
-            let a = paras.next().unwrap();
-            return Err(GlicolError::NodeNameError((a.as_str().to_string(), a.as_span().start(), a.as_span().end())))
+            // let a = paras.next().unwrap();
+            return Err(GlicolError::NodeNameError((name.to_owned(), 0,0)))
         }
         // "buf" => Buf::new(&mut paras, 
         //     samples_dict)?,
@@ -318,7 +326,7 @@ impl SimpleGraph {
                             // let id: String = paras.as_str().to_string()
                             // .chars().filter(|c| !c.is_whitespace()).collect();
                             let first = paras.next().unwrap();
-                            // let pos = (p.as_span().start(), p.as_span().end());
+                            let pos = (first.as_span().start(), first.as_span().end());
                             let name = first.as_str();
                             // println!("name inside {}",name );
 
@@ -329,7 +337,7 @@ impl SimpleGraph {
                             };
                             // println!("dest {}",dest);
                             let (node_data, sidechains) = make_node(
-                                name, &mut paras,
+                                name, &mut paras, pos,
                                 &HashMap::new(),
                                 44100,
                                 120.0

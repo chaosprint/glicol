@@ -2,13 +2,12 @@
 use gnuplot::*;
 use glicol::Engine;
 
-
 fn main () {
     let mut engine = Engine::new(44100);
-    engine.set_code("lead: noise 42 >> rlpf 300.0 1.0");
+    engine.set_code("~aa: imp 1.0 >> envperc 0.0 1.0; bb: noise 42 >> mul ~aa >> lpf 300 1;");
     // engine.set_code("~left: sin 10; ~right: sin 20; out: balance ~left ~right 0.5;");
     // engine.set_code("tt: sin 44 >> amplfo 1.0");
-    plot(engine, 88200);
+    plot(engine, 256);
 }
 
 fn plot(mut engine: Engine, step: usize) {
@@ -19,7 +18,7 @@ fn plot(mut engine: Engine, step: usize) {
     let mut y2 = Vec::<f32>::new();
     let mut n = 0;
 
-    for _ in 0..(step as f32 /128.0) as usize {
+    for _ in 0..(step / 128) {
         let out = engine.gen_next_buf_128(&mut [0.0;128]).unwrap().0;
         // let out = engine.gen_next_buf_64().unwrap();
         for i in 0..128 {

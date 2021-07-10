@@ -1,16 +1,10 @@
 // when publish, change the exact version number
-const source = "https://cdn.jsdelivr.net/gh/chaosprint/glicol@v0.2.14/js/src/"
-// const source = "src/"
-
-// window.sampleDict = {"808":["RS.WAV"],"909":["BT0A0A7.WAV"],"ab":["009_ab2ride.wav"],"bd":["BT0A0DA.wav"],"jazz":["007_SN.wav"],"casio":["high.wav"],"bass":["000_bass1.wav"],"coins":["coins.wav"],"wind":["002_wind2.wav"],"pluck":["BSC3PI.wav"],"short":["sampleoftheday-gtt-snare-drum-020.wav"],"crow":["001_crow2.wav"],"stomp":["004_3.wav"],"tink":["000_tink1.wav"],"perc":["000_perc0.wav"],"cr":["RIDED0.wav"],"bass3":["83249__zgump__bass-0205.wav"],"gtr":["0001_cleanC.wav"],"sax":["005_notes121c.wav"],"lt":["LTAD7.wav"],"peri":["hhx.wav"],"sid":["001_bas.wav"],"rm":["RIMA.wav"],"cc":["CSHD8.wav"],"psr":["002_03.wav"],"arp":["001_arp.wav"],"tech":["tn1kick1.wav"],"can":["006_2.wav"],"sf":["000_bass.wav"],"808ht":["HT75.WAV"],"808lt":["LT00.WAV"],"808bd":["BD7550.WAV"],"808sd":["SD7575.WAV"],"bassdm":["016_BT7A0DA.WAV"],"v":["000_b_blipp01.wav"],"jungle":["jungle4perc2.wav"],"techno":["006_7.wav"],"popkick":["10.wav"],"control":["1.wav"],"tabla2":["23689_loofa_bahia017.wav"],"glitch2":["007_SN.wav"],"808oh":["OH25.WAV"],"voodoo":["003_VoodooSnare.wav"],"tok":["000_0.wav"],"dr2":["000_DR110CHT.WAV"],"hand":["hand7-mono.wav"],"diphone":["023_kd1_025.wav"],"mash":["0.wav"],"tabla":["012_hi_hit3.wav"],"bin":["000_bin1.wav"],"msg":["000_msg0.wav"],"dork2":["4.wav"],"toys":["MusicalMedley-Words.wav"],"feelfx":["doing.wav"],"hmm":["hmm.wav"],"latibro":["002_Sound4.wav"],"ulgab":["gab1.wav"],"jvbass":["002_03.wav"],"h":["4_tock.wav"],"blip":["001_blipp02.wav"],"breaks165":["000_RAWCLN.WAV"]}
-
-// window.sampleList = {
-//     selected: "808 909 ab bd jazz casio bass coins wind short crow stomp tink perc cr bass3 gtr sax lt peri sid rm cc psr arp tech can sf 808ht 808lt 808bd 808sd bassdm v jungle techno popkick control tabla2 glitch2 808oh voodoo tok dr2 hand diphone mash tabla bin msg dork2 toys feelfx hmm latibro ulgab jvbass h blip breaks165".split(" ")
-// }
+// in local testing, comment the version out!
+window.version = "v0.2.15"
+const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
   fetch(source+'glicol-docs.json')
-  // fetch("./src/glicol-docs.json")
   .then(response => response.json())
   .then(data => window.docs = data)
 }
@@ -67,35 +61,6 @@ if (typeof amp === "number") {
 }
 return `Execution time: ${(performance.now()-t0).toFixed(4)} ms`
 }
-
-// window.loadSamples = async (arg) => {
-//     let list = arg ? arg : window.sampleList.selected
-//     window.actx.suspend()
-//     let l = list.length
-//     let count = l
-//     for (const key of list) {
-//       count -= 1
-//       try {
-//         let sound = window.sampleDict[key][0];
-//         log(`Sample %c${key} %cloaded`, "color: green; font-weight: bold", "")
-//         // let u = 'https://cdn.jsdelivr.net/gh/chaosprint/Dirt-Samples/'
-//         let u = 'https://raw.githubusercontent.com/chaosprint/Dirt-Samples/master/'
-//         + key + '/' + sound
-//         let myRequest = new Request(u);
-//         await fetch(myRequest).then(response => response.arrayBuffer())
-//         .then(arrayBuffer => {
-//             window.actx.decodeAudioData(arrayBuffer, buffer => {
-//                 // log(new Int16Array(buffer.getChannelData(0).buffer))
-//                 window.node.port.postMessage({
-//                   type: "samples",
-//                   sample: buffer.getChannelData(0),
-//                   name: encoder.encode(key)
-//                 })
-//             })
-//         }).catch(e=>log(e));
-//       } catch(e) {log(e)}
-//     }
-// }
 
 window.sampleFolder = async () => {
     var input = document.createElement('input');
@@ -516,6 +481,7 @@ window.loadModule = async () => {
       clear();
       // log("%cGlicol has now launched an official website 🚀: \n\nhttps://glicol.org\n\nStill, this playground will continue to be used for quick prototyping, solo live coding and code sharing.", "font-size: 16px")
       log("%c"+window.art, "color: gray") //#3E999F
+      // log("%c"+window.version, "background: black; color:white")
       log(`\n\n%c Available nodes: `, "background: black; color:white; font-weight: bold");
       log(["seq","speed","choose","mul","add","apfdecay","delayn",
       "sin","saw","squ","imp","envperc","sampler","noiz","lpf","plate","onepole",
@@ -608,10 +574,12 @@ window.stop = async () => {
   window.loadModule()
 }
 
-window.art = `
+window.artsource = `
  ██████╗ ██╗     ██╗ ██████╗ ██████╗ ██╗     
 ██╔════╝ ██║     ██║██╔════╝██╔═══██╗██║     
 ██║  ███╗██║     ██║██║     ██║   ██║██║     
 ██║   ██║██║     ██║██║     ██║   ██║██║     
 ╚██████╔╝███████╗██║╚██████╗╚██████╔╝███████╗
  ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═════╝ ╚══════╝`
+
+window.art = window.version ? window.artsource + "\n\n" + window.version : window.artsource

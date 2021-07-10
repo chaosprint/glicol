@@ -77,7 +77,8 @@ impl Node<128> for ResonantLowPassFilter {
                 self.y2 = self.y1;
                 self.y1 = y;
             }
-        } else { // no mod            
+        } else { // no mod       
+            // println!("{:?}", inputs[0].buffers()[0]);     
             let theta_c = 2.0 * std::f32::consts::PI * self.cutoff / self.sr as f32;
             let d = 1.0 / self.q;
             let beta = 0.5 * (1.0-d*theta_c.sin()/2.0) / (1.0+d*theta_c.sin()/2.0);

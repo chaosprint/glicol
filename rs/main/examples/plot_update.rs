@@ -3,11 +3,12 @@ use gnuplot::*;
 use glicol::Engine;
 use glicol::EngineError;
 
-fn main () -> Result<(), EngineError> {
+fn main () {
     let mut engine = Engine::new(44100);
-    engine.set_code("aa: sin 440 >> linrange 100");
+    // engine.elapsed_samples = 512;
+    engine.set_code("aa: sin 44");
     // engine.update = true;
-    // engine.make_graph()?;
+    engine.make_graph().unwrap();
     // println!("\n\nnode_by_chain {:?}\n\n", engine.node_by_chain);
     let mut x = Vec::<i32>::new();
     let mut y = Vec::<f32>::new();
@@ -23,9 +24,10 @@ fn main () -> Result<(), EngineError> {
         }
     }
 
-    engine.set_code("aa: speed 100 >> seq 60 >> sp \\imp");
+    engine.set_code("aa: si");
+    engine.make_graph();
 
-    // println!("\n\nnode_by_chain {:?}\n\n", engine.node_by_chain);
+    // // println!("\n\nnode_by_chain {:?}\n\n", engine.node_by_chain);
     for _ in 0..(70000.0/128.0) as usize {
         let out = engine.gen_next_buf_128(&mut [0.0;128]).unwrap().0;
         for i in 0..128 {
@@ -57,5 +59,4 @@ fn main () -> Result<(), EngineError> {
             &[Caption("right")],
         );
     fg.show().unwrap();
-    Ok(())
 }

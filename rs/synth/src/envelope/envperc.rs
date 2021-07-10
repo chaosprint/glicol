@@ -61,12 +61,21 @@ impl Node<128> for EnvPerc {
                     self.scale = buf[0][i];
                 }
                 if self.pos <= attack_len {
-                    output[0][i] = self.pos as f32 / attack_len as f32;
+                    if attack_len == 0 {
+                        output[0][i] = 0.0;
+                    } else {
+                        output[0][i] = self.pos as f32 / attack_len as f32;
+                    }                    
                 } else if self.pos > attack_len && self.pos <= dur {
-                    output[0][i] = (dur - self.pos) as f32 / decay_len as f32;
+                    if decay_len == 0 {
+                        output[0][i] = 0.0;
+                    } else {
+                        output[0][i] = (dur - self.pos) as f32 / decay_len as f32;
+                    }
                 } else {
                     output[0][i] = 0.0
                 }
+                // println!("{}", output[0][i]);
                 output[0][i] *= self.scale;
                 self.pos += 1;
             }

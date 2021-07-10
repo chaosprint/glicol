@@ -181,7 +181,7 @@ impl Engine {
                             let id: String = paras.as_str().to_string()
                             .chars().filter(|c| !c.is_whitespace()).collect();
                             let first = paras.next().unwrap();
-                            // let pos = (p.as_span().start(), p.as_span().end());
+                            let pos = (first.as_span().start(), first.as_span().end());
                             let name = first.as_str();
                             let dest = match first.as_rule() {
                                 Rule::paras => format!("@rev{}", first.as_str()),
@@ -194,14 +194,14 @@ impl Engine {
                                 if info.0 == id {
 
                                     let (node_data, sidechains) = match make_node_ext(
-                                        name, &mut paras,
+                                        name, &mut paras, pos,
                                         &self.samples_dict,
                                         self.sr,
                                         self.bpm
                                     ) {
                                         Some(v) => (v, vec![]),
                                         None => make_node(
-                                                    name, &mut paras,
+                                                    name, &mut paras, pos,
                                                     &self.samples_dict,
                                                     self.sr,
                                                     self.bpm
@@ -357,12 +357,13 @@ impl Engine {
         //     self.fade = 0;
         // }
 
-        if self.update && (self.elapsed_samples + 128) % one_bar < 128 {
+        if self.update && (self.elapsed_samples + 128) % one_bar <= 128 {
             // println!("updating... at {}", (self.elapsed_samples + 128) % one_bar);
             self.update = false;
             match self.make_graph() {
                 Ok(_) => {
                     self.code_backup = self.code.clone();
+                    println!("success make backup {}", self.code_backup);
                 },
                 Err(e) => {
                     let mut info: [u8; 256] = [0; 256];
@@ -422,7 +423,7 @@ impl Engine {
                             info
                         }
                     };
-                    println!("debug {:?}", console);
+                    println!("debug {:?} code backup is {} !", console, self.code_backup);
                     self.soft_reset();
                     self.set_code(&self.code_backup.clone());
                     self.make_graph()?;

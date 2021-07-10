@@ -25,6 +25,9 @@ pub fn preprocess_sin(a: &String) -> Result<String, EngineError> {
     let mut skip = false;
     for (i, c) in v.iter().enumerate() {
         if *c == "sin" || *c == "saw" || *c == "squ" {
+            if v.len() <= i + 1 {
+                return Err(EngineError::InsufficientParameter((0, 0)))
+            }
             if v[i+1].parse::<f32>().is_ok() {
                 b += "const_sig ";
                 b += v[i+1];
