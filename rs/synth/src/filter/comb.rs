@@ -4,7 +4,7 @@ use super::super::{GlicolNodeData, NodeData, BoxedNodeSend, mono_node};
 
 type Fixed = ring_buffer::Fixed<Vec<f32>>;
 
-pub struct Comb {
+pub struct Comb<const N: usize> {
     delay: f32,
     gain: f32,
     feedforward: f32,
@@ -15,7 +15,7 @@ pub struct Comb {
     // sidechain_ids: Vec::<u8>
 }
 
-impl Comb {
+impl<const N: usize> Comb<N> {
     pub fn new() -> Self {
         Self { 
             bufx: ring_buffer::Fixed::from(vec![0.0]), 
@@ -58,8 +58,8 @@ impl Comb {
         Self {sr, ..self}
     }
 
-    pub fn build(self) -> GlicolNodeData {
-        mono_node!(self)
+    pub fn build(self) -> GlicolNodeData<N> {
+        mono_node!( N, self)
     }
 }
     // handle_params!(
@@ -93,12 +93,12 @@ macro_rules! comb {
 
 // TODO: modulation?
 
-impl Node<128> for Comb {
-    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
+impl<const N: usize> Node<N> for Comb<N> {
+    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         let a = self.gain;
         let b = self.feedforward;
         let c = self.feedback;
-        for i in 0..128 {
+        for i in 0..N {
             let xn = inputs[0].buffers()[0][0];
             let xn_d = self.bufx[0];
             let yn_d = self.bufy[0];

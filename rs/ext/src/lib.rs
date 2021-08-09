@@ -9,14 +9,14 @@ use std::{collections::HashMap};
 pub mod amplfo; use amplfo::AmpLFO;
 pub mod plate; use plate::Plate;
 
-pub fn make_node_ext(
+pub fn make_node_ext<const N: usize>(
     name: &str,
     paras: &mut Pairs<Rule>,
     pos: (usize, usize),
     samples_dict: &HashMap<String, &'static[f32]>,
     sr: usize,
     bpm: f32,
-) -> Option<GlicolNodeData> {
+) -> Option<GlicolNodeData<N>> {
     let n = match name {
         "amplfo" => 1,
         "plate" => 1,

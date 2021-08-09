@@ -1,17 +1,17 @@
 use dasp_graph::{Buffer, Input, Node};
 use super::super::{GlicolNodeData, NodeData, BoxedNodeSend, stereo_node};
 
-pub struct Balance {
+pub struct Balance<const N:usize> {
     balance: f32
 }
-impl Balance {
-    pub fn new(balance: f32) -> GlicolNodeData {
-        stereo_node!( Self { balance } )
+impl<const N:usize> Balance<N> {
+    pub fn new(balance: f32) -> GlicolNodeData<N> {
+        stereo_node!( N, Self { balance } )
     }
 }
 
-impl Node<128> for Balance {
-    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
+impl<const N:usize> Node<N> for Balance<N> {
+    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         // let _clock = inputs[2].clone();
         let left = inputs[1].buffers()[0].clone();
         let right = inputs[0].buffers()[0].clone();

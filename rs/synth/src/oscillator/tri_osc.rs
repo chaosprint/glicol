@@ -2,21 +2,21 @@
 use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNodeSend};
 use super::super::{GlicolNodeData, mono_node};
 
-pub struct TriOsc {
+pub struct TriOsc<const N: usize> {
     freq: f32,
     phase_n: usize,
     clock: usize,
-    buffer: Buffer<128>,
+    buffer: Buffer<N>,
     sr: usize,
 }
 
-impl TriOsc {
+impl<const N: usize> TriOsc<N> {
     pub fn new() -> Self {
         Self {
             freq: 0.01,
             phase_n: 0,
             clock: 0,
-            buffer: Buffer::<128>::default(),
+            buffer: Buffer::<N>::default(),
             sr: 44100,
         }
     }
@@ -28,18 +28,19 @@ impl TriOsc {
         Self {sr, ..self}
     }
 
-    pub fn build(self) -> GlicolNodeData {
+    pub fn build(self) -> GlicolNodeData<N> {
         mono_node! {
+            N,
             self
         }
     }
 }
 
-impl Node<128> for TriOsc {
-    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
+impl<const N: usize> Node<N> for TriOsc<N> {
+    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         match inputs.len() {
             0 => {
-                for i in 0..128 {
+                for i in 0..N {
                     let t = self.sr as f32 / self.freq;
                     let phase = self.phase_n as f32 / (t/4.);
                     let y = match phase.floor() as u8 {
@@ -64,7 +65,7 @@ impl Node<128> for TriOsc {
                 }
             },
             1 => { // can be clock in Glicol or sidechain made by user
-                for i in 0..128 {
+                for i in 0..N {
                     let mod_buf = &mut inputs[0].buffers();
                     if mod_buf[0][i] != 0.0 {
                         self.freq = mod_buf[0][i];
@@ -87,7 +88,7 @@ impl Node<128> for TriOsc {
             },
             2 => { // clock + sidechain or mistake
                 let mut clock = inputs[1].buffers()[0][0] as usize;
-                for i in 0..128 {
+                for i in 0..N {
                     let mod_buf = &mut inputs[0].buffers();
                     if mod_buf[0][i] != 0.0 {
                         self.freq = mod_buf[0][i];

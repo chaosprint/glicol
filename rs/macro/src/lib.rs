@@ -5,6 +5,7 @@ use proc_macro2::{Ident, Span};
 #[proc_macro]
 pub fn make_graph(input: TokenStream) -> TokenStream {
     // let code = &input.to_string();
+    // let mut N: usize = 64;
     let mut code: String = "".to_owned();
     let mut variable = vec![];
     
@@ -12,7 +13,7 @@ pub fn make_graph(input: TokenStream) -> TokenStream {
     let mut f = i.next();
     while f.is_some() {
         let item = f.unwrap().to_string();
-        // println!("{}", item);
+        
         if &item == "#" {
             code.push_str("{}");
             code.push_str(" ");
@@ -31,17 +32,18 @@ pub fn make_graph(input: TokenStream) -> TokenStream {
             code.push_str(&item);
             f = i.next();
             code.push_str(&f.unwrap().to_string());
+            // i.next();
         } else {
             code.push_str(&item);
             code.push_str(" ");
         }
         f = i.next();
     }
-    println!("{} {:?}",code, variable);
+    // println!("{} {:?}",code, variable);
     // // let code = "num is {}";
     let o = quote!(
         // println!(#code, #(#variable),*);
-        SimpleGraph::new(format!(#code, #(#variable),*).as_str())
+        SimpleGraph::<N>::new(format!(#code, #(#variable),*).as_str())
     );
     o.into()
 }

@@ -4,12 +4,12 @@ use glicol_parser::{Rule, GlicolParser};
 use pest::Parser;
 use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNodeSend};
 
-pub struct Plate {
-    graph: SimpleGraph
+pub struct Plate<const N: usize> {
+    graph: SimpleGraph<N>
 }
 
-impl Plate {
-    pub fn new(mix: f32) -> GlicolNodeData {
+impl<const N: usize> Plate<N> {
+    pub fn new(mix: f32) -> GlicolNodeData<N> {
         let mixdiff = 1. - mix;
         let graph = make_graph!{
             ~dry: ~input;
@@ -52,21 +52,21 @@ impl Plate {
             
             out: balance ~left ~right 0.5;
         };
-        mono_node!( Self { graph } )
+        mono_node!( N, Self { graph } )
     }
 }
 //  ~am: sin #freq >> mul 0.3 >> add 0.5;
 
-impl Node<128> for Plate {
-    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {       
-        let mut input = [0.0; 128];
-        for i in 0..128 {
+impl<const N: usize> Node<N> for Plate<N> {
+    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {       
+        let mut input = [0.0; N];
+        for i in 0..N {
             input[i] = inputs[0].buffers()[0][i];
         }
         let out = self.graph.next_block(&mut input);
-        for i in 0..128 {
+        for i in 0..N {
             output[0][i] = out[i];
-            // output[1][i] = out[i+128];
+            // output[1][i] = out[i+N];
         }
     }
 }

@@ -4,12 +4,12 @@ use super::super::{GlicolNodeData, NodeData, BoxedNodeSend, mono_node};
 
 type Fixed = ring_buffer::Fixed<Vec<f32>>;
 
-pub struct Delay {
+pub struct Delay<const N:usize> {
     buf: Fixed,
     sr: usize
 }
 
-impl Delay {
+impl<const N:usize> Delay<N> {
 
     pub fn new() -> Self {
         Self { buf: ring_buffer::Fixed::from(vec![0.0]), sr: 44100 }
@@ -29,8 +29,8 @@ impl Delay {
         Self {sr, ..self}
     }
 
-    pub fn build(self) -> GlicolNodeData {
-        mono_node!(self)
+    pub fn build(self) -> GlicolNodeData<N> {
+        mono_node!( N, self)
     }
 }
 
@@ -43,11 +43,11 @@ macro_rules! delay {
     }
 }
 
-impl Node<128> for Delay {
-    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
+impl<const N:usize> Node<N> for Delay<N> {
+    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         let l = inputs.len();
         if l < 1 { return ()};
-        let has_clock = inputs[l-1].buffers()[0][0] % 128. == 0. && inputs[l-1].buffers()[0][1] == 0.;
+        let has_clock = inputs[l-1].buffers()[0][0] as usize % N == 0 && inputs[l-1].buffers()[0][1] == 0.;
 
         // println!("{}{}",l ,has_clock );
         if l - has_clock as usize > 1 { // has mod
@@ -55,12 +55,12 @@ impl Node<128> for Delay {
             let modulator = inputs[0].buffers()[0].clone();
             let delay_len = (modulator[0] / 1000.0 * self.sr as f32 ) as usize;
             self.buf.set_first(self.buf.len() - delay_len);
-            for i in 0..128 {
+            for i in 0..N {
                 output[0][i] = self.buf[0];
                 self.buf.push(input_sig[i]);
             }
         } else {               
-            for i in 0..128 {
+            for i in 0..N {
                 output[0][i] = self.buf[0];
                 // save new input to ring buffer
                 self.buf.push(inputs[0].buffers()[0][i]);

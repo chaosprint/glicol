@@ -1,14 +1,21 @@
+// #[macro_export]
+// macro_rules! mono_node {
+//     ($body:expr) => {
+//         NodeData::new1( BoxedNodeSend::new(($body)))
+//     };
+// }
+
 #[macro_export]
 macro_rules! mono_node {
-    ($body:expr) => {
-        NodeData::new1( BoxedNodeSend::new(($body)))
+    ($size:expr, $body:expr) => {
+        NodeData::new1( BoxedNodeSend::<$size>::new(($body)))
     };
 }
 
 #[macro_export]
 macro_rules! stereo_node {
-    ($body:expr) => {
-        NodeData::new2( BoxedNodeSend::new(($body)))
+    ($size:expr, $body:expr) => {
+        NodeData::new2( BoxedNodeSend::<$size>::new(($body)))
     };
 }
 
@@ -50,14 +57,6 @@ macro_rules! mul {
     };
 }
 
-#[macro_export]
-macro_rules! sin_osc {
-    ({$($para: ident: $data:expr),*}) => {
-         (
-            SinOsc::new()$(.$para($data))*.build()
-        )
-    }
-}
 
 #[macro_export]
 macro_rules! tri_osc {

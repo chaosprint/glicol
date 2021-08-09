@@ -2,15 +2,15 @@ use dasp_graph::{Buffer, Input, Node};
 // use dasp_signal::{self as signal, Signal};
 // use super::super::{Pairs, Rule, NodeData, BoxedNodeSend, EngineError};
 
-pub struct Clock {}
+pub struct Clock<const N: usize> {}
 
-impl Node<128> for Clock {
-    fn process(&mut self, _inputs: &[Input<128>], _output: &mut [Buffer<128>]) {
+impl<const N: usize> Node<N> for Clock<N> {
+    fn process(&mut self, _inputs: &[Input<N>], _output: &mut [Buffer<N>]) {
         // we set the output buffer manually
     }
 }
 
-pub struct AudioIn {}
+pub struct AudioIn<const N: usize> {}
 
 // impl AudioIn {
 //     // pub fn new() ->
@@ -20,8 +20,8 @@ pub struct AudioIn {}
 //     // }
 // }
 
-impl Node<128> for AudioIn {
-    fn process(&mut self, _inputs: &[Input<128>], _output: &mut [Buffer<128>]) {
+impl<const N: usize> Node<N> for AudioIn<N> {
+    fn process(&mut self, _inputs: &[Input<N>], _output: &mut [Buffer<N>]) {
         // we set the output buffer manually
     }
 }

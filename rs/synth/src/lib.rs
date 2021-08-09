@@ -32,10 +32,10 @@ pub mod pass; use pass::*;
 pub mod effect; use effect::*;
 use {delayn::*, delay::*, pan::*, balance::*};
 
-pub type GlicolNodeData = NodeData<BoxedNodeSend<128>, 128>;
-pub type GlicolGraph = StableDiGraph<GlicolNodeData, (), u32>;
-pub type GlicolProcessor = Processor<GlicolGraph, 128>;
-pub type NodeResult = Result<(GlicolNodeData, Vec<String>), GlicolError>;
+pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
+pub type GlicolGraph<const N: usize> = StableDiGraph<GlicolNodeData<N>, (), u32>;
+pub type GlicolProcessor<const N: usize> = Processor<GlicolGraph<N>, N>;
+pub type NodeResult<const N: usize> = Result<(GlicolNodeData<N>, Vec<String>), GlicolError>;
 
 #[derive(Debug)]
 pub enum GlicolError {
@@ -48,14 +48,14 @@ pub enum GlicolError {
     NodeNameError((String, usize, usize)),
 }
 
-pub fn make_node(
+pub fn make_node<const N: usize>(
     name: &str,
     paras: &mut Pairs<Rule>,
     pos: (usize, usize),
     samples_dict: &HashMap<String, &'static[f32]>,
     sr: usize,
     bpm: f32,
-) -> NodeResult {
+) -> NodeResult<N> {
 
     // TODO: handle this in the parser
     // if !["", ""].contains(&name) {
@@ -130,7 +130,7 @@ pub fn make_node(
     if alias == "pass" {refs = vec![name.to_owned()]}
     
     let nodedata = match alias {
-        "sin" => sin_osc!({freq: get_num(&p[0]), sr: sr}),
+        "sin" => sin_osc!(N, {freq: get_num(&p[0]), sr: sr}),
         "saw" => saw_osc!({freq: get_num(&p[0]), sr: sr}),
         "squ" => squ_osc!({freq: get_num(&p[0]), sr: sr}),
         "tri" => tri_osc!({freq: get_num(&p[0]), sr: sr}),
@@ -280,26 +280,26 @@ pub fn process_parameters(paras: &mut Pairs<Rule>, mut modulable: Vec<Para>) -> 
     return Ok((modulable, refs))
 }
 
-pub struct SimpleGraph {
-    pub graph: GlicolGraph,
-    processor: GlicolProcessor,
+pub struct SimpleGraph<const N: usize> {
+    pub graph: GlicolGraph<N>,
+    processor: GlicolProcessor<N>,
     clock: NodeIndex,
     elapsed_samples: usize,
     pub node_by_chain: HashMap<String, Vec<NodeIndex>>,
 }
 
-impl SimpleGraph {
+impl<const N: usize> SimpleGraph<N> {
 
     pub fn new(code: &str) -> Self {
-        let mut graph = GlicolGraph::with_capacity(1024, 1024);
+        let mut graph = GlicolGraph::<N>::with_capacity(1024, 1024);
             // let processor = GlicolProcessor::with_capacity(1024);
         let mut sidechains_list = Vec::<(NodeIndex, String)>::new();
         let mut node_by_chain = HashMap::new();
 
         let clock = graph.add_node(
-            NodeData::new1(BoxedNodeSend::new(Clock{})));
+            NodeData::new1(BoxedNodeSend::<N>::new(Clock{})));
         let audio_in = graph.add_node(
-                NodeData::new1(BoxedNodeSend::new(AudioIn{})));
+                NodeData::new1(BoxedNodeSend::<N>::new(AudioIn{})));
         node_by_chain.insert(
             "~input".to_string(),
             vec![audio_in]
@@ -436,7 +436,7 @@ impl SimpleGraph {
             }
             // this must be inside
             self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
-            for i in 0..128 {
+            for i in 0..N {
                 self.graph[
                     self.node_by_chain["~input"][0]
                 ].buffers[0][i] = inbuf[i];
@@ -457,12 +457,12 @@ impl SimpleGraph {
                 _ => {unimplemented!()}
             };
 
-            for i in 0..128 {
+            for i in 0..N {
                 output[i] += bufleft[i];
-                output[i+128] += bufright[i];
+                output[i+N] += bufright[i];
             }
         }
-        self.elapsed_samples += 128;
+        self.elapsed_samples += N;
         output
     }
 }

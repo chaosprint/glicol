@@ -2,21 +2,21 @@ use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNodeSend};
 use super::super::{GlicolNodeData, mono_node};
 
 /// Sine Wave Oscillator Node Builder
-pub struct SinOsc {
+pub struct SinOsc<const N: usize> {
     freq: f32,
     phase: f32,
     clock: usize,
-    buffer: Buffer<128>,
+    buffer: Buffer<N>,
     sr: usize,
 }
 
-impl SinOsc {
+impl<const N: usize> SinOsc<N> {
     pub fn new() -> Self {
         Self {
             freq: 0.01,
             phase: 0.,
             clock: 0,
-            buffer: Buffer::<128>::default(),
+            buffer: Buffer::<N>::default(),
             sr: 44100,
         }
     }
@@ -29,8 +29,8 @@ impl SinOsc {
         Self {sr, ..self}
     }
 
-    pub fn build(self) -> GlicolNodeData {
-        mono_node! ( self )
+    pub fn build(self) -> GlicolNodeData<N> {
+        mono_node! ( N, self )
     }
 }
 
@@ -41,8 +41,8 @@ impl SinOsc {
 /// We should find out a way to differ standalone and live coding
 /// This is by seeing if the first input is a clock
 /// The clock is like [12345, 0, 0, 0, ...] * 128
-impl Node<128> for SinOsc {
-    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
+impl<const N: usize> Node<N> for SinOsc<N> {
+    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         
         let min_user_input = 0;
         let l = inputs.len();
@@ -57,7 +57,7 @@ impl Node<128> for SinOsc {
         
         match l {
             0 => {
-                for i in 0..128 {
+                for i in 0..N {
                     output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
                     self.phase += self.freq / self.sr as f32;
                     if self.phase > 1.0 {
@@ -69,7 +69,7 @@ impl Node<128> for SinOsc {
                 // in standalone mode, no mechanism to prevent double processing
                 // basic fm
                 if has_clock {
-                    for i in 0..128 {
+                    for i in 0..N {
                         output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
                         self.phase += self.freq / self.sr as f32;
                         if self.phase > 1.0 {
@@ -78,7 +78,7 @@ impl Node<128> for SinOsc {
                     }
                 } else {
                     let mod_buf = &mut inputs[0].buffers();
-                    for i in 0..128 {
+                    for i in 0..N {
                         output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
                         self.phase += mod_buf[0][i] / self.sr as f32;
                         if self.phase > 1.0 {
@@ -112,5 +112,14 @@ impl Node<128> for SinOsc {
             _ => return ()
         }
         // println!("output from sin {:?}", output);
+    }
+}
+
+#[macro_export]
+macro_rules! sin_osc {
+    ($size:expr, {$($para: ident: $data:expr),*  }) => {
+         (
+            SinOsc::<$size>::new()$(.$para($data))*.build()
+        )
     }
 }
