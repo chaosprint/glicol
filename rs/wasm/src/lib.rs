@@ -33,7 +33,7 @@ pub extern "C" fn alloc_uint32array(length: usize) -> *mut f32 {
 
 lazy_static! {
     // static ref ENGINE:Arc<Mutex<Engine>> = Arc::new(Mutex::new(Engine::new()));
-    static ref ENGINE:Mutex<Engine> = Mutex::new(Engine::new(44100));
+    static ref ENGINE:Mutex<Engine<128>> = Mutex::new(Engine::<128>::new(44100));
 }
 
 #[no_mangle] // 64 f32 float // -> *mut [u8; 256] 
@@ -41,7 +41,7 @@ pub extern fn process_u8(out_ptr: *mut u8) {
     let mut engine = ENGINE.lock().unwrap();
     // engine.set_code("~ss: sin 440".to_string());
     // engine.update();
-    let buf = engine.gen_next_buf_128(&mut [0.0; 128]).unwrap();
+    let buf = engine.gen_next_buf(&mut [0.0; 128]).unwrap();
     // float *const [f32; 64]
     // let mut bytes: [u8; 256] = [0; 256];
     let out_buf: &mut [u8] = unsafe { std::slice::from_raw_parts_mut(out_ptr, 256) };
@@ -66,7 +66,7 @@ pub extern "C" fn process(in_ptr: *mut f32, out_ptr: *mut f32, size: usize)-> *m
     // error handling here
     // no need to use Result here
     // simply guarantee this is outputting 128 samples array
-    let (wave_buf, mut console) = match engine.gen_next_buf_128(in_buf) {
+    let (wave_buf, mut console) = match engine.gen_next_buf(in_buf) {
         Ok(v) => {v},
         Err(_e) => {([0.0; 256], [0;256])}
     };

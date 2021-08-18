@@ -582,4 +582,4 @@ window.artsource = `
 ╚██████╔╝███████╗██║╚██████╗╚██████╔╝███████╗
  ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═════╝ ╚══════╝`
 
-window.art = window.version ? window.artsource + "\n\n" + window.version : window.artsource
+window.art = window.version ? window.artsource + "\n\n" + window.version : window.artsource + "\n\n" + "Local Test Version"
