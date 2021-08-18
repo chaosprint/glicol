@@ -230,9 +230,11 @@ class GlicolEngine extends AudioWorkletProcessor {
     }
     constructor() {
         super()
-        var sampleLength, samplePtr, sampleArray,
-        ptrArr = [], lenArr = [],
-        nameArr = [], nameLenArr = [];
+        var sampleLength, samplePtr, sampleArray;
+        this.ptrArr = [];
+        this.lenArr = [];
+        this.nameArr = [];
+        this.nameLenArr = [];
 
         var allocUint32Array = (arr, wasmFunc, wasmBuffer) => {
             let len = arr.length
@@ -275,8 +277,8 @@ class GlicolEngine extends AudioWorkletProcessor {
                     sampleLength
                 );
 
-                ptrArr.push(samplePtr)
-                lenArr.push(sampleLength)
+                this.ptrArr.push(samplePtr)
+                this.lenArr.push(sampleLength)
 
                 sampleArray.set(s);
                 
@@ -285,8 +287,8 @@ class GlicolEngine extends AudioWorkletProcessor {
                 let name = new Uint8Array(this._wasm.exports.memory.buffer, namePtr, nameLen);
                 name.set(e.data.name);
                            
-                nameArr.push(namePtr)
-                nameLenArr.push(nameLen)
+                this.nameArr.push(namePtr)
+                this.nameLenArr.push(nameLen)
 
                 // need to reset this
                 this._outBuf = new Float32Array(
@@ -309,11 +311,11 @@ class GlicolEngine extends AudioWorkletProcessor {
                 let codeUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, codeUint8ArrayPtr, codeLen);
                 codeUint8Array.set(e.data.value);
 
-                let sampleInfo = allocUint32Array(ptrArr, this._wasm.exports.alloc_uint32array, this._wasm.exports.memory.buffer)
-                let lengthInfo = allocUint32Array(lenArr, this._wasm.exports.alloc_uint32array, this._wasm.exports.memory.buffer)
+                let sampleInfo = allocUint32Array( this.ptrArr, this._wasm.exports.alloc_uint32array, this._wasm.exports.memory.buffer)
+                let lengthInfo = allocUint32Array( this.lenArr, this._wasm.exports.alloc_uint32array, this._wasm.exports.memory.buffer)
 
-                let nameInfo = allocUint32Array(nameArr, this._wasm.exports.alloc_uint32array, this._wasm.exports.memory.buffer)
-                let nameLenInfo = allocUint32Array(nameLenArr, this._wasm.exports.alloc_uint32array, this._wasm.exports.memory.buffer)
+                let nameInfo = allocUint32Array( this.nameArr, this._wasm.exports.alloc_uint32array, this._wasm.exports.memory.buffer)
+                let nameLenInfo = allocUint32Array( this.nameLenArr, this._wasm.exports.alloc_uint32array, this._wasm.exports.memory.buffer)
 
                 this._wasm.exports.run(
                     codeUint8ArrayPtr, codeLen,
