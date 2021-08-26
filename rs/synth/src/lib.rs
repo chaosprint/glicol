@@ -126,7 +126,7 @@ pub fn make_node(
     let (p, mut refs) = process_parameters(paras, modulable)?;
     // println!("{:?}", p);
 
-    if alias == "seq" {refs = process_seq(paras.as_str())?.2}
+    if alias == "seq" {refs = process_seq(paras)?.2}
     if alias == "pass" {refs = vec![name.to_owned()]}
     
     let nodedata = match alias {
@@ -145,8 +145,8 @@ pub fn make_node(
         "sampler" => {
             sampler!(samples_dict[&paras.as_str().replace("\\", "")])},
         "seq" => {
-            let info = process_seq(paras.as_str()).unwrap();
-            seq!({events: info.0, sidechain_lib: info.1, sr: sr, bpm: bpm})
+            // let info = process_seq(paras.as_str()).unwrap();
+            seq!({events: process_seq(paras)?.0, sidechain_lib: process_seq(paras)?.1, sr: sr, bpm: bpm})
         }
         "speed" => speed!(get_num(&p[0])),
         "choose" => choose!(get_notes(paras)?),
@@ -195,7 +195,17 @@ fn get_num(p: &Para) -> f32 {
 type Events = Vec::<(f64, String)>;
 type Sidechain = HashMap::<String, usize>;
 
-fn process_seq(pattern: &str) -> Result<(Events, Sidechain, Vec<String>), GlicolError> {
+fn process_seq(paras: &mut Pairs<Rule>) -> Result<(Events, Sidechain, Vec<String>), GlicolError> {
+    let pattern = paras.clone().as_str();
+    let p = paras.clone().next();
+    
+    let pos = match p {
+        Some(p) => (p.as_span().start(), p.as_span().end()),
+        None => (0,0)
+    };
+
+    println!("pos {:?}", pos);
+
     let mut events = Vec::<(f64, String)>::new();
     let mut sidechain_count = 0;
     let mut sidechains = Vec::new();
@@ -213,17 +223,24 @@ fn process_seq(pattern: &str) -> Result<(Events, Sidechain, Vec<String>), Glicol
             let relative_time = i as f64 / len_by_space as f64 
             + (j as f64/ notes_len as f64 ) * compound_unit;
 
-            if x.contains("~") {
+            println!("x is {}", x);
+            
+            if !x.parse::<f32>().is_ok() && x != &"_" && !x.starts_with('~') {
+                return Err(GlicolError::ParameterError(pos))
+            };
+
+            if x.starts_with('~') {
                 sidechains.push(x.to_string());
                 sidechain_lib.insert(x.to_string(), sidechain_count);
                 sidechain_count += 1;
-            }
-
+                events.push((relative_time, x.to_string()))
+            };
             if x != &"_" {
                 events.push((relative_time, x.to_string()))
-            }
+            } 
         }
     }
+    println!("event: {:?}", events);
     Ok((events, sidechain_lib, sidechains))
 }
 

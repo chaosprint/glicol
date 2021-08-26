@@ -37,7 +37,7 @@ pub fn make_graph(input: TokenStream) -> TokenStream {
         }
         f = i.next();
     }
-    println!("{} {:?}",code, variable);
+    // println!("{} {:?}",code, variable);
     // // let code = "num is {}";
     let o = quote!(
         // println!(#code, #(#variable),*);
