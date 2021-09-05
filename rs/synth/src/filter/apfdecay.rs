@@ -50,15 +50,6 @@ impl<const N: usize> AllpassDecay<N> {
     }
 }
 
-#[macro_export]
-macro_rules! apfdecay {
-    ({$($para: ident: $data:expr),*}) => {
-         (
-            AllpassDecay::new()$(.$para($data))*.build()
-        )
-    }
-}
-
 impl<const N: usize> Node<N> for AllpassDecay<N> {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         // TODO: modulation?

@@ -57,14 +57,3 @@ impl<const N:usize> Node<N> for Pan<N> {
         }
     }
 }
-
-#[macro_export]
-macro_rules! pan {
-    () => { // controlled by modulator, no need for value
-        Pan::new(0.5)
-    };
-
-    ($data: expr) => {
-        Pan::new($data)
-    };
-}

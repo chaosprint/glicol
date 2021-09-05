@@ -114,12 +114,3 @@ impl<const N: usize> Node<N> for SinOsc<N> {
         // println!("output from sin {:?}", output);
     }
 }
-
-#[macro_export]
-macro_rules! sin_osc {
-    ($size:expr, {$($para: ident: $data:expr),*  }) => {
-         (
-            SinOsc::<$size>::new()$(.$para($data))*.build()
-        )
-    }
-}

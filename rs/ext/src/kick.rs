@@ -4,16 +4,13 @@ use glicol_parser::{Rule, GlicolParser};
 use pest::Parser;
 use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNodeSend};
 
-pub struct AmpLFO<const N: usize> {
+pub struct Kick<const N: usize> {
     graph: SimpleGraph<N>
 }
 
-impl<const N: usize> AmpLFO<N> {
+impl<const N: usize> Kick<N> {
     pub fn new(freq: f32) -> GlicolNodeData<N> {
-        // let mul = (high - low) / 2.0;
-        // assert!(mul > 0.0);
-        // assert!(low >= 0.0);
-        // let ad = mul + low;
+
         let graph = make_graph!{
             out: ~input >> mul ~am;
             ~am: sin #freq >> mul 0.3 >> add 0.5;
@@ -23,7 +20,7 @@ impl<const N: usize> AmpLFO<N> {
 }
 //  ~am: sin #freq >> mul 0.3 >> add 0.5;
 
-impl<const N: usize> Node<N> for AmpLFO<N> {
+impl<const N: usize> Node<N> for Kick<N> {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {       
         let mut input = [0.0; N];
         for i in 0..N {

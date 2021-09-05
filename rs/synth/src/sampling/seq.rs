@@ -38,15 +38,6 @@ impl<const N:usize> Sequencer<N> {
 
 }
 
-#[macro_export]
-macro_rules! seq {
-    ({$($para: ident: $data:expr),*}) => {
-         (
-            Sequencer::new()$(.$para($data))*.build()
-        )
-    }
-}
-
 /// The Sequencer is probably the most complicated node in Glicol
 /// The inputs can be clock, speed or many sidechains
 impl<const N:usize> Node<N> for Sequencer<N> {
@@ -78,6 +69,7 @@ impl<const N:usize> Node<N> for Sequencer<N> {
         }
 
         // println!("{}{}", has_clock, has_speed_input);
+        // println!("has clock? {} has speed input? {}", has_clock, has_speed_input);
         // let relative_time = event.0;
         // let relative_pitch = event.1; a ratio for midi 60 freq
         let bar_length = 240.0 / self.bpm as f64 * self.sr as f64 / self.speed as f64;

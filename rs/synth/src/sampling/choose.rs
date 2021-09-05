@@ -13,12 +13,6 @@ impl<const N:usize> Choose<N> {
     }
 }
 
-#[macro_export]
-macro_rules! choose {
-    ($data: expr) => {
-        Choose::new($data);
-    };
-}
 
 impl<const N:usize> Node<N> for Choose<N> {
     fn process(&mut self, _inputs: &[Input<N>], output: &mut [Buffer<N>]) {

@@ -21,14 +21,3 @@ impl<const N:usize> Node<N> for Balance<N> {
         output[1].iter_mut().for_each(|s| *s = *s * self.balance);
     }
 }
-
-#[macro_export]
-macro_rules! balance {
-    () => { // controlled by modulator, no need for value
-        Balance::new(0.5)
-    };
-
-    ($data: expr) => {
-        Balance::new($data)
-    };
-}

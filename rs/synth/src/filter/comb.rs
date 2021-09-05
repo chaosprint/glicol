@@ -82,14 +82,6 @@ impl<const N: usize> Comb<N> {
     //         )
     //     ]
     // );
-#[macro_export]
-macro_rules! comb {
-    ({$($para: ident: $data:expr),*}) => {
-            (
-            Comb::new()$(.$para($data))*.build()
-        )
-    }
-}
 
 // TODO: modulation?
 

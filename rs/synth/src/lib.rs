@@ -126,40 +126,40 @@ pub fn make_node<const N: usize>(
     let (p, mut refs) = process_parameters(paras, modulable)?;
     // println!("{:?}", p);
 
-    if alias == "seq" {refs = process_seq(paras.as_str())?.2}
+    if alias == "seq" {refs = process_seq(paras)?.2}
     if alias == "pass" {refs = vec![name.to_owned()]}
     
     let nodedata = match alias {
-        "sin" => sin_osc!(N, {freq: get_num(&p[0]), sr: sr}),
-        "saw" => saw_osc!({freq: get_num(&p[0]), sr: sr}),
-        "squ" => squ_osc!({freq: get_num(&p[0]), sr: sr}),
-        "tri" => tri_osc!({freq: get_num(&p[0]), sr: sr}),
-        "const_sig" => const_sig!(get_num(&p[0])),
-        "mul" => mul!(get_num(&p[0])),
-        "add" => add!(get_num(&p[0])),
-        "rlpf" => rlpf!({cutoff: get_num(&p[0]), q: get_num(&p[1]), sr: sr}),
-        "rhpf" => rhpf!({cutoff: get_num(&p[0]), q: get_num(&p[1]), sr: sr}),
+        "sin" => sin_osc!(N => {freq: get_num(&p[0]), sr: sr}),
+        "saw" => saw_osc!(N => {freq: get_num(&p[0]), sr: sr}),
+        "squ" => squ_osc!(N => {freq: get_num(&p[0]), sr: sr}),
+        "tri" => tri_osc!(N => {freq: get_num(&p[0]), sr: sr}),
+        "const_sig" => const_sig!(N => get_num(&p[0])),
+        "mul" => mul!(N => get_num(&p[0])),
+        "add" => add!(N => get_num(&p[0])),
+        "rlpf" => rlpf!(N => {cutoff: get_num(&p[0]), q: get_num(&p[1]), sr: sr}),
+        "rhpf" => rhpf!(N => {cutoff: get_num(&p[0]), q: get_num(&p[1]), sr: sr}),
 
-        "noise" => noise!(get_num(&p[0]) as u64),
-        "imp" => imp!({freq: get_num(&p[0]), sr: sr}),
+        "noise" => noise!(N => get_num(&p[0]) as u64),
+        "imp" => imp!(N => {freq: get_num(&p[0]), sr: sr}),
         "sampler" => {
-            sampler!(samples_dict[&paras.as_str().replace("\\", "")])},
+            sampler!(N => samples_dict[&paras.as_str().replace("\\", "")])},
         "seq" => {
-            let info = process_seq(paras.as_str()).unwrap();
-            seq!({events: info.0, sidechain_lib: info.1, sr: sr, bpm: bpm})
+            // let info = process_seq(paras.as_str()).unwrap();
+            seq!(N => {events: process_seq(paras)?.0, sidechain_lib: process_seq(paras)?.1, sr: sr, bpm: bpm})
         }
-        "speed" => speed!(get_num(&p[0])),
-        "choose" => choose!(get_notes(paras)?),
-        "delayn" => delayn!(get_num(&p[0]) as usize),
-        "delay" => delay!({delay: get_num(&p[0]), sr: sr}),
-        "onepole" => onepole!(get_num(&p[0])),
-        "comb" => comb!({delay: get_num(&p[0]), gain: get_num(&p[1]), feedforward: get_num(&p[2]), feedback: get_num(&p[3])}),
-        "apfdecay" => apfdecay!({delay: get_num(&p[0]), decay: get_num(&p[1])}),
-        "apfgain" => apfgain!({delay: get_num(&p[0]), gain: get_num(&p[1])}),
-        "pan" => pan!(get_num(&p[0])),
-        "balance" => balance!(get_num(&p[2])),
-        "pass" => Pass::new(),
-        "envperc" => envperc!({attack: get_num(&p[0]), decay: get_num(&p[1]), sr: sr}),
+        "speed" => speed!(N => get_num(&p[0])),
+        "choose" => choose!(N => get_notes(paras)?),
+        "delayn" => delayn!(N => get_num(&p[0]) as usize),
+        "delay" => delay!(N => {delay: get_num(&p[0]), sr: sr}),
+        "onepole" => onepole!(N => get_num(&p[0])),
+        "comb" => comb!(N => {delay: get_num(&p[0]), gain: get_num(&p[1]), feedforward: get_num(&p[2]), feedback: get_num(&p[3])}),
+        "apfdecay" => apfdecay!(N => {delay: get_num(&p[0]), decay: get_num(&p[1])}),
+        "apfgain" => apfgain!(N => {delay: get_num(&p[0]), gain: get_num(&p[1])}),
+        "pan" => pan!(N => get_num(&p[0])),
+        "balance" => balance!(N => get_num(&p[2])),
+        "pass" => Pass::<N>::new(),
+        "envperc" => envperc!(N => {attack: get_num(&p[0]), decay: get_num(&p[1]), sr: sr}),
         _ => {
             // let a = paras.next().unwrap();
             return Err(GlicolError::NodeNameError((name.to_owned(), 0,0)))
@@ -195,7 +195,17 @@ fn get_num(p: &Para) -> f32 {
 type Events = Vec::<(f64, String)>;
 type Sidechain = HashMap::<String, usize>;
 
-fn process_seq(pattern: &str) -> Result<(Events, Sidechain, Vec<String>), GlicolError> {
+fn process_seq(paras: &mut Pairs<Rule>) -> Result<(Events, Sidechain, Vec<String>), GlicolError> {
+    let pattern = paras.clone().as_str();
+    let p = paras.clone().next();
+    
+    let pos = match p {
+        Some(p) => (p.as_span().start(), p.as_span().end()),
+        None => (0,0)
+    };
+
+    println!("pos {:?}", pos);
+
     let mut events = Vec::<(f64, String)>::new();
     let mut sidechain_count = 0;
     let mut sidechains = Vec::new();
@@ -213,17 +223,24 @@ fn process_seq(pattern: &str) -> Result<(Events, Sidechain, Vec<String>), Glicol
             let relative_time = i as f64 / len_by_space as f64 
             + (j as f64/ notes_len as f64 ) * compound_unit;
 
-            if x.contains("~") {
+            println!("x is {}", x);
+            
+            if !x.parse::<f32>().is_ok() && x != &"_" && !x.starts_with('~') {
+                return Err(GlicolError::ParameterError(pos))
+            };
+
+            if x.starts_with('~') {
                 sidechains.push(x.to_string());
                 sidechain_lib.insert(x.to_string(), sidechain_count);
                 sidechain_count += 1;
-            }
-
+                events.push((relative_time, x.to_string()))
+            };
             if x != &"_" {
                 events.push((relative_time, x.to_string()))
-            }
+            } 
         }
     }
+    println!("event: {:?}", events);
     Ok((events, sidechain_lib, sidechains))
 }
 

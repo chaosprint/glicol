@@ -12,13 +12,6 @@ impl<const N: usize> OnePole<N> {
     }
 }
 
-#[macro_export]
-macro_rules! onepole {
-    ($data: expr) => {
-        OnePole::new($data);
-    };
-}
-
 impl<const N: usize> Node<N> for OnePole<N> {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
 

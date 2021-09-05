@@ -57,14 +57,3 @@ impl<const N:usize> Node<N> for Add<N> {
         // println!("output from add node {:?}", output);
     }
 }
-
-#[macro_export]
-macro_rules! add {
-    () => {
-        Add::new(0.0)
-    };
-
-    ($data: expr) => {
-        Add::new($data)
-    };
-}

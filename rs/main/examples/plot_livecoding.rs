@@ -4,10 +4,10 @@ use glicol::Engine;
 
 fn main () {
     let mut engine = Engine::new(44100);
-    engine.set_code("~aa: imp 1.0 >> envperc 0.0 1.0; bb: noise 42 >> mul ~aa >> lpf 300 1;");
+    engine.set_code("aa: speed 16.0 >> seq ~a; ~a: choose 60 72 48;");
     // engine.set_code("~left: sin 10; ~right: sin 20; out: balance ~left ~right 0.5;");
     // engine.set_code("tt: sin 44 >> amplfo 1.0");
-    plot(engine, 256);
+    plot(engine, 88200);
 }
 
 fn plot(mut engine: Engine, step: usize) {

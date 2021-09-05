@@ -21,10 +21,3 @@ impl<const N:usize> Node<N> for ConstSig<N> {
         }
     }
 }
-
-#[macro_export]
-macro_rules! const_sig {
-    ($data: expr) => {
-        ConstSig::new($data)
-    };
-}

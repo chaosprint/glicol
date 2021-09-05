@@ -34,15 +34,6 @@ impl<const N:usize> Delay<N> {
     }
 }
 
-#[macro_export]
-macro_rules! delay {
-    ({$($para: ident: $data:expr),*}) => {
-         (
-            Delay::new()$(.$para($data))*.build()
-        )
-    }
-}
-
 impl<const N:usize> Node<N> for Delay<N> {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         let l = inputs.len();

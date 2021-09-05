@@ -38,15 +38,6 @@ impl<const N:usize> EnvPerc<N> {
     }
 }
 
-#[macro_export]
-macro_rules! envperc {
-    ({$($para: ident: $data:expr),*}) => {
-         (
-            EnvPerc::new()$(.$para($data))*.build()
-        )
-    }
-}
-
 impl<const N:usize> Node<N> for EnvPerc<N> {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
 

@@ -50,15 +50,6 @@ impl<const N: usize> AllpassGain<N> {
     }
 }
 
-#[macro_export]
-macro_rules! apfgain {
-    ({$($para: ident: $data:expr),*}) => {
-         (
-            AllpassGain::new()$(.$para($data))*.build()
-        )
-    }
-}
-
 impl<const N: usize> Node<N> for AllpassGain<N> {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         let l = inputs.len();

@@ -42,15 +42,6 @@ impl<const N: usize> ResonantLowPassFilter<N> {
     }
 }
 
-#[macro_export]
-macro_rules! rlpf {
-    ({$($para: ident: $data:expr),*}) => {
-         (
-            ResonantLowPassFilter::new()$(.$para($data))*.build()
-        )
-    }
-}
-
 impl<const N: usize> Node<N> for ResonantLowPassFilter<N> {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         let l = inputs.len();

@@ -13,14 +13,6 @@ impl<const N:usize> DelayN<N> {
         mono_node!( N, Self {buf: ring_buffer::Fixed::from(vec![0.0; n])} )
     }
 }
-
-#[macro_export]
-macro_rules! delayn {
-    ($data: expr) => {
-        DelayN::new($data);
-    };
-}
-
 impl<const N:usize> Node<N> for DelayN<N> {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         for i in 0..N {

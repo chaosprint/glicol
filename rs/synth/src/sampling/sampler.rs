@@ -43,12 +43,6 @@ impl<const N:usize> Sampler<N> {
     // }
 // }
 
-#[macro_export]
-macro_rules! sampler {
-    ($data: expr) => {
-        Sampler::new($data)
-    };
-}
 
 impl<const N:usize> Node<N> for Sampler<N> {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {

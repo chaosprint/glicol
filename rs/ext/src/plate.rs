@@ -70,10 +70,3 @@ impl<const N: usize> Node<N> for Plate<N> {
         }
     }
 }
-
-#[macro_export]
-macro_rules! plate {
-    ($data: expr) => {
-        Plate::new($data)
-    };
-}

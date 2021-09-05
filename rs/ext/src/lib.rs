@@ -6,6 +6,7 @@ use pest::Parser;
 use pest::iterators::Pairs;
 use std::{collections::HashMap};
 
+pub mod macros; use macros::*;
 pub mod amplfo; use amplfo::AmpLFO;
 pub mod plate; use plate::Plate;
 
@@ -40,8 +41,8 @@ pub fn make_node_ext<const N: usize>(
     };
     
     let node = match name {
-        "amplfo" => amplfo!(pv[0]),
-        "plate" => plate!(pv[0]),
+        "amplfo" => amplfo!(N => pv[0]),
+        "plate" => plate!(N => pv[0]),
         _ => unimplemented!()
     };
     Some(node)
