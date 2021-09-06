@@ -6,9 +6,13 @@ use pest::Parser;
 use pest::iterators::Pairs;
 use std::{collections::HashMap};
 
-pub mod macros; use macros::*;
-pub mod amplfo; use amplfo::AmpLFO;
+// pub mod macros; use macros::*;
+// register_node![Plate, Kick];
+
+
+// pub mod amplfo; use amplfo::AmpLFO;
 pub mod plate; use plate::Plate;
+pub mod kick; use kick::*;
 
 pub fn make_node_ext<const N: usize>(
     name: &str,
@@ -19,8 +23,9 @@ pub fn make_node_ext<const N: usize>(
     bpm: f32,
 ) -> Option<GlicolNodeData<N>> {
     let n = match name {
-        "amplfo" => 1,
+        // "amplfo" => 1,
         "plate" => 1,
+        "kick" => 1,
         _ => return None
     };
     let mut pv = vec![];
@@ -34,6 +39,8 @@ pub fn make_node_ext<const N: usize>(
         //     v = p.unwrap();
         //     p = v.clone().into_inner().next();
         // };
+
+        // no modulation here so far
         match p.parse::<f32>() {
             Ok(v) => pv.push(v),
             Err(_) => return None
@@ -41,9 +48,11 @@ pub fn make_node_ext<const N: usize>(
     };
     
     let node = match name {
-        "amplfo" => amplfo!(N => pv[0]),
-        "plate" => plate!(N => pv[0]),
+        // "amplfo" => amplfo!(N => pv[0]),
+        "plate" => plate!(N => pv[0]), // only one para is supported
+        "kick" => kick!(N => pv[0]),
         _ => unimplemented!()
     };
+    
     Some(node)
 }

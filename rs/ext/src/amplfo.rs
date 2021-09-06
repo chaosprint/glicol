@@ -1,3 +1,5 @@
+/// deprecated
+
 use glicol_macro::*;
 use glicol_synth::{SimpleGraph, mono_node, GlicolNodeData};
 use glicol_parser::{Rule, GlicolParser};
@@ -37,4 +39,11 @@ impl<const N: usize> Node<N> for AmpLFO<N> {
         }
         // println!("out {:?}", out);
     }
+}
+
+#[macro_export]
+macro_rules! amplfo{
+    ($size: expr =>  $data: expr) => {
+        AmpLFO::<$size>::new($data)
+    };
 }

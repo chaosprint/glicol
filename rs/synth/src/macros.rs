@@ -81,7 +81,7 @@ macro_rules! tri_osc {
 macro_rules! squ_osc {
     ($size:expr =>{$($para: ident: $data:expr),*}) => {
          (
-            SquOsc:: <$size>::new()$(.$para($data))*.build()
+            SquOsc::<$size>::new()$(.$para($data))*.build()
         )
     }
 }
