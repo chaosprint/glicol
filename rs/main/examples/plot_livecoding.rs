@@ -3,14 +3,14 @@ use gnuplot::*;
 use glicol::Engine;
 
 fn main () {
-    let mut engine = Engine::new(44100);
-    engine.set_code("aa: speed 16.0 >> seq ~a; ~a: choose 60 72 48;");
+    let mut engine = Engine::<128>::new(44100);
+    engine.set_code("aa: seq 60 >> kick 80");
     // engine.set_code("~left: sin 10; ~right: sin 20; out: balance ~left ~right 0.5;");
     // engine.set_code("tt: sin 44 >> amplfo 1.0");
     plot(engine, 88200);
 }
 
-fn plot(mut engine: Engine, step: usize) {
+fn plot(mut engine: Engine::<128>, step: usize) {
     engine.make_graph().unwrap();
     println!("node_by_chain {:?}", engine.node_by_chain);
     let mut x = Vec::<i32>::new();
@@ -19,7 +19,7 @@ fn plot(mut engine: Engine, step: usize) {
     let mut n = 0;
 
     for _ in 0..(step / 128) {
-        let out = engine.gen_next_buf_128(&mut [0.0;128]).unwrap().0;
+        let out = engine.gen_next_buf(&mut [0.0;128]).unwrap().0;
         // let out = engine.gen_next_buf_64().unwrap();
         for i in 0..128 {
             x.push(n);
