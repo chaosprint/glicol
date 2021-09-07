@@ -1,6 +1,7 @@
 use proc_macro::{TokenStream, TokenTree};
 use quote::quote;
 use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
+use std::collections::HashMap;
 
 #[proc_macro]
 pub fn make_graph(input: TokenStream) -> TokenStream {
@@ -65,7 +66,7 @@ pub fn make_node(input: TokenStream) -> TokenStream {
     while f.is_some() {
         let raw = f.clone().unwrap();
         let item = f.unwrap().to_string();
-        println!("{}", &item);
+        // println!("{}", &item);
         if &item == "#" {
             code.push_str("{}");
             code.push_str(" ");
@@ -79,12 +80,12 @@ pub fn make_node(input: TokenStream) -> TokenStream {
             macroname = Ident::new(&namestr.to_lowercase(), Span::call_site());
 
         } else if item.contains("(") {
-            println!("raw {:?}", raw); // raw is tokentree
+            // println!("raw {:?}", raw); // raw is tokentree
             let procmacrots = TokenStream::from(raw.clone());
             paras = TokenStream2::from(procmacrots);
             // paras = item.replace(&['(', ')'][..], "");
         } else if item.contains("{") {
-            println!("raw {:?}", raw); // raw is tokentree
+            // println!("raw {:?}", raw); // raw is tokentree
             // let procmacrots = TokenStream::from(raw.clone());
             behavior = match raw {
                 TokenTree::Group(g) => TokenStream2::from(g.stream()),
@@ -110,7 +111,7 @@ pub fn make_node(input: TokenStream) -> TokenStream {
         }
         f = i.next();
     }
-    println!("code: {} \n\nnodename: {:?}  \n\nvariable {:?}  \n\nparas {:?} \n\nbehavior {:?}",code, name, variable, paras, behavior);
+    // println!("code: {} \n\nnodename: {:?}  \n\nvariable {:?}  \n\nparas {:?} \n\nbehavior {:?}",code, name, variable, paras, behavior);
     // // let code = "num is {}";
     let o = quote!(
         // use glicol_macro::*;
@@ -154,5 +155,73 @@ pub fn make_node(input: TokenStream) -> TokenStream {
             };
         }
     );
+    o.into()
+}
+
+#[proc_macro]
+pub fn register_extensions(input: TokenStream) -> TokenStream {
+    println!("register input {:?}", input);
+    let mut stream = input.into_iter();
+    let mut token = stream.next();
+    // let mut lib = HashMap::<String, u8>::new();
+    let mut key_up = vec![];
+    let mut key_low_str = vec![];
+    let mut key_low = vec![];
+    let mut para_num = vec![];
+    // let mut key = "".to_owned();
+    while token.is_some() {
+        match token.unwrap() {
+            TokenTree::Group(_) => {},
+            TokenTree::Ident(item) => { 
+                key_up.push( item.clone() ); 
+                key_low_str.push(item.clone().to_string().to_lowercase());
+                key_low.push( Ident::new(&item.to_string().to_lowercase(), Span::call_site()) );
+                
+            },
+            TokenTree::Punct(_) => { },
+            TokenTree::Literal(item) => {
+                para_num.push(item.to_string().parse::<u8>().unwrap()); 
+            },
+        }
+        token = stream.next();
+    };
+    let o = quote!(
+        #( pub mod #key_low ; )*
+        #( use #key_low :: * ; )*
+        pub fn make_node_ext<const N: usize>(
+            name: &str,
+            paras: &mut Pairs<Rule>,
+            pos: (usize, usize),
+            samples_dict: &HashMap<String, &'static[f32]>,
+            sr: usize,
+            bpm: f32,
+        ) -> Option<GlicolNodeData<N>> {
+            let n = match name {
+                #( #key_low_str => #para_num,  )*
+                _ => return None
+            };
+            let mut pv = vec![];
+            for _ in 0..n {
+                // let mut v;
+                let mut p = match paras.next() {
+                    Some(v) => v.as_str(),
+                    None => return None
+                };
+                // no modulation here so far
+                match p.parse::<f32>() {
+                    Ok(v) => pv.push(v),
+                    Err(_) => return None
+                };
+            };
+            let node = match name {
+                // only one para is supported
+                #( #key_low_str => #key_low!(N => pv[0]), )*
+                _ => unimplemented!()
+            };
+            
+            Some(node)
+        }
+    );
+    println!("oooo {:?}", o.to_string());
     o.into()
 }
