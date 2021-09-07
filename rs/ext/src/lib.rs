@@ -9,7 +9,7 @@ use std::{collections::HashMap};
 
 register_extensions! {
     Plate: 1,
-    Kick: 1
+    Kick: 2
 }
 
 // remember to regitster on glicol_parser too!

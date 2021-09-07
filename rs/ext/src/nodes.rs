@@ -1,8 +1,27 @@
-use glicol_macro::*;
+use glicol_synth::{SimpleGraph, mono_node, GlicolNodeData};
+use glicol_macro::make_node;
+use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNodeSend};
+
+make_node!{
+    @Kick {
+        let freq = args[0];
+        let shift = args[1];
+    }
+    bd: sin ~pitch >> mul ~env >> mul 0.9;
+
+    ~trigger: ~input;
+
+    ~env: ~trigger >> envperc 0.01 0.4;
+
+    ~env_pitch: ~trigger >> envperc 0.01 0.1;
+
+    ~pitch: ~env_pitch >> mul #freq >> add #shift;
+}
 
 make_node!{
     
-    @Plate (mix: f32) {
+    @Plate {
+        let mix = args[0];
         let mixdiff = 1.0 - mix;
     }
 

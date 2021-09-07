@@ -4,7 +4,7 @@ use glicol::Engine;
 
 fn main () {
     let mut engine = Engine::<128>::new(44100);
-    engine.set_code("aa: seq 60 >> kick 80");
+    engine.set_code("aa: seq 60 >> kick 80 60");
     // engine.set_code("~left: sin 10; ~right: sin 20; out: balance ~left ~right 0.5;");
     // engine.set_code("tt: sin 44 >> amplfo 1.0");
     plot(engine, 88200);
