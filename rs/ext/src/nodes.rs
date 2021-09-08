@@ -65,3 +65,20 @@ make_node!{
     
     out: balance ~left ~right 0.5;
 }
+
+make_node!{
+    
+    @Ks {
+        let delayn = args[0];
+        let fb = args[1];
+        let decay = args[2];
+    }
+
+    ~env: ~input >> envperc 0.0 #decay;
+
+    ~source: noiz 42 >> mul ~env >> add ~delay;
+
+    ~delay: ~source >> delayn #delayn >> mul #fb;
+
+    out: ~source;
+}
