@@ -13,7 +13,7 @@ pub mod oscillator; use oscillator::*;
 use {sin_osc::SinOsc, saw_osc::SawOsc, squ_osc::SquOsc, tri_osc::TriOsc};
 
 pub mod signal; use signal::*;
-use {imp::*, const_sig::ConstSig, noise::Noise, dummy::Clock, dummy::AudioIn};
+use {imp::*, const_sig::ConstSig, noise::Noise, dummy::Clock, dummy::AudioIn, phasor::Phasor};
 
 pub mod operation; use operation::*;
 use {mul::Mul, add::Add};
@@ -112,6 +112,7 @@ pub fn make_node<const N: usize>(
         "apfgain" => vec![Para::Modulable, Para::Number(0.5)],
         "pan" => vec![Para::Modulable],
         "balance" => vec![Para::Modulable, Para::Modulable, Para::Number(0.5)],
+        "pha" => vec![Para::Modulable],
         "pass" => vec![],
         _ => {
             match paras.next() {
@@ -158,6 +159,7 @@ pub fn make_node<const N: usize>(
         "apfgain" => apfgain!(N => {delay: get_num(&p[0]), gain: get_num(&p[1])}),
         "pan" => pan!(N => get_num(&p[0])),
         "balance" => balance!(N => get_num(&p[2])),
+        "pha" => phasor!(N => {freq: get_num(&p[0]), sr: sr}),
         "pass" => Pass::<N>::new(),
         "envperc" => envperc!(N => {attack: get_num(&p[0]), decay: get_num(&p[1]), sr: sr}),
         _ => {

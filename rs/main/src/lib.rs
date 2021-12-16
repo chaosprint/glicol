@@ -23,7 +23,7 @@ use glicol_parser::*;
 use glicol_ext::make_node_ext;
 
 mod utili;
-use utili::{preprocess_sin, preprocess_mul, lcs, process_error_info};
+use utili::{preprocess_signal, preprocess_mul, lcs, process_error_info};
 
 /// The engine of Glicol
 /// This engine can takes Glicol code, convert it to audio graph and process it
@@ -108,7 +108,7 @@ impl<const N: usize> Engine<N> {
         );
 
         println!("code before preprocess: {}",&self.code);
-        self.code = preprocess_sin(&mut self.code)?;
+        self.code = preprocess_signal(&mut self.code)?;
         self.code = preprocess_mul(&mut self.code)?;
         println!("code after preprocess: {}",&self.code);
 

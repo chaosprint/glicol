@@ -35,7 +35,20 @@ impl<const N: usize> SawOsc<N> {
 
 impl<const N: usize> Node<N> for SawOsc<N> {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
-        match inputs.len() {
+
+        
+        let min_user_input = 0;
+        let l = inputs.len();
+        // println!("sin l is {}", l);
+        let max_user_input = 1;
+        if l < min_user_input {return ()};
+        let has_clock = match l {
+            0 => false,
+            _ => inputs[l-1].buffers()[0][0] % 128. == 0. 
+            && inputs[l-1].buffers()[0][1] == 0.
+        };
+        
+        match l {
             0 => {
                 for i in 0..N {
                     let period = self.sr as f32 / self.freq;
@@ -45,18 +58,27 @@ impl<const N: usize> Node<N> for SawOsc<N> {
                 }
             },
             1 => {
-                for i in 0..N {
-                    let mod_buf = &mut inputs[0].buffers();
-                    if mod_buf[0][i] != 0.0 {
-                        self.freq = mod_buf[0][i];
-                    };
+                // in standalone mode, no mechanism to prevent double processing
+                // basic fm
+                if has_clock {
+                    let mut clock = inputs[1].buffers()[0][0] as usize;
                     let period = self.sr as f32 / self.freq;
-                    output[0][i] = ( self.phase_n % period as usize) as f32
-                    / period *2.0-1.0;
-                    self.phase_n += 1;
+                    for i in 0..N {
+                        output[0][i] = (clock % period as usize) as f32
+                        / period *2.0-1.0;
+                        clock += 1;
+                    }
+                } else {
+                    for i in 0..N {
+                        let period = self.sr as f32 / self.freq;
+                        output[0][i] = ( self.phase_n % period as usize) as f32
+                        / period *2.0-1.0;
+                        self.phase_n += 1;
+                    }
                 }
             },
             2 => {
+                // has clock input or somehow mistakenly connected by users
                 let mut clock = inputs[1].buffers()[0][0] as usize;
                 for i in 0..N {
                     let mod_buf = &mut inputs[0].buffers();
@@ -69,7 +91,7 @@ impl<const N: usize> Node<N> for SawOsc<N> {
                     clock += 1;
                 }
             },
-            _ => ()
+            _ => return ()
         }
     }
 }

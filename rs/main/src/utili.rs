@@ -16,15 +16,15 @@ use super::{EngineError};
 //     }
 // }
 
-pub fn preprocess_sin(a: &String) -> Result<String, EngineError> {
+pub fn preprocess_signal(a: &String) -> Result<String, EngineError> {
     
     let q: String = a.replace(";","\n\n").replace("\n", " \n");
     let v: Vec<&str> = q.split(" ").collect();
-    println!("preprocess_sin {:?}", v);
+    println!("preprocess_signal {:?}", v);
     let mut b = "".to_string();
     let mut skip = false;
     for (i, c) in v.iter().enumerate() {
-        if *c == "sin" || *c == "saw" || *c == "squ" {
+        if *c == "sin" || *c == "saw" || *c == "squ" || *c == "tri" || *c == "pha" {
             if v.len() <= i + 1 {
                 return Err(EngineError::InsufficientParameter((0, 0)))
             }

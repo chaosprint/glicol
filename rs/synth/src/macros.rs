@@ -41,6 +41,16 @@ macro_rules! noise {
 
 
 #[macro_export]
+macro_rules! phasor {
+    ($size:expr => {$($para: ident: $data:expr),*  }) => {
+         (
+            Phasor::<$size>::new()$(.$para($data))*.build()
+        )
+    }
+}
+
+
+#[macro_export]
 macro_rules! mul {
 
     ($size: expr) => {
@@ -210,6 +220,15 @@ macro_rules! delay {
     ($size:expr => {$($para: ident: $data:expr),*}) => {
          (
             Delay::<$size>::new()$(.$para($data))*.build()
+        )
+    }
+}
+
+#[macro_export]
+macro_rules! delaymod {
+    ($size:expr => {$($para: ident: $data:expr),*}) => {
+         (
+            DelayMod::<$size>::new()$(.$para($data))*.build()
         )
     }
 }

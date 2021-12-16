@@ -38,7 +38,18 @@ impl<const N: usize> TriOsc<N> {
 
 impl<const N: usize> Node<N> for TriOsc<N> {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
-        match inputs.len() {
+        let min_user_input = 0;
+        let l = inputs.len();
+        // println!("sin l is {}", l);
+        let max_user_input = 1;
+        if l < min_user_input {return ()};
+        let has_clock = match l {
+            0 => false,
+            _ => inputs[l-1].buffers()[0][0] % 128. == 0. 
+            && inputs[l-1].buffers()[0][1] == 0.
+        };
+        
+        match l {
             0 => {
                 for i in 0..N {
                     let t = self.sr as f32 / self.freq;
@@ -64,29 +75,41 @@ impl<const N: usize> Node<N> for TriOsc<N> {
                     }
                 }
             },
-            1 => { // can be clock in Glicol or sidechain made by user
-                for i in 0..N {
-                    let mod_buf = &mut inputs[0].buffers();
-                    if mod_buf[0][i] != 0.0 {
-                        self.freq = mod_buf[0][i];
-                    };
-                    let t = self.sr as f32 / self.freq;
-                    let phase = self.phase_n as f32 / (t/4.);
-                    let y = match phase.floor() as u8 {
-                        0 => phase.fract(),
-                        1 => 1.0 - phase.fract(),
-                        2 => - phase.fract(),
-                        3 => phase.fract() - 1.,
-                        _ => 0.0
-                    };
-                    output[0][i] = y;
-                    self.phase_n += 1;
-                    if self.phase_n >= t as usize {
-                        self.phase_n -= t as usize;
+            1 => {
+                // in standalone mode, no mechanism to prevent double processing
+                // basic fm
+                if has_clock {
+                    let mut clock = inputs[1].buffers()[0][0] as usize;
+                    let period = self.sr as f32 / self.freq;
+                    for i in 0..N {
+                        output[0][i] = (clock % period as usize) as f32
+                        / period *2.0-1.0;
+                        clock += 1;
+                    }
+                } else {
+                    for i in 0..N {
+                        let mod_buf = &mut inputs[0].buffers();
+                        if mod_buf[0][i] != 0.0 {
+                            self.freq = mod_buf[0][i];
+                        };
+                        let t = self.sr as f32 / self.freq;
+                        let phase = self.phase_n as f32 / (t/4.);
+                        let y = match phase.floor() as u8 {
+                            0 => phase.fract(),
+                            1 => 1.0 - phase.fract(),
+                            2 => - phase.fract(),
+                            3 => phase.fract() - 1.,
+                            _ => 0.0
+                        };
+                        output[0][i] = y;
+                        self.phase_n += 1;
+                        if self.phase_n >= t as usize {
+                            self.phase_n -= t as usize;
+                        }
                     }
                 }
             },
-            2 => { // clock + sidechain or mistake
+            2 => {
                 let mut clock = inputs[1].buffers()[0][0] as usize;
                 for i in 0..N {
                     let mod_buf = &mut inputs[0].buffers();
@@ -99,7 +122,7 @@ impl<const N: usize> Node<N> for TriOsc<N> {
                     clock += 1;
                 }
             },
-            _ => ()
+            _ => return ()
         }
     }
 }

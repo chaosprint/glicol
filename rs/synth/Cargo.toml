@@ -12,7 +12,7 @@ dasp_signal = { version = "*" }
 apodize = "1.0.0"
 dasp_ring_buffer = "0.11.0"
 dasp_slice = "0.11.0"
-dasp_interpolate = { version = "*", features = ["linear"] }
+dasp_interpolate = { version = "*", features = ["linear", "sinc"] }
 petgraph = "0.5.1"
 pest = "*"
 glicol_parser = {path="../parser"}
