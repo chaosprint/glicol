@@ -2,7 +2,7 @@ use dasp_graph::{Buffer, Input, Node};
 use super::super::{NodeData, BoxedNodeSend, mono_node, GlicolNodeData};
 
 #[derive(Clone, Debug, Default)]
-pub struct Sampler {
+pub struct Sampler<const N:usize> {
     // pub sig: Vec< Box<dyn Signal<Frame=[f32;1]> + 'static + Send>>,
     playback: Vec<(usize, f64)>,
     pub sample: &'static[f32],
@@ -11,9 +11,9 @@ pub struct Sampler {
     clock: usize,
 }
 
-impl Sampler {
-    pub fn new(sample: &'static[f32]) -> GlicolNodeData {
-        mono_node!(Self { 
+impl<const N:usize> Sampler<N> {
+    pub fn new(sample: &'static[f32]) -> GlicolNodeData<N> {
+        mono_node!(N, Self { 
             sample, 
             len: sample.len(), 
             endindex: sample.len()-1, 
@@ -43,20 +43,14 @@ impl Sampler {
     // }
 // }
 
-#[macro_export]
-macro_rules! sampler {
-    ($data: expr) => {
-        Sampler::new($data)
-    };
-}
 
-impl Node<128> for Sampler {
-    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
+impl<const N:usize> Node<N> for Sampler<N> {
+    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         output[0].silence();
         match inputs.len() {
             1 => {
                 let input_buf = &mut inputs[0].buffers();
-                for i in 0..128 {
+                for i in 0..N {
                     if input_buf[0][i] > 0.0 {
                         let dur = self.len as f64 / input_buf[0][i] as f64;
                         self.playback.push((self.clock, dur));
@@ -87,7 +81,7 @@ impl Node<128> for Sampler {
                 let mut clock = inputs[1].buffers()[0][0] as usize;
                 let input_buf = &mut inputs[0].buffers();
         
-                for i in 0..128 {
+                for i in 0..N {
                     if input_buf[0][i] > 0.0 {
                         let dur = self.len as f64 / input_buf[0][i] as f64; // should be int
                         self.playback.push((clock, dur));
@@ -117,7 +111,7 @@ impl Node<128> for Sampler {
                     // TODO: wrap bar end in sampler
                     // but this may cause wierd behavior too
                     // let one_bar = (240.0/self.bpm * 44100.0) as usize;
-                    // let near_end = (clock+1024+128) % one_bar < 128;
+                    // let near_end = (clock+1024+N) % one_bar < N;
                     // let fadeout = match near_end {
                     //     true=> clock
                     //     false=>1.0

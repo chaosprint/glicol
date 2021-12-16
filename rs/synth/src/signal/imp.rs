@@ -1,7 +1,7 @@
 use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNodeSend};
 use super::super::{GlicolNodeData, mono_node};
 
-pub struct Impulse {
+pub struct Impulse<const N:usize> {
     clock: usize,
     period: usize,
     sr: usize
@@ -9,7 +9,7 @@ pub struct Impulse {
     // sig: GenMut<(dyn Signal<Frame=f32> + 'static + Sized), f32>
 }
 
-impl Impulse {
+impl<const N:usize> Impulse<N> {
     pub fn new() -> Self {
         Self {
             clock: 0,
@@ -24,13 +24,13 @@ impl Impulse {
     pub fn sr(self, sr: usize) -> Self {
         Self {sr, ..self}
     }
-    pub fn build(self) -> GlicolNodeData {
-        mono_node!(self)
+    pub fn build(self) -> GlicolNodeData<N> {
+        mono_node!(N, self)
     }
 }
 
-impl Node<128> for Impulse {
-    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
+impl<const N:usize> Node<N> for Impulse<N> {
+    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
 
         if inputs.len() > 0 {
             self.clock = inputs[0].buffers()[0][0] as usize;
@@ -39,7 +39,7 @@ impl Node<128> for Impulse {
         // for o in output {
         //     o.iter_mut().for_each(|s| *s = self.sig.next() as f32);
         // }
-        for i in 0..128 {
+        for i in 0..N {
             let out = (self.clock % self.period == 0) as u8;
             output[0][i] = out as f32;
             self.clock += 1;

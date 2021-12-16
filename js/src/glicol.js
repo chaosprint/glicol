@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.2.18"
+// window.version = "v0.3.0"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -582,4 +582,4 @@ window.artsource = `
 ╚██████╔╝███████╗██║╚██████╗╚██████╔╝███████╗
  ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═════╝ ╚══════╝`
 
-window.art = window.version ? window.artsource + "\n\n" + window.version : window.artsource
+window.art = window.version ? window.artsource + "\n\n" + window.version : window.artsource + "\n\n" + "Local Test Version"

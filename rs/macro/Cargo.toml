@@ -13,3 +13,7 @@ quote = "*"
 pest = "2.0"
 pest_derive = "2.0"
 proc-macro2 = "1.0.27"
+
+glicol_synth = {path="../synth"}
+glicol_parser = {path="../parser"}
+dasp_graph = { path = "../dasp_graph" }

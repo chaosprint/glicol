@@ -1,18 +1,18 @@
 use dasp_graph::{Buffer, Input, Node};
 use super::super::{GlicolNodeData, NodeData, BoxedNodeSend, mono_node};
 
-pub struct Pan {
+pub struct Pan<const N:usize> {
     pan: f32
 }
 
-impl Pan {
-    pub fn new(pan: f32) -> GlicolNodeData {
-        mono_node!( Self { pan } )
+impl<const N:usize> Pan<N> {
+    pub fn new(pan: f32) -> GlicolNodeData<N> {
+        mono_node!( N, Self { pan } )
     }
 }
 
-impl Node<128> for Pan {
-    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
+impl<const N:usize> Node<N> for Pan<N> {
+    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         
         if false {
             assert!(inputs.len() > 0);
@@ -30,7 +30,7 @@ impl Node<128> for Pan {
                 _ => {unimplemented!()}
             };
             
-            for i in 0..128 {
+            for i in 0..N {
                 let p = mod_buf[0][i];
                 output[0][i] *= 1.0 - (p+1.)/2.;
                 output[1][i] *= (p+1.)/2.;
@@ -56,15 +56,4 @@ impl Node<128> for Pan {
             }
         }
     }
-}
-
-#[macro_export]
-macro_rules! pan {
-    () => { // controlled by modulator, no need for value
-        Pan::new(0.5)
-    };
-
-    ($data: expr) => {
-        Pan::new($data)
-    };
 }

@@ -1,25 +1,25 @@
 use super::super::*;
 
-pub struct Add {
+pub struct Add<const N:usize> {
     pub inc: f32
 }
 
-impl Add {
-    pub fn new(inc: f32) -> GlicolNodeData {
-        mono_node!( Self { inc } )
+impl<const N:usize> Add<N> {
+    pub fn new(inc: f32) -> GlicolNodeData<N> {
+        mono_node!( N, Self { inc } )
     }
 }
 
 
-impl Node<128> for Add {
-    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
+impl<const N:usize> Node<N> for Add<N> {
+    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         let max_user_input = 2;
         let min_user_input = 1;
         let l = inputs.len();
         if l < min_user_input { return ()};
         let has_clock = match l {
             0 => false,
-            _ => inputs[l-1].buffers()[0][0] % 128. == 0.
+            _ => inputs[l-1].buffers()[0][0] as usize % N == 0
             && inputs[l-1].buffers()[0][1] == 0.
         };
         // println!("l - has_clock as usize is {:?}", l - has_clock as usize);
@@ -39,7 +39,7 @@ impl Node<128> for Add {
                 } else {
                     let buf = &mut inputs[0].buffers();
                     let mod_buf = &mut inputs[1].buffers();
-                    for i in 0..128 {
+                    for i in 0..N {
                         output[0][i] = mod_buf[0][i] + buf[0][i];
                     }
                 }
@@ -48,7 +48,7 @@ impl Node<128> for Add {
                 // panic!();
                 let buf = &mut inputs[0].buffers();
                 let mod_buf = &mut inputs[1].buffers();
-                for i in 0..128 {
+                for i in 0..N {
                     output[0][i] = mod_buf[0][i] + buf[0][i];
                 }
             },
@@ -56,15 +56,4 @@ impl Node<128> for Add {
         };
         // println!("output from add node {:?}", output);
     }
-}
-
-#[macro_export]
-macro_rules! add {
-    () => {
-        Add::new(0.0)
-    };
-
-    ($data: expr) => {
-        Add::new($data)
-    };
 }

@@ -1,7 +1,7 @@
 use super::super::{GlicolNodeData, mono_node};
 use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNodeSend};
 
-pub struct Mul {
+pub struct Mul<const N:usize> {
     mul: f32,
     transit_begin: f32,
     transit_end: f32,
@@ -10,9 +10,9 @@ pub struct Mul {
     window: Vec<f64>,
 }
 
-impl Mul {
-    pub fn new(mul: f32) -> GlicolNodeData {
-        return mono_node!( Self {
+impl<const N:usize> Mul<N> {
+    pub fn new(mul: f32) -> GlicolNodeData<N> {
+        return mono_node!( N, Self {
             mul,
             transit_begin: 0.0,
             transit_end: 0.0,
@@ -23,8 +23,8 @@ impl Mul {
     }
 }
 
-impl Node<128> for Mul {
-    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
+impl<const N:usize> Node<N> for Mul<N> {
+    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         // println!("inputs from mul {:?}", inputs);
         
         let min_user_input = 1;
@@ -33,7 +33,7 @@ impl Node<128> for Mul {
         if l < min_user_input { return ()};
         let has_clock = match l {
             0 => false,
-            _ => inputs[l-1].buffers()[0][0] % 128. == 0. 
+            _ => inputs[l-1].buffers()[0][0] as usize % N == 0
             && inputs[l-1].buffers()[0][1] == 0.
         };
 
@@ -65,7 +65,7 @@ impl Node<128> for Mul {
                         self.transit = false;
                     }
             
-                    for i in 0..128 {
+                    for i in 0..N {
                         output[0][i] = match self.transit {
                             true => {
                                 let phase = self.transit_begin - 
@@ -100,7 +100,7 @@ impl Node<128> for Mul {
                         self.transit = false;
                     }
             
-                    for i in 0..128 {
+                    for i in 0..N {
                         output[0][i] = match self.transit {
                             true => {
                                 let phase = self.transit_begin - 

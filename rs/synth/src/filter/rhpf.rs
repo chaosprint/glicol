@@ -1,7 +1,7 @@
 use dasp_graph::{Buffer, Input, Node};
 use super::super::*;
 
-pub struct ResonantHighPassFilter {
+pub struct ResonantHighPassFilter<const N: usize> {
     cutoff: f32,
     q: f32,
     x0: f32,
@@ -12,7 +12,7 @@ pub struct ResonantHighPassFilter {
     sr: usize,
 }
 
-impl ResonantHighPassFilter {
+impl<const N: usize> ResonantHighPassFilter<N> {
     pub fn new() -> Self {
         Self {
             cutoff: 20.,
@@ -37,25 +37,16 @@ impl ResonantHighPassFilter {
         Self {sr, ..self}
     }
 
-    pub fn build(self) -> GlicolNodeData {
-        mono_node! { self }
+    pub fn build(self) -> GlicolNodeData<N> {
+        mono_node! { N, self }
     }
 }
 
-#[macro_export]
-macro_rules! rhpf {
-    ({$($para: ident: $data:expr),*}) => {
-         (
-            ResonantHighPassFilter::new()$(.$para($data))*.build()
-        )
-    }
-}
-
-impl Node<128> for ResonantHighPassFilter {
-    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
+impl<const N: usize> Node<N> for ResonantHighPassFilter<N> {
+    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         let l = inputs.len();
         if l < 1 { return ()};
-        let has_clock = inputs[l-1].buffers()[0][0] % 128. == 0. && inputs[l-1].buffers()[0][1] == 0.;
+        let has_clock = inputs[l-1].buffers()[0][0] as usize % N == 0 && inputs[l-1].buffers()[0][1] == 0.;
 
         if l - has_clock as usize > 1 { // has mod
             let theta_c = 2.0 * std::f32::consts::PI * inputs[0].buffers()[0][0] / self.sr as f32;
@@ -68,7 +59,7 @@ impl Node<128> for ResonantHighPassFilter {
             let b1 = -2.0 * gama;
             let b2 = 2.0 * beta;
 
-            for i in 0..128 {
+            for i in 0..N {
                 let x0 = inputs[1].buffers()[0][i];
                 let y = a0 * self.x0 + a1 * self.x1 + a2 * self.x2 - b1 * self.y1 - b2 * self.y2;
                 output[0][i] = y;
@@ -87,7 +78,7 @@ impl Node<128> for ResonantHighPassFilter {
             let a2 = (0.5 + beta + gama) / 2.0;
             let b1 = -2.0 * gama;
             let b2 = 2.0 * beta;
-            for i in 0..128 {
+            for i in 0..N {
                 let x0 = inputs[0].buffers()[0][i];
                 let y = a0 * self.x0 + a1 * self.x1 + a2 * self.x2 - b1 * self.y1 - b2 * self.y2;
                 output[0][i] = y;

@@ -1,18 +1,18 @@
 use dasp_graph::{Buffer, Input, Node};
 use super::super::{ NodeData, GlicolNodeData, BoxedNodeSend, mono_node};
 
-pub struct ConstSig {
+pub struct ConstSig<const N:usize> {
     val: f32
 }
 
-impl ConstSig {
-    pub fn new(val: f32) -> GlicolNodeData {
-        mono_node! ( Self {val} )
+impl<const N:usize> ConstSig<N> {
+    pub fn new(val: f32) -> GlicolNodeData<N> {
+        mono_node! ( N, Self {val} )
     }
 }
 
-impl Node<128> for ConstSig {
-    fn process(&mut self, _inputs: &[Input<128>], output: &mut [Buffer<128>]) {
+impl<const N:usize> Node<N> for ConstSig<N> {
+    fn process(&mut self, _inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         // if inputs.len() > 1 {
         //     self.val = inputs[0].buffers()[0][0];
         // }
@@ -20,11 +20,4 @@ impl Node<128> for ConstSig {
             o.iter_mut().for_each(|s| *s = self.val);
         }
     }
-}
-
-#[macro_export]
-macro_rules! const_sig {
-    ($data: expr) => {
-        ConstSig::new($data)
-    };
 }

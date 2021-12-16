@@ -4,7 +4,7 @@ use super::super::{GlicolNodeData, NodeData, BoxedNodeSend, mono_node};
 
 type Fixed = ring_buffer::Fixed<Vec<f32>>;
 
-pub struct AllpassGain {
+pub struct AllpassGain<const N: usize> {
     delay: f32,
     gain: f32,
     bufx: Fixed,
@@ -12,7 +12,7 @@ pub struct AllpassGain {
     sr: usize,
 }
 
-impl AllpassGain {
+impl<const N: usize> AllpassGain<N> {
     pub fn new() -> Self {
         Self {
             delay: 0.5,
@@ -45,25 +45,16 @@ impl AllpassGain {
         Self {sr, ..self}
     }
 
-    pub fn build(self) -> GlicolNodeData {
-        mono_node!(self)
+    pub fn build(self) -> GlicolNodeData<N> {
+        mono_node!(N, self)
     }
 }
 
-#[macro_export]
-macro_rules! apfgain {
-    ({$($para: ident: $data:expr),*}) => {
-         (
-            AllpassGain::new()$(.$para($data))*.build()
-        )
-    }
-}
-
-impl Node<128> for AllpassGain {
-    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
+impl<const N: usize> Node<N> for AllpassGain<N> {
+    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         let l = inputs.len();
         if l < 1 { return ()};
-        let has_clock = inputs[l-1].buffers()[0][0] % 128. == 0. && inputs[l-1].buffers()[0][1] == 0.;
+        let has_clock = inputs[l-1].buffers()[0][0] as usize % N == 0 && inputs[l-1].buffers()[0][1] == 0.;
 
         // println!("{}{}",l ,has_clock );
         if l - has_clock as usize > 1 { // has mod
@@ -72,7 +63,7 @@ impl Node<128> for AllpassGain {
             let new_delay_samples = (modulator[0] / self.sr as f32) as usize;
             let length = self.bufx.len();
             
-            for i in 0..128 {
+            for i in 0..N {
                 // println!("{:?}", self.buf);
                 let xn = insig[i];
                 let yn = -self.gain * xn
@@ -86,7 +77,7 @@ impl Node<128> for AllpassGain {
                 self.bufy.set_first(length - new_delay_samples);
             }
         } else {
-            for i in 0..128 {
+            for i in 0..N {
                 // println!("{:?}", self.buf);
                 let xn = inputs[0].buffers()[0][i];
                 let yn = -self.gain * xn

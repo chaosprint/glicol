@@ -4,7 +4,7 @@ use super::super::{GlicolNodeData, NodeData, BoxedNodeSend, mono_node};
 
 type Fixed = ring_buffer::Fixed<Vec<f32>>;
 
-pub struct AllpassDecay {
+pub struct AllpassDecay<const N: usize> {
     delay: f32,
     decay: f32,
     bufx: Fixed,
@@ -12,7 +12,7 @@ pub struct AllpassDecay {
     sr: usize,
 }
 
-impl AllpassDecay {
+impl<const N: usize> AllpassDecay<N> {
 
     pub fn new() -> Self {
         Self {
@@ -45,25 +45,16 @@ impl AllpassDecay {
         Self {sr, ..self}
     }
 
-    pub fn build(self) -> GlicolNodeData {
-        mono_node!(self)
+    pub fn build(self) -> GlicolNodeData<N> {
+        mono_node!( N, self )
     }
 }
 
-#[macro_export]
-macro_rules! apfdecay {
-    ({$($para: ident: $data:expr),*}) => {
-         (
-            AllpassDecay::new()$(.$para($data))*.build()
-        )
-    }
-}
-
-impl Node<128> for AllpassDecay {
-    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
+impl<const N: usize> Node<N> for AllpassDecay<N> {
+    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         // TODO: modulation?
         let a = (0.001_f32.log10() * (self.delay / self.decay)).exp();
-        for i in 0..128 {
+        for i in 0..N {
             // println!("{:?}", self.buf);
             let xn = inputs[0].buffers()[0][i];
             let yn = -a as f32 * xn + self.bufx[0] + a as f32 * self.bufy[0];

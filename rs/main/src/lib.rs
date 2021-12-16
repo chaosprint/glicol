@@ -23,15 +23,15 @@ use glicol_parser::*;
 use glicol_ext::make_node_ext;
 
 mod utili;
-use utili::{preprocess_sin, preprocess_mul, lcs, process_error_info};
+use utili::{preprocess_signal, preprocess_mul, lcs, process_error_info};
 
 /// The engine of Glicol
 /// This engine can takes Glicol code, convert it to audio graph and process it
 /// The engine can also be used independantly as a wrapper to dasp_graph crate (see the examples folder)
-pub struct Engine {
+pub struct Engine<const N: usize> {
     pub elapsed_samples: usize,
-    pub graph: GlicolGraph,
-    pub processor: GlicolProcessor,
+    pub graph: GlicolGraph<N>,
+    pub processor: GlicolProcessor<N>,
     sidechains_list: Vec<(NodeIndex, String)>,
     pub adc_source_nodes: Vec<NodeIndex>,
     pub adc_nodes: Vec<NodeIndex>,
@@ -51,12 +51,12 @@ pub struct Engine {
     pub all_refs: Vec<String>, // for always using current code
 }
 
-impl Engine {
+impl<const N: usize> Engine<N> {
     pub fn new(sr: usize) -> Self {
         let max_nodes = 1024;
         let max_edges = 1024;
-        let g = GlicolGraph::with_capacity(max_nodes, max_edges);
-        let p = GlicolProcessor::with_capacity(max_nodes);
+        let g = GlicolGraph::<N>::with_capacity(max_nodes, max_edges);
+        let p = GlicolProcessor::<N>::with_capacity(max_nodes);
 
         Self {
             graph: g,
@@ -108,7 +108,7 @@ impl Engine {
         );
 
         println!("code before preprocess: {}",&self.code);
-        self.code = preprocess_sin(&mut self.code)?;
+        self.code = preprocess_signal(&mut self.code)?;
         self.code = preprocess_mul(&mut self.code)?;
         println!("code after preprocess: {}",&self.code);
 
@@ -346,7 +346,7 @@ impl Engine {
     // }
 
     /// The main interface for WebAssembly module to get the new block of audio.
-    pub fn gen_next_buf_128(&mut self, inbuf: &mut [f32])
+    pub fn gen_next_buf(&mut self, inbuf: &mut [f32])
     -> Result<([f32; 256], [u8;256]), EngineError> {
         // don't use self.buffer
         let mut output: [f32; 256] = [0.0; 256];
@@ -357,7 +357,7 @@ impl Engine {
         //     self.fade = 0;
         // }
 
-        if self.update && (self.elapsed_samples + 128) % one_bar <= 128 {
+        if self.update && (self.elapsed_samples + N) % one_bar <= N {
             // println!("updating... at {}", (self.elapsed_samples + 128) % one_bar);
             self.update = false;
             match self.make_graph() {
@@ -439,7 +439,7 @@ impl Engine {
             }
             // this must be inside to prevent double processing
             self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
-            for i in 0..128 {
+            for i in 0..N {
                 self.graph[
                     self.node_by_chain["~input"][0].0
                 ].buffers[0][i] = inbuf[i];
@@ -460,7 +460,7 @@ impl Engine {
                 _ => {unimplemented!()}
             };
 
-            for i in 0..128 {
+            for i in 0..N {
                 // let s = match self.fade {
                 //     k if k > 4095 => 1.0,
                 //     _ => self.window[self.fade] as f32 * -1.0 + 1.0
@@ -468,12 +468,12 @@ impl Engine {
                 // self.fade += 1;
                 // let scale = 1.0;bufleft[i] * bufright[i] * 
                 output[i] += bufleft[i] * self.track_amp;
-                output[i+128] += bufright[i] * self.track_amp;
+                output[i+N] += bufright[i] * self.track_amp;
                 // output[i] += s;
                 // output[i+128] += s;
             }
         }
-        self.elapsed_samples += 128;
+        self.elapsed_samples += N;
 
         Ok((output, console))
     }
@@ -504,7 +504,7 @@ impl Engine {
         self.track_amp = amp;
     }
 
-    pub fn make_chain(&mut self, mut nodes: Vec<GlicolNodeData>) -> Vec<NodeIndex> {
+    pub fn make_chain(&mut self, mut nodes: Vec<GlicolNodeData<N>>) -> Vec<NodeIndex> {
         let mut indexes = vec![];
         while nodes.len() > 0 {
             let head = nodes.remove(0);
@@ -529,7 +529,7 @@ impl Engine {
     pub fn next_block(mut self) -> Result<([f32; 256], [u8;256]), EngineError> {
         println!("{}", self.code);
         self.make_graph()?;
-        self.gen_next_buf_128(&mut [0.0;128])
+        self.gen_next_buf(&mut [0.0;N])
     }
 }
 

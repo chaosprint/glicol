@@ -1,7 +1,7 @@
 use super::super::{NodeData, GlicolNodeData,
     BoxedNodeSend, mono_node, Buffer, Input, Node};
 
-pub struct EnvPerc {
+pub struct EnvPerc<const N:usize> {
     attack: f32,
     decay: f32,
     pos: usize,
@@ -10,7 +10,7 @@ pub struct EnvPerc {
     // sidechain_ids: Vec::<u8>
 }
 
-impl EnvPerc {
+impl<const N:usize> EnvPerc<N> {
     pub fn new() -> Self {
         Self {
             attack: 0.01,
@@ -33,29 +33,20 @@ impl EnvPerc {
     pub fn sr(self, sr: usize) -> Self {
         Self {sr, ..self}
     }
-    pub fn build(self) -> GlicolNodeData {
-        mono_node!( self )
+    pub fn build(self) -> GlicolNodeData<N> {
+        mono_node!( N, self )
     }
 }
 
-#[macro_export]
-macro_rules! envperc {
-    ({$($para: ident: $data:expr),*}) => {
-         (
-            EnvPerc::new()$(.$para($data))*.build()
-        )
-    }
-}
-
-impl Node<128> for EnvPerc {
-    fn process(&mut self, inputs: &[Input<128>], output: &mut [Buffer<128>]) {
+impl<const N:usize> Node<N> for EnvPerc<N> {
+    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
 
             let attack_len = (self.attack * self.sr as f32) as usize;
             let decay_len = (self.decay * self.sr as f32) as usize;
             let dur = attack_len + decay_len;      
             let buf = &mut inputs[0].buffers();
     
-            for i in 0..128 {
+            for i in 0..N {
                 if buf[0][i] > 0.0 {
                     self.pos = 0;
                     self.scale = buf[0][i];

@@ -13,7 +13,7 @@ pub mod oscillator; use oscillator::*;
 use {sin_osc::SinOsc, saw_osc::SawOsc, squ_osc::SquOsc, tri_osc::TriOsc};
 
 pub mod signal; use signal::*;
-use {imp::*, const_sig::ConstSig, noise::Noise, dummy::Clock, dummy::AudioIn};
+use {imp::*, const_sig::ConstSig, noise::Noise, dummy::Clock, dummy::AudioIn, phasor::Phasor};
 
 pub mod operation; use operation::*;
 use {mul::Mul, add::Add};
@@ -32,10 +32,10 @@ pub mod pass; use pass::*;
 pub mod effect; use effect::*;
 use {delayn::*, delay::*, pan::*, balance::*};
 
-pub type GlicolNodeData = NodeData<BoxedNodeSend<128>, 128>;
-pub type GlicolGraph = StableDiGraph<GlicolNodeData, (), u32>;
-pub type GlicolProcessor = Processor<GlicolGraph, 128>;
-pub type NodeResult = Result<(GlicolNodeData, Vec<String>), GlicolError>;
+pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
+pub type GlicolGraph<const N: usize> = StableDiGraph<GlicolNodeData<N>, (), u32>;
+pub type GlicolProcessor<const N: usize> = Processor<GlicolGraph<N>, N>;
+pub type NodeResult<const N: usize> = Result<(GlicolNodeData<N>, Vec<String>), GlicolError>;
 
 #[derive(Debug)]
 pub enum GlicolError {
@@ -48,14 +48,14 @@ pub enum GlicolError {
     NodeNameError((String, usize, usize)),
 }
 
-pub fn make_node(
+pub fn make_node<const N: usize>(
     name: &str,
     paras: &mut Pairs<Rule>,
     pos: (usize, usize),
     samples_dict: &HashMap<String, &'static[f32]>,
     sr: usize,
     bpm: f32,
-) -> NodeResult {
+) -> NodeResult<N> {
 
     // TODO: handle this in the parser
     // if !["", ""].contains(&name) {
@@ -112,6 +112,7 @@ pub fn make_node(
         "apfgain" => vec![Para::Modulable, Para::Number(0.5)],
         "pan" => vec![Para::Modulable],
         "balance" => vec![Para::Modulable, Para::Modulable, Para::Number(0.5)],
+        "pha" => vec![Para::Modulable],
         "pass" => vec![],
         _ => {
             match paras.next() {
@@ -130,36 +131,37 @@ pub fn make_node(
     if alias == "pass" {refs = vec![name.to_owned()]}
     
     let nodedata = match alias {
-        "sin" => sin_osc!({freq: get_num(&p[0]), sr: sr}),
-        "saw" => saw_osc!({freq: get_num(&p[0]), sr: sr}),
-        "squ" => squ_osc!({freq: get_num(&p[0]), sr: sr}),
-        "tri" => tri_osc!({freq: get_num(&p[0]), sr: sr}),
-        "const_sig" => const_sig!(get_num(&p[0])),
-        "mul" => mul!(get_num(&p[0])),
-        "add" => add!(get_num(&p[0])),
-        "rlpf" => rlpf!({cutoff: get_num(&p[0]), q: get_num(&p[1]), sr: sr}),
-        "rhpf" => rhpf!({cutoff: get_num(&p[0]), q: get_num(&p[1]), sr: sr}),
+        "sin" => sin_osc!(N => {freq: get_num(&p[0]), sr: sr}),
+        "saw" => saw_osc!(N => {freq: get_num(&p[0]), sr: sr}),
+        "squ" => squ_osc!(N => {freq: get_num(&p[0]), sr: sr}),
+        "tri" => tri_osc!(N => {freq: get_num(&p[0]), sr: sr}),
+        "const_sig" => const_sig!(N => get_num(&p[0])),
+        "mul" => mul!(N => get_num(&p[0])),
+        "add" => add!(N => get_num(&p[0])),
+        "rlpf" => rlpf!(N => {cutoff: get_num(&p[0]), q: get_num(&p[1]), sr: sr}),
+        "rhpf" => rhpf!(N => {cutoff: get_num(&p[0]), q: get_num(&p[1]), sr: sr}),
 
-        "noise" => noise!(get_num(&p[0]) as u64),
-        "imp" => imp!({freq: get_num(&p[0]), sr: sr}),
+        "noise" => noise!(N => get_num(&p[0]) as u64),
+        "imp" => imp!(N => {freq: get_num(&p[0]), sr: sr}),
         "sampler" => {
-            sampler!(samples_dict[&paras.as_str().replace("\\", "")])},
+            sampler!(N => samples_dict[&paras.as_str().replace("\\", "")])},
         "seq" => {
             // let info = process_seq(paras.as_str()).unwrap();
-            seq!({events: process_seq(paras)?.0, sidechain_lib: process_seq(paras)?.1, sr: sr, bpm: bpm})
+            seq!(N => {events: process_seq(paras)?.0, sidechain_lib: process_seq(paras)?.1, sr: sr, bpm: bpm})
         }
-        "speed" => speed!(get_num(&p[0])),
-        "choose" => choose!(get_notes(paras)?),
-        "delayn" => delayn!(get_num(&p[0]) as usize),
-        "delay" => delay!({delay: get_num(&p[0]), sr: sr}),
-        "onepole" => onepole!(get_num(&p[0])),
-        "comb" => comb!({delay: get_num(&p[0]), gain: get_num(&p[1]), feedforward: get_num(&p[2]), feedback: get_num(&p[3])}),
-        "apfdecay" => apfdecay!({delay: get_num(&p[0]), decay: get_num(&p[1])}),
-        "apfgain" => apfgain!({delay: get_num(&p[0]), gain: get_num(&p[1])}),
-        "pan" => pan!(get_num(&p[0])),
-        "balance" => balance!(get_num(&p[2])),
-        "pass" => Pass::new(),
-        "envperc" => envperc!({attack: get_num(&p[0]), decay: get_num(&p[1]), sr: sr}),
+        "speed" => speed!(N => get_num(&p[0])),
+        "choose" => choose!(N => get_notes(paras)?),
+        "delayn" => delayn!(N => get_num(&p[0]) as usize),
+        "delay" => delay!(N => {delay: get_num(&p[0]), sr: sr}),
+        "onepole" => onepole!(N => get_num(&p[0])),
+        "comb" => comb!(N => {delay: get_num(&p[0]), gain: get_num(&p[1]), feedforward: get_num(&p[2]), feedback: get_num(&p[3])}),
+        "apfdecay" => apfdecay!(N => {delay: get_num(&p[0]), decay: get_num(&p[1])}),
+        "apfgain" => apfgain!(N => {delay: get_num(&p[0]), gain: get_num(&p[1])}),
+        "pan" => pan!(N => get_num(&p[0])),
+        "balance" => balance!(N => get_num(&p[2])),
+        "pha" => phasor!(N => {freq: get_num(&p[0]), sr: sr}),
+        "pass" => Pass::<N>::new(),
+        "envperc" => envperc!(N => {attack: get_num(&p[0]), decay: get_num(&p[1]), sr: sr}),
         _ => {
             // let a = paras.next().unwrap();
             return Err(GlicolError::NodeNameError((name.to_owned(), 0,0)))
@@ -297,26 +299,26 @@ pub fn process_parameters(paras: &mut Pairs<Rule>, mut modulable: Vec<Para>) -> 
     return Ok((modulable, refs))
 }
 
-pub struct SimpleGraph {
-    pub graph: GlicolGraph,
-    processor: GlicolProcessor,
+pub struct SimpleGraph<const N: usize> {
+    pub graph: GlicolGraph<N>,
+    processor: GlicolProcessor<N>,
     clock: NodeIndex,
     elapsed_samples: usize,
     pub node_by_chain: HashMap<String, Vec<NodeIndex>>,
 }
 
-impl SimpleGraph {
+impl<const N: usize> SimpleGraph<N> {
 
     pub fn new(code: &str) -> Self {
-        let mut graph = GlicolGraph::with_capacity(1024, 1024);
+        let mut graph = GlicolGraph::<N>::with_capacity(1024, 1024);
             // let processor = GlicolProcessor::with_capacity(1024);
         let mut sidechains_list = Vec::<(NodeIndex, String)>::new();
         let mut node_by_chain = HashMap::new();
 
         let clock = graph.add_node(
-            NodeData::new1(BoxedNodeSend::new(Clock{})));
+            NodeData::new1(BoxedNodeSend::<N>::new(Clock{})));
         let audio_in = graph.add_node(
-                NodeData::new1(BoxedNodeSend::new(AudioIn{})));
+                NodeData::new1(BoxedNodeSend::<N>::new(AudioIn{})));
         node_by_chain.insert(
             "~input".to_string(),
             vec![audio_in]
@@ -453,7 +455,7 @@ impl SimpleGraph {
             }
             // this must be inside
             self.graph[self.clock].buffers[0][0] = self.elapsed_samples as f32;
-            for i in 0..128 {
+            for i in 0..N {
                 self.graph[
                     self.node_by_chain["~input"][0]
                 ].buffers[0][i] = inbuf[i];
@@ -474,12 +476,12 @@ impl SimpleGraph {
                 _ => {unimplemented!()}
             };
 
-            for i in 0..128 {
+            for i in 0..N {
                 output[i] += bufleft[i];
-                output[i+128] += bufright[i];
+                output[i+N] += bufright[i];
             }
         }
-        self.elapsed_samples += 128;
+        self.elapsed_samples += N;
         output
     }
 }
