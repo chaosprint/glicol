@@ -360,6 +360,7 @@ impl<const N: usize> Engine<N> {
         if self.update && (self.elapsed_samples + N) % one_bar <= N {
             // println!("updating... at {}", (self.elapsed_samples + 128) % one_bar);
             self.update = false;
+            println!("updated!");
             match self.make_graph() {
                 Ok(_) => {
                     self.code_backup = self.code.clone();
@@ -457,7 +458,7 @@ impl<const N: usize> Engine<N> {
             let bufright = match &self.graph[v.last().unwrap().0].buffers.len() {
                 1 => {bufleft},
                 2 => {&self.graph[v.last().unwrap().0].buffers[1]},
-                _ => {unimplemented!()}
+                _ => {unimplemented!()} // no multi-chan for now
             };
 
             for i in 0..N {

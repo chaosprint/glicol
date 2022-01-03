@@ -4,22 +4,23 @@ use glicol::Engine;
 
 fn main () {
     let mut engine = Engine::<128>::new(44100);
-    engine.set_code("~a: choose 48 55 51 58
+    engine.set_code("aa: sin 44 >> pan -0.9");
+    // engine.set_code("~a: choose 48 55 51 58
 
-    ~b: choose 36 60 0 0 0 0 0
+    // ~b: choose 36 60 0 0 0 0 0
     
-    // how about changing the speed to 4.0 and 
-    //click the update button above?
-    ~trigger: speed 8.0 >> seq ~a ~b >> mul 2.0
+    // // how about changing the speed to 4.0 and 
+    // //click the update button above?
+    // ~trigger: speed 8.0 >> seq ~a ~b >> mul 2.0
     
-    ~env: ~trigger >> envperc 0.01 0.1 >> mul 0.2
+    // ~env: ~trigger >> envperc 0.01 0.1 >> mul 0.2
     
-    ~pitch: ~trigger >> mul 261.626
+    // ~pitch: ~trigger >> mul 261.626
     
-    lead: saw ~pitch >> mul ~env >> rlpf ~cut 3.0 
-    >> mul 0.6 >> plate 0.1
+    // lead: saw ~pitch >> mul ~env >> rlpf ~cut 3.0 
+    // >> mul 0.6 >> plate 0.1
     
-    ~cut: squ 0.5 >> mul 3700.0 >> add 4000.0");
+    // ~cut: squ 0.5 >> mul 3700.0 >> add 4000.0");
     // engine.set_code("bb: imp 10.0 >> delay ~rand
 
     // ~rand: pha 1.0 >> mul 0.05 >> add 0.01");
@@ -36,11 +37,11 @@ fn main () {
     // engine.set_code("out: seq 60 >> ks 60 0.99 0.01");
     // engine.set_code("~left: sin 10; ~right: sin 20; out: balance ~left ~right 0.5;");
     // engine.set_code("tt: sin 44 >> amplfo 1.0");
-    plot(engine, 1024);
+    plot(engine, 88200);
 }
 
 fn plot(mut engine: Engine::<128>, step: usize) {
-    engine.make_graph().unwrap();
+    // engine.make_graph().unwrap();
     println!("node_by_chain {:?}", engine.node_by_chain);
     let mut x = Vec::<i32>::new();
     let mut y = Vec::<f32>::new();
