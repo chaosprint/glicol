@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.2.21"
+window.version = "v0.2.22"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -496,7 +496,7 @@ window.loadModule = async () => {
       
 %cbpm()\n%cSet the BPM. The default is 120.
 
-%csampleFolder()\n%cChoose a folder that contains samples. The folder you select must have sub-folders that contain samples. For example, Dirt Samples are recommanded (https://github.com/chaosprint/Dirt-Samples). If you use your own samples there, the naming of sub-folders should follow the Dirt samples.
+%csampleFolder()\n%cChoose a folder that contains samples. The folder you select must have sub-folders that contain samples. For example, (1) visit (https://github.com/chaosprint/Dirt-Samples), click [code] -> [download ZIP]; (2) Extract {Dirt-Samples-master.zip} to {Dirt-Samples-master} folder; (3) Run this command in the console and choose the folder.
 
 %csampleCount()\n%cUse it after calling the "sampleFolder()" function to see the total number of each sample folder.
 
