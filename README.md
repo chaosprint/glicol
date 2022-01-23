@@ -78,6 +78,12 @@ Suggestions, bug reporting, or PR are warmly welcomed.
 
 This work was partially supported by the Research Council of Norway through its Centres of Excellence scheme, project number 262762 and by NordForsk's Nordic University Hub Nordic Sound and Music Computing Network NordicSMC, project number 86892.
 
+Special thanks to:
+
+- [RustAudio](https://github.com/RustAudio) community, [mitchmindtree](https://github.com/mitchmindtree), and [dasp](https://github.com/RustAudio/dasp) contributors
+- [Paul Adenot](https://github.com/padenot) and [ringbuf.js](https://github.com/padenot/ringbuf.js) contributors
+- [Kevin Jahns](https://github.com/dmonad), [yjs](https://github.com/yjs) community and [y-codemirror](https://github.com/yjs/y-codemirror) contributors
+
 ## License
 
 The MIT License (MIT)
