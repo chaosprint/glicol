@@ -7,11 +7,17 @@
 
 GLICOL (an acronym for "graph-oriented live coding language") is a computer music language written in Rust. 
 
-Glicol is currently targeting web platforms and shipped as one single JavaScript package, which can be experienced at its official website:
+The project has mainly two parts:
+- The language and audio engine (this repo)
+- The web interface (https://glicol.org)
 
-https://glicol.org
+For the engine:
+- It is shipped as one single JavaScript package
+- The Rust code of Glicol can be used as a standalone Rust audio library
 
-Also, the Rust code of Glicol can be used as a standalone Rust audio library.
+On the website (https://glicol.org):
+- You can find guides and docs for Glicol
+- You can make decentralised collaborative live coding performance
 
 ## Repo structure
 
