@@ -4,24 +4,24 @@ use glicol::Engine;
 
 fn main () {
     let mut engine = Engine::<128>::new(44100);
-    engine.set_code("aa: imp 1.0 >> delay 0.1 >> shape 0.1, 1.0 | 0.2, 0.5 | 0.5, 0.0");
-    // engine.set_code("aa: sin 44 >> pan -0.9");
-    // engine.set_code("~a: choose 48 55 51 58
+    engine.set_code("~a: choose 48 55 51 58
 
-    // ~b: choose 36 60 0 0 0 0 0
-    
-    // // how about changing the speed to 4.0 and 
-    // //click the update button above?
-    // ~trigger: speed 8.0 >> seq ~a ~b >> mul 2.0
-    
-    // ~env: ~trigger >> envperc 0.01 0.1 >> mul 0.2
-    
-    // ~pitch: ~trigger >> mul 261.626
-    
-    // lead: saw ~pitch >> mul ~env >> rlpf ~cut 3.0 
-    // >> mul 0.6 >> plate 0.1
-    
-    // ~cut: squ 0.5 >> mul 3700.0 >> add 4000.0");
+~b: choose 36 60 0 0 0 0 0
+
+// how about changing the speed to 4.0 and 
+//click the update button above?
+~trigger: speed 8.0 >> seq ~a ~b >> mul 2.0
+
+~env: ~trigger >> envperc 0.01 0.1 >> mul 0.2
+
+~pitch: ~trigger >> mul 261.626
+
+lead: saw ~pitch >> mul ~env >> lpf ~cut 3.0 
+>> mul 0.6 >> plate 0.1
+
+~cut: squ 0.5 >> mul 3700.0 >> add 4000.0");
+    // engine.set_code("aa: imp 1.0 >> delay 0.1 >> shape 0.1, 1.0 | 0.2, 0.5 | 0.5, 0.0");
+    // engine.set_code("aa: sin 44 >> pan -0.9");
     // engine.set_code("bb: imp 10.0 >> delay ~rand
 
     // ~rand: pha 1.0 >> mul 0.05 >> add 0.01");
