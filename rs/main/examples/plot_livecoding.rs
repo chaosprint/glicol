@@ -4,7 +4,8 @@ use glicol::Engine;
 
 fn main () {
     let mut engine = Engine::<128>::new(44100);
-    engine.set_code("aa: sin 44 >> pan -0.9");
+    engine.set_code("aa: imp 1.0 >> delay 0.1 >> shape 0.1, 1.0 | 0.2, 0.5 | 0.5, 0.0");
+    // engine.set_code("aa: sin 44 >> pan -0.9");
     // engine.set_code("~a: choose 48 55 51 58
 
     // ~b: choose 36 60 0 0 0 0 0

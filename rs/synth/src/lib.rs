@@ -16,7 +16,7 @@ pub mod signal; use signal::*;
 use {imp::*, const_sig::ConstSig, noise::Noise, dummy::Clock, dummy::AudioIn, phasor::Phasor};
 
 pub mod operation; use operation::*;
-use {mul::Mul, add::Add};
+use {mul::Mul, add::Add, shape:: Shape};
 
 pub mod filter; use filter::*;
 use {rlpf::*, rhpf::*, apfgain::*, apfdecay::*, onepole::*,comb::*};
@@ -47,6 +47,14 @@ pub enum GlicolError {
     ParaTypeError((usize, usize)),
     NodeNameError((String, usize, usize)),
 }
+
+
+// std::convert::From<std::option::NoneError
+// impl From<std::option::NoneError> for GlicolError {
+//     fn from(error: std::option::NoneError) -> Self {
+//         GlicolError::ParameterError((0, 0))
+//     }
+// }
 
 pub fn make_node<const N: usize>(
     name: &str,
@@ -102,6 +110,7 @@ pub fn make_node<const N: usize>(
             vec![]
         }, // bypass the process_parameters
         "seq" => vec![],
+        "shape"=> vec![],
         "speed" => vec![Para::Modulable],
         "choose" => { vec![] },
         "delayn" => vec![Para::Number(1.0)],
@@ -148,7 +157,8 @@ pub fn make_node<const N: usize>(
         "seq" => {
             // let info = process_seq(paras.as_str()).unwrap();
             seq!(N => {events: process_seq(paras)?.0, sidechain_lib: process_seq(paras)?.1, sr: sr, bpm: bpm})
-        }
+        },
+        "shape" => shape!(N => {sr: sr, points: get_shape_points(paras)?}),
         "speed" => speed!(N => get_num(&p[0])),
         "choose" => choose!(N => get_notes(paras)?),
         "delayn" => delayn!(N => get_num(&p[0]) as usize),
@@ -196,6 +206,53 @@ fn get_num(p: &Para) -> f32 {
 
 type Events = Vec::<(f64, String)>;
 type Sidechain = HashMap::<String, usize>;
+
+fn get_shape_points(paras: &mut Pairs<Rule>) -> Result<Vec<(f32, f32)>, GlicolError> {
+    println!("\n\nget shape points from {:?}\n\n", paras.as_str());
+    let pattern = paras.clone().as_str();
+    let p = paras.clone().next();
+    
+    let pos = match p {
+        Some(p) => (p.as_span().start(), p.as_span().end()),
+        None => (0,0)
+    };
+
+    let points_str =  paras.as_str().split('|');
+    let mut points = vec![];
+    for point_str in points_str {
+        let v_full = point_str.chars().filter(|c| !c.is_whitespace()).collect::<String>();
+        let mut v = v_full.split(",");
+        // let v2 = v.map(|s| s.parse::<f32>() ).collect();
+        let x_str = v.next();
+        let x = match x_str {
+            Some(value) => {
+                if value.parse::<f32>().is_ok() {
+                    value.parse::<f32>().unwrap()
+                } else {
+                    return Err(GlicolError::ParameterError(pos))
+                }
+            },
+            None => {
+                return Err(GlicolError::InsufficientParameter(pos))
+            }
+        };
+        let y_str = v.next();
+        let y = match y_str {
+            Some(value) => {
+                if value.parse::<f32>().is_ok() {
+                    value.parse::<f32>().unwrap()
+                } else {
+                    return Err(GlicolError::ParameterError(pos))
+                }
+            },
+            None => {
+                return Err(GlicolError::InsufficientParameter(pos))
+            }
+        };
+        points.push((x, y));
+    }
+    Ok(points)
+}
 
 fn process_seq(paras: &mut Pairs<Rule>) -> Result<(Events, Sidechain, Vec<String>), GlicolError> {
     let pattern = paras.clone().as_str();

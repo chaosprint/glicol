@@ -138,6 +138,14 @@ macro_rules! choose {
     };
 }
 
+#[macro_export]
+macro_rules! shape {
+    ($size:expr => {$($para: ident: $data:expr),*}) => {
+        (
+           Shape::<$size>::new()$(.$para($data))*.build()
+       )
+   }
+}
 
 #[macro_export]
 macro_rules! apfdecay {
