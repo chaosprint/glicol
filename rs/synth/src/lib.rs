@@ -16,7 +16,7 @@ pub mod signal; use signal::*;
 use {imp::*, const_sig::ConstSig, noise::Noise, dummy::Clock, dummy::AudioIn, phasor::Phasor};
 
 pub mod operation; use operation::*;
-use {mul::Mul, add::Add, shape:: Shape};
+use {mul::Mul, add::Add};
 
 pub mod filter; use filter::*;
 use {rlpf::*, rhpf::*, apfgain::*, apfdecay::*, onepole::*,comb::*};
@@ -25,7 +25,7 @@ pub mod sampling; use sampling::*;
 use {seq::*, sampler::*,speed::*, choose::*};
 
 pub mod envelope; use envelope::*;
-use {envperc::*};
+use {envperc::*, shape:: Shape};
 
 pub mod pass; use pass::*;
 
