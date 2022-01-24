@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.2.26"
+window.version = "v0.2.27"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -561,13 +561,12 @@ window.updateCode = (code) => {
 }
 
 window.run = (code) =>{
-  console.log(123)
   const regexp = /(?<=\{)[^}]*(?=})/g
   let match;
   while ((match = regexp.exec(code)) !== null) {
     let result = Function("return " + match[0].slice(1,match[0].length-1))
     code = code.slice(0, match.index) + result() + code.slice(regexp.lastIndex)
-    console.log(code)
+    // console.log(code)
   }
 
   if (!window.isGlicolRunning) {
