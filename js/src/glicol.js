@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.2.27"
+window.version = "v0.2.28"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -561,7 +561,7 @@ window.updateCode = (code) => {
 }
 
 window.run = (code) =>{
-  const regexp = /(?<=\{)[^}]*(?=})/g
+  const regexp = /\{([^{}]|(\?R))*\}/g
   let match;
   while ((match = regexp.exec(code)) !== null) {
     let result = Function("return " + match[0].slice(1,match[0].length-1))
