@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.2.28"
+window.version = "v0.2.29"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -561,11 +561,21 @@ window.updateCode = (code) => {
 }
 
 window.run = (code) =>{
-  const regexp = /\{([^{}]|(\?R))*\}/g
+  // const regexp = /\{([^{}]|(\?R))*\}/g
+  const regexp = /(?<=\{)[^}]*(?=})/g   // this is working but not for nested
   let match;
+
   while ((match = regexp.exec(code)) !== null) {
-    let result = Function("return " + match[0].slice(1,match[0].length-1))
-    code = code.slice(0, match.index) + result() + code.slice(regexp.lastIndex)
+    let jscode = match[0]
+    // .slice(1,match[0].length-1)
+    // console.log(jscode)
+    let result = Function(`'use strict'; return (${jscode})`)()
+    // console.log(result)
+    if (typeof result !== 'undefined') {
+      code = code.slice(0, match.index-1) + result + code.slice(regexp.lastIndex+1)
+    } else {
+      code = code.slice(0, match.index-1) + code.slice(regexp.lastIndex+1)
+    }
     // console.log(code)
   }
 
