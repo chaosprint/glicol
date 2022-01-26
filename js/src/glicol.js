@@ -579,6 +579,7 @@ window.run = (code) =>{
     // console.log(code)
   }
 
+  window.code = code
   if (!window.isGlicolRunning) {
     window.runCode(code)
   } else {
