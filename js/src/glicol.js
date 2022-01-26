@@ -564,21 +564,18 @@ window.run = (code) =>{
   // const regexp = /\{([^{}]|(\?R))*\}/g
   const regexp = /(?<=\{)[^}]*(?=})/g   // this is working but not for nested
   let match;
-
+  let toreplace = [];
   while ((match = regexp.exec(code)) !== null) {
-    let jscode = match[0]
-    // .slice(1,match[0].length-1)
-    // console.log(jscode)
-    let result = Function(`'use strict'; return (${jscode})`)()
-    // console.log(result)
-    if (typeof result !== 'undefined') {
-      code = code.slice(0, match.index-1) + result + code.slice(regexp.lastIndex+1)
-    } else {
-      code = code.slice(0, match.index-1) + code.slice(regexp.lastIndex+1)
-    }
-    // console.log(code)
+    toreplace.push(match[0])
   }
-
+  toreplace.map((str)=>{
+    let result = Function(`'use strict'; return (${str})`)()
+    if (typeof result !== "undefined") {
+      code = code.replace(`{${str}}`, result)
+    } else {
+      code = code.replace(`{${str}}`, "")
+    }
+  })
   window.code = code
   if (!window.isGlicolRunning) {
     window.runCode(code)
