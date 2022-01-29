@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.2.33"
+window.version = "v0.2.34"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -33,7 +33,7 @@ window.help = async (token) => {
     }
 }
 
-window.bpm = (beats_per_minute) => {
+window.setBPM = (beats_per_minute) => {
 const t0 = performance.now();
 if (typeof beats_per_minute === "number") {
     window.node.port.postMessage({
@@ -492,15 +492,15 @@ window.loadModule = async () => {
       // log(`Move the cursor to a keyword and press %cAlt+D`, "color:green;font-weight:bold", "color: default", "color:green; font-weight:bold", "color:default", "color: green; font-weight:bold");
 
       log(`\n\n%c Useful console commands: `, "background: black; color:white; font-weight: bold")
-      log(`\n%chelp()\n%cGet docs for a node, e.g. help("sin").
+      log(`\n%chelp("someNodeName")\n%cGet docs for a node, e.g. help("sin").
       
-%cbpm()\n%cSet the BPM. The default is 120.
+%csetBPM(someNumber)\n%cSet the BPM. The default is 120.
 
 %csampleFolder()\n%cChoose a folder that contains samples. The folder you select must have sub-folders that contain samples. For example, (1) visit (https://github.com/chaosprint/Dirt-Samples), click [code] -> [download ZIP]; (2) Extract {Dirt-Samples-master.zip} to {Dirt-Samples-master} folder; (3) Run this command in the console and choose the folder.
 
 %csampleCount()\n%cUse it after calling the "sampleFolder()" function to see the total number of each sample folder.
 
-%caddSample()\n%cAdd your own samples. The first argument is the sample name you wish to call, and the second arg is the url to the wav file. Keep the augument empty to load local samples. The files should end with .wav. The file name will become the keys. Only lowercase letters and numbers are valid keys, e.g 808bd.`, "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "");
+%caddSample("someName", "URL")\n%cAdd your own samples. The first argument is the sample name you wish to call, and the second arg is the url to the wav file. Keep the augument empty to load local samples. The files should end with .wav. The file name will become the keys. Only lowercase letters and numbers are valid keys, e.g 808bd.`, "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "");
     })
   })
 }
