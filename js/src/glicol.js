@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.2.32"
+window.version = "v0.2.33"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
