@@ -569,7 +569,7 @@ window.run = (code) =>{
     toreplace.push(match[0])
   }
   toreplace.map((str)=>{
-    let result = Function(`'use strict'; return (${str})`)()
+    let result = Function(`'use strict'; return ()=>{${str}}`)()()
     if (typeof result !== "undefined") {
       code = code.replace(`{${str}}`, result)
     } else {
