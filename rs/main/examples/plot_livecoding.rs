@@ -5,8 +5,9 @@ use glicol::Engine;
 fn main () {
     let mut engine = Engine::<128>::new(44100);
 
+    engine.set_code("aa: seq 60 >> sawsynth 0.01 0.02");
     // engine.set_code("aa: imp 1.0");
-    engine.set_code("aa: imp 2.0 >> shape 0.1, 1.0 | 0.2, 0.5 | 0.5, 0.0");
+    // engine.set_code("aa: imp 2.0 >> shape 0.1, 1.0 | 0.2, 0.5 | 0.5, 0.0");
     // engine.set_code("aa: sin 44 >> pan -0.9");
     // engine.set_code("bb: imp 10.0 >> delay ~rand
 

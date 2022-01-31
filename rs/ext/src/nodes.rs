@@ -2,6 +2,10 @@ use glicol_synth::{SimpleGraph, mono_node, GlicolNodeData};
 use glicol_macro::make_node;
 use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNodeSend};
 
+/// Define new node for Glicol using Glicol style syntax
+/// TODO: support shape node
+/// TODO: improve sawsynth
+
 make_node!{
     @Kick {
         let freq = args[0];
@@ -81,4 +85,52 @@ make_node!{
     ~delay: ~source >> delayn #delayn >> mul #fb;
 
     out: ~source;
+}
+
+make_node!{
+    
+    @Sawsynth {
+        let attack = args[0];
+        let decay = args[1];
+    }
+
+    synth: saw ~pitch >> mul ~env;
+
+    ~trigger: ~input;
+
+    ~pitch: ~trigger >> mul 261.626;
+
+    ~env: ~trigger >> envperc #attack #decay;
+}
+
+make_node!{
+    
+    @Trisynth {
+        let attack = args[0];
+        let decay = args[1];
+    }
+
+    synth: tri ~pitch >> mul ~env;
+
+    ~trigger: ~input;
+
+    ~pitch: ~trigger >> mul 261.626;
+
+    ~env: ~trigger >> envperc #attack #decay;
+}
+
+make_node!{
+    
+    @Squsynth {
+        let attack = args[0];
+        let decay = args[1];
+    }
+
+    synth: squ ~pitch >> mul ~env;
+
+    ~trigger: ~input;
+
+    ~pitch: ~trigger >> mul 261.626;
+
+    ~env: ~trigger >> envperc #attack #decay;
 }

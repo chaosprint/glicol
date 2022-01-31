@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.2.34"
+window.version = "v0.2.35"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -167,8 +167,9 @@ window.addSample = async (name, url) => {
                   sample: buffer.getChannelData(0),
                   name: encoder.encode(name)
                 })
-            })
+            }, function(e){ log("Error with decoding audio data" + e.err); })
         });
+        window.actx.resume()
     }
 }
 
@@ -529,7 +530,6 @@ window.isGlicolRunning = false
 window.encoder = new TextEncoder('utf-8');
 
 window.runCode = (code) => {
-
 
   try {
     window.actx.suspend()

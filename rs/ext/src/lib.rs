@@ -11,6 +11,9 @@ register_extensions! {
     Plate: 1,
     Kick: 2,
     Ks: 3,
+    Sawsynth: 2,
+    Squsynth: 2,
+    Trisynth: 2,
 }
 
 // remember to regitster on glicol_parser too!
