@@ -10,6 +10,9 @@ use std::{collections::HashMap};
 register_extensions! {
     Plate: 1,
     Kick: 2,
+    Bd: 1,
+    Hh: 1,
+    Sn: 1,
     Ks: 3,
     Sawsynth: 2,
     Squsynth: 2,

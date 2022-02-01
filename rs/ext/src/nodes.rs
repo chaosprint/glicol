@@ -22,6 +22,48 @@ make_node!{
     ~pitch: ~env_pitch >> mul #freq >> add #shift;
 }
 
+make_node! {
+    @Sn {
+        let decay = args[0];
+    }
+    sn: sin ~snpitch >> add ~no >> mul ~snenv >> hpf 5000 1.0;
+
+    ~no: noiz 42 >> mul 0.3;
+
+    ~snenv: ~sntriggee >> envperc 0.001 #decay;
+
+    ~snpitch: ~sntriggee >> envperc 0.001 0.1 >> mul 60 >> add 60;
+
+    ~sntriggee: ~input;
+}
+
+make_node! {
+    @Hh {
+        let decay = args[0];
+    }
+    hh: noiz 42 >> mul ~env >> hpf 15000 1.0 >> mul 0.8;
+
+    ~env: ~trigger >> envperc 0.001 #decay;
+
+    ~trigger: ~input;
+}
+
+make_node! {
+    @Bd {
+        let decay = args[0];
+    }
+
+    bd: sin ~pitch >> mul ~envb >> mul 0.8;
+
+    ~envb: ~triggerb >> envperc 0.01 #decay;
+
+    ~env_pitch: ~triggerb >> envperc 0.01 0.1;
+
+    ~pitch: ~env_pitch >> mul 50 >> add 60;
+
+    ~triggerb: ~input;
+}
+
 make_node!{
     
     @Plate {
