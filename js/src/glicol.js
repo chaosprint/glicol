@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.2.35"
+window.version = "v0.2.36"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -569,7 +569,11 @@ window.run = (code) =>{
     toreplace.push(match[0])
   }
   toreplace.map((str)=>{
-    let result = Function(`'use strict'; return ()=>{${str}}`)()()
+
+    let result = str.includes('\n') || str.includes(';') ?
+     Function(`'use strict'; return ()=>{${str}}`)()() : 
+     Function(`'use strict'; return ()=>(${str})`)()()
+
     if (typeof result !== "undefined") {
       code = code.replace(`{${str}}`, result)
     } else {
