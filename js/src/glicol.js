@@ -34,32 +34,28 @@ window.help = async (token) => {
 }
 
 window.setBPM = (beats_per_minute) => {
-const t0 = performance.now();
-if (typeof beats_per_minute === "number") {
-    window.node.port.postMessage({
-    type: "bpm", value: beats_per_minute})
-    log(`%cBPM set to: ${beats_per_minute}`, "background: green");
-    log("%c This will be effective when you make some changes to the code.", "background: yellow");
-} else {
-    warn("BPM should be a number.")
-}
-return `Execution time: ${(performance.now()-t0).toFixed(4)} ms`
+  if (typeof beats_per_minute === "number") {
+      window.node.port.postMessage({
+      type: "bpm", value: beats_per_minute})
+      log(`%cBPM set to: ${beats_per_minute}`, "background: green");
+      log("%c This will be effective when you make some changes to the code.", "background: yellow");
+  } else {
+      warn("BPM should be a number.")
+  }
 }
 
 window.trackAmp = (amp) => {
-const t0 = performance.now();
-if (typeof amp === "number") {
-    if (amp <= 1.0) {
-    window.node.port.postMessage({
-        type: "amp", value: amp})
-    log(`%cThe amplitude of each track is set to: ${amp}`,"background: green");
-    } else {
-    warn("Amplitude should not exceed 1.0.")
-    }
-} else {
-    warn("Amplitude should be a number.")
-}
-return `Execution time: ${(performance.now()-t0).toFixed(4)} ms`
+  if (typeof amp === "number") {
+      if (amp <= 1.0) {
+      window.node.port.postMessage({
+          type: "amp", value: amp})
+      log(`%cThe amplitude of each track is set to: ${amp}`,"background: green");
+      } else {
+      warn("Amplitude should not exceed 1.0.")
+      }
+  } else {
+      warn("Amplitude should be a number.")
+  }
 }
 
 window.sampleFolder = async () => {
