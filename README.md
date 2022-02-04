@@ -27,7 +27,7 @@ You can learn Glicol, find music example and create decentralised collaboration 
 
 https://glicol.org
 
-The web interface has the following featues:
+The web interface has the following features:
 1. run Glicol engine at near-native speed, thanks to WebAssembly
 2. garbage-collection-free real-time audio in browsers thanks to AudioWorklet, SharedArrayBuffer
 3. error handling and command in browser console: e.g. load your own samples
@@ -36,11 +36,11 @@ The web interface has the following featues:
 
 ### DSP
 
-Glicol can be used for:
+Glicol can be used:
 
-1. Web Audio API, Tone.js alternative
-2. VST plugins in Rust
-3. Programming on Bela board (has POC, but still WIP)
+1. as Web Audio API, Tone.js alternative
+2. for developing VST plugins in Rust
+3. to program on Bela board (has POC, but still WIP)
 
 The `js` folder contains the Glicol distribution for the web platform.
 The usage is very easy. Just include this into your `index.html`:
@@ -56,7 +56,7 @@ See the [README.md](./js/README.md) in `js` folder for details.
 
 For VST plugins development, see the [README.md](./rs/README.md) file in the `rs` folder for details.
 
-## Contribution
+## Status quo
 
 I am currently working on:
 - [ ] make the error handling more robust
