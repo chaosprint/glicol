@@ -42,8 +42,6 @@ Glicol can be used for:
 2. VST plugins in Rust
 3. Programming on Bela board (has POC, but still WIP)
 
-#### JS
-
 The `js` folder contains the Glicol distribution for the web platform.
 The usage is very easy. Just include this into your `index.html`:
 ```
