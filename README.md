@@ -42,10 +42,16 @@ Glicol can be used for:
 2. VST plugins in Rust
 3. Programming on Bela board (has POC, but still WIP)
 
+#### JS
+
 The `js` folder contains the Glicol distribution for the web platform.
 The usage is very easy. Just include this into your `index.html`:
 ```
 <script src="https://cdn.jsdelivr.net/gh/chaosprint/glicol@latest/js/src/glicol.js"></script>
+```
+Then you can write in your website:
+```
+run(`o: sin 440`)
 ```
 
 See the [README.md](./js/README.md) in `js` folder for details.
