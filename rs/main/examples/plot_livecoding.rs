@@ -5,7 +5,21 @@ use glicol::Engine;
 fn main () {
     let mut engine = Engine::<128>::new(44100);
 
-    engine.set_code("aa: seq 60 >> sawsynth 0.01 0.02");
+    engine.set_code("~a: choose 48 55 51 58
+
+    ~b: choose 36 60 0 0 0 0 0
+    
+    ~trigger: speed _ >> seq ~a ~b >> mul 2.0
+    
+    ~env: ~trigger >> envperc _ >> mul 0.2
+    
+    ~pitch: ~trigger >> mul 261.626
+    
+    lead: saw ~pitch >> mul ~env >> rlpf ~cut 3.0 
+    >> mul 0.6 >> plate 0.1
+    
+    ~cut: squ _ >> mul 3700.0 >> add 4000.0");
+    // engine.set_code("aa: seq 60 >> sawsynth 0.01 0.02");
     // engine.set_code("aa: imp 1.0");
     // engine.set_code("aa: imp 2.0 >> shape 0.1, 1.0 | 0.2, 0.5 | 0.5, 0.0");
     // engine.set_code("aa: sin 44 >> pan -0.9");

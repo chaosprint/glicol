@@ -87,6 +87,58 @@ pub fn make_node<const N: usize>(
 
     println!("name after alis {} {:?}", alias, paras);
 
+    if paras.as_str() == "_" {
+        let nodedata = match alias {
+
+            // oscillators are preprocessed, so do not use _ here
+            // change it in the preprocessor
+            
+            // "sin" => sin_osc!(N => {freq: 44100.0, sr: sr}),
+            // "saw" => saw_osc!(N => {freq: 44100.0, sr: sr}),
+            // "squ" => squ_osc!(N => {freq: 44100.0, sr: sr}),
+            // "tri" => tri_osc!(N => {freq: 44100.0, sr: sr}),
+            "const_sig" => const_sig!(N => 1.0),
+            "mul" => mul!(N => 1.0),
+            "add" => add!(N => 0.0),
+            "rlpf" => rlpf!(N => {cutoff: 1000.0, q: 1.0, sr: sr}),
+            "rhpf" => rhpf!(N => {cutoff: 1000., q: 1., sr: sr}),
+    
+            "noise" => noise!(N => 42),
+            "imp" => imp!(N => {freq: 1.0, sr: sr}),
+            "sampler" => {
+                sampler!(N => samples_dict[&paras.as_str().replace("\\", "")])},
+            "seq" => {
+                // let info = process_seq(paras.as_str()).unwrap();
+                seq!(N => {events: process_seq(paras)?.0, sidechain_lib: process_seq(paras)?.1, sr: sr, bpm: bpm})
+            },
+            "shape" => shape!(N => {sr: sr, points: get_shape_points(paras)?}),
+            "speed" => speed!(N => 1.0),
+            "choose" => choose!(N => get_notes(paras)?),
+            "delayn" => delayn!(N => 0),
+            "delay" => delay!(N => {delay: 0., sr: sr}),
+            "onepole" => onepole!(N => 0.5),
+            "comb" => comb!(N => {delay: 0.5, gain: 0.5, feedforward: 0.5, feedback: 0.5}),
+            "apfdecay" => apfdecay!(N => {delay: 0.5, decay: 2.0}),
+            "apfgain" => apfgain!(N => {delay: 0.5, gain: 0.5}),
+            "pan" => pan!(N => 0.0),
+            "balance" => balance!(N => 0.0),
+            "pha" => phasor!(N => {freq: 1.0, sr: sr}),
+            "pass" => Pass::<N>::new(),
+            "envperc" => envperc!(N => {attack: 0.01, decay: 0.1, sr: sr}),
+            _ => {
+                // let a = paras.next().unwrap();
+                return Err(GlicolError::NodeNameError((name.to_owned(), 0,0)))
+            }
+            // "buf" => Buf::new(&mut paras, 
+            //     samples_dict)?,
+            // "linrange" => LinRange::new(&mut paras)?,
+            // "pha" => Phasor::new(&mut paras)?,
+            // "state" => State::new(&mut paras)?,
+            // "monosum" => MonoSum::new(&mut paras)?,
+        };
+        return Ok((nodedata, vec![]))
+    }
+
     let modulable = match alias {
         "imp" => vec![Para::Number(1.0)],
         "sin" => vec![Para::Modulable],

@@ -2,6 +2,8 @@ use proc_macro::{TokenStream, TokenTree};
 use quote::quote;
 use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
 
+/// This is just a proof of concept
+/// Using the PEG parser can be considered
 #[proc_macro]
 pub fn make_node(input: TokenStream) -> TokenStream {
     // let code = &input.to_string();

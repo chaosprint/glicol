@@ -19,7 +19,7 @@ use super::{EngineError};
 pub fn preprocess_signal(a: &String) -> Result<String, EngineError> {
     
     let q: String = a.replace(";","\n\n").replace("\n", " \n");
-    let v: Vec<&str> = q.split(" ").collect();
+    let v: Vec<&str> = q.split(" ").collect(); // TODO: this is not robust
     println!("preprocess_signal {:?}", v);
     let mut b = "".to_string();
     let mut skip = false;
@@ -28,17 +28,26 @@ pub fn preprocess_signal(a: &String) -> Result<String, EngineError> {
             if v.len() <= i + 1 {
                 return Err(EngineError::InsufficientParameter((0, 0)))
             }
+            // println!("v[i+1]{}", v[i+1]);
             if v[i+1].parse::<f32>().is_ok() {
                 b += "const_sig ";
                 b += v[i+1];
                 b += " >> ";
                 b += c;
                 skip = true;
-            } else {
-                b += c;
-                b += " ";
+            } else { // module or default
+                if v[i+1] == "_" {
+                    b += "const_sig ";
+                    b += "100.0";
+                    b += " >> ";
+                    b += c;
+                    skip = true;
+                } else {
+                    b += c;
+                    b += " ";
+                }
             }
-            // println!("{:?} {:?}", i, c);
+            // println!("{:?} {:?}", b, c);
         } else {
             if skip {
                 b += " 1 ";
