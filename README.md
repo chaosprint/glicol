@@ -5,89 +5,64 @@
   </p>
 </div>
 
-GLICOL (an acronym for "graph-oriented live coding language") is a computer music language written in Rust.
+GLICOL (an acronym for "graph-oriented live coding language") is a computer music language and an audio DSP library written in Rust.
 
-The project has mainly two parts:
-1. The language and audio engine (this repo).
-    - It can be used as a standalone Rust audio library.
-    - It is also shipped as one single JavaScript package.
-2. The web interface (https://glicol.org).
-    - You can find interactive guides and docs for Glicol.
-    - You can make decentralised collaborative live coding music/audiovisual performance.
+## Why Glicol?
+Glicol is mainly contributing to these two domains:
 
-## Get started
+1. rethink language style and interaction in collaborative live coding
+2. as an audio lib for quick DSP prototyping
 
-For quick start, see https://glicol.org.
+### Language style and interaction
 
-If you want to know more about the dev part, please continue to read.
+As its names suggest, Glicol opts a graph-oriented syntax, rather than OOP or FP.
+Thus, the programming in Glicol is all about:
+1. remembering the input and output of each node
+2. connect them
 
-## Repo structure
+For interaction, Glicol choose a WYSIWYG (what-you-see-is-what-you-get) paradigm. Under the hood, Glicol has implemented LCS algorithm to dynamically update the graph in real-time.
 
-The structure shows that Glicol can be used independently as a JavaScript library in the browser, or used as an audio library for other Rust projects:
+See [this paper](https://webaudioconf2021.com/wp-content/uploads/2021/06/Glicol_WAC_paper.pdf) for details.
 
-```
-js/
-├─ src/
-│  ├─ glicol_wasm.wasm
-│  ├─ glicol-docs.json
-│  ├─ glicol-engine.js
-│  ├─ glicol.js
-├─ index.html
-rs/
-├─ ext/
-├─ macro/
-├─ main/
-├─ parser/
-├─ synth/
-├─ wasm/
-```
+You can learn Glicol, find music example and create decentralised collaboration on its web interface:
 
-### Rust
+https://glicol.org
 
-The `rs` folder contains the Rust code for Glicol.
+The web interface has the following featues:
+1. run Glicol engine at near-native speed, thanks to WebAssembly
+2. a garbage-collection-free real-time audio in browsers thanks to AudioWorklet, SharedArrayBuffer
+3. load your own samples
+4. mix JS code with Glicol easily: `o: sin {42*10+20}`
+5. create visuals with Hydra
 
-The `rs/main` is the main entrance of crate `glicol`.
+### DSP
 
-The `rs/parser` is the `glicol_parser` crate, which provides the parsing tool for Glicol syntax.
+Glicol can be used for:
 
-The `rs/synth` is the `glicol_synth` crate, which contains the DSP code for Glicol and can be used as an independent audio lib.
-
-The `rs/macro` provides Rust macros for developing Glicol extensions.
-
-The `rs/ext` is the Glicol extensions, which relies on `glicol_synth`, `glicol_parser` and `glicol_macro`. The idea is to use the essential nodes in `glicol_synth` to form some more complicated nodes, e.g. reverb nodes. Developers can write new node with Glicol syntax in Rust.
-
-The `rs/wasm` is basically the glue code for compiling the `glicol` crate into a WebAssembly file.
-
-See the [README.md](./rs/README.md) file in the `rs` folder for details.
-
-### JavaScript
+1. Web Audio API, Tone.js alternative
+2. VST plugins in Rust
+3. Programming on Bela board (has POC, but still WIP)
 
 The `js` folder contains the Glicol distribution for the web platform.
-
 The usage is very easy. Just include this into your `index.html`:
-
 ```
 <script src="https://cdn.jsdelivr.net/gh/chaosprint/glicol@latest/js/src/glicol.js"></script>
 ```
 
-See the `README.md` in `js` folder for details.
+See the [README.md](./js/README.md) in `js` folder for details.
+
+For VST plugins development, see the [README.md](./rs/README.md) file in the `rs` folder for details.
 
 ## Contribution
 
-Suggestions, bug reporting, or PR are warmly welcomed.
+I am currently working on:
+- [ ] make the error handling more robust
+- [ ] add new music examples
+- [ ] build new features demanded by music making
+- [ ] write and organise better docs and guides
+- [ ] give examples for using Glicol for vst, bela and tonejs alternative
 
-## Acknowledgement
-
-This work was partially supported by the Research Council of Norway through its Centres of Excellence scheme, project number 262762 and by NordForsk's Nordic University Hub Nordic Sound and Music Computing Network NordicSMC, project number 86892.
-
-Special thanks to:
-
-- [RustAudio](https://github.com/RustAudio) community, [mitchmindtree](https://github.com/mitchmindtree), and [dasp](https://github.com/RustAudio/dasp) contributors
-- [Paul Adenot](https://github.com/padenot) and [ringbuf.js](https://github.com/padenot/ringbuf.js) contributors
-- [Kevin Jahns](https://github.com/dmonad), [yjs](https://github.com/yjs) community and [y-codemirror](https://github.com/yjs/y-codemirror) contributors
-
-## License
-
-The MIT License (MIT)
-
-Copyright (c) 2020 - present Qichao Lan (chaosprint)
+I would like to hear particuarly in issues or discussion:
+- new features suggestion
+- bug report
+- missing and confusion in any docs and guides
