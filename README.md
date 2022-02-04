@@ -15,14 +15,13 @@ Glicol is mainly contributing to these two domains:
 
 ### Language style and interaction
 
-As its names suggest, Glicol opts a graph-oriented syntax, rather than OOP or FP.
+As its name suggests, Glicol opts a graph-oriented syntax, rather than OOP or FP.
+The consideration is from balancing the simplicity and readability.
 Thus, the programming in Glicol is all about:
 1. remembering the input and output of each node
 2. connect them
 
-For interaction, Glicol choose a WYSIWYG (what-you-see-is-what-you-get) paradigm. Under the hood, Glicol has implemented LCS algorithm to dynamically update the graph in real-time.
-
-See [this paper](https://webaudioconf2021.com/wp-content/uploads/2021/06/Glicol_WAC_paper.pdf) for details.
+For interaction, Glicol choose a WYSIWYG (what-you-see-is-what-you-get) paradigm. Under the hood, Glicol has implemented LCS algorithm to dynamically update the graph in real-time. Together with code preprocessing, Glicol provides smooth transition for oscillators and the `mul` node.
 
 You can learn Glicol, find music example and create decentralised collaboration on its web interface:
 
@@ -30,8 +29,8 @@ https://glicol.org
 
 The web interface has the following featues:
 1. run Glicol engine at near-native speed, thanks to WebAssembly
-2. a garbage-collection-free real-time audio in browsers thanks to AudioWorklet, SharedArrayBuffer
-3. load your own samples
+2. garbage-collection-free real-time audio in browsers thanks to AudioWorklet, SharedArrayBuffer
+3. error handling and command in browser console: e.g. load your own samples
 4. mix JS code with Glicol easily: `o: sin {42*10+20}`
 5. create visuals with Hydra
 
