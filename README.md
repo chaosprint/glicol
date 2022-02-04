@@ -49,7 +49,7 @@ The usage is very easy. Just include this into your `index.html`:
 ```
 <script src="https://cdn.jsdelivr.net/gh/chaosprint/glicol@latest/js/src/glicol.js"></script>
 ```
-Then you can write in your website:
+Then you can write on your website:
 ```
 run(`o: sin 440`)
 ```
@@ -65,7 +65,7 @@ I am currently working on:
 - [ ] add new music examples
 - [ ] build new features demanded by music making
 - [ ] write and organise better docs and guides
-- [ ] give examples for using Glicol for vst, bela and tonejs alternative
+- [ ] give examples for using Glicol as vst, bela and tonejs alternative
 
 I would like to hear particuarly in issues or discussion:
 - new features suggestion
