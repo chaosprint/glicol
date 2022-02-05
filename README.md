@@ -21,6 +21,13 @@ Thus, the programming in Glicol is all about:
 1. remembering the input and output of each node
 2. connect them
 
+```
+// an amplitude modulation example
+o: sin 440 >> mul ~mod
+
+~mod: sin 0.5 >> mul 0.3 >> add 0.5
+```
+
 For interaction, Glicol choose a WYSIWYG (what-you-see-is-what-you-get) paradigm. Under the hood, Glicol has implemented LCS algorithm to dynamically update the graph in real-time. Together with code preprocessing, Glicol provides smooth transition for oscillators and the `mul` node.
 
 You can learn Glicol, find music example and create decentralised collaboration on its web interface:
@@ -56,16 +63,23 @@ See the [README.md](./js/README.md) in `js` folder for details.
 
 For VST plugins development, see the [README.md](./rs/README.md) file in the `rs` folder for details.
 
-## Status quo
+## Features, milestones and status quo
 
-I am currently working on:
-- [ ] make the error handling more robust
-- [ ] add new music examples
-- [ ] build new features demanded by music making
-- [ ] write and organise better docs and guides
-- [ ] give examples for using Glicol as vst, bela and tonejs alternative
+- [x] `0.1.0` Hello world from `dasp_graph` and `pest.rs`, pass code from JS to WASM, and lazy evaluation
+- [x] `0.2.0` Pass samples from JS to WASM, support error handling, BPM control in console
+- [x] `0.3.0` Build complex node `plate` reverb using basic node from Glicol, using Macro in Rust
+- [x] `0.4.0` Apply LCS and preprocessor for smooth and efficient whole graph updating
+- [x] `0.5.0` Build `const_generics` to `dasp_graph` and use it in Glicol, use `SharedArrayBuffer`, support local sample loading
+- [x] `0.6.0` Refactor the code to modules: 
+    - `glicol-main` = `glicol-synth` + `glicol-parser` + `glicol-ext`
+    - `glicol-ext` = `glicol-synth` + `glicol-parser` + `glicol-macro`
+    - `glicol-js` = `glicol-main` + `glicol-wasm`
+- [x] `0.7.0` Support mixing JS with Glicol in `glicol-js` using Regex
+- [ ] `0.8.0` Detailed and robust error handling.
+- [ ] `0.9.0` Better node, VST, Web Audio development protocol
+- [ ] `1.0.0` Review all the above work
 
-I would like to hear particuarly in issues or discussion:
+Please let me know in issues or discussion:
 - new features suggestion
 - bug report
 - missing and confusion in any docs and guides
