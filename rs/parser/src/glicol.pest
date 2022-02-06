@@ -1,13 +1,13 @@
-block = {( (line|comment) ~ (";"? ~ ("\n"*)) ) +}
+block = ${ ("\n"|WHITESPACE)* ~ ( (line|comment) ~ WHITESPACE* ~ ";"? ~ WHITESPACE* ~ ("\n" ~ WHITESPACE*)* )+}
 comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE+ ~ !NEWLINE}
-line = { reference ~ ":"? ~ chain}
-chain = { (node ~ ("\n")? ~ (">>")? )+ }
-node = { name? ~ paras+ }
-paras = {  float | symbol | seq }
-float = @{ (("+" | "-")? ~ ASCII_DIGIT+) ~ "." ~ ASCII_DIGIT* ~ (^"e" ~ midi)? }
-symbol = { "\\" ~ ASCII_ALPHANUMERIC* ~ "_"? ~ ASCII_DIGIT* }
-seq = ${ compound+}
-compound = @{ note+ }
+line = ${ reference ~ WHITESPACE+? ~ ":" ~ WHITESPACE+? ~ chain}
+chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE+ ~ node)*  }
+node = ${ name? ~ WHITESPACE* ~ paras ~ (WHITESPACE+ ~ paras)* }
+paras = ${  float | symbol | seq | reference}
+float = ${ (("+" | "-")? ~ ASCII_DIGIT+) ~ "." ~ ASCII_DIGIT* ~ (^"e" ~ midi)? }
+symbol = ${ "\\" ~ ASCII_ALPHANUMERIC* ~ "_"? ~ ASCII_DIGIT* }
+seq = @{ compound ~ (WHITESPACE+ ~ compound)*}
+compound = ${ note+ }
 note = ${ midi | rest | reference }
 reference = ${ (("~")|("_"))? ~ ASCII_ALPHA_LOWER+ ~ (("_")~(ASCII_ALPHA_LOWER+) )* }
 name = ${"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|"linrange"|"apfdecay"|"delayn"|"delaymod"|
@@ -15,6 +15,6 @@ name = ${"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"
 "hpf"|"pha"|"buf"|"state"|"freeverb"|"pan"|"delay"|"apfgain"|"comb"|"mix"|"monosum"|
 "const_sig"|"*"|"sp"|"spd"|"tri"|"noise"|"amplfo"|"balance"|"rlpf"|"rhpf"|"kick"|"ks"|
 "pha"|"shape"|"sawsynth"|"saw"}
-rest = { "_" }
+rest = ${ "_" }
 midi = ${ (ASCII_DIGIT)+ ~ !"." }
-WHITESPACE = _{" "|":"|","|"|"}
+WHITESPACE = _{" "|","|"|"}

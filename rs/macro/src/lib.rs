@@ -3,7 +3,6 @@ use quote::quote;
 use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
 
 /// This is just a proof of concept
-/// Using the PEG parser can be considered
 #[proc_macro]
 pub fn make_node(input: TokenStream) -> TokenStream {
     // let code = &input.to_string();
@@ -104,6 +103,7 @@ pub fn make_node(input: TokenStream) -> TokenStream {
             }
         }
         
+        // this is just ok for one-parameter node
         #[macro_export]
         macro_rules! #macroname{
             ($size: expr => $para:expr) => {
@@ -116,7 +116,7 @@ pub fn make_node(input: TokenStream) -> TokenStream {
 
 #[proc_macro]
 pub fn register_extensions(input: TokenStream) -> TokenStream {
-    println!("register input {:?}", input);
+    // println!("register input {:?}", input);
     let mut stream = input.into_iter();
     let mut token = stream.next();
     // let mut lib = HashMap::<String, u8>::new();
@@ -157,9 +157,17 @@ pub fn register_extensions(input: TokenStream) -> TokenStream {
                 #( #key_low_str => #para_num,  )*
                 _ => return None
             };
+
+            // if paras.as_str() == "_" {
+            //     let node = match name {
+            //         #( #key_low_str => #key_low!( N => args ), )*
+            //         _ => unimplemented!()
+            //     };
+            // }
+
             let mut args: Vec<f32> = paras.as_str().split(" ").filter(|c| c != &"").map(|x|x.parse::<f32>().unwrap()).collect();
-            println!("args {:?}", args);
-            assert_eq!(args.len(), n as usize);
+            // println!("args {:?}", args);
+            // assert_eq!(args.len(), n as usize);
             let node = match name {
                 #( #key_low_str => #key_low!( N => args ), )*
                 _ => unimplemented!()
@@ -168,6 +176,6 @@ pub fn register_extensions(input: TokenStream) -> TokenStream {
             Some(node)
         }
     );
-    println!("oooo {:?}", o.to_string());
+    // println!("o into {:?}", o.to_string());
     o.into()
 }
