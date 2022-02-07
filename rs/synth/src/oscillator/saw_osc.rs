@@ -51,7 +51,8 @@ impl<const N: usize> Node<N> for SawOsc<N> {
         match l {
             0 => {
                 for i in 0..N {
-                    let period = self.sr as f32 / self.freq;
+                    let mut period = self.sr as f32 / self.freq;
+                    period = period.max(2.0);
                     output[0][i] = ( self.phase_n % period as usize) as f32
                     / period *2.0-1.0;
                     self.phase_n += 1;
@@ -62,7 +63,8 @@ impl<const N: usize> Node<N> for SawOsc<N> {
                 // basic fm
                 if has_clock {
                     let mut clock = inputs[1].buffers()[0][0] as usize;
-                    let period = self.sr as f32 / self.freq;
+                    let mut period = self.sr as f32 / self.freq;
+                    period = period.max(2.0);
                     for i in 0..N {
                         output[0][i] = (clock % period as usize) as f32
                         / period *2.0-1.0;
@@ -70,7 +72,8 @@ impl<const N: usize> Node<N> for SawOsc<N> {
                     }
                 } else {
                     for i in 0..N {
-                        let period = self.sr as f32 / self.freq;
+                        let mut period = self.sr as f32 / self.freq;
+                        period = period.max(2.0);
                         output[0][i] = ( self.phase_n % period as usize) as f32
                         / period *2.0-1.0;
                         self.phase_n += 1;
@@ -85,7 +88,8 @@ impl<const N: usize> Node<N> for SawOsc<N> {
                     if mod_buf[0][i] != 0.0 {
                         self.freq = mod_buf[0][i];
                     };
-                    let period = self.sr as f32 / self.freq;
+                    let mut period = self.sr as f32 / self.freq;
+                    period = period.max(2.0);
                     output[0][i] = (clock % period as usize) as f32
                     / period *2.0-1.0;
                     clock += 1;

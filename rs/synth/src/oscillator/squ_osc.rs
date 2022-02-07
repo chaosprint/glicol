@@ -49,8 +49,9 @@ impl<const N: usize> Node<N> for SquOsc<N> {
         match l {
             0 => {
                 for i in 0..N {
-                    let period = (self.sr as f32 / self.freq) as usize;
-                    output[0][i] = ((self.phase_n%period) > (period/2))
+                    let mut period = (self.sr as f32 / self.freq) as usize;
+                    period = period.max(2);
+                    output[0][i] = ((self.phase_n % period) > (period/2))
                     as u8 as f32 * 2.0 - 1.0;
                     self.phase_n += 1;
                 }
@@ -60,7 +61,8 @@ impl<const N: usize> Node<N> for SquOsc<N> {
                 // basic fm
                 if has_clock {
                     let mut clock = inputs[1].buffers()[0][0] as usize;
-                    let period = (self.sr as f32 / self.freq) as usize;
+                    let mut period = (self.sr as f32 / self.freq) as usize;
+                    period = period.max(2);
                     for i in 0..N {
                         // let mod_buf = &mut inputs[0].buffers();
                         // if mod_buf[0][i] != 0.0 {
@@ -76,7 +78,8 @@ impl<const N: usize> Node<N> for SquOsc<N> {
                         if mod_buf[0][i] != 0.0 {
                             self.freq = mod_buf[0][i];
                         };
-                        let period = self.sr as f32 / self.freq;
+                        let mut period = self.sr as f32 / self.freq;
+                        period = period.max(2.0);
                         output[0][i] = ( self.phase_n % period as usize) as f32
                         / period *2.0-1.0;
                         self.phase_n += 1;
@@ -91,7 +94,8 @@ impl<const N: usize> Node<N> for SquOsc<N> {
                     if mod_buf[0][i] != 0.0 {
                         self.freq = mod_buf[0][i];
                     };
-                    let period = (self.sr as f32 / self.freq) as usize;
+                    let mut period = (self.sr as f32 / self.freq) as usize;
+                    period = period.max(2);
                     output[0][i] = ((clock%period) > (period/2))
                     as u8 as f32 * 2.0 - 1.0;
                     clock += 1;
