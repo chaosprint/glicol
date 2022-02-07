@@ -10,18 +10,16 @@ macro_rules! assert_err {
     }
 }
 
-// #[derive(Debug, PartialEq)]
-// pub enum EngineError {
-//     NonExistControlNodeError(String), // handled
-//     ParameterError((usize, usize)), // handled
-//     SampleNotExistError((usize, usize)), // handled
-//     InsufficientParameter((usize, usize)),
-//     NotModuableError((usize, usize)),
-//     ParaTypeError((usize, usize)),
-//     NodeNameError((String, usize, usize)),  // handled
-//     ParsingError(pest::error::Error<glicol_parser::Rule>), // handled
-//     HandleNodeError, // handled
+/// There are so many possible errors.
+
+// #[test]
+// fn seq_para() {
+//     let mut engine = Engine::<128>::new(44100);
+//     engine.set_code("nn: seq \\wrong");
+//     engine.make_graph().unwrap();
 // }
+
+
 
 #[test]
 fn wrongnodename() {
@@ -63,13 +61,13 @@ fn missing_paras() {
     engine.set_code("~trigger: speed 8.0 >> seq 60 >> mul 2.0
     ~env: ~trigger >> envperc >> mul 0.2");
     // engine.make_graph().unwrap();
-    assert!(matches!(engine.make_graph().unwrap_err(), EngineError::ParsingIncompleteError(70)));
+    assert_err!(engine.make_graph(), Err(EngineError::ParsingIncompleteError(_)));
 }
 
 #[test]
 fn missing_paras_begin() {
     let mut engine = Engine::<128>::new(44100);
     engine.set_code("o: sin ");
-    engine.make_graph().unwrap();
+    assert_err!(engine.make_graph(), Err(EngineError::InsufficientParameter(_)));
     // assert!(matches!(engine.make_graph().unwrap_err(), EngineError::ParsingIncompleteError(70)));
 }

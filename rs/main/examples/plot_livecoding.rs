@@ -5,7 +5,7 @@ use glicol::Engine;
 fn main () {
     let mut engine = Engine::<128>::new(44100);
 
-    engine.set_code("aa: sin 440 >> mul ~mod;~mod: sin 1.0 >> add 1.5;");
+    engine.set_code("a: squ 0.2 >> mul 200 >> add 800 >> mul ~more; ~more: choose 60 50 40");
     // engine.set_code("~a: choose 48 55 51 58
 
     // ~b: choose 36 60 0 0 0 0 0

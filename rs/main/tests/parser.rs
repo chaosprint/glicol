@@ -104,3 +104,25 @@ fn multiline3() { //_60 _ ~a _~b ~c_~a
     b: sin 440");
     engine.make_graph().unwrap();
 }
+
+#[test]
+fn space1() { //_60 _ ~a _~b ~c_~a
+    let mut engine = Engine::<128>::new(44100);
+    engine.set_code("// asas
+    
+    o:sin   404
+
+    b  : sin 440");
+    engine.make_graph().unwrap();
+}
+
+#[test]
+fn name() { //_60 _ ~a _~b ~c_~a
+    let mut engine = Engine::<128>::new(44100);
+    engine.set_code("// asas
+    
+    o1:sin   404
+
+    b_1  : sin 440");
+    engine.make_graph().unwrap();
+}
