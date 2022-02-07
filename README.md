@@ -75,9 +75,10 @@ For VST plugins development, see the [README.md](./rs/README.md) file in the `rs
     - `glicol-ext` = `glicol-synth` + `glicol-parser` + `glicol-macro`
     - `glicol-js` = `glicol-main` + `glicol-wasm`
 - [x] `0.7.0` Support mixing JS with Glicol in `glicol-js` using Regex
-- [ ] `0.8.0` Detailed and robust error handling.
-- [ ] `0.9.0` Better node, VST, Web Audio development protocol
-- [ ] `1.0.0` Finalise docs, music examples and fix bugs
+- [ ] `0.8.0` Detailed and robust error handling
+- [ ] `0.9.0` MIDI support, better communication between WASM and JS
+- [ ] Better extension node, VST, Web Audio development protocol 
+- [ ] Better docs, music examples and fix bugs
 
 Please let me know in issues or discussion:
 - new features suggestion
