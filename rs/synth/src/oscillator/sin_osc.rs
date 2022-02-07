@@ -99,7 +99,7 @@ impl<const N: usize> Node<N> for SinOsc<N> {
                 };
                 let mod_buf = &mut inputs[0].buffers();
                 // println!("{:?}", mod_buf[0]);
-                for i in 0..128 {
+                for i in 0..N {
                     output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
                     self.phase += mod_buf[0][i] / self.sr as f32;
                     if self.phase > 1.0 {

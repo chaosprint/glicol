@@ -19,8 +19,8 @@ use super::{EngineError};
 pub fn preprocess_signal(a: &String) -> Result<String, EngineError> {
     
     let q: String = a.replace(";","\n\n").replace("\n", " \n");
-    let v: Vec<&str> = q.split(" ").collect(); // TODO: this is not robust
-    println!("preprocess_signal {:?}", v);
+    let v: Vec<&str> = q.split(" ").filter(|c| c != &"").collect(); // TODO: this is not robust
+    // println!("preprocess_signal {:?}", v);
     let mut b = "".to_string();
     let mut skip = false;
     for (i, c) in v.iter().enumerate() {
@@ -58,6 +58,7 @@ pub fn preprocess_signal(a: &String) -> Result<String, EngineError> {
             }
         }
     }
+    // println!("b b.chars {:?}", b.chars());
     Ok(b)
 }
 
@@ -73,7 +74,7 @@ pub fn preprocess_mul(a: &String) -> Result<String, EngineError> {
     let mut find = false;
     let mut index:usize = 0;
 
-    println!("{:?}", v);
+    // println!("{:?}", v);
     for (i, c) in v.iter().enumerate() {
         if c.contains(":") {
             if c == &":" {
@@ -112,6 +113,7 @@ pub fn preprocess_mul(a: &String) -> Result<String, EngineError> {
     for x in append {
         b += &format!("\n\n~{}mulconst{}: const_sig {};", x.0.replace("~", ""), x.1, x.2);
     }
+    // println!("mul b.chars {:?}", b.chars());
     Ok(b)
 }
 

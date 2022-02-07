@@ -46,7 +46,7 @@ The web interface has the following features:
 Glicol can be used:
 
 1. as Web Audio API, Tone.js alternative
-2. for developing VST plugins in Rust
+2. for developing VST plugins in Rust (has POC, but still WIP)
 3. to program on Bela board (has POC, but still WIP)
 
 The `js` folder contains the Glicol distribution for the web platform.
@@ -77,7 +77,7 @@ For VST plugins development, see the [README.md](./rs/README.md) file in the `rs
 - [x] `0.7.0` Support mixing JS with Glicol in `glicol-js` using Regex
 - [ ] `0.8.0` Detailed and robust error handling.
 - [ ] `0.9.0` Better node, VST, Web Audio development protocol
-- [ ] `1.0.0` Review all the above work
+- [ ] `1.0.0` Finalise docs, music examples and fix bugs
 
 Please let me know in issues or discussion:
 - new features suggestion

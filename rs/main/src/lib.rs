@@ -111,31 +111,44 @@ impl<const N: usize> Engine<N> {
         self.code = preprocess_signal(&mut self.code)?;
         self.code = preprocess_mul(&mut self.code)?;
         println!("code after preprocess: {}",&self.code);
+        
+        let mut target_code = self.code.clone();
 
         let lines = match GlicolParser::parse(Rule::block, &mut self.code) {
-            Ok(mut v) => v.next().unwrap(),
+            Ok(mut res) => {
+                if res.as_str() < &mut target_code {
+                    return Err(EngineError::ParsingIncompleteError(res.as_str().len()));
+                }
+                res.next().unwrap()
+            },
             Err(e) => { println!("{:?}", e); return Err(EngineError::ParsingError(e))}
         };
-        
-        let mut current_ref_name: &str = "";
 
+        let mut current_ref_name: &str = "";
+        // println!("lines.into_inner() {:?}", lines.clone());
         // add nodes to nodes chain vectors in the HashMap with ref as key
         for line in lines.into_inner() {
+           
             let inner_rules = line.into_inner();
             for element in inner_rules {
                 match element.as_rule() {
                     Rule::reference => {
                         current_ref_name = element.as_str();
+                        println!("current_ref_name {:?}", current_ref_name);
                     },
                     Rule::chain => {
                         self.all_refs.push(current_ref_name.to_string());
                         let refname = current_ref_name.to_string();
 
                         // TODO: this should be solved by parser
-                        let new: Vec<String> = element.clone().into_inner()
-                        .map(|v|v.as_str().to_string().chars()
-                        .filter(|c| !c.is_whitespace()).collect()).collect();
+                        // let new: Vec<String> = element.clone().into_inner()
+                        // .map(|v|v.as_str().to_string().chars()
+                        // .filter(|c| !c.is_whitespace()).collect()).collect();
+
+                        let chain_plain_str: Vec<String> = element.clone().into_inner()
+                        .map(|v|v.as_str().to_string()).collect();
                         // new.reverse();
+                        println!("new {:?}", chain_plain_str);
 
                         let (add, _rem, del) = match self.chain_info
                         .contains_key(&refname) {
@@ -143,16 +156,18 @@ impl<const N: usize> Engine<N> {
                             true => {
                                 let old = self.chain_info[&refname].clone();
                                 self.chain_info.insert(refname.clone(), 
-                                new.clone());
-                                lcs(&old, &new)
+                                chain_plain_str.clone());
+                                lcs(&old, &chain_plain_str)
                             },
                             _ => {
                                 self.chain_info.insert(refname.clone(), 
-                                new.clone());
+                                chain_plain_str.clone());
                                 let t = Vec::<String>::new();
-                                lcs(&t, &new)
+                                lcs(&t, &chain_plain_str)
                             }
                         };
+
+                        println!("add, _rem, del {:?}", (add.clone(), _rem.clone(), del.clone()));
 
                         // if (add.len() + del.len()) > 0 {
                         //     self.modified.push(refname.clone());
@@ -177,22 +192,30 @@ impl<const N: usize> Engine<N> {
                         };
                         
                         for node in element.into_inner() {
-                            let mut paras = node.into_inner();
-                            let id: String = paras.as_str().to_string()
-                            .chars().filter(|c| !c.is_whitespace()).collect();
-                            let first = paras.next().unwrap();
-                            let pos = (first.as_span().start(), first.as_span().end());
-                            let name = first.as_str();
-                            let dest = match first.as_rule() {
-                                Rule::paras => format!("@rev{}", first.as_str()),
+                            // println!("\n\nnode {:?}\n\n", node);
+                            let mut name_and_paras = node.into_inner();
+
+                            // we use the name and para e.g. sin440 as id
+                            // perhaps no need for clean space, but need to be consistent with the lcs calculation
+                            let name_and_paras_str: String = name_and_paras.as_str().to_string();
+                            // .chars().filter(|c| !c.is_whitespace()).collect();
+                            // println!("\n\nnode id {:?}\n\n", name_and_paras_str);
+                            let name_obj = name_and_paras.next().unwrap();
+                            let mut paras = name_and_paras.clone(); // the name is ripped
+                            // println!("\n\nname_obj {:?}\n\n", name_obj);
+                            let pos = (name_obj.as_span().start(), name_obj.as_span().end());
+                            let name = name_obj.as_str();
+                            let dest = match name_obj.as_rule() {
+                                Rule::paras => format!("@rev{}", name_obj.as_str()),
                                 _ => "".to_string()
                             };
-
                             // println!("{:?}", &add);
                             for info in &add {
-                                // println!("info {:?} != {:?} ?", &id, &info.0);
-                                if info.0 == id {
+                                println!("name_and_paras_str {:?} != info {:?} ?", &name_and_paras_str, &info.0);
+                                if info.0 == name_and_paras_str {
 
+                                    // TODO: support ref in ext
+                                    // TODO: report errors for ext
                                     let (node_data, sidechains) = match make_node_ext(
                                         name, &mut paras, pos,
                                         &self.samples_dict,
@@ -213,7 +236,7 @@ impl<const N: usize> Engine<N> {
                                     if !self.node_by_chain.contains_key(&refname) {
                                         // head of chain
                                         self.node_by_chain.insert(refname.clone(),
-                                        vec![(node_index, id.clone())]);
+                                        vec![(node_index, name_and_paras_str.clone())]);
                                     } else {
 
                                         let mut list = self.node_by_chain[&refname]
@@ -225,7 +248,7 @@ impl<const N: usize> Engine<N> {
                                                 dest.clone()));
                                         };                     
                                         list.insert(
-                                            info.1, (node_index, id.clone()));
+                                            info.1, (node_index, name_and_paras_str.clone()));
 
                                         // println!("insert{} at{}",id.clone(),info.1);
                                         self.node_by_chain.insert(
@@ -286,7 +309,8 @@ impl<const N: usize> Engine<N> {
         
         // make edges cross chain
         for pair in &self.sidechains_list {
-            // println!("sidechain conncect {:?}", pair);
+            println!("sidechain conncect {:?}", pair);
+            println!("node_by_chain {:?}", self.node_by_chain);
             if pair.1.contains("@rev") {
                 
                 let name = &pair.1[4..];
@@ -360,11 +384,11 @@ impl<const N: usize> Engine<N> {
         if self.update && (self.elapsed_samples + N) % one_bar <= N {
             // println!("updating... at {}", (self.elapsed_samples + 128) % one_bar);
             self.update = false;
-            println!("updated!");
+            // println!("updated!");
             match self.make_graph() {
                 Ok(_) => {
                     self.code_backup = self.code.clone();
-                    println!("success make backup {}", self.code_backup);
+                    // println!("success make backup {}", self.code_backup);
                 },
                 Err(e) => {
                     let mut info: [u8; 256] = [0; 256];
@@ -424,7 +448,7 @@ impl<const N: usize> Engine<N> {
                             info
                         }
                     };
-                    println!("debug {:?} code backup is {} !", console, self.code_backup);
+                    // println!("debug {:?} code backup is {} !", console, self.code_backup);
                     self.soft_reset();
                     self.set_code(&self.code_backup.clone());
                     self.make_graph()?;
@@ -541,7 +565,7 @@ macro_rules! chain {
     };
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum EngineError {
     NonExistControlNodeError(String), // handled
     ParameterError((usize, usize)), // handled
@@ -552,6 +576,7 @@ pub enum EngineError {
     NodeNameError((String, usize, usize)),  // handled
     ParsingError(pest::error::Error<glicol_parser::Rule>), // handled
     HandleNodeError, // handled
+    ParsingIncompleteError(usize),
 }
 
 impl From<GlicolError> for EngineError {

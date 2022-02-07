@@ -8,6 +8,7 @@ pub struct TriOsc<const N: usize> {
     clock: usize,
     buffer: Buffer<N>,
     sr: usize,
+    phase: f32,
 }
 
 impl<const N: usize> TriOsc<N> {
@@ -18,6 +19,7 @@ impl<const N: usize> TriOsc<N> {
             clock: 0,
             buffer: Buffer::<N>::default(),
             sr: 44100,
+            phase: 0.,
         }
     }
     pub fn freq(self, freq: f32) -> Self {
@@ -52,26 +54,13 @@ impl<const N: usize> Node<N> for TriOsc<N> {
         match l {
             0 => {
                 for i in 0..N {
-                    let t = self.sr as f32 / self.freq;
-                    let phase = self.phase_n as f32 / (t/4.);
-                    let y = match phase.floor() as u8 {
-                        0 => phase.fract(),
-                        1 => 1.0 - phase.fract(),
-                        2 => - phase.fract(),
-                        3 => phase.fract() - 1.,
-                        _ => 0.0
-                    };
-                    // let period = self.sr as f32 / self.freq;
-                    // let quater_period = (period / 4.) as usize;
-                    // let half_period = (period / 2.) as usize;
-                    // let y_abs = (self.phase_n % quater_period) as f32 / quater_period as f32;
-                    // let is_quater = ((self.phase_n % half_period) >= quater_period) as u8 as f32;// 1.0 or 0
-                    // let is_half =  (self.phase_n >= half_period ) as u8 as f32;// 1.0 or 0
-                    // let y = (y_abs * (is_quater * -2. + 1.) + (1. * is_quater)) * (is_half * -2. + 1.);
-                    output[0][i] = y;
-                    self.phase_n += 1;
-                    if self.phase_n >= t as usize {
-                        self.phase_n -= t as usize;
+                    let v = -1.0 + (self.phase / std::f32::consts::PI);
+
+                    output[0][i] = 2.0 * (v.abs() - 0.5);
+                    self.phase += self.freq / self.sr as f32;
+
+                    if self.phase > 2. * std::f32::consts::PI {
+                        self.phase -= 2. * std::f32::consts::PI
                     }
                 }
             },
@@ -79,48 +68,81 @@ impl<const N: usize> Node<N> for TriOsc<N> {
                 // in standalone mode, no mechanism to prevent double processing
                 // basic fm
                 if has_clock {
-                    let mut clock = inputs[1].buffers()[0][0] as usize;
-                    let period = self.sr as f32 / self.freq;
+                    // has clock input or somehow mistakenly connected by users
+                    let clock = inputs[1].buffers()[0][0] as usize;
+                    // avoid process twice
+                    // without this, when use this node to control two different things
+                    // the phase += will be called more than once and cause errors and mess
+                    if self.clock != 0 && self.clock == clock {
+                        output[0] = self.buffer.clone();
+                        return ()
+                    };
+
+                    let mod_buf = &mut inputs[0].buffers();
+                    // println!("{:?}", mod_buf[0]);
                     for i in 0..N {
-                        output[0][i] = (clock % period as usize) as f32
-                        / period *2.0-1.0;
-                        clock += 1;
+                        let v = -1.0 + (self.phase / std::f32::consts::PI);
+
+                        output[0][i] = 2.0 * (v.abs() - 0.5);
+                        self.phase += mod_buf[0][i] / self.sr as f32;
+
+                        if self.phase > 2. * std::f32::consts::PI {
+                            self.phase -= 2. * std::f32::consts::PI
+                        }
                     }
+                    self.buffer = output[0].clone();
+                    self.clock = clock;
                 } else {
                     for i in 0..N {
-                        let mod_buf = &mut inputs[0].buffers();
-                        if mod_buf[0][i] != 0.0 {
-                            self.freq = mod_buf[0][i];
-                        };
-                        let t = self.sr as f32 / self.freq;
-                        let phase = self.phase_n as f32 / (t/4.);
-                        let y = match phase.floor() as u8 {
-                            0 => phase.fract(),
-                            1 => 1.0 - phase.fract(),
-                            2 => - phase.fract(),
-                            3 => phase.fract() - 1.,
-                            _ => 0.0
-                        };
-                        output[0][i] = y;
-                        self.phase_n += 1;
-                        if self.phase_n >= t as usize {
-                            self.phase_n -= t as usize;
+                        let v = -1.0 + (self.phase / std::f32::consts::PI);
+
+                        output[0][i] = 2.0 * (v.abs() - 0.5);
+                        self.phase += self.freq / self.sr as f32;
+
+                        if self.phase > 2. * std::f32::consts::PI {
+                            self.phase -= 2. * std::f32::consts::PI
                         }
                     }
                 }
             },
             2 => {
-                let mut clock = inputs[1].buffers()[0][0] as usize;
+                // has clock input or somehow mistakenly connected by users
+                let clock = inputs[1].buffers()[0][0] as usize;
+                // avoid process twice
+                // without this, when use this node to control two different things
+                // the phase += will be called more than once and cause errors and mess
+                if self.clock != 0 && self.clock == clock {
+                    output[0] = self.buffer.clone();
+                    return ()
+                };
+
+                let mod_buf = &mut inputs[0].buffers();
+                // println!("{:?}", mod_buf[0]);
                 for i in 0..N {
-                    let mod_buf = &mut inputs[0].buffers();
-                    if mod_buf[0][i] != 0.0 {
-                        self.freq = mod_buf[0][i];
-                    };
-                    let period = self.sr as f32 / self.freq;
-                    output[0][i] = (clock % period as usize) as f32
-                    / period *2.0-1.0;
-                    clock += 1;
+                    let v = -1.0 + (self.phase / std::f32::consts::PI);
+
+                    output[0][i] = 2.0 * (v.abs() - 0.5);
+                    self.phase += mod_buf[0][i] / self.sr as f32;
+
+                    if self.phase > 2. * std::f32::consts::PI {
+                        self.phase -= 2. * std::f32::consts::PI
+                    }
                 }
+                self.buffer = output[0].clone();
+                self.clock = clock;
+
+                // let mut clock = inputs[1].buffers()[0][0] as usize;
+                // for i in 0..N {
+                //     let mod_buf = &mut inputs[0].buffers();
+                //     if mod_buf[0][i] != 0.0 {
+                //         self.freq = mod_buf[0][i];
+                //     };
+                //     let mut period = self.sr as f32 / self.freq;
+                //     period = period.max(2.0);
+                //     output[0][i] = (clock % period as usize) as f32
+                //     / period *2.0-1.0;
+                //     clock += 1;
+                // }
             },
             _ => return ()
         }

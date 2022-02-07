@@ -65,6 +65,7 @@ pub fn make_node<const N: usize>(
     bpm: f32,
 ) -> NodeResult<N> {
 
+    println!("makenode for name: {}, para: {}", name, paras.as_str());
     // TODO: handle this in the parser
     // if !["", ""].contains(&name) {
     //     return Err(GlicolError::NodeNameError((paras.as_str().to_string(), paras.as_span().start(), paras.as_span().end())))
@@ -85,7 +86,7 @@ pub fn make_node<const N: usize>(
         }
     };
 
-    println!("name after alis {} {:?}", alias, paras);
+    // println!("name after alis {} {:?}", alias, paras);
 
     if paras.as_str() == "_" {
         let nodedata = match alias {
@@ -260,7 +261,7 @@ type Events = Vec::<(f64, String)>;
 type Sidechain = HashMap::<String, usize>;
 
 fn get_shape_points(paras: &mut Pairs<Rule>) -> Result<Vec<(f32, f32)>, GlicolError> {
-    println!("\n\nget shape points from {:?}\n\n", paras.as_str());
+    // println!("\n\nget shape points from {:?}\n\n", paras.as_str());
     let pattern = paras.clone().as_str();
     let p = paras.clone().next();
     
@@ -315,7 +316,7 @@ fn process_seq(paras: &mut Pairs<Rule>) -> Result<(Events, Sidechain, Vec<String
         None => (0,0)
     };
 
-    println!("pos {:?}", pos);
+    // println!("pos {:?}", pos);
 
     let mut events = Vec::<(f64, String)>::new();
     let mut sidechain_count = 0;
@@ -334,7 +335,7 @@ fn process_seq(paras: &mut Pairs<Rule>) -> Result<(Events, Sidechain, Vec<String
             let relative_time = i as f64 / len_by_space as f64 
             + (j as f64/ notes_len as f64 ) * compound_unit;
 
-            println!("x is {}", x);
+            // println!("x is {}", x);
             
             if !x.parse::<f32>().is_ok() && x != &"_" && !x.starts_with('~') {
                 return Err(GlicolError::ParameterError(pos))
@@ -351,7 +352,7 @@ fn process_seq(paras: &mut Pairs<Rule>) -> Result<(Events, Sidechain, Vec<String
             } 
         }
     }
-    println!("event: {:?}", events);
+    // println!("event: {:?}", events);
     Ok((events, sidechain_lib, sidechains))
 }
 
@@ -369,13 +370,13 @@ fn get_notes(paras: &mut Pairs<Rule>) -> Result<Vec::<f32>, GlicolError> {
             }
         }
     }
-    println!("note_list{:?}", note_list);
+    // println!("note_list{:?}", note_list);
     Ok(note_list)
 }
 
 pub fn process_parameters(paras: &mut Pairs<Rule>, mut modulable: Vec<Para>) -> Result<(Vec<Para>, Vec<String>), GlicolError> {
     let mut refs = vec![];
-    // println!("{:?}{:?}", paras, modulable);
+    println!("process_parameters {:?}{:?}", paras.as_str(), modulable);
     for i in 0..modulable.len() {
         let para = paras.next();
         let mut pos = (0, 0);
@@ -433,7 +434,7 @@ impl<const N: usize> SimpleGraph<N> {
             vec![audio_in]
         );
 
-        println!("code in simplegraph {}", code);
+        // println!("code in simplegraph {}", code);
         let mut parsing_result = GlicolParser::parse(Rule::block, code).unwrap();
         let mut current_ref_name: &str = "";
 
