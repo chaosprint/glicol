@@ -121,7 +121,7 @@ impl<const N: usize> Engine<N> {
                 }
                 res.next().unwrap()
             },
-            Err(e) => { println!("{:?}", e); return Err(EngineError::ParsingError(e))}
+            Err(e) => { println!("{:?}", e); panic!(); return Err(EngineError::ParsingError(e))}
         };
 
         let mut current_ref_name: &str = "";
@@ -134,7 +134,7 @@ impl<const N: usize> Engine<N> {
                 match element.as_rule() {
                     Rule::reference => {
                         current_ref_name = element.as_str();
-                        println!("current_ref_name {:?}", current_ref_name);
+                        // println!("current_ref_name {:?}", current_ref_name);
                     },
                     Rule::chain => {
                         self.all_refs.push(current_ref_name.to_string());
@@ -148,7 +148,7 @@ impl<const N: usize> Engine<N> {
                         let chain_plain_str: Vec<String> = element.clone().into_inner()
                         .map(|v|v.as_str().to_string()).collect();
                         // new.reverse();
-                        println!("new {:?}", chain_plain_str);
+                        // println!("new {:?}", chain_plain_str);
 
                         let (add, _rem, del) = match self.chain_info
                         .contains_key(&refname) {
@@ -167,7 +167,7 @@ impl<const N: usize> Engine<N> {
                             }
                         };
 
-                        println!("add, _rem, del {:?}", (add.clone(), _rem.clone(), del.clone()));
+                        // println!("add, _rem, del {:?}", (add.clone(), _rem.clone(), del.clone()));
 
                         // if (add.len() + del.len()) > 0 {
                         //     self.modified.push(refname.clone());
@@ -211,7 +211,7 @@ impl<const N: usize> Engine<N> {
                             };
                             // println!("{:?}", &add);
                             for info in &add {
-                                println!("name_and_paras_str {:?} != info {:?} ?", &name_and_paras_str, &info.0);
+                                // println!("name_and_paras_str {:?} != info {:?} ?", &name_and_paras_str, &info.0);
                                 if info.0 == name_and_paras_str {
 
                                     // TODO: support ref in ext
@@ -309,8 +309,8 @@ impl<const N: usize> Engine<N> {
         
         // make edges cross chain
         for pair in &self.sidechains_list {
-            println!("sidechain conncect {:?}", pair);
-            println!("node_by_chain {:?}", self.node_by_chain);
+            // println!("sidechain conncect {:?}", pair);
+            // println!("node_by_chain {:?}", self.node_by_chain);
             if pair.1.contains("@rev") {
                 
                 let name = &pair.1[4..];
@@ -391,6 +391,7 @@ impl<const N: usize> Engine<N> {
                     // println!("success make backup {}", self.code_backup);
                 },
                 Err(e) => {
+                    // panic!(e);
                     let mut info: [u8; 256] = [0; 256];
                     console = match e {
                         EngineError::SampleNotExistError((s, e)) => { 
@@ -552,7 +553,7 @@ impl<const N: usize> Engine<N> {
     }
 
     pub fn next_block(mut self) -> Result<([f32; 256], [u8;256]), EngineError> {
-        println!("{}", self.code);
+        // println!("{}", self.code);
         self.make_graph()?;
         self.gen_next_buf(&mut [0.0;N])
     }

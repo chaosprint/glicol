@@ -9,6 +9,7 @@ pub struct SquOsc<const N: usize> {
     buffer: Buffer<N>,
     sr: usize,
     phase: f32,
+    inc: f32,
 }
 
 impl<const N: usize> SquOsc<N> {
@@ -20,6 +21,7 @@ impl<const N: usize> SquOsc<N> {
             buffer: Buffer::<N>::default(),
             sr: 44100,
             phase: 0.,
+            inc: 0.,
         }
     }
     pub fn freq(self, freq: f32) -> Self {
@@ -57,7 +59,7 @@ impl<const N: usize> Node<N> for SquOsc<N> {
                         output[0][i] = -1.0;
                     }
 
-                    self.phase += self.freq / self.sr as f32;
+                    self.phase += self.freq * 2. * std::f32::consts::PI / self.sr as f32;
                     if self.phase > 2. * std::f32::consts::PI {
                         self.phase -= 2. * std::f32::consts::PI
                     }
@@ -77,6 +79,9 @@ impl<const N: usize> Node<N> for SquOsc<N> {
                     };
 
                     let mod_buf = &mut inputs[0].buffers();
+                    if mod_buf[0][0] != 0. {
+                        self.inc = mod_buf[0][0]
+                    };
                     // println!("{:?}", mod_buf[0]);
                     for i in 0..N {
                         if (self.phase <= std::f32::consts::PI) {
@@ -85,7 +90,7 @@ impl<const N: usize> Node<N> for SquOsc<N> {
                             output[0][i] = -1.0;
                         }
 
-                        self.phase += mod_buf[0][i] / self.sr as f32;
+                        self.phase += self.inc * 2. * std::f32::consts::PI / self.sr as f32;
                         if self.phase > 2. * std::f32::consts::PI {
                             self.phase -= 2. * std::f32::consts::PI
                         }
@@ -100,7 +105,7 @@ impl<const N: usize> Node<N> for SquOsc<N> {
                             output[0][i] = -1.0;
                         }
 
-                        self.phase +=self.freq / self.sr as f32;
+                        self.phase +=self.freq * 2. * std::f32::consts::PI / self.sr as f32;
                         if self.phase > 2. * std::f32::consts::PI {
                             self.phase -= 2. * std::f32::consts::PI
                         }
@@ -119,6 +124,9 @@ impl<const N: usize> Node<N> for SquOsc<N> {
                 };
 
                 let mod_buf = &mut inputs[0].buffers();
+                if mod_buf[0][0] != 0. {
+                    self.inc = mod_buf[0][0]
+                };
                 // println!("{:?}", mod_buf[0]);
                 for i in 0..N {
                     if (self.phase <= std::f32::consts::PI) {
@@ -127,7 +135,7 @@ impl<const N: usize> Node<N> for SquOsc<N> {
                         output[0][i] = -1.0;
                     }
 
-                    self.phase += mod_buf[0][i] / self.sr as f32;
+                    self.phase += self.inc  * 2. * std::f32::consts::PI / self.sr as f32;
                     if self.phase > 2. * std::f32::consts::PI {
                         self.phase -= 2. * std::f32::consts::PI
                     }

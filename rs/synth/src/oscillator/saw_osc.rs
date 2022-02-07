@@ -8,6 +8,7 @@ pub struct SawOsc<const N: usize> {
     clock: usize,
     buffer: Buffer<N>,
     phase: f32,
+    inc: f32,
     sr: usize,
 }
 
@@ -18,6 +19,7 @@ impl<const N: usize> SawOsc<N> {
             phase_n: 0,
             clock: 0,
             phase: 0.0,
+            inc: 0.,
             buffer: Buffer::<N>::default(),
             sr: 44100,
         }
@@ -54,7 +56,7 @@ impl<const N: usize> Node<N> for SawOsc<N> {
             0 => {
                 for i in 0..N {
                     output[0][i] = self.phase / std::f32::consts::PI - 1.;
-                    self.phase += self.freq / self.sr as f32;
+                    self.phase += self.freq * 2. * std::f32::consts::PI / self.sr as f32;
                     if self.phase > 2. * std::f32::consts::PI {
                         self.phase -= 2. * std::f32::consts::PI
                     }
@@ -71,9 +73,13 @@ impl<const N: usize> Node<N> for SawOsc<N> {
                     };
     
                     let mod_buf = &mut inputs[0].buffers();
+
                     for i in 0..N {
                         output[0][i] = self.phase / std::f32::consts::PI - 1.;
-                        self.phase += mod_buf[0][i] / self.sr as f32;
+                        if mod_buf[0][i] != 0. {
+                            self.inc = mod_buf[0][0]
+                        };
+                        self.phase +=  self.inc * 2. * std::f32::consts::PI / self.sr as f32;
                         if self.phase > 2. * std::f32::consts::PI {
                             self.phase -= 2. * std::f32::consts::PI
                         }
@@ -83,7 +89,7 @@ impl<const N: usize> Node<N> for SawOsc<N> {
                 } else {
                     for i in 0..N {
                         output[0][i] = self.phase / std::f32::consts::PI - 1.;
-                        self.phase += self.freq / self.sr as f32;
+                        self.phase += self.freq * 2. * std::f32::consts::PI / self.sr as f32;
                         if self.phase > 2. * std::f32::consts::PI {
                             self.phase -= 2. * std::f32::consts::PI
                         }
@@ -99,9 +105,13 @@ impl<const N: usize> Node<N> for SawOsc<N> {
                 };
 
                 let mod_buf = &mut inputs[0].buffers();
+                
                 for i in 0..N {
                     output[0][i] = self.phase / std::f32::consts::PI - 1.;
-                    self.phase += mod_buf[0][i] / self.sr as f32;
+                    if mod_buf[0][i] != 0. {
+                        self.inc = mod_buf[0][0]
+                    };
+                    self.phase += self.inc * 2. * std::f32::consts::PI / self.sr as f32; // only count the first input for modulation
                     if self.phase > 2. * std::f32::consts::PI {
                         self.phase -= 2. * std::f32::consts::PI
                     }
