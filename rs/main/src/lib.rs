@@ -111,12 +111,19 @@ impl<const N: usize> Engine<N> {
         self.code = preprocess_signal(&mut self.code)?;
         self.code = preprocess_mul(&mut self.code)?;
         println!("code after preprocess: {}",&self.code);
+        
+        let mut target_code = self.code.clone();
 
         let lines = match GlicolParser::parse(Rule::block, &mut self.code) {
-            Ok(mut v) => v.next().unwrap(),
+            Ok(mut res) => {
+                if res.as_str() < &mut target_code {
+                    return Err(EngineError::ParsingIncompleteError(res.as_str().len()));
+                }
+                res.next().unwrap()
+            },
             Err(e) => { println!("{:?}", e); return Err(EngineError::ParsingError(e))}
         };
-        
+
         let mut current_ref_name: &str = "";
         // println!("lines.into_inner() {:?}", lines.clone());
         // add nodes to nodes chain vectors in the HashMap with ref as key
@@ -141,7 +148,6 @@ impl<const N: usize> Engine<N> {
                         let chain_plain_str: Vec<String> = element.clone().into_inner()
                         .map(|v|v.as_str().to_string()).collect();
                         // new.reverse();
-
                         println!("new {:?}", chain_plain_str);
 
                         let (add, _rem, del) = match self.chain_info
@@ -186,30 +192,26 @@ impl<const N: usize> Engine<N> {
                         };
                         
                         for node in element.into_inner() {
-                            println!("\n\nnode {:?}\n\n", node);
+                            // println!("\n\nnode {:?}\n\n", node);
                             let mut name_and_paras = node.into_inner();
 
                             // we use the name and para e.g. sin440 as id
                             // perhaps no need for clean space, but need to be consistent with the lcs calculation
                             let name_and_paras_str: String = name_and_paras.as_str().to_string();
-
                             // .chars().filter(|c| !c.is_whitespace()).collect();
-                            
-                            println!("\n\nnode id {:?}\n\n", name_and_paras_str);
-
+                            // println!("\n\nnode id {:?}\n\n", name_and_paras_str);
                             let name_obj = name_and_paras.next().unwrap();
                             let mut paras = name_and_paras.clone(); // the name is ripped
-                            println!("\n\nname_obj {:?}\n\n", name_obj);
+                            // println!("\n\nname_obj {:?}\n\n", name_obj);
                             let pos = (name_obj.as_span().start(), name_obj.as_span().end());
                             let name = name_obj.as_str();
                             let dest = match name_obj.as_rule() {
                                 Rule::paras => format!("@rev{}", name_obj.as_str()),
                                 _ => "".to_string()
                             };
-
                             // println!("{:?}", &add);
                             for info in &add {
-                                // println!("name_and_paras_str {:?} != info {:?} ?", &name_and_paras_str, &info.0);
+                                println!("name_and_paras_str {:?} != info {:?} ?", &name_and_paras_str, &info.0);
                                 if info.0 == name_and_paras_str {
 
                                     // TODO: support ref in ext
@@ -563,7 +565,7 @@ macro_rules! chain {
     };
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum EngineError {
     NonExistControlNodeError(String), // handled
     ParameterError((usize, usize)), // handled
@@ -574,6 +576,7 @@ pub enum EngineError {
     NodeNameError((String, usize, usize)),  // handled
     ParsingError(pest::error::Error<glicol_parser::Rule>), // handled
     HandleNodeError, // handled
+    ParsingIncompleteError(usize),
 }
 
 impl From<GlicolError> for EngineError {

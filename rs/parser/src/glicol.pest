@@ -1,5 +1,5 @@
 block = ${ ("\n"|WHITESPACE)* ~ ( (line|comment) ~ WHITESPACE* ~ ";"? ~ WHITESPACE* ~ ("\n" ~ WHITESPACE*)* )+}
-comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE+ ~ !NEWLINE}
+comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE* ~ !NEWLINE}
 line = ${ reference ~ WHITESPACE+? ~ ":" ~ WHITESPACE+? ~ chain}
 chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE+ ~ node)*  }
 node = ${ name? ~ WHITESPACE* ~ paras ~ (WHITESPACE+ ~ paras)* }
