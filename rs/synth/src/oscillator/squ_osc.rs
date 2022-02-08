@@ -4,22 +4,22 @@ use super::super::{GlicolNodeData, mono_node};
 
 pub struct SquOsc<const N: usize> {
     freq: f32,
-    phase_n: usize,
     clock: usize,
     buffer: Buffer<N>,
     sr: usize,
     phase: f32,
+    inc: f32,
 }
 
 impl<const N: usize> SquOsc<N> {
     pub fn new() -> Self {
         Self {
             freq: 440.,
-            phase_n: 0,
             clock: 0,
             buffer: Buffer::<N>::default(),
             sr: 44100,
-            phase: 0.,
+            phase: 0.5,
+            inc: 0.,
         }
     }
     pub fn freq(self, freq: f32) -> Self {
@@ -51,15 +51,15 @@ impl<const N: usize> Node<N> for SquOsc<N> {
         match l {
             0 => {
                 for i in 0..N {
-                    if (self.phase <= std::f32::consts::PI) {
+                    if (self.phase <= 0.5) {
                         output[0][i] = 1.0;
                     } else {
                         output[0][i] = -1.0;
                     }
 
                     self.phase += self.freq / self.sr as f32;
-                    if self.phase > 2. * std::f32::consts::PI {
-                        self.phase -= 2. * std::f32::consts::PI
+                    if self.phase > 1. {
+                        self.phase -= 1.
                     }
                 }
             },
@@ -77,32 +77,36 @@ impl<const N: usize> Node<N> for SquOsc<N> {
                     };
 
                     let mod_buf = &mut inputs[0].buffers();
+                    
                     // println!("{:?}", mod_buf[0]);
                     for i in 0..N {
-                        if (self.phase <= std::f32::consts::PI) {
+                        if mod_buf[0][i] != 0. {
+                            self.inc = mod_buf[0][i]
+                        };
+                        if (self.phase <= 0.5) {
                             output[0][i] = 1.0;
                         } else {
                             output[0][i] = -1.0;
                         }
 
-                        self.phase += mod_buf[0][i] / self.sr as f32;
-                        if self.phase > 2. * std::f32::consts::PI {
-                            self.phase -= 2. * std::f32::consts::PI
+                        self.phase += self.inc / self.sr as f32;
+                        if self.phase > 1. {
+                            self.phase -= 1.
                         }
                     }
                     self.buffer = output[0].clone();
                     self.clock = clock;
                 } else {
                     for i in 0..N {
-                        if (self.phase <= std::f32::consts::PI) {
+                        if (self.phase <= 0.5) {
                             output[0][i] = 1.0;
                         } else {
                             output[0][i] = -1.0;
                         }
 
-                        self.phase +=self.freq / self.sr as f32;
-                        if self.phase > 2. * std::f32::consts::PI {
-                            self.phase -= 2. * std::f32::consts::PI
+                        self.phase += self.freq / self.sr as f32;
+                        if self.phase > 1. {
+                            self.phase -= 1.
                         }
                     }
                 }
@@ -119,17 +123,21 @@ impl<const N: usize> Node<N> for SquOsc<N> {
                 };
 
                 let mod_buf = &mut inputs[0].buffers();
+                
                 // println!("{:?}", mod_buf[0]);
                 for i in 0..N {
-                    if (self.phase <= std::f32::consts::PI) {
+                    if mod_buf[0][i] != 0. {
+                        self.inc = mod_buf[0][i]
+                    };
+                    if (self.phase <= 0.5) {
                         output[0][i] = 1.0;
                     } else {
                         output[0][i] = -1.0;
                     }
 
-                    self.phase += mod_buf[0][i] / self.sr as f32;
-                    if self.phase > 2. * std::f32::consts::PI {
-                        self.phase -= 2. * std::f32::consts::PI
+                    self.phase += self.inc / self.sr as f32;
+                    if self.phase > 1. {
+                        self.phase -= 1.
                     }
                 }
                 self.buffer = output[0].clone();

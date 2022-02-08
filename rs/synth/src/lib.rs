@@ -65,7 +65,7 @@ pub fn make_node<const N: usize>(
     bpm: f32,
 ) -> NodeResult<N> {
 
-    println!("makenode for name: {}, para: {}", name, paras.as_str());
+    // println!("makenode for name: {}, para: {}", name, paras.as_str());
     // TODO: handle this in the parser
     // if !["", ""].contains(&name) {
     //     return Err(GlicolError::NodeNameError((paras.as_str().to_string(), paras.as_span().start(), paras.as_span().end())))
@@ -359,7 +359,7 @@ fn process_seq(paras: &mut Pairs<Rule>) -> Result<(Events, Sidechain, Vec<String
 fn get_notes(paras: &mut Pairs<Rule>) -> Result<Vec::<f32>, GlicolError> {
     let split: Vec<&str> = paras.as_str().split(" ").collect();
     let mut note_list = Vec::<f32>::new();
-    println!("split{:?}", split);
+    // println!("split{:?}", split);
     for note in split {
         match note.parse::<f32>() {
             Ok(v) => note_list.push(v),
@@ -376,7 +376,7 @@ fn get_notes(paras: &mut Pairs<Rule>) -> Result<Vec::<f32>, GlicolError> {
 
 pub fn process_parameters(paras: &mut Pairs<Rule>, mut modulable: Vec<Para>) -> Result<(Vec<Para>, Vec<String>), GlicolError> {
     let mut refs = vec![];
-    println!("process_parameters {:?}{:?}", paras.as_str(), modulable);
+    // println!("process_parameters {:?}{:?}", paras.as_str(), modulable);
     for i in 0..modulable.len() {
         let para = paras.next();
         let mut pos = (0, 0);
@@ -515,7 +515,7 @@ impl<const N: usize> SimpleGraph<N> {
         // make edges in each chain
         for (_refname, node_chains) in &node_by_chain {
             if node_chains.len() >= 2 {
-                println!("connect for _refname {} node_chains {:?}", _refname, node_chains);
+                // println!("connect for _refname {} node_chains {:?}", _refname, node_chains);
                 graph.add_edge(node_chains[0],node_chains[1],());
                 for i in 0..(node_chains.len()-2) {
                     graph.add_edge(node_chains[i+1],node_chains[i+2],());

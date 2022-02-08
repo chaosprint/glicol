@@ -17,10 +17,13 @@ use super::{EngineError};
 // }
 
 pub fn preprocess_signal(a: &String) -> Result<String, EngineError> {
-    
+        
+    // TODO: this is not robust
+    // e.g. o:sin 440 will not be seperated
     let q: String = a.replace(";","\n\n").replace("\n", " \n");
-    let v: Vec<&str> = q.split(" ").filter(|c| c != &"").collect(); // TODO: this is not robust
-    // println!("preprocess_signal {:?}", v);
+    let v: Vec<&str> = q.split(" ").filter(|c| c != &"").collect();
+
+    println!("preprocess_signal {:?}", v);
     let mut b = "".to_string();
     let mut skip = false;
     for (i, c) in v.iter().enumerate() {
@@ -34,15 +37,15 @@ pub fn preprocess_signal(a: &String) -> Result<String, EngineError> {
                 b += v[i+1];
                 b += " >> ";
                 b += c;
-                skip = true;
+                skip = true; // skip adding the next
             } else { // module or default
                 if v[i+1] == "_" {
                     b += "const_sig ";
-                    b += "100.0";
+                    b += "100.0"; // default
                     b += " >> ";
-                    b += c;
+                    b += c; // b += "saw" | "squ"
                     skip = true;
-                } else {
+                } else { // modulation
                     b += c;
                     b += " ";
                 }
@@ -168,7 +171,7 @@ pub fn lcs(old: &Vec<String>, new: &Vec<String>)
 
 pub fn process_error_info(code: String, error: usize, s: usize, e: usize) -> [u8; 256] {
     let mut info: [u8; 256] = [0; 256];
-    println!("{:?} {:?}", code, s);
+    println!("process_error_info {:?} {:?}", code, s);
     let line = code[..s].matches("\n").count() as u8;
     info[0] = error as u8;
     info[1] = line;
