@@ -4,7 +4,6 @@ use super::super::{GlicolNodeData, mono_node};
 
 pub struct TriOsc<const N: usize> {
     freq: f32,
-    phase_n: usize,
     clock: usize,
     buffer: Buffer<N>,
     sr: usize,
@@ -16,7 +15,6 @@ impl<const N: usize> TriOsc<N> {
     pub fn new() -> Self {
         Self {
             freq: 0.01,
-            phase_n: 0,
             clock: 0,
             buffer: Buffer::<N>::default(),
             sr: 44100,
@@ -56,13 +54,13 @@ impl<const N: usize> Node<N> for TriOsc<N> {
         match l {
             0 => {
                 for i in 0..N {
-                    let v = -1.0 + (self.phase / std::f32::consts::PI);
+                    let v = -1.0 + (self.phase * 2.);
 
                     output[0][i] = 2.0 * (v.abs() - 0.5);
-                    self.phase += self.freq * 2. * std::f32::consts::PI / self.sr as f32;
+                    self.phase += self.freq / self.sr as f32;
 
-                    if self.phase > 2. * std::f32::consts::PI {
-                        self.phase -= 2. * std::f32::consts::PI
+                    if self.phase > 1. {
+                        self.phase -= 1.
                     }
                 }
             },
@@ -81,31 +79,32 @@ impl<const N: usize> Node<N> for TriOsc<N> {
                     };
 
                     let mod_buf = &mut inputs[0].buffers();
-                    if mod_buf[0][0] != 0. {
-                        self.inc = mod_buf[0][0]
-                    };
+                    
                     // println!("{:?}", mod_buf[0]);
                     for i in 0..N {
-                        let v = -1.0 + (self.phase / std::f32::consts::PI);
+                        if mod_buf[0][i] != 0. {
+                            self.inc = mod_buf[0][i]
+                        };
+                        let v = -1.0 + (self.phase * 2.);
 
                         output[0][i] = 2.0 * (v.abs() - 0.5);
-                        self.phase += self.inc * 2. * std::f32::consts::PI / self.sr as f32;
+                        self.phase += self.inc / self.sr as f32;
 
-                        if self.phase > 2. * std::f32::consts::PI {
-                            self.phase -= 2. * std::f32::consts::PI
+                        if self.phase > 1. {
+                            self.phase -= 1.
                         }
                     }
                     self.buffer = output[0].clone();
                     self.clock = clock;
                 } else {
                     for i in 0..N {
-                        let v = -1.0 + (self.phase / std::f32::consts::PI);
+                        let v = -1.0 + (self.phase * 2.);
 
                         output[0][i] = 2.0 * (v.abs() - 0.5);
-                        self.phase += self.freq * 2. * std::f32::consts::PI / self.sr as f32;
+                        self.phase += self.freq  / self.sr as f32;
 
-                        if self.phase > 2. * std::f32::consts::PI {
-                            self.phase -= 2. * std::f32::consts::PI
+                        if self.phase > 1. {
+                            self.phase -= 1.
                         }
                     }
                 }
@@ -122,18 +121,19 @@ impl<const N: usize> Node<N> for TriOsc<N> {
                 };
 
                 let mod_buf = &mut inputs[0].buffers();
-                if mod_buf[0][0] != 0. {
-                    self.inc = mod_buf[0][0]
-                };
+                
                 // println!("{:?}", mod_buf[0]);
                 for i in 0..N {
-                    let v = -1.0 + (self.phase / std::f32::consts::PI);
+                    if mod_buf[0][i] != 0. {
+                        self.inc = mod_buf[0][i]
+                    };
+                    let v = -1.0 + (self.phase * 2.);
 
                     output[0][i] = 2.0 * (v.abs() - 0.5);
-                    self.phase += self.inc * 2. * std::f32::consts::PI / self.sr as f32;
+                    self.phase += self.inc / self.sr as f32;
 
-                    if self.phase > 2. * std::f32::consts::PI {
-                        self.phase -= 2. * std::f32::consts::PI
+                    if self.phase > 1. {
+                        self.phase -= 1.
                     }
                 }
                 self.buffer = output[0].clone();

@@ -5,12 +5,13 @@ use glicol::Engine;
 fn main () {
     let mut engine = Engine::<128>::new(44100);
 
+    // engine.set_code("a: tri 10");
     engine.set_code("~trigger: speed 8.0 >> seq 60
 
     // ~env: ~trigger >> envperc 0.01 0.1
     
-    pitch: ~trigger >> mul 261.626
-    // o: saw ~pitch");
+    ~pitch: ~trigger >> mul 261.626
+    o: squ ~pitch");
 
     // engine.set_code("aa: tri ~mod; ~mod: sin 2.0 >> mul 40 >> add 60");
     // engine.set_code("~a: choose 48 55 51 58
@@ -47,7 +48,7 @@ fn main () {
     // engine.set_code("out: seq 60 >> ks 60 0.99 0.01");
     // engine.set_code("~left: sin 10; ~right: sin 20; out: balance ~left ~right 0.5;");
     // engine.set_code("tt: sin 44 >> amplfo 1.0");
-    plot(engine, 441);
+    plot(engine, 44100);
 }
 
 fn plot(mut engine: Engine::<128>, step: usize) {
