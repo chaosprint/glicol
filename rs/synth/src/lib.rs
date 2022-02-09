@@ -419,6 +419,7 @@ pub struct SimpleGraph<const N: usize> {
 
 impl<const N: usize> SimpleGraph<N> {
 
+    //, sr: usize, bpm: f32
     pub fn new(code: &str) -> Self {
         let mut graph = GlicolGraph::<N>::with_capacity(1024, 1024);
             // let processor = GlicolProcessor::with_capacity(1024);

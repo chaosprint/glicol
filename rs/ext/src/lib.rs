@@ -6,6 +6,12 @@ use pest::Parser;
 use pest::iterators::Pairs;
 use std::{collections::HashMap};
 
+// glicol_macro! {
+//     ndoe {
+//         @a = ...
+        
+//     }
+// }
 
 register_extensions! {
     Plate: 1,

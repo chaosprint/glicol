@@ -24,6 +24,8 @@ use glicol_ext::make_node_ext;
 
 mod utili;
 use utili::{preprocess_signal, preprocess_mul, lcs, process_error_info};
+use regex::Regex;
+
 
 /// The engine of Glicol
 /// This engine can takes Glicol code, convert it to audio graph and process it
@@ -82,8 +84,60 @@ impl<const N: usize> Engine<N> {
         }
     }
 
+    pub fn preprocess(&mut self) -> Result<(), EngineError> {
+        let mut processed_code = "".to_owned();
+        let mut target_code = self.code.clone();
+
+        let lines = match GlicolParser::parse(Rule::block, &mut self.code) {
+            Ok(mut res) => {
+                if res.as_str() < &mut target_code {
+                    return Err(EngineError::ParsingIncompleteError(res.as_str().len()));
+                }
+                res.next().unwrap()
+            },
+            Err(e) => { println!("{:?}", e); panic!(); return Err(EngineError::ParsingError(e))}
+        };
+
+        let mut current_ref_name: &str = "";
+        for line in lines.into_inner() {
+           
+            let inner_rules = line.into_inner();
+            for element in inner_rules {
+                match element.as_rule() {
+                    Rule::reference => {
+                        current_ref_name = element.as_str();
+                        processed_code.push_str(current_ref_name);
+                        processed_code.push_str(": ");
+                        // println!("current_ref_name {:?}", current_ref_name);
+                    },
+                    Rule::chain => {
+                        let mut nodes = vec![];
+                        for node in element.into_inner() {
+                            let mut name_and_paras = node.into_inner();
+                            let name_and_paras_str: String = name_and_paras.as_str().to_string();
+                            let node_name = name_and_paras.next().unwrap();
+                            let mut paras = name_and_paras.clone(); // the name is ripped above
+
+                            if [""].contains(&node_name.as_str()) {
+
+                            } else {
+                                nodes.push(name_and_paras_str);
+                            }
+                        }
+                        let processed_chain_str = nodes.join(" >> ");
+                        processed_code.push_str(&processed_chain_str);
+                        processed_code.push_str(";\n");
+                    },
+                    _ => {}
+                }
+            }
+        }
+        panic!(processed_code);
+        Ok(())
+    }
     /// The main function to convert the code input string into graph structure inside the engine
     pub fn make_graph(&mut self) -> Result<(), EngineError>{
+        self.preprocess();
         // self.node_by_chain.clear();
         self.samples_dict.insert("imp".to_string(), &[1.0]);
         self.graph.clear_edges();
