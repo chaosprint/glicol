@@ -20,7 +20,7 @@ use glicol_synth::{GlicolNodeData, GlicolGraph,
 
 use glicol_parser::*;
 
-use glicol_ext::make_node_ext;
+use glicol_ext::{make_node_ext, preprocessor};
 
 mod utili;
 use utili::{preprocess_signal, preprocess_mul, lcs, process_error_info};
@@ -86,6 +86,8 @@ impl<const N: usize> Engine<N> {
 
     pub fn preprocess(&mut self) -> Result<(), EngineError> {
         let mut processed_code = "".to_owned();
+        let mut appendix_string_full = "".to_owned();
+        
         let mut target_code = self.code.clone();
 
         let lines = match GlicolParser::parse(Rule::block, &mut self.code) {
@@ -98,15 +100,15 @@ impl<const N: usize> Engine<N> {
             Err(e) => { println!("{:?}", e); panic!(); return Err(EngineError::ParsingError(e))}
         };
 
-        let mut current_ref_name: &str = "";
+        let mut current_ref_name = "".to_owned();
         for line in lines.into_inner() {
            
             let inner_rules = line.into_inner();
             for element in inner_rules {
                 match element.as_rule() {
                     Rule::reference => {
-                        current_ref_name = element.as_str();
-                        processed_code.push_str(current_ref_name);
+                        current_ref_name = element.as_str().to_owned();
+                        processed_code.push_str(&current_ref_name);
                         processed_code.push_str(": ");
                         // println!("current_ref_name {:?}", current_ref_name);
                     },
@@ -118,21 +120,35 @@ impl<const N: usize> Engine<N> {
                             let node_name = name_and_paras.next().unwrap();
                             let mut paras = name_and_paras.clone(); // the name is ripped above
 
-                            if [""].contains(&node_name.as_str()) {
+                            if ["sin", "saw", "squ", "tri"].contains(&node_name.as_str()) {
+                                let mut s = "const_sig ".to_owned();
+                                s.push_str(paras.as_str());
+                                nodes.push(s);
+                                let mut pseudo = node_name.as_str().to_owned();
+                                pseudo.push_str(" 1");
+                                nodes.push(pseudo);
 
+                                // let (res_in_place, res_appendix) = preprocessor(name_and_paras_str);
+                                // nodes.push(res_in_place);
+                                // processed_code.push_str(res_appendix);
                             } else {
-                                nodes.push(name_and_paras_str);
+                                let (inplace_string, appendix_string) = preprocessor(&current_ref_name, node_name.as_str(), &mut paras)?;
+                                nodes.push(inplace_string);
+                                appendix_string_full.push_str(&appendix_string);
+                                appendix_string_full.push_str(";\n");
                             }
                         }
                         let processed_chain_str = nodes.join(" >> ");
                         processed_code.push_str(&processed_chain_str);
                         processed_code.push_str(";\n");
+                        processed_code.push_str(&appendix_string_full);
                     },
                     _ => {}
                 }
             }
         }
-        panic!(processed_code);
+        self.code = processed_code;
+        // panic!(processed_code);
         Ok(())
     }
     /// The main function to convert the code input string into graph structure inside the engine
@@ -161,9 +177,9 @@ impl<const N: usize> Engine<N> {
             vec![(self.audio_in, "~input".to_string())]
         );
 
-        println!("code before preprocess: {}",&self.code);
-        self.code = preprocess_signal(&mut self.code)?;
-        self.code = preprocess_mul(&mut self.code)?;
+        // println!("code before preprocess: {}",&self.code);
+        // self.code = preprocess_signal(&mut self.code)?;
+        // self.code = preprocess_mul(&mut self.code)?;
         println!("code after preprocess: {}",&self.code);
         
         let mut target_code = self.code.clone();
