@@ -2,6 +2,74 @@ use proc_macro::{TokenStream, TokenTree};
 use quote::quote;
 use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
 
+#[proc_macro]
+pub fn def_node(input: TokenStream) -> TokenStream {
+    println!("{:?}", input);
+    
+    let o = quote!(
+        pub fn preprocessor(chain_name:&str, node_name: &str, paras: &mut Pairs<Rule>, source: Vec<String>) -> Result<(String, String, Vec<String>), GlicolError> {
+    
+            let mut inplace_code = String::new();
+            let mut appendix_code = String::new();
+            let mut to_sink = vec![];
+        
+            let (target_paras, mut inplace, mut appendix) = match node_name {
+                // "mul" => (vec![1.0], "mul ~mulmod_CHAIN_NAME", "~mulmod_CHAIN_NAME: const_sig PARA_0"),
+                "bd" => (vec![0.3], "sin ~pitchCHAIN_NAME >> mul ~envbCHAIN_NAME >> mul 0.8", "~envbCHAIN_NAME: ~triggerbCHAIN_NAME >> envperc 0.01 PARA_0;~env_pitchCHAIN_NAME: ~triggerbCHAIN_NAME >> envperc 0.01 0.1;~pitchCHAIN_NAME: ~env_pitchCHAIN_NAME >> mul 50 >> add 60;~triggerbCHAIN_NAME: SOURCE;"),
+                _ => {
+                    inplace_code = node_name.to_owned();
+                    inplace_code.push_str(" ");
+                    inplace_code.push_str(paras.as_str());
+                    println!("inplace_code {}", inplace_code);
+                    to_sink = source;
+                    to_sink.push(inplace_code.clone());
+                    return Ok((inplace_code, appendix_code, to_sink));
+                    (vec![], "", "")
+                }
+            };
+        
+            inplace_code = inplace.replace("CHAIN_NAME", &chain_name);
+            appendix_code = appendix.replace("CHAIN_NAME", &chain_name);
+            appendix_code = appendix_code.replace("SOURCE", &source.join(" >> "));
+        
+            for i in 0..target_paras.len() {
+                match paras.next() {
+                    Some(v) => {
+                        let p = process_para(target_paras[i], v.as_str())?;
+                        let current_para = format!("PARA_{}", i);
+                        inplace_code = inplace_code.replace(&current_para, &format!("{}", p) );
+                        appendix_code = appendix_code.replace(&current_para, &format!("{}", p) );
+                    }
+                    None => { return Err(GlicolError::InsufficientParameter((0,0))) }
+                }
+            }
+            // panic!(appendix_code);
+        
+            match node_name {
+                "bd" => {
+                    to_sink = inplace_code.split(">>").map(|a|a.to_owned()).collect()
+                },
+                _ => {}
+            }
+        
+            Ok( (inplace_code, appendix_code, to_sink) )
+        }
+        
+        fn process_para(default: f32, input: &str) -> Result<String, GlicolError> {
+            if input == "_" {
+                return Ok(format!("{}", default))
+            } else if input.parse::<f32>().is_ok() {
+                return Ok(input.to_owned())
+            } else {
+                return Ok(input.to_owned())
+            }
+        }
+        
+    );
+    o.into()
+}
+
+
 /// This is just a proof of concept
 #[proc_macro]
 pub fn make_node(input: TokenStream) -> TokenStream {

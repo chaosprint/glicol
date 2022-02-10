@@ -6,43 +6,32 @@ use pest::Parser;
 use pest::iterators::Pairs;
 use std::{collections::HashMap};
 
-pub fn preprocessor(chain_name:&str, node_name: &str, paras: &mut Pairs<Rule>) -> Result<(String, String), GlicolError> {
-    
-    let mut inplace_code = String::new();
-    let mut appendix_code = String::new();
 
-    let (target_paras, mut inplace, mut appendix) = match node_name {
-        "mul" => (vec![1.0], "mul ~mulmod_CHAIN_NAME", "~mulmod_CHAIN_NAME: const_sig PARA_0"),        
-        _ => (vec![], "", "")
-    };
+// def_node!("bd", [Modulable],
+//     to_sink: ~out1 // >> add ~out2
+//     ~envb: ~triggerb >> envperc 0.01 PARA_0;
+//     ~env_pitch: ~triggerb >> envperc 0.01 0.1;
+//     ~pitch: ~env_pitch >> mul 50 >> add 60;
+//     ~triggerb: [[seq 60]];
+//     ~out1: [[sin ~pitch >> mul ~envb >> mul 0.8]]
+// )
 
-    inplace_code = inplace.replace("CHAIN_NAME", chain_name);
-    appendix_code = appendix.replace("CHAIN_NAME", chain_name);
-    
-    for i in 0..target_paras.len() {
-        match paras.next() {
-            Some(v) => {
-                let p = process_para(target_paras[i], v.as_str())?;
-                let current_para = format!("PARA_{}", i);
-                inplace_code = inplace_code.replace(&current_para, &format!("{}", p) );
-                appendix_code = appendix_code.replace(&current_para, &format!("{}", p) );
-            }
-            None => { return Err(GlicolError::InsufficientParameter((0,0))) }
-        }
-    }
 
-    Ok( (inplace_code, appendix_code) )
-}
+def_node!("bd", [Fixed(0.2)], {
+    let decay = args[0] * 1.0; // rust code
+}, {
+    SINK: _out1 // >> add ~out2
 
-fn process_para(default: f32, input: &str) -> Result<String, GlicolError> {
-    if input == "_" {
-        return Ok(format!("{}", default))
-    } else if input.parse::<f32>().is_ok() {
-        return Ok(input.to_owned())
-    } else {
-        panic!();
-    }
-}
+    _envb: _triggerb >> envperc 0.01 #decay;
+
+    _env_pitch: _triggerb >> envperc 0.01 0.1;
+
+    _pitch: _env_pitch >> mul 50 >> add 60;
+
+    _triggerb: SOURCE;
+
+    _out1: sin _pitch >> mul _envb >> mul 0.8;
+});
 
 // def_node!("mul", [Modulable(100.0)], {
 //         let freq = args[0];

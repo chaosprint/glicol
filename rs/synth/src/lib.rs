@@ -146,7 +146,7 @@ pub fn make_node<const N: usize>(
         "saw" => vec![Para::Modulable],
         "squ" => vec![Para::Modulable],
         "tri" => vec![Para::Modulable],
-        "const_sig" => vec![Para::Number(0.0)],
+        "const_sig" => vec![Para::Modulable],
         "mul" => vec![Para::Modulable],
         "add" => vec![Para::Modulable],
         "rlpf" => vec![Para::Modulable, Para::Number(1.0)],
@@ -389,7 +389,7 @@ pub fn process_parameters(paras: &mut Pairs<Rule>, mut modulable: Vec<Para>) -> 
                     Err(_) => {
                         if key.contains("~") {
                             if modulable[i] != Para::Modulable { 
-                                println!("{:?}", key);
+                                println!("process_parameters key {:?}", key);
                                 return Err(GlicolError::NotModuableError(pos)) 
                             } else {
                                 refs.push(key.to_string());

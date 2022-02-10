@@ -97,7 +97,7 @@ impl<const N: usize> Engine<N> {
                 }
                 res.next().unwrap()
             },
-            Err(e) => { println!("{:?}", e); panic!(); return Err(EngineError::ParsingError(e))}
+            Err(e) => { println!("error info {:?}", e); return Err(EngineError::ParsingError(e))}
         };
 
         let mut current_ref_name = "".to_owned();
@@ -108,6 +108,7 @@ impl<const N: usize> Engine<N> {
                 match element.as_rule() {
                     Rule::reference => {
                         current_ref_name = element.as_str().to_owned();
+                        processed_code.push_str("\n");
                         processed_code.push_str(&current_ref_name);
                         processed_code.push_str(": ");
                         // println!("current_ref_name {:?}", current_ref_name);
@@ -132,28 +133,38 @@ impl<const N: usize> Engine<N> {
                                 // nodes.push(res_in_place);
                                 // processed_code.push_str(res_appendix);
                             } else {
-                                let (inplace_string, appendix_string) = preprocessor(&current_ref_name, node_name.as_str(), &mut paras)?;
-                                nodes.push(inplace_string);
+                                let (inplace_string, appendix_string, to_sink) = preprocessor(
+                                    &current_ref_name, 
+                                    node_name.as_str(), 
+                                    &mut paras,
+                                    nodes
+                                )?;
+                                nodes = to_sink;
+                                // println!("inplace_string {}", inplace_string);
+                                // nodes.push(inplace_string);
+                                appendix_string_full.push_str("\n");
                                 appendix_string_full.push_str(&appendix_string);
-                                appendix_string_full.push_str(";\n");
                             }
                         }
                         let processed_chain_str = nodes.join(" >> ");
+                        // println!("{}", processed_code);
                         processed_code.push_str(&processed_chain_str);
-                        processed_code.push_str(";\n");
-                        processed_code.push_str(&appendix_string_full);
+                        processed_code.push_str(";");
                     },
                     _ => {}
                 }
             }
         }
-        self.code = processed_code;
+        processed_code.push_str(&appendix_string_full);
+        self.code = processed_code.clone();
         // panic!(processed_code);
+        // self.code = "\na: const_sig 100 >> sin 1 >> mul ~mulmod_a;\n~xx: const_sig 0.1;\n~mulmod_a: const_sig ~xx\n".to_owned();
         Ok(())
     }
     /// The main function to convert the code input string into graph structure inside the engine
     pub fn make_graph(&mut self) -> Result<(), EngineError>{
         self.preprocess();
+
         // self.node_by_chain.clear();
         self.samples_dict.insert("imp".to_string(), &[1.0]);
         self.graph.clear_edges();
@@ -191,7 +202,7 @@ impl<const N: usize> Engine<N> {
                 }
                 res.next().unwrap()
             },
-            Err(e) => { println!("{:?}", e); panic!(); return Err(EngineError::ParsingError(e))}
+            Err(e) => { println!("error info {:?}", e); return Err(EngineError::ParsingError(e))}
         };
 
         let mut current_ref_name: &str = "";
@@ -494,7 +505,7 @@ impl<const N: usize> Engine<N> {
                             info[0] = 5;
                             info[1] = 0;
                             if self.code == "" {
-                                self.code_backup = "~dummy: const 0.0".to_string();
+                                self.code_backup = "~dummy: const_sig 0.0".to_string();
                             }
                             info
                         },
