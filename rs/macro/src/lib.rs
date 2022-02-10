@@ -4,11 +4,71 @@ use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
 
 #[proc_macro]
 pub fn def_node(input: TokenStream) -> TokenStream {
-    println!("{:?}", input);
+    let mut code: String = "".to_owned();
+    // let mut name = Ident::new("A", Span::call_site());
+    // let mut macroname = Ident::new("a", Span::call_site());
+    // let mut paras = TokenStream2::new();
+    // let mut varname = vec![];
+    // let mut variable = vec![];
+    // let mut behavior = TokenStream2::new();
     
+    let mut input_iter = input.into_iter();
+    let object_all = input_iter.next().unwrap();
+    let object_all_stream = match object_all {
+        TokenTree::Group(g) => TokenStream2::from(g.stream()),
+        _ => unimplemented!()
+    };
+
+    let mut i = object_all_stream.into_iter();
+    let mut f = i.next();
+    while f.is_some() {
+        let raw = f.clone().unwrap();
+        let item = f.unwrap().to_string();
+        println!("item {}", &item);
+        // let raw = f.clone().unwrap();
+        // let item = f.unwrap().to_string();
+        // if item.contains("{") & !item.contains(":") {
+        //     println!("raw {:?}", raw); // raw is tokentree
+        //     // let procmacrots = TokenStream::from(raw.clone());
+        //     behavior = match raw {
+        //         TokenTree::Group(g) => TokenStream2::from(g.stream()),
+        //         _ => unimplemented!()
+        //     };
+        // } else if item.contains("{") & item.contains(":") { // this block is glicol syntax
+        //     let glicol_code = match raw {
+        //         TokenTree::Group(g) => TokenStream2::from(g.stream()),
+        //         _ => unimplemented!()
+        //     };
+        //     // println!("glicol item is {:?}", glicol_code.clone());
+        //     let mut glicol_code_iter = glicol_code.into_iter();
+        //     let mut element = glicol_code_iter.next();
+        //     // to calculate the args
+        //     // to get the output chains into reference and added
+        //     while element.is_some() {
+        //         let item = element.unwrap().to_string();
+        //         if &item == "#" {
+        //             element = glicol_code_iter.next();
+        //             let var = element.clone().unwrap().to_string();
+                    
+        //             code.push_str("{");
+        //             code.push_str(&var);
+        //             code.push_str("}");
+        //             code.push_str(" ");
+        //             if !varname.contains(&var) {
+        //                 varname.push(var.clone());
+        //                 variable.push(Ident::new(&element.unwrap().to_string(), Span::call_site()));
+        //             }
+        //         }
+        //         element = glicol_code_iter.next();
+        //     }
+        // } else {
+
+        // }
+        f = i.next();
+    }
     let o = quote!(
         pub fn preprocessor(chain_name:&str, node_name: &str, paras: &mut Pairs<Rule>, source: Vec<String>) -> Result<(String, String, Vec<String>), GlicolError> {
-    
+            
             let mut inplace_code = String::new();
             let mut appendix_code = String::new();
             let mut to_sink = vec![];
