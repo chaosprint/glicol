@@ -171,7 +171,7 @@ pub fn lcs(old: &Vec<String>, new: &Vec<String>)
 
 pub fn process_error_info(code: String, error: usize, s: usize, e: usize) -> [u8; 256] {
     let mut info: [u8; 256] = [0; 256];
-    println!("process_error_info {:?} {:?}", code, s);
+    println!("process_error_info {} {:?}", code, error);
     let line = code[..s].matches("\n").count() as u8;
     info[0] = error as u8;
     info[1] = line;

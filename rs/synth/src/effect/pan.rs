@@ -34,7 +34,7 @@ impl<const N:usize> Node<N> for Pan<N> {
                     output[0] = inputs[1].buffers()[0].clone();
                     output[1] = inputs[1].buffers()[1].clone();
                 },
-                _ => {unimplemented!()}
+                _ => {panic!()}
             };
             
             for i in 0..N {
@@ -59,7 +59,7 @@ impl<const N:usize> Node<N> for Pan<N> {
                     output[0].iter_mut().for_each(|s| *s = *s * (1.0 - ( (self.pan + 1.0) /2.0 )));
                     output[1].iter_mut().for_each(|s| *s = *s * ((self.pan + 1.0) /2.0));
                 },
-                _ => {unimplemented!()}
+                _ => {panic!("// no multi-chan for now")}
             }
         }
         

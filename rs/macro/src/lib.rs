@@ -1,10 +1,15 @@
 use proc_macro::{TokenStream, TokenTree};
 use quote::quote;
-use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
+use proc_macro2::{Ident, Span, TokenStream as TokenStream2, TokenTree as TokenTree2};
 
 #[proc_macro]
 pub fn def_node(input: TokenStream) -> TokenStream {
-    let mut code: String = "".to_owned();
+    let mut names_all = vec![];
+    let mut args_all = vec![];
+    let mut paras_all = vec![];
+    let mut variables = Vec::<String>::new(); // variables example: vec![ TokenStreams(a=a, b=b), TokenStreams(att=att) ]
+    let mut variables_all = Vec::<TokenStream2>::new();
+    let mut graph_all = vec![];
     // let mut name = Ident::new("A", Span::call_site());
     // let mut macroname = Ident::new("a", Span::call_site());
     // let mut paras = TokenStream2::new();
@@ -16,7 +21,7 @@ pub fn def_node(input: TokenStream) -> TokenStream {
     let object_all = input_iter.next().unwrap();
     let object_all_stream = match object_all {
         TokenTree::Group(g) => TokenStream2::from(g.stream()),
-        _ => unimplemented!()
+        _ => panic!("not a token group")
     };
 
     let mut i = object_all_stream.into_iter();
@@ -24,7 +29,94 @@ pub fn def_node(input: TokenStream) -> TokenStream {
     while f.is_some() {
         let raw = f.clone().unwrap();
         let item = f.unwrap().to_string();
-        println!("item {}", &item);
+        // println!("item {}", &item);
+        if item.contains("\"") {
+            names_all.push(item.replace("\"", ""));
+            i.next();
+        } else if item.contains("{"){
+            let info = match raw {
+                TokenTree2::Group(g) => TokenStream2::from(g.stream()),
+                _ => panic!("not a token group")
+            };
+            let mut info_inner = info.into_iter();
+            let mut i = info_inner.next();
+            let mut count = 0;
+            while i.is_some() {
+                let id = i.clone().unwrap().to_string();
+                if id == "args".to_owned() {
+                    info_inner.next();
+                    i = info_inner.next();
+                    args_all.push(i.clone().unwrap());
+                    variables.push("".to_owned());
+                    count = variables.len();
+                } else if id == "paras".to_owned() {
+                    info_inner.next();
+                    i = info_inner.next();
+                    // println!("\n\nparas as strtng{:?} \n\n", i.clone().unwrap().to_string());
+                    let paras_str = match i.clone().unwrap() {
+                        TokenTree2::Group(g) => TokenStream2::from(g.stream()),
+                        _ => panic!("not a token group")
+                    };
+                    paras_all.push(paras_str)
+                } else if id == "graph".to_owned() {
+                    info_inner.next();
+                    i = info_inner.next();
+                    let graph = i.clone();
+                    let mut s = "".to_owned();
+
+                    let graph_code_str = match graph.unwrap() {
+                        TokenTree2::Group(g) => TokenStream2::from(g.stream()),
+                        _ => panic!("not a token group")
+                    };
+                
+                    let mut graph_iter = graph_code_str.into_iter();
+                    let mut ele = graph_iter.next();
+                    while ele.is_some() {
+                        let raw = ele.unwrap();
+                        let ele_str = raw.clone().to_string();
+                        if ele_str == "#" {
+                            s.push_str("{");
+                            let v = graph_iter.next().unwrap();
+                            println!("count {}", count);
+                            if variables[count-1].find(&format!(",{}={}",&v.to_string(),&v.to_string())).is_none() {
+                                variables[count-1].push_str(&format!(",{}={}",&v.to_string(),&v.to_string()));
+                            }                            
+                            // let current_token_stream = variables[count];
+                            s.push_str(&v.to_string());
+                            s.push_str("}");
+                            s.push_str(" ");
+
+                        } else if ele_str == "~" {
+                            s.push_str(&ele_str);
+                        } else if ele_str == "-" {
+                            s.push_str(&ele_str);
+                        } else if ele_str == ";" {
+                            s.push_str(&ele_str);
+                            s.push_str("\n");
+                        } else if ele_str == ">" {
+                            graph_iter.next();
+                            s.push_str(">> ");
+                        } else {                      
+                            s.push_str(&ele_str);
+                            s.push_str(" ");
+                        }
+                        ele = graph_iter.next();
+                    }
+                    graph_all.push(s)
+                } else {
+                    i = info_inner.next();
+                }
+            }
+        } else {
+
+        }
+        // println!("{:?}\n\n", names_all);
+        // println!("{:?}\n\n", args_all);
+        // println!("{:?}\n\n", paras_all);
+        variables_all = variables.clone().into_iter().map(|x|x.parse().unwrap()).collect();
+        println!("variables {:?}\n\n", variables);
+        println!(" variables_all {:?}\n\n", variables_all );
+        // println!("{:?}\n\n", graph_all);
         // let raw = f.clone().unwrap();
         // let item = f.unwrap().to_string();
         // if item.contains("{") & !item.contains(":") {
@@ -67,6 +159,136 @@ pub fn def_node(input: TokenStream) -> TokenStream {
         f = i.next();
     }
     let o = quote!(
+
+        pub fn get_args(paras: &mut Pairs<Rule>, modulation_info: Vec<Para>) -> Vec<String> {
+            let mut result = vec![];
+            for info in modulation_info {
+                let s = paras.as_str().to_owned();
+                let para = paras.next();
+                if para.is_none() {
+                    panic!(s); 
+                    // insufficient para
+                }
+                match info {
+                    Para::Modulable => {
+                        // check if it is a mod?
+                        // can be a number
+                        let p = para.unwrap();
+                        if !p.as_str().contains("~") {
+                            // reture Err
+                        }
+                        result.push(p.as_str().to_owned())
+                    },
+                    Para::Number(v) => {
+                        // must be number
+                        let p = para.unwrap();
+                        if !p.as_str().parse::<f32>().is_ok() {
+                            // return Err()
+                        } else {
+                            result.push(p.as_str().to_owned())
+                        }
+                    },
+                    _ => {}
+                }
+            }
+            result
+        }
+        
+        // paras: &mut Pairs<Rule>, 
+
+        pub fn findname(name: &str, paras: &mut Pairs<Rule>) -> Vec<String> {
+            let target_paras = match name {
+                #( #names_all => {
+                    vec!#args_all
+                }, )*
+                _ => { unimplemented!() }
+            };
+            get_args(paras, target_paras)
+        }
+
+        pub fn preprocess2(mut code: &mut String) -> Result<String, GlicolError> {
+            let mut target_code = code.clone();
+            let lines = match GlicolParser::parse(Rule::block, &mut code) {
+                Ok(mut res) => {
+                    if res.as_str() < &mut target_code {
+                        unimplemented!();
+                    }
+                    res.next().unwrap()
+                },
+                Err(e) => { unimplemented!()}
+            };
+            let mut processed_code = "".to_owned();
+            let mut appendix_full = "".to_owned();
+            let mut current_ref_name = "".to_owned();
+        
+            for line in lines.into_inner() {
+                let inner_rules = line.into_inner();
+                for element in inner_rules {
+                    match element.as_rule() {
+                        Rule::reference => {
+                            current_ref_name = element.as_str().to_owned();
+                            processed_code.push_str("\n");
+                            processed_code.push_str(&current_ref_name);
+                            processed_code.push_str(": ");
+                            // println!("current_ref_name {:?}", current_ref_name);
+                        },
+                        Rule::chain => {
+                            let mut node_str_list = vec![];
+                            for node in element.into_inner() {
+                                let mut name_and_paras = node.into_inner();
+                                let name_and_paras_str: String = name_and_paras.as_str().to_string();
+                                let node_name = name_and_paras.next().unwrap();
+                                let name = node_name.as_str().clone();
+                                let mut paras = name_and_paras.clone(); // the name is ripped aboves
+                                if vec![#(#names_all,)*].contains(&name) {
+                                    // panic!(paras.as_str().to_owned());
+                                    let args = findname(&name, &mut paras);
+                                    // panic!(name.to_owned());
+                                    let appendix_body = match name {
+                                        #( #names_all => {
+                                            #paras_all
+                                            // #graph_all
+                                            // #( #(#variables = #variables),* ),*
+                                            // panic!(attack, decay);
+                                            // #(#variables = #variables ),*
+                                            format!(#graph_all #variables_all)
+                                        }, )*
+                                        _ => { unimplemented!() }
+                                    };
+                                    
+                                    // let appendix_body = match name {
+                                    //     "sawsynth" => "output: saw ~pitch >> mul ~env;~trigger: ~input;~pitch: ~trigger >> mul 261.626;~env: ~trigger >> envperc 0.001 0.1;",
+                                    //     _ => {unimplemented!()}
+                                    // };
+        
+                                    let mut appendix = appendix_body.replace("~input", &node_str_list.join(" >> "));
+                                    let mut ref_receiver = "~".to_owned();
+                                    ref_receiver.push_str(&current_ref_name.replace("~", ""));
+                                    ref_receiver.push_str("_");
+                                    ref_receiver.push_str(name);
+                                    let mut appendix = appendix.replace("output", &ref_receiver);
+                                    appendix_full.push_str(&appendix);
+                                    appendix_full.push_str("\n\n");
+                                    node_str_list = vec![ref_receiver];
+                                } else {
+                                    let mut s = name.to_owned();
+                                    s.push_str(" ");
+                                    s.push_str(paras.as_str());
+                                    node_str_list.push(s);
+                                };
+                            }
+                            processed_code.push_str(&node_str_list.join(" >> "));
+                            processed_code.push_str("\n\n");
+                            processed_code.push_str(&appendix_full);
+                        },
+                        _ => {}
+                    }
+                };
+                
+            };
+            Ok(processed_code)
+        }
+
         pub fn preprocessor(chain_name:&str, node_name: &str, paras: &mut Pairs<Rule>, source: Vec<String>) -> Result<(String, String, Vec<String>), GlicolError> {
             
             let mut inplace_code = String::new();

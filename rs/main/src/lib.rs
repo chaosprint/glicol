@@ -20,7 +20,7 @@ use glicol_synth::{GlicolNodeData, GlicolGraph,
 
 use glicol_parser::*;
 
-use glicol_ext::{make_node_ext, preprocessor, preprocess2};
+use glicol_ext::{make_node_ext, findname, preprocess2};
 
 mod utili;
 use utili::{preprocess_signal, preprocess_mul, lcs, process_error_info};
@@ -164,6 +164,7 @@ impl<const N: usize> Engine<N> {
     /// The main function to convert the code input string into graph structure inside the engine
     pub fn make_graph(&mut self) -> Result<(), EngineError>{
         // self.preprocess();
+        // findname("sawsynth");
         self.code = preprocess2(&mut self.code).unwrap();
 
         // self.node_by_chain.clear();
@@ -198,13 +199,15 @@ impl<const N: usize> Engine<N> {
 
         let lines = match GlicolParser::parse(Rule::block, &mut self.code) {
             Ok(mut res) => {
-                if res.as_str() < &mut target_code {
+                if res.as_str().len() < target_code.len() {
+                    println!("res info {}", res.as_str());
                     return Err(EngineError::ParsingIncompleteError(res.as_str().len()));
                 }
                 res.next().unwrap()
             },
             Err(e) => { println!("error info {:?}", e); return Err(EngineError::ParsingError(e))}
         };
+        
 
         let mut current_ref_name: &str = "";
         // println!("lines.into_inner() {:?}", lines.clone());
@@ -565,7 +568,7 @@ impl<const N: usize> Engine<N> {
             let bufright = match &self.graph[v.last().unwrap().0].buffers.len() {
                 1 => {bufleft},
                 2 => {&self.graph[v.last().unwrap().0].buffers[1]},
-                _ => {unimplemented!()} // no multi-chan for now
+                _ => {panic!("// no multi-chan for now")} 
             };
 
             for i in 0..N {
@@ -672,7 +675,7 @@ impl From<GlicolError> for EngineError {
             GlicolError::NotModuableError((s,e)) => EngineError::NotModuableError((s,e)),
             GlicolError::ParaTypeError((s,e)) => EngineError::ParaTypeError((s,e)),
             GlicolError::NodeNameError((st, s,e)) => EngineError::NodeNameError((st, s,e)),
-            _ => unimplemented!()
+            _ => panic!()
         }
     }
 }

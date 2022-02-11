@@ -8,10 +8,10 @@ use std::{collections::HashMap};
 
 def_node!({
     "sawsynth": {
-        args: [Fixed(0.001), Fixed(0.1)], 
+        args: [Para::Number(0.001), Para::Number(0.1)], 
         paras: {
-            let attack = args[0];
-            let decay = args[1];
+            let attack = &args[0];
+            let decay = &args[1];
         },
         graph: {
             output: saw ~pitch >> mul ~env;
@@ -21,91 +21,80 @@ def_node!({
         }
     },
     "bd": {
-        args: [Fixed(0.001), Fixed(0.1)], 
+        args: [Para::Number(0.3)], 
         paras: {
-            let attack = args[0];
-            let decay = args[1];
+            let decay = &args[0];
         },
         graph: {
-            output: saw ~pitch >> mul ~env;
-            ~trigger: ~input;
-            ~pitch: ~trigger >> mul 261.626;
-            ~env: ~trigger >> envperc #attack #decay;
+            output: sin ~pitch >> mul ~envb >> mul 0.8;
+            ~envb: ~triggerb >> envperc 0.01 #decay;
+            ~env_pitch: ~triggerb >> envperc 0.01 0.1;
+            ~pitch: ~env_pitch >> mul 50 >> add 60;
+            ~triggerb: ~input;
+        }
+    },
+    "plate": {
+        args: [Para::Number(0.1)],
+        paras: {
+            let mix = &args[0];
+            let mixdiff = 1. - mix.parse::<f32>().unwrap();
+        },
+        graph: {
+            ~dry: ~input;
+            ~wet: ~dry >> onepole 0.7
+            >> delay 0.05 >> apfgain 0.004771 0.75 >> apfgain 0.003595 0.75
+            >> apfgain 0.01272 0.625 >> apfgain 0.009307 0.625
+            >> add ~back
+            >> apfgain ~modu 0.7;
+            ~modu: sin 0.1 >> mul 0.0055 >> add 0.0295;
+            ~aa: ~wet >> delayn 394.0;
+            ~ab: ~aa >> delayn 2800.0;
+            ~ac: ~ab >> delayn 1204.0;
+            ~ba: ~ac >> delayn 2000.0 >> onepole 0.1
+            >> apfgain 0.007596 0.5;
+            ~bb: ~ba >> apfgain 0.03578 0.5;
+            ~bc: ~bb >> apfgain ~modu 0.5;
+            ~ca: ~bc >> delayn 179.0;
+            ~cb: ~ca >> delayn 2679.0;
+            ~cc: ~cb >> delayn 3500.0 >> mul 0.3;
+            ~da: ~cc >> apfgain 0.03 0.7 >> delayn 522.0;
+            ~db: ~da >> delayn 2400.0;
+            ~dc: ~db >> delayn 2400.0;
+            ~ea: ~dc >> onepole 0.1 >> apfgain 0.0062 0.7;
+            ~eb: ~ea >> apfgain 0.03492 0.7;
+            ~fa: ~eb >> apfgain 0.0204 0.7 >> delayn 1578.0;
+            ~fb: ~fa >> delayn 2378.0;
+            ~back: ~fb >> delayn 2500.0 >> mul 0.3;
+            
+            ~subtract_left: ~bb >> add ~db >> add ~ea >> add ~fa >> mul -1.0;
+            
+            ~left: ~aa >> add ~ab >> add ~cb >> add ~subtract_left
+            >> mul #mix >> add ~drym;
+            
+            ~sub_right: ~eb >> add ~ab >> add ~ba >> add ~ca >> mul -1.0;
+            
+            ~right: ~da >> add ~db >> add ~fb >> add ~sub_right
+            >> mul #mix >> add ~drym;
+            
+            ~drym: ~dry >> mul #mixdiff;
+            
+            output: balance ~left ~right 0.5;
         }
     }
 });
 
+
+
+// let args = get_args(paras, mod_info);
+// let xx = args[0]
+// ..
+// let appendix_body = format!();
+
+
 // def_node add nodes info, struct to a hashmap,
 // this hashmap provides tools to output the node code
 
-pub fn preprocess2(mut code: &mut String) -> Result<String, GlicolError> {
-    let mut target_code = code.clone();
-    let lines = match GlicolParser::parse(Rule::block, &mut code) {
-        Ok(mut res) => {
-            if res.as_str() < &mut target_code {
-                unimplemented!();
-            }
-            res.next().unwrap()
-        },
-        Err(e) => { unimplemented!()}
-    };
-    let mut processed_code = "".to_owned();
-    let mut appendix_full = "".to_owned();
-    let mut current_ref_name = "".to_owned();
 
-    for line in lines.into_inner() {
-        let inner_rules = line.into_inner();
-        for element in inner_rules {
-            match element.as_rule() {
-                Rule::reference => {
-                    current_ref_name = element.as_str().to_owned();
-                    processed_code.push_str("\n");
-                    processed_code.push_str(&current_ref_name);
-                    processed_code.push_str(": ");
-                    // println!("current_ref_name {:?}", current_ref_name);
-                },
-                Rule::chain => {
-                    let mut node_str_list = vec![];
-                    for node in element.into_inner() {
-                        let mut name_and_paras = node.into_inner();
-                        let name_and_paras_str: String = name_and_paras.as_str().to_string();
-                        let node_name = name_and_paras.next().unwrap();
-                        let name = node_name.as_str().clone();
-                        let mut paras = name_and_paras.clone(); // the name is ripped aboves
-                        if vec!["sawsynth"].contains(&name) {
-                            
-                            let appendix_body = match name {
-                                "sawsynth" => "output: saw ~pitch >> mul ~env;~trigger: ~input;~pitch: ~trigger >> mul 261.626;~env: ~trigger >> envperc 0.001 0.1;",
-                                _ => {unimplemented!()}
-                            };
-
-                            let mut appendix = appendix_body.replace("~input", &node_str_list.join(" >> "));
-                            let mut ref_receiver = "~".to_owned();
-                            ref_receiver.push_str(&current_ref_name.replace("~", ""));
-                            ref_receiver.push_str("_");
-                            ref_receiver.push_str(name);
-                            let mut appendix = appendix.replace("output", &ref_receiver);
-                            appendix_full.push_str(&appendix);
-                            appendix_full.push_str("\n\n");
-                            node_str_list = vec![ref_receiver];
-                        } else {
-                            let mut s = name.to_owned();
-                            s.push_str(" ");
-                            s.push_str(paras.as_str());
-                            node_str_list.push(s);
-                        };
-                    }
-                    processed_code.push_str(&node_str_list.join(" >> "));
-                    processed_code.push_str("\n\n");
-                    processed_code.push_str(&appendix_full);
-                },
-                _ => {}
-            }
-        };
-        
-    };
-    Ok(processed_code)
-}
 
 
 // , {

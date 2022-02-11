@@ -584,7 +584,7 @@ impl<const N: usize> SimpleGraph<N> {
             let bufright = match &self.graph[*v.last().unwrap()].buffers.len() {
                 1 => {bufleft},
                 2 => {&self.graph[*v.last().unwrap()].buffers[1]},
-                _ => {unimplemented!()}
+                _ => {unimplemented!("// no multi-chan for now")}
             };
 
             for i in 0..N {
