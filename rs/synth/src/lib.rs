@@ -173,7 +173,7 @@ pub fn make_node<const N: usize>(
         "apfdecay" => vec![Para::Number(10.), Para::Number(0.8)],
         "apfgain" => vec![Para::Modulable, Para::Number(0.5)],
         "pan" => vec![Para::Modulable],
-        "balance" => vec![Para::Modulable, Para::Modulable, Para::Number(0.5)],
+        "balance" => vec![Para::Modulable, Para::Number(0.5), Para::Modulable, Para::Number(0.5)],
         "pha" => vec![Para::Modulable],
         "pass" => vec![],
         _ => {
@@ -221,7 +221,7 @@ pub fn make_node<const N: usize>(
         "apfdecay" => apfdecay!(N => {delay: get_num(&p[0]), decay: get_num(&p[1])}),
         "apfgain" => apfgain!(N => {delay: get_num(&p[0]), gain: get_num(&p[1])}),
         "pan" => pan!(N => get_num(&p[0])),
-        "balance" => balance!(N => get_num(&p[2])),
+        "balance" => balance!(N => get_num(&p[1])),
         "pha" => phasor!(N => {freq: get_num(&p[0]), sr: sr}),
         "pass" => Pass::<N>::new(),
         "envperc" => envperc!(N => {attack: get_num(&p[0]), decay: get_num(&p[1]), sr: sr}),
@@ -376,6 +376,7 @@ fn get_notes(paras: &mut Pairs<Rule>) -> Result<Vec::<f32>, GlicolError> {
 
 pub fn process_parameters(paras: &mut Pairs<Rule>, mut modulable: Vec<Para>) -> Result<(Vec<Para>, Vec<String>), GlicolError> {
     let mut refs = vec![];
+    let info = paras.clone().as_str();
     // println!("process_parameters {:?}{:?}", paras.as_str(), modulable);
     for i in 0..modulable.len() {
         let para = paras.next();
@@ -402,7 +403,10 @@ pub fn process_parameters(paras: &mut Pairs<Rule>, mut modulable: Vec<Para>) -> 
                     }
                 }
             },
-            None => return Err(GlicolError::InsufficientParameter(pos))
+            None => {
+                println!("need more paras in processing paras {}", info);
+                return Err(GlicolError::InsufficientParameter(pos))
+            }
         // .chars().filter(|c| !c.is_whitespace()).collect();
         };
     };

@@ -78,7 +78,7 @@ def_node!({
             
             ~drym: ~dry >> mul #mixdiff;
             
-            output: balance ~left ~right 0.5;
+            output: balance ~left 0.5 ~right 0.5;
         }
     }
 });
