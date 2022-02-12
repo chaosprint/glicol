@@ -69,7 +69,7 @@ impl<const N: usize> Node<N> for TriOsc<N> {
                 // basic fm
                 if has_clock {
                     // has clock input or somehow mistakenly connected by users
-                    let clock = inputs[1].buffers()[0][0] as usize;
+                    let clock = inputs[0].buffers()[0][0] as usize;
                     // avoid process twice
                     // without this, when use this node to control two different things
                     // the phase += will be called more than once and cause errors and mess
@@ -78,6 +78,20 @@ impl<const N: usize> Node<N> for TriOsc<N> {
                         return ()
                     };
 
+                    for i in 0..N {
+                        let v = -1.0 + (self.phase * 2.);
+
+                        output[0][i] = 2.0 * (v.abs() - 0.5);
+                        self.phase += self.freq  / self.sr as f32;
+
+                        if self.phase > 1. {
+                            self.phase -= 1.
+                        }
+                    }
+                    
+                    self.buffer = output[0].clone();
+                    self.clock = clock;
+                } else {
                     let mod_buf = &mut inputs[0].buffers();
                     
                     // println!("{:?}", mod_buf[0]);
@@ -94,19 +108,7 @@ impl<const N: usize> Node<N> for TriOsc<N> {
                             self.phase -= 1.
                         }
                     }
-                    self.buffer = output[0].clone();
-                    self.clock = clock;
-                } else {
-                    for i in 0..N {
-                        let v = -1.0 + (self.phase * 2.);
-
-                        output[0][i] = 2.0 * (v.abs() - 0.5);
-                        self.phase += self.freq  / self.sr as f32;
-
-                        if self.phase > 1. {
-                            self.phase -= 1.
-                        }
-                    }
+                    
                 }
             },
             2 => {

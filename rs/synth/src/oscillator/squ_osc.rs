@@ -67,7 +67,7 @@ impl<const N: usize> Node<N> for SquOsc<N> {
                 // in standalone mode, no mechanism to prevent double processing
                 // basic fm
                 if has_clock {
-                    let clock = inputs[1].buffers()[0][0] as usize;
+                    let clock = inputs[0].buffers()[0][0] as usize;
                     // avoid process twice
                     // without this, when use this node to control two different things
                     // the phase += will be called more than once and cause errors and mess
@@ -75,10 +75,24 @@ impl<const N: usize> Node<N> for SquOsc<N> {
                         output[0] = self.buffer.clone();
                         return ()
                     };
-
-                    let mod_buf = &mut inputs[0].buffers();
                     
-                    // println!("{:?}", mod_buf[0]);
+                    for i in 0..N {
+                        if (self.phase <= 0.5) {
+                            output[0][i] = 1.0;
+                        } else {
+                            output[0][i] = -1.0;
+                        }
+
+                        self.phase += self.freq / self.sr as f32;
+                        if self.phase > 1. {
+                            self.phase -= 1.
+                        }
+                    }           
+
+                    self.buffer = output[0].clone();
+                    self.clock = clock;
+                } else {
+                    let mod_buf = &mut inputs[0].buffers();
                     for i in 0..N {
                         if mod_buf[0][i] != 0. {
                             self.inc = mod_buf[0][i]
@@ -94,21 +108,7 @@ impl<const N: usize> Node<N> for SquOsc<N> {
                             self.phase -= 1.
                         }
                     }
-                    self.buffer = output[0].clone();
-                    self.clock = clock;
-                } else {
-                    for i in 0..N {
-                        if (self.phase <= 0.5) {
-                            output[0][i] = 1.0;
-                        } else {
-                            output[0][i] = -1.0;
-                        }
 
-                        self.phase += self.freq / self.sr as f32;
-                        if self.phase > 1. {
-                            self.phase -= 1.
-                        }
-                    }
                 }
             },
             2 => {

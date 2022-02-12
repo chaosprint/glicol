@@ -12,7 +12,14 @@ fn shape() {
 #[test]
 fn bd() {
     let mut engine = Engine::<128>::new(44100);
-    engine.set_code("bd: speed 4.0 >> seq 60 >> bd 0.03");
+    engine.set_code("xs: speed 4.0 >> seq 60 >> bd 0.03");
     engine.make_graph().unwrap();
 }
 
+
+#[test]
+fn saw() {
+    let mut engine = Engine::<128>::new(44100);
+    engine.set_code("o: saw 440");
+    engine.make_graph().unwrap();
+}

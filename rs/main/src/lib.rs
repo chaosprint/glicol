@@ -24,7 +24,6 @@ use glicol_ext::{make_node_ext, findname, preprocess2};
 
 mod utili;
 use utili::{preprocess_signal, preprocess_mul, lcs, process_error_info};
-use regex::Regex;
 
 
 /// The engine of Glicol

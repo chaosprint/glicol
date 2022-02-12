@@ -62,32 +62,33 @@ impl<const N: usize> Node<N> for SawOsc<N> {
             },
             1 => {
                 // in standalone mode, no mechanism to prevent double processing
-                // basic fm
-                if has_clock {
-                    let mut clock = inputs[1].buffers()[0][0] as usize;
+                // this means once the node is traversed, it will be processed
+
+                if has_clock { // clock is the only input
+                    let mut clock = inputs[0].buffers()[0][0] as usize;
                     if self.clock != 0 && self.clock == clock {
                         output[0] = self.buffer.clone();
                         return ()
                     };
-    
-                    let mod_buf = &mut inputs[0].buffers();
 
                     for i in 0..N {
                         output[0][i] = self.phase * 2. - 1.;
-                        if mod_buf[0][i] != 0. {
-                            self.inc = mod_buf[0][i]
-                        };
-                        self.phase +=  self.inc / self.sr as f32;
+                        self.phase += self.freq / self.sr as f32;
                         if self.phase > 1. {
                             self.phase -= 1.
                         }
                     }
                     self.buffer = output[0].clone();
                     self.clock = clock;
-                } else {
+                } else { // standalone mode, no clock but has a mod input
+
+                    let mod_buf = &mut inputs[0].buffers();
                     for i in 0..N {
                         output[0][i] = self.phase * 2. - 1.;
-                        self.phase += self.freq / self.sr as f32;
+                        if mod_buf[0][i] != 0. {
+                            self.inc = mod_buf[0][i]
+                        };
+                        self.phase +=  self.inc / self.sr as f32;
                         if self.phase > 1. {
                             self.phase -= 1.
                         }

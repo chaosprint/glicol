@@ -36,5 +36,3 @@ dasp_graph = { path = "../dasp_graph" }
 glicol_synth =  { path = "../synth" }
 glicol_parser =  { path = "../parser" }
 glicol_ext =  { path = "../ext" }
-
-regex = "*"
