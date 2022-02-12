@@ -413,12 +413,58 @@ window.warn = function consoleWithNoSource(...params) {
   setTimeout(console.warn.bind(console, ...params));
 }
 
+window.visualizeTimeDomainData = ({canvas, analyser}) => {
+  let ctx = canvas.getContext("2d");
+  let bufferLength = analyser.fftSize;
+  let dataArray = new Uint8Array(bufferLength);
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  function draw() {
+
+    requestAnimationFrame(draw);
+
+    analyser.getByteTimeDomainData(dataArray);
+
+    ctx.fillStyle = '#000000)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#f0fdf4';
+
+    ctx.beginPath();
+
+    let sliceWidth = canvas.width * 1.0 / bufferLength;
+    let x = 0;
+
+    for(let i = 0; i < bufferLength; i++) {
+ 
+      let v = dataArray[i] / 128.0;
+      let y = v * canvas.height/2;
+
+      if(i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+
+      x += sliceWidth;
+    }
+
+    ctx.lineTo(canvas.width, canvas.height/2);
+    ctx.stroke();
+  };
+
+  draw();
+}
+
 window.loadModule = async () => {
 
   window.AudioContext = window.AudioContext || window.webkitAudioContext;
   window.actx = new window.AudioContext({
     sampleRate: 44100
   })
+  window.analyser = window.actx.createAnalyser();
 
   URLFromFiles([source+'glicol-engine.js']).then((e) => {
     
@@ -432,7 +478,9 @@ window.loadModule = async () => {
       })
 
       window.actx.destination.channelInterpretation = "discrete";
-      window.node.connect(window.actx.destination)
+      window.node.connect(analyser)
+      window.analyser.connect(window.actx.destination)
+      
 
       let sab = exports.RingBuffer.getStorageForCapacity(2048, Uint8Array);
       let rb = new exports.RingBuffer(sab, Uint8Array);

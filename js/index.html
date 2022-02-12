@@ -16,12 +16,18 @@
   </head>
   <body>
     <main>
+      
       <div id="inner">
       <textarea id="code" cols="40" rows="5" style="min-height: 300px; min-width: 400px"></textarea>
       <br />
+      <canvas id="visualizer" style="min-width: 400px; min-height: 100; background-color: black;"></canvas>
+      <br />
       <button id="run">run</button>
       <button id="stop">stop</button>
+      
       </div>
+      <br />
+      
     </main>
 
     <!-- two options: copy the src folder or use the cdn link -->
@@ -31,7 +37,42 @@
       document.getElementById("code").value = window.code
       document.getElementById("run").addEventListener("click", ()=>{
         let currentCode = document.getElementById("code").value;
-        window.run(currentCode) // main function to run code; edit the code and run again will update music automatically
+        window.visualizeTimeDomainData({canvas: document.getElementById("visualizer"), analyser: window.analyser});
+        // const [WIDTH, HEIGHT] = [640, 100]
+        // const canvas = document.getElementById('visualizer');
+        // const canvasCtx = canvas.getContext('2d');
+        // window.analyser.fftSize = 2048;
+        // var bufferLength = window.frequencyBinCount;
+        // var dataArray = new Uint8Array(bufferLength);
+        // canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+        // function draw() {
+        //   var drawVisual = requestAnimationFrame(draw);
+        //   window.analyser.getByteTimeDomainData(dataArray);
+        //   canvasCtx.fillStyle = 'rgb(200, 200, 200)';
+        //   canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+        //   canvasCtx.lineWidth = 2;
+        //   canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
+        //   canvasCtx.beginPath();
+        //   var sliceWidth = WIDTH * 1.0 / bufferLength;
+        //   var x = 0;
+        //   for(var i = 0; i < bufferLength; i++) {
+
+        //     var v = dataArray[i] / 128.0;
+        //     var y = v * HEIGHT/2;
+
+        //     if(i === 0) {
+        //       canvasCtx.moveTo(x, y);
+        //     } else {
+        //       canvasCtx.lineTo(x, y);
+        //     }
+
+        //     x += sliceWidth;
+        //   }
+        //   canvasCtx.lineTo(canvas.width, canvas.height/2);
+        //   canvasCtx.stroke();
+        //   }
+        //   draw();
+          window.run(currentCode) // main function to run code; edit the code and run again will update music automatically
       })
       document.getElementById("stop").addEventListener("click", ()=>{
         window.stop(); // stop function binding to window
