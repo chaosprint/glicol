@@ -5,7 +5,7 @@ use glicol::EngineError;
 
 fn main () {
     let mut engine = Engine::<128>::new(44100);
-    engine.set_code("~aa: sin 100;lead: ~aa;~ab: saw 50 >> mul 0.1;");
+    engine.set_code("o: speed 2.0 >> seq 60 48 72 67");
     // engine.elapsed_samples = 512;
     // engine.set_code("aa: sin 44");
     // engine.update = true;
@@ -25,7 +25,7 @@ fn main () {
         }
     }
 
-    engine.set_code("~aa: sin 100;lead: ~ab;~ab: saw 50 >> mul 0.1;");
+    engine.set_code("o: speed 4.0 >> seq 60 48 72 67");
     engine.make_graph();
 
     // // println!("\n\nnode_by_chain {:?}\n\n", engine.node_by_chain);

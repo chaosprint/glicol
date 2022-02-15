@@ -4,7 +4,7 @@ use glicol::Engine;
 
 fn main () {
     let mut engine = Engine::<128>::new(44100);
-    engine.set_code("o: speed 2.0 >> seq 61 _64 _ 61 61 _64 _ 61 61 _64 _ 61 61 _64 _ 61");
+    engine.set_code("o: saw 500 >> lpf 300 1");
     // engine.set_code("update_thing808: imp 1.0 >> bd 0.3 >> plate 0.1");
     // engine.set_code("a: sin 100 >> mul ~xx; ~xx: sin 0.1 >> mul 0.1 >> add 0.8");
     // engine.set_code("a: tri 10");

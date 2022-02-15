@@ -164,7 +164,7 @@ impl<const N: usize> Engine<N> {
     pub fn make_graph(&mut self) -> Result<(), EngineError>{
         // self.preprocess();
         // findname("sawsynth");
-        self.code = preprocess2(&mut self.code).unwrap();
+        self.code = preprocess2(&mut self.code)?;
 
         // self.node_by_chain.clear();
         self.samples_dict.insert("imp".to_string(), &[1.0]);
@@ -680,6 +680,8 @@ impl From<GlicolError> for EngineError {
             GlicolError::NotModuableError((s,e)) => EngineError::NotModuableError((s,e)),
             GlicolError::ParaTypeError((s,e)) => EngineError::ParaTypeError((s,e)),
             GlicolError::NodeNameError((st, s,e)) => EngineError::NodeNameError((st, s,e)),
+            GlicolError::ParsingError(e) => EngineError::ParsingError(e),
+            GlicolError::ParsingIncompleteError(usize) => EngineError::ParsingIncompleteError(usize),
             _ => panic!()
         }
     }

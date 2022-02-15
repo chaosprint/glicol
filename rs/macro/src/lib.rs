@@ -228,11 +228,15 @@ pub fn def_node(all_defs: TokenStream) -> TokenStream {
             let lines = match GlicolParser::parse(Rule::block, &mut code) {
                 Ok(mut res) => {
                     if res.as_str() < &mut target_code {
-                        unimplemented!("half parsing {}", res.as_str());
+                        return Err(GlicolError::ParsingIncompleteError(res.as_str().len()))
+                        // unimplemented!("half parsing {}", res.as_str());
                     }
                     res.next().unwrap()
                 },
-                Err(e) => { unimplemented!("parsing error {:?} code: {}", e, target_code)}
+                Err(e) => { 
+                    return Err(GlicolError::ParsingError(e))
+                    // unimplemented!("parsing error {:?} code: {}", e, target_code)
+                }
             };
             let mut processed_code = "".to_owned();
             let mut appendix_full = "".to_owned();

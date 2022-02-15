@@ -3,6 +3,7 @@ use std::{collections::HashMap};
 use dasp_graph::{NodeData, BoxedNodeSend, Processor, Buffer, Input, Node};
 use petgraph::graph::{NodeIndex};
 use petgraph::stable_graph::{StableDiGraph};
+use pest;
 use pest::Parser;
 use pest::iterators::Pairs;
 use glicol_parser::*;
@@ -46,6 +47,8 @@ pub enum GlicolError {
     NotModuableError((usize, usize)),
     ParaTypeError((usize, usize)),
     NodeNameError((String, usize, usize)),
+    ParsingError(pest::error::Error<glicol_parser::Rule>),
+    ParsingIncompleteError(usize),
 }
 
 
@@ -187,7 +190,7 @@ pub fn make_node<const N: usize>(
     // println!("{:?}", paras);
     // this func checks if the parameters are correct
     let (p, mut refs) = process_parameters(paras, modulable)?;
-    // println!("{:?}", p);
+    println!("process_parameters para result: {:?}", p);
 
     if alias == "seq" {refs = process_seq(paras)?.2}
     if alias == "pass" {refs = vec![name.to_owned()]}

@@ -44,7 +44,7 @@ impl<const N:usize> Sequencer<N> {
 impl<const N:usize> Node<N> for Sequencer<N> {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         let mut has_speed_input = false;
-        let mut has_clock = false; // not optimised for glicol synth standalone
+        let mut has_clock = false;
 
         if inputs.len() == 1 {
             if inputs[0].buffers()[0][0] as usize % N == 0 && inputs[0].buffers()[0][1] == 0. {
@@ -59,7 +59,7 @@ impl<const N:usize> Node<N> for Sequencer<N> {
             if inputs[m].buffers()[0][0] as usize % N == 0 && inputs[m].buffers()[0][1] == 0. {
                 self.step = inputs[m].buffers()[0][0] as usize;
                 has_clock = true;
-                if inputs[m-1].buffers()[0][0] as usize % N  > 0 && inputs[m-1].buffers()[0][1] == 0. {
+                if inputs[m-1].buffers()[0][0] as usize % N > 0 && inputs[m-1].buffers()[0][1] == 0. {
                     self.speed = inputs[m-1].buffers()[0][0];
                     has_speed_input = true;
                 }
