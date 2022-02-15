@@ -9,7 +9,7 @@ proc-macro = true
 
 [dependencies]
 # syn = {features=["full","extra-traits"]}
-quote = "*"
+quote = "1.0"
 pest = "2.0"
 pest_derive = "2.0"
 proc-macro2 = "1.0.27"

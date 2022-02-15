@@ -146,7 +146,7 @@ pub fn make_node<const N: usize>(
         "saw" => vec![Para::Modulable],
         "squ" => vec![Para::Modulable],
         "tri" => vec![Para::Modulable],
-        "const_sig" => vec![Para::Number(0.0)],
+        "const_sig" => vec![Para::Modulable],
         "mul" => vec![Para::Modulable],
         "add" => vec![Para::Modulable],
         "rlpf" => vec![Para::Modulable, Para::Number(1.0)],
@@ -173,7 +173,7 @@ pub fn make_node<const N: usize>(
         "apfdecay" => vec![Para::Number(10.), Para::Number(0.8)],
         "apfgain" => vec![Para::Modulable, Para::Number(0.5)],
         "pan" => vec![Para::Modulable],
-        "balance" => vec![Para::Modulable, Para::Modulable, Para::Number(0.5)],
+        "balance" => vec![Para::Modulable, Para::Number(0.5), Para::Modulable, Para::Number(0.5)],
         "pha" => vec![Para::Modulable],
         "pass" => vec![],
         _ => {
@@ -221,7 +221,7 @@ pub fn make_node<const N: usize>(
         "apfdecay" => apfdecay!(N => {delay: get_num(&p[0]), decay: get_num(&p[1])}),
         "apfgain" => apfgain!(N => {delay: get_num(&p[0]), gain: get_num(&p[1])}),
         "pan" => pan!(N => get_num(&p[0])),
-        "balance" => balance!(N => get_num(&p[2])),
+        "balance" => balance!(N => get_num(&p[1])),
         "pha" => phasor!(N => {freq: get_num(&p[0]), sr: sr}),
         "pass" => Pass::<N>::new(),
         "envperc" => envperc!(N => {attack: get_num(&p[0]), decay: get_num(&p[1]), sr: sr}),
@@ -376,6 +376,7 @@ fn get_notes(paras: &mut Pairs<Rule>) -> Result<Vec::<f32>, GlicolError> {
 
 pub fn process_parameters(paras: &mut Pairs<Rule>, mut modulable: Vec<Para>) -> Result<(Vec<Para>, Vec<String>), GlicolError> {
     let mut refs = vec![];
+    let info = paras.clone().as_str();
     // println!("process_parameters {:?}{:?}", paras.as_str(), modulable);
     for i in 0..modulable.len() {
         let para = paras.next();
@@ -389,7 +390,7 @@ pub fn process_parameters(paras: &mut Pairs<Rule>, mut modulable: Vec<Para>) -> 
                     Err(_) => {
                         if key.contains("~") {
                             if modulable[i] != Para::Modulable { 
-                                println!("{:?}", key);
+                                println!("process_parameters key {:?}", key);
                                 return Err(GlicolError::NotModuableError(pos)) 
                             } else {
                                 refs.push(key.to_string());
@@ -402,7 +403,10 @@ pub fn process_parameters(paras: &mut Pairs<Rule>, mut modulable: Vec<Para>) -> 
                     }
                 }
             },
-            None => return Err(GlicolError::InsufficientParameter(pos))
+            None => {
+                println!("need more paras in processing paras {}", info);
+                return Err(GlicolError::InsufficientParameter(pos))
+            }
         // .chars().filter(|c| !c.is_whitespace()).collect();
         };
     };
@@ -419,6 +423,7 @@ pub struct SimpleGraph<const N: usize> {
 
 impl<const N: usize> SimpleGraph<N> {
 
+    //, sr: usize, bpm: f32
     pub fn new(code: &str) -> Self {
         let mut graph = GlicolGraph::<N>::with_capacity(1024, 1024);
             // let processor = GlicolProcessor::with_capacity(1024);
@@ -583,7 +588,7 @@ impl<const N: usize> SimpleGraph<N> {
             let bufright = match &self.graph[*v.last().unwrap()].buffers.len() {
                 1 => {bufleft},
                 2 => {&self.graph[*v.last().unwrap()].buffers[1]},
-                _ => {unimplemented!()}
+                _ => {unimplemented!("// no multi-chan for now")}
             };
 
             for i in 0..N {

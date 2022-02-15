@@ -20,10 +20,11 @@ use glicol_synth::{GlicolNodeData, GlicolGraph,
 
 use glicol_parser::*;
 
-use glicol_ext::make_node_ext;
+use glicol_ext::{make_node_ext, findname, preprocess2};
 
 mod utili;
 use utili::{preprocess_signal, preprocess_mul, lcs, process_error_info};
+
 
 /// The engine of Glicol
 /// This engine can takes Glicol code, convert it to audio graph and process it
@@ -82,8 +83,89 @@ impl<const N: usize> Engine<N> {
         }
     }
 
+    // pub fn preprocess(&mut self) -> Result<(), EngineError> {
+    //     let mut processed_code = "".to_owned();
+    //     let mut appendix_string_full = "".to_owned();
+        
+    //     let mut target_code = self.code.clone();
+
+    //     let lines = match GlicolParser::parse(Rule::block, &mut self.code) {
+    //         Ok(mut res) => {
+    //             if res.as_str() < &mut target_code {
+    //                 return Err(EngineError::ParsingIncompleteError(res.as_str().len()));
+    //             }
+    //             res.next().unwrap()
+    //         },
+    //         Err(e) => { println!("error info {:?}", e); return Err(EngineError::ParsingError(e))}
+    //     };
+
+    //     let mut current_ref_name = "".to_owned();
+    //     for line in lines.into_inner() {
+           
+    //         let inner_rules = line.into_inner();
+    //         for element in inner_rules {
+    //             match element.as_rule() {
+    //                 Rule::reference => {
+    //                     current_ref_name = element.as_str().to_owned();
+    //                     processed_code.push_str("\n");
+    //                     processed_code.push_str(&current_ref_name);
+    //                     processed_code.push_str(": ");
+    //                     // println!("current_ref_name {:?}", current_ref_name);
+    //                 },
+    //                 Rule::chain => {
+    //                     let mut nodes = vec![];
+    //                     for node in element.into_inner() {
+    //                         let mut name_and_paras = node.into_inner();
+    //                         let name_and_paras_str: String = name_and_paras.as_str().to_string();
+    //                         let node_name = name_and_paras.next().unwrap();
+    //                         let mut paras = name_and_paras.clone(); // the name is ripped above
+
+    //                         if ["sin", "saw", "squ", "tri"].contains(&node_name.as_str()) {
+    //                             let mut s = "const_sig ".to_owned();
+    //                             s.push_str(paras.as_str());
+    //                             nodes.push(s);
+    //                             let mut pseudo = node_name.as_str().to_owned();
+    //                             pseudo.push_str(" 1");
+    //                             nodes.push(pseudo);
+
+    //                             // let (res_in_place, res_appendix) = preprocessor(name_and_paras_str);
+    //                             // nodes.push(res_in_place);
+    //                             // processed_code.push_str(res_appendix);
+    //                         } else {
+    //                             let (inplace_string, appendix_string, to_sink) = preprocessor(
+    //                                 &current_ref_name, 
+    //                                 node_name.as_str(), 
+    //                                 &mut paras,
+    //                                 nodes
+    //                             )?;
+    //                             nodes = to_sink;
+    //                             // println!("inplace_string {}", inplace_string);
+    //                             // nodes.push(inplace_string);
+    //                             appendix_string_full.push_str("\n");
+    //                             appendix_string_full.push_str(&appendix_string);
+    //                         }
+    //                     }
+    //                     let processed_chain_str = nodes.join(" >> ");
+    //                     // println!("{}", processed_code);
+    //                     processed_code.push_str(&processed_chain_str);
+    //                     processed_code.push_str(";");
+    //                 },
+    //                 _ => {}
+    //             }
+    //         }
+    //     }
+    //     processed_code.push_str(&appendix_string_full);
+    //     self.code = processed_code.clone();
+    //     // panic!(processed_code);
+    //     // self.code = "\na: const_sig 100 >> sin 1 >> mul ~mulmod_a;\n~xx: const_sig 0.1;\n~mulmod_a: const_sig ~xx\n".to_owned();
+    //     Ok(())
+    // }
     /// The main function to convert the code input string into graph structure inside the engine
     pub fn make_graph(&mut self) -> Result<(), EngineError>{
+        // self.preprocess();
+        // findname("sawsynth");
+        self.code = preprocess2(&mut self.code).unwrap();
+
         // self.node_by_chain.clear();
         self.samples_dict.insert("imp".to_string(), &[1.0]);
         self.graph.clear_edges();
@@ -116,13 +198,15 @@ impl<const N: usize> Engine<N> {
 
         let lines = match GlicolParser::parse(Rule::block, &mut self.code) {
             Ok(mut res) => {
-                if res.as_str() < &mut target_code {
+                if res.as_str().len() < target_code.len() {
+                    println!("res info {}", res.as_str());
                     return Err(EngineError::ParsingIncompleteError(res.as_str().len()));
                 }
                 res.next().unwrap()
             },
-            Err(e) => { println!("{:?}", e); panic!(); return Err(EngineError::ParsingError(e))}
+            Err(e) => { println!("error info {:?}", e); return Err(EngineError::ParsingError(e))}
         };
+        
 
         let mut current_ref_name: &str = "";
         // println!("lines.into_inner() {:?}", lines.clone());
@@ -134,7 +218,7 @@ impl<const N: usize> Engine<N> {
                 match element.as_rule() {
                     Rule::reference => {
                         current_ref_name = element.as_str();
-                        // println!("current_ref_name {:?}", current_ref_name);
+                        println!("current_ref_name {:?}", current_ref_name);
                     },
                     Rule::chain => {
                         self.all_refs.push(current_ref_name.to_string());
@@ -148,7 +232,7 @@ impl<const N: usize> Engine<N> {
                         let chain_plain_str: Vec<String> = element.clone().into_inner()
                         .map(|v|v.as_str().to_string()).collect();
                         // new.reverse();
-                        // println!("new {:?}", chain_plain_str);
+                        println!("new {:?}", chain_plain_str);
 
                         let (add, _rem, del) = match self.chain_info
                         .contains_key(&refname) {
@@ -241,12 +325,18 @@ impl<const N: usize> Engine<N> {
 
                                         let mut list = self.node_by_chain[&refname]
                                         .clone();
-
+                                        // println!("********\n\nlist {:?} dest {}", list, &dest);
                                         if &dest != "" {
-                                            self.sidechains_list.push(
-                                                (list.last().unwrap().0, 
-                                                dest.clone()));
-                                        };                     
+                                            if list.len() == 0 {
+                                                // self.sidechains_list.push(
+                                                //     (&refname, dest.clone())
+                                                // );
+                                            } else {
+                                                self.sidechains_list.push(
+                                                    (list.last().unwrap().0, 
+                                                    dest.clone()));
+                                            }
+                                        };
                                         list.insert(
                                             info.1, (node_index, name_and_paras_str.clone()));
 
@@ -424,7 +514,7 @@ impl<const N: usize> Engine<N> {
                             info[0] = 5;
                             info[1] = 0;
                             if self.code == "" {
-                                self.code_backup = "~dummy: const 0.0".to_string();
+                                self.code_backup = "~dummy: const_sig 0.0".to_string();
                             }
                             info
                         },
@@ -483,7 +573,7 @@ impl<const N: usize> Engine<N> {
             let bufright = match &self.graph[v.last().unwrap().0].buffers.len() {
                 1 => {bufleft},
                 2 => {&self.graph[v.last().unwrap().0].buffers[1]},
-                _ => {unimplemented!()} // no multi-chan for now
+                _ => {panic!("// no multi-chan for now")} 
             };
 
             for i in 0..N {
@@ -590,7 +680,7 @@ impl From<GlicolError> for EngineError {
             GlicolError::NotModuableError((s,e)) => EngineError::NotModuableError((s,e)),
             GlicolError::ParaTypeError((s,e)) => EngineError::ParaTypeError((s,e)),
             GlicolError::NodeNameError((st, s,e)) => EngineError::NodeNameError((st, s,e)),
-            _ => unimplemented!()
+            _ => panic!()
         }
     }
 }

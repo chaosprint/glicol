@@ -4,9 +4,10 @@ use glicol::Engine;
 use glicol::EngineError;
 
 fn main () {
-    let mut engine = Engine::new(44100);
+    let mut engine = Engine::<128>::new(44100);
+    engine.set_code("~aa: sin 100;lead: ~aa;~ab: saw 50 >> mul 0.1;");
     // engine.elapsed_samples = 512;
-    engine.set_code("aa: sin 44");
+    // engine.set_code("aa: sin 44");
     // engine.update = true;
     engine.make_graph().unwrap();
     // println!("\n\nnode_by_chain {:?}\n\n", engine.node_by_chain);
@@ -15,7 +16,7 @@ fn main () {
     let mut y2 = Vec::<f32>::new();
     let mut n = 0;
     for _ in 0..(70000.0/128.0) as usize {
-        let out = engine.gen_next_buf_128(&mut [0.0;128]).unwrap().0;
+        let out = engine.gen_next_buf(&mut [0.0;128]).unwrap().0;
         for i in 0..128 {
             x.push(n);
             n += 1;
@@ -24,12 +25,12 @@ fn main () {
         }
     }
 
-    engine.set_code("aa: si");
+    engine.set_code("~aa: sin 100;lead: ~ab;~ab: saw 50 >> mul 0.1;");
     engine.make_graph();
 
     // // println!("\n\nnode_by_chain {:?}\n\n", engine.node_by_chain);
     for _ in 0..(70000.0/128.0) as usize {
-        let out = engine.gen_next_buf_128(&mut [0.0;128]).unwrap().0;
+        let out = engine.gen_next_buf(&mut [0.0;128]).unwrap().0;
         for i in 0..128 {
             x.push(n);
             n += 1;

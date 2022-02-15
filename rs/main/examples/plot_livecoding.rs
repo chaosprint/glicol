@@ -4,14 +4,16 @@ use glicol::Engine;
 
 fn main () {
     let mut engine = Engine::<128>::new(44100);
-
+    engine.set_code("o: speed 2.0 >> seq 61 _64 _ 61 61 _64 _ 61 61 _64 _ 61 61 _64 _ 61");
+    // engine.set_code("update_thing808: imp 1.0 >> bd 0.3 >> plate 0.1");
+    // engine.set_code("a: sin 100 >> mul ~xx; ~xx: sin 0.1 >> mul 0.1 >> add 0.8");
     // engine.set_code("a: tri 10");
-    engine.set_code("~trigger: speed 8.0 >> seq 60
+    // engine.set_code("~trigger: speed 8.0 >> seq 60
 
-    // ~env: ~trigger >> envperc 0.01 0.1
+    // // ~env: ~trigger >> envperc 0.01 0.1
     
-    ~pitch: ~trigger >> mul 261.626
-    o: squ ~pitch");
+    // ~pitch: ~trigger >> mul 261.626
+    // o: squ ~pitch");
 
     // engine.set_code("aa: tri ~mod; ~mod: sin 2.0 >> mul 40 >> add 60");
     // engine.set_code("~a: choose 48 55 51 58
