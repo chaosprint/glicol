@@ -189,9 +189,9 @@ impl<const N: usize> Engine<N> {
             vec![(self.audio_in, "~input".to_string())]
         );
 
-        // println!("code before preprocess: {}",&self.code);
-        // self.code = preprocess_signal(&mut self.code)?;
-        // self.code = preprocess_mul(&mut self.code)?;
+        println!("code before preprocess: {}",&self.code);
+        self.code = preprocess_signal(&mut self.code)?;
+        self.code = preprocess_mul(&mut self.code)?;
         println!("code after preprocess: {}",&self.code);
         
         let mut target_code = self.code.clone();
@@ -218,7 +218,7 @@ impl<const N: usize> Engine<N> {
                 match element.as_rule() {
                     Rule::reference => {
                         current_ref_name = element.as_str();
-                        // println!("current_ref_name {:?}", current_ref_name);
+                        println!("current_ref_name {:?}", current_ref_name);
                     },
                     Rule::chain => {
                         self.all_refs.push(current_ref_name.to_string());
@@ -232,7 +232,7 @@ impl<const N: usize> Engine<N> {
                         let chain_plain_str: Vec<String> = element.clone().into_inner()
                         .map(|v|v.as_str().to_string()).collect();
                         // new.reverse();
-                        // println!("new {:?}", chain_plain_str);
+                        println!("new {:?}", chain_plain_str);
 
                         let (add, _rem, del) = match self.chain_info
                         .contains_key(&refname) {
@@ -325,12 +325,18 @@ impl<const N: usize> Engine<N> {
 
                                         let mut list = self.node_by_chain[&refname]
                                         .clone();
-
+                                        // println!("********\n\nlist {:?} dest {}", list, &dest);
                                         if &dest != "" {
-                                            self.sidechains_list.push(
-                                                (list.last().unwrap().0, 
-                                                dest.clone()));
-                                        };                     
+                                            if list.len() == 0 {
+                                                // self.sidechains_list.push(
+                                                //     (&refname, dest.clone())
+                                                // );
+                                            } else {
+                                                self.sidechains_list.push(
+                                                    (list.last().unwrap().0, 
+                                                    dest.clone()));
+                                            }
+                                        };
                                         list.insert(
                                             info.1, (node_index, name_and_paras_str.clone()));
 

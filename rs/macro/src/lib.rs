@@ -3,7 +3,8 @@ use quote::quote;
 use proc_macro2::{Ident, Span, TokenStream as TokenStream2, TokenTree as TokenTree2};
 
 #[proc_macro]
-pub fn def_node(input: TokenStream) -> TokenStream {
+pub fn def_node(all_defs: TokenStream) -> TokenStream {
+    let mut this_node_name = "".to_owned();
     let mut names_all = vec![];
     let mut args_all = vec![];
     let mut paras_all = vec![];
@@ -17,22 +18,24 @@ pub fn def_node(input: TokenStream) -> TokenStream {
     // let mut variable = vec![];
     // let mut behavior = TokenStream2::new();
     
-    let mut input_iter = input.into_iter();
-    let object_all = input_iter.next().unwrap();
-    let object_all_stream = match object_all {
+    let mut all_defs_iter = all_defs.into_iter();
+    let defs_group = all_defs_iter.next().unwrap();
+    let defs_stream = match defs_group {
         TokenTree::Group(g) => TokenStream2::from(g.stream()),
         _ => panic!("not a token group")
     };
 
-    let mut i = object_all_stream.into_iter();
-    let mut f = i.next();
-    while f.is_some() {
-        let raw = f.clone().unwrap();
-        let item = f.unwrap().to_string();
+    let mut defs_stream_iter = defs_stream.into_iter();
+    let mut def_next = defs_stream_iter.next();
+    while def_next.is_some() {
+        let raw = def_next.clone().unwrap();
+        let item = def_next.unwrap().to_string();
         // println!("item {}", &item);
         if item.contains("\"") {
-            names_all.push(item.replace("\"", ""));
-            i.next();
+            this_node_name = item.clone().replace("\"", "");
+            names_all.push(item.clone().replace("\"", ""));
+            // println!("\n\n\n this node names is {:?}", &this_node_name);
+            defs_stream_iter.next();
         } else if item.contains("{"){
             let info = match raw {
                 TokenTree2::Group(g) => TokenStream2::from(g.stream()),
@@ -71,6 +74,7 @@ pub fn def_node(input: TokenStream) -> TokenStream {
                 
                     let mut graph_iter = graph_code_str.into_iter();
                     let mut ele = graph_iter.next();
+                    println!("ele {:?}", ele.clone());
                     while ele.is_some() {
                         let raw = ele.unwrap();
                         let ele_str = raw.clone().to_string();
@@ -85,9 +89,22 @@ pub fn def_node(input: TokenStream) -> TokenStream {
                             s.push_str(&v.to_string());
                             s.push_str("}");
                             s.push_str(" ");
-
                         } else if ele_str == "~" {
                             s.push_str(&ele_str);
+                            ele = graph_iter.next();
+                            let next = ele.unwrap().to_string();
+                            // println!("next ele is {}", &next);
+                            if &next == "input" {
+                                // println!("found input ********************");
+                                s.push_str(&next);
+                                s.push_str(" ");
+                            } else {
+                                let q = this_node_name.clone();
+                                s.push_str(&q);
+                                s.push_str(&next);
+                                s.push_str("chain_name");
+                                s.push_str(" ");
+                            }
                         } else if ele_str == "-" {
                             s.push_str(&ele_str);
                         } else if ele_str == ";" {
@@ -110,12 +127,12 @@ pub fn def_node(input: TokenStream) -> TokenStream {
         } else {
 
         }
-        // println!("{:?}\n\n", names_all);
+        println!("names_all {:?}\n\n", names_all);
         // println!("{:?}\n\n", args_all);
         // println!("{:?}\n\n", paras_all);
         variables_all = variables.clone().into_iter().map(|x|x.parse().unwrap()).collect();
         println!("variables {:?}\n\n", variables);
-        println!(" variables_all {:?}\n\n", variables_all );
+        // println!(" variables_all {:?}\n\n", variables_all );
         // println!("{:?}\n\n", graph_all);
         // let raw = f.clone().unwrap();
         // let item = f.unwrap().to_string();
@@ -156,7 +173,7 @@ pub fn def_node(input: TokenStream) -> TokenStream {
         // } else {
 
         // }
-        f = i.next();
+        def_next = defs_stream_iter.next();
     }
     let o = quote!(
 
@@ -201,7 +218,7 @@ pub fn def_node(input: TokenStream) -> TokenStream {
                 #( #names_all => {
                     vec!#args_all
                 }, )*
-                _ => { unimplemented!() }
+                _ => { unimplemented!("no such a name...") }
             };
             get_args(paras, target_paras)
         }
@@ -211,11 +228,11 @@ pub fn def_node(input: TokenStream) -> TokenStream {
             let lines = match GlicolParser::parse(Rule::block, &mut code) {
                 Ok(mut res) => {
                     if res.as_str() < &mut target_code {
-                        unimplemented!();
+                        unimplemented!("half parsing {}", res.as_str());
                     }
                     res.next().unwrap()
                 },
-                Err(e) => { unimplemented!()}
+                Err(e) => { unimplemented!("parsing error {:?} code: {}", e, target_code)}
             };
             let mut processed_code = "".to_owned();
             let mut appendix_full = "".to_owned();
@@ -267,6 +284,8 @@ pub fn def_node(input: TokenStream) -> TokenStream {
                                     ref_receiver.push_str("_");
                                     ref_receiver.push_str(name);
                                     let mut appendix = appendix.replace("output", &ref_receiver);
+                                    // println!("current ref {}", &current_ref_name);
+                                    let mut appendix = appendix.replace("chain_name", &current_ref_name.replace("~", "tilde"));
                                     appendix_full.push_str(&appendix);
                                     appendix_full.push_str("\n\n");
                                     node_str_list = vec![ref_receiver];

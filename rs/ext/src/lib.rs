@@ -20,6 +20,32 @@ def_node!({
             ~env: ~trigger >> envperc #attack #decay;
         }
     },
+    "squsynth": {
+        args: [Para::Number(0.001), Para::Number(0.1)], 
+        paras: {
+            let attack = &args[0];
+            let decay = &args[1];
+        },
+        graph: {
+            output: squ ~pitch >> mul ~env;
+            ~trigger: ~input;
+            ~pitch: ~trigger >> mul 261.626;
+            ~env: ~trigger >> envperc #attack #decay;
+        }
+    },
+    "trisynth": {
+        args: [Para::Number(0.001), Para::Number(0.1)], 
+        paras: {
+            let attack = &args[0];
+            let decay = &args[1];
+        },
+        graph: {
+            output: tri ~pitch >> mul ~env;
+            ~trigger: ~input;
+            ~pitch: ~trigger >> mul 261.626;
+            ~env: ~trigger >> envperc #attack #decay;
+        }
+    },
     "bd": {
         args: [Para::Number(0.3)], 
         paras: {
@@ -31,6 +57,30 @@ def_node!({
             ~env_pitch: ~triggerb >> envperc 0.01 0.1;
             ~pitch: ~env_pitch >> mul 50 >> add 60;
             ~triggerb: ~input;
+        }
+    },
+    "hh": {
+        args: [Para::Number(0.3)], 
+        paras: {
+            let decay = &args[0];
+        },
+        graph: {
+            output: noiz 42 >> mul ~env >> hpf 15000 1.0 >> mul 0.8;
+            ~env: ~trigger >> envperc 0.001 #decay;
+            ~trigger: ~input;
+        }
+    },
+    "sn": {
+        args: [Para::Number(0.3)], 
+        paras: {
+            let decay = &args[0];
+        },
+        graph: {
+            output: sin ~snpitch >> add ~no >> mul ~snenv >> hpf 5000 1.0;
+            ~no: noiz 42 >> mul 0.3;
+            ~snenv: ~sntriggee >> envperc 0.001 #decay;
+            ~snpitch: ~sntriggee >> envperc 0.001 0.1 >> mul 60 >> add 60;
+            ~sntriggee: ~input;
         }
     },
     "plate": {
@@ -82,33 +132,6 @@ def_node!({
         }
     }
 });
-
-
-
-// let args = get_args(paras, mod_info);
-// let xx = args[0]
-// ..
-// let appendix_body = format!();
-
-
-// def_node add nodes info, struct to a hashmap,
-// this hashmap provides tools to output the node code
-
-
-
-
-// , {
-//     synth: saw ~pitch >> mul ~env;
-//     ~trigger: ~input;
-//     ~pitch: ~trigger >> mul 261.626;
-//     ~env: ~trigger >> envperc #attack #decay;
-// }
-// def_node!("mul", [Modulable(100.0)], {
-//         let freq = args[0];
-//     }
-//     CHAIN_NAME: SOURCE >> mul ~modulation >> SINK;
-//     ~modulation: const_sig PARA1
-// );
 
 register_extensions! {
     Plate: 1,
