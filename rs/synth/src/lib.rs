@@ -17,7 +17,7 @@ pub mod signal; use signal::*;
 use {imp::*, const_sig::ConstSig, noise::Noise, dummy::Clock, dummy::AudioIn, phasor::Phasor};
 
 pub mod operation; use operation::*;
-use {mul::Mul, add::Add};
+use {mul::Mul, add::Add, script::Script};
 
 pub mod filter; use filter::*;
 use {rlpf::*, rhpf::*, apfgain::*, apfdecay::*, onepole::*,comb::*};
@@ -101,6 +101,7 @@ pub fn make_node<const N: usize>(
             // "saw" => saw_osc!(N => {freq: 44100.0, sr: sr}),
             // "squ" => squ_osc!(N => {freq: 44100.0, sr: sr}),
             // "tri" => tri_osc!(N => {freq: 44100.0, sr: sr}),
+            "script" => Script::<N>::new().build(),
             "const_sig" => const_sig!(N => 1.0),
             "mul" => mul!(N => 1.0),
             "add" => add!(N => 0.0),
@@ -167,6 +168,7 @@ pub fn make_node<const N: usize>(
         }, // bypass the process_parameters
         "seq" => vec![],
         "shape"=> vec![],
+        "script" => vec![],
         "speed" => vec![Para::Modulable],
         "choose" => { vec![] },
         "delayn" => vec![Para::Number(1.0)],
@@ -196,6 +198,7 @@ pub fn make_node<const N: usize>(
     if alias == "pass" {refs = vec![name.to_owned()]}
     
     let nodedata = match alias {
+        "script" => Script::<N>::new().code(paras.as_str().replace("\"", "")).build(),
         "sin" => sin_osc!(N => {freq: get_num(&p[0]), sr: sr}),
         "saw" => saw_osc!(N => {freq: get_num(&p[0]), sr: sr}),
         "squ" => squ_osc!(N => {freq: get_num(&p[0]), sr: sr}),

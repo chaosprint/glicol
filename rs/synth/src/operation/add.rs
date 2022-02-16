@@ -1,11 +1,15 @@
-use super::super::*;
+use dasp_graph::{Buffer, Input, Node};
+use super::super::{ NodeData, GlicolNodeData, BoxedNodeSend, mono_node};
+// use rhai::{Engine, EvalAltResult};
 
 pub struct Add<const N:usize> {
-    pub inc: f32
+    pub inc: f32,
+    // engine: Engine,
 }
 
 impl<const N:usize> Add<N> {
     pub fn new(inc: f32) -> GlicolNodeData<N> {
+        // let mut engine = Engine::new();
         mono_node!( N, Self { inc } )
     }
 }

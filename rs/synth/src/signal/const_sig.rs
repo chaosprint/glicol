@@ -2,7 +2,7 @@ use dasp_graph::{Buffer, Input, Node};
 use super::super::{ NodeData, GlicolNodeData, BoxedNodeSend, mono_node};
 
 pub struct ConstSig<const N:usize> {
-    val: f32
+    val: f32,
 }
 
 impl<const N:usize> ConstSig<N> {

@@ -24,7 +24,6 @@ pub fn def_node(all_defs: TokenStream) -> TokenStream {
         TokenTree::Group(g) => TokenStream2::from(g.stream()),
         _ => panic!("not a token group")
     };
-
     let mut defs_stream_iter = defs_stream.into_iter();
     let mut def_next = defs_stream_iter.next();
     while def_next.is_some() {
@@ -78,10 +77,10 @@ pub fn def_node(all_defs: TokenStream) -> TokenStream {
                     while ele.is_some() {
                         let raw = ele.unwrap();
                         let ele_str = raw.clone().to_string();
-                        if ele_str == "#" {
+                        if &ele_str == "#" {
                             s.push_str("{");
                             let v = graph_iter.next().unwrap();
-                            println!("count {}", count);
+                            // println!("count {}", count);
                             if variables[count-1].find(&format!(",{}={}",&v.to_string(),&v.to_string())).is_none() {
                                 variables[count-1].push_str(&format!(",{}={}",&v.to_string(),&v.to_string()));
                             }                            
@@ -89,13 +88,12 @@ pub fn def_node(all_defs: TokenStream) -> TokenStream {
                             s.push_str(&v.to_string());
                             s.push_str("}");
                             s.push_str(" ");
-                        } else if ele_str == "~" {
+                        } else if &ele_str == "~" {
                             s.push_str(&ele_str);
                             ele = graph_iter.next();
                             let next = ele.unwrap().to_string();
                             // println!("next ele is {}", &next);
                             if &next == "input" {
-                                // println!("found input ********************");
                                 s.push_str(&next);
                                 s.push_str(" ");
                             } else {
@@ -105,12 +103,12 @@ pub fn def_node(all_defs: TokenStream) -> TokenStream {
                                 s.push_str("chain_name");
                                 s.push_str(" ");
                             }
-                        } else if ele_str == "-" {
+                        } else if &ele_str == "-" {
                             s.push_str(&ele_str);
-                        } else if ele_str == ";" {
+                        } else if &ele_str == ";" {
                             s.push_str(&ele_str);
                             s.push_str("\n");
-                        } else if ele_str == ">" {
+                        } else if &ele_str == ">" {
                             graph_iter.next();
                             s.push_str(">> ");
                         } else {                      
@@ -183,7 +181,8 @@ pub fn def_node(all_defs: TokenStream) -> TokenStream {
                 let s = paras.as_str().to_owned();
                 let para = paras.next();
                 if para.is_none() {
-                    panic!(s); 
+                    return vec![]
+                    // panic!(s);
                     // insufficient para
                 }
                 match info {
@@ -218,7 +217,9 @@ pub fn def_node(all_defs: TokenStream) -> TokenStream {
                 #( #names_all => {
                     vec!#args_all
                 }, )*
-                _ => { unimplemented!("no such a name...") }
+                _ => { 
+                    unimplemented!("no such a name...less likely") 
+                }
             };
             get_args(paras, target_paras)
         }
@@ -227,7 +228,7 @@ pub fn def_node(all_defs: TokenStream) -> TokenStream {
             let mut target_code = code.clone();
             let lines = match GlicolParser::parse(Rule::block, &mut code) {
                 Ok(mut res) => {
-                    if res.as_str() < &mut target_code {
+                    if res.as_str().len() < target_code.len() {
                         return Err(GlicolError::ParsingIncompleteError(res.as_str().len()))
                         // unimplemented!("half parsing {}", res.as_str());
                     }
