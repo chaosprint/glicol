@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.7.3"
+window.version = "v0.8.0"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -617,24 +617,24 @@ window.run = (code) =>{
 
   // a working JS mix
   
-  // const regexp = /(?<=\{)[^}]*(?=})/g   // this is working but not for nested
-  // let match;
-  // let toreplace = [];
-  // while ((match = regexp.exec(code)) !== null) {
-  //   toreplace.push(match[0])
-  // }
-  // toreplace.map((str)=>{
+  const regexp = /(?<=\{\{)[^}]*(?=\}\})/g   // this is working but not for nested
+  let match;
+  let toreplace = [];
+  while ((match = regexp.exec(code)) !== null) {
+    toreplace.push(match[0])
+  }
+  toreplace.map((str)=>{
 
-  //   let result = str.includes('\n') || str.includes(';') ?
-  //    Function(`'use strict'; return ()=>{${str}}`)()() : 
-  //    Function(`'use strict'; return ()=>(${str})`)()()
+    let result = str.includes('\n') || str.includes(';') ?
+    Function(`'use strict'; return ()=>{${str}}`)()() : 
+    Function(`'use strict'; return ()=>(${str})`)()()
 
-  //   if (typeof result !== "undefined") {
-  //     code = code.replace(`{${str}}`, result)
-  //   } else {
-  //     code = code.replace(`{${str}}`, "")
-  //   }
-  // })
+    if (typeof result !== "undefined") {
+      code = code.replace(`{{${str}}}`, result)
+    } else {
+      code = code.replace(`{{${str}}}`, "")
+    }
+  })
 
 
   window.code = code

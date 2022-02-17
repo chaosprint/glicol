@@ -16,4 +16,4 @@ dasp_interpolate = { version = "*", features = ["linear", "sinc"] }
 petgraph = "0.5.1"
 pest = "*"
 glicol_parser = {path="../parser"}
-rhai = { version = "*", features = ["sync"] }
+rhai = { version = "*", features = ["sync", "f32_float", "only_i32"] }

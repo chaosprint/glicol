@@ -20,7 +20,10 @@ pub mod operation; use operation::*;
 use {mul::Mul, add::Add};
 
 pub mod dynamic; use dynamic::*;
-use {script::Script};
+use {
+    script::Script, 
+    // closure::Closure
+};
 
 pub mod filter; use filter::*;
 use {rlpf::*, rhpf::*, apfgain::*, apfdecay::*, onepole::*,comb::*};
@@ -200,6 +203,7 @@ pub fn make_node<const N: usize>(
     if alias == "pass" {refs = vec![name.to_owned()]}
 
     let nodedata = match alias {
+        // "script" => Closure::<N>::new().code(paras.as_str().replace("\"", "")).build(),
         "script" => Script::<N>::new().code(paras.as_str().replace("\"", "")).build(),
         "sin" => sin_osc!(N => {freq: get_num(&p[0]), sr: sr}),
         "saw" => saw_osc!(N => {freq: get_num(&p[0]), sr: sr}),

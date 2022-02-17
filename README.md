@@ -38,7 +38,7 @@ The web interface has the following features:
 1. run Glicol engine at near-native speed, thanks to WebAssembly
 2. garbage-collection-free real-time audio in browsers thanks to AudioWorklet, SharedArrayBuffer
 3. error handling and command in browser console: e.g. load your own samples
-4. mix JS code with Glicol easily: `o: sin {42*10+20}`
+4. mix JS code with Glicol easily: `o: sin {{42*10+20}}`
 5. create visuals with Hydra
 
 ### DSP
@@ -63,24 +63,41 @@ See the [README.md](./js/README.md) in `js` folder for details.
 
 For VST plugins development, see the [README.md](./rs/README.md) file in the `rs` folder for details.
 
-## Features, milestones and status quo
+## Features and milestones
 
-- [x] `0.1.0` Hello world from `dasp_graph` and `pest.rs`, pass code from JS to WASM, and lazy evaluation
-- [x] `0.2.0` Pass samples from JS to WASM, support error handling, BPM control in console
-- [x] `0.3.0` Build complex node `plate` reverb using basic node from Glicol, using Macro in Rust
-- [x] `0.4.0` Apply LCS and preprocessor for smooth and efficient whole graph updating
-- [x] `0.5.0` Build `const_generics` to `dasp_graph` and use it in Glicol, use `SharedArrayBuffer`, support local sample loading
-- [x] `0.6.0` Refactor the code to modules: 
+- [x] `0.1.0` hello world from `dasp_graph` and `pest.rs`, pass code from js to wasm, and lazy evaluation
+- [x] `0.2.0` pass samples from js to wasm, support error handling, bpm control in console
+- [x] `0.3.0` build complex node `plate` reverb using basic node from glicol, using macro in Rust
+- [x] `0.4.0` use `LCS` algorithm and preprocessor for smooth and efficient whole graph updating
+- [x] `0.5.0` build `const_generics` to `dasp_graph` and use it in glicol, use `SharedArrayBuffer`, support local sample loading
+- [x] `0.6.0` refactor the code to modules: 
     - `glicol-main` = `glicol-synth` + `glicol-parser` + `glicol-ext`
     - `glicol-ext` = `glicol-synth` + `glicol-parser` + `glicol-macro`
     - `glicol-js` = `glicol-main` + `glicol-wasm`
-- [x] `0.7.0` Support mixing JS with Glicol in `glicol-js` using Regex
-- [ ] `0.8.0` Detailed and robust error handling
-- [ ] `0.9.0` MIDI support, better communication between WASM and JS
-- [ ] Better extension node, VST, Web Audio development protocol 
-- [ ] Better docs, music examples and fix bugs
+- [x] `0.7.0` support mixing js with glicol in `glicol-js` using Regex; add visualisation
+- [ ] `0.8.0` embed `Rhai` in glicol 🎉
+```
+main: script "
+    output.clear();
+    for i in 0..128 {
+        output.push(sin(2.0*PI()*phase / (44100.0 / 55.0 )));
+        phase += 1.0;
+    };
+    output
+" >> script "
+    output = input.map(|i|i*0.1);
+    output
+"
+```
+- [ ] `0.9.0` better docs/tutorials, music examples and bug fix
+- [ ] detailed and robust error handling; may swtich to `nom` parser
+- [ ] midi support? better communication between wasm and js
+- [ ] better extension node, vst, web audio development protocol 
 
-Please let me know in issues or discussion:
+> Note that Glicol is still highly experimental, so it can be highly risky for live performances. The API may also change before version 1.0.0.
+
+Please let me know in [issues](https://github.com/chaosprint/glicol/issues) or [discussions](https://github.com/chaosprint/glicol/discussions):
+- your thoughts and experience with glicol
 - new features suggestion
 - bug report
 - missing and confusion in any docs and guides
