@@ -469,7 +469,9 @@ window.loadModule = async () => {
   URLFromFiles([source+'glicol-engine.js']).then((e) => {
     
     window.actx.audioWorklet.addModule(e).then(() => {
+
       window.node = new AudioWorkletNode(window.actx, 'glicol-engine', {outputChannelCount: [2]})
+      
       fetch(source+'glicol_wasm.wasm')
       .then(response => response.arrayBuffer())
       .then(arrayBuffer => {
@@ -478,6 +480,9 @@ window.loadModule = async () => {
           type: "load", obj: arrayBuffer
         })
       })
+
+      // var importObject = { imports: { imported_func: arg => console.log(arg) } };
+      // WebAssembly.instantiateStreaming(source+'glicol_wasm.wasm', importObject).then(res => console.log("ins stream res", res));
 
       window.actx.destination.channelInterpretation = "discrete";
       window.node.connect(analyser)
@@ -525,7 +530,7 @@ window.loadModule = async () => {
         log("%cError element: "+String(decoder.decode(e.data.slice(2))).replace(/[^ -~]+/g, ""), "color:white;background:pink");
     }
 
-      clear();
+      // clear();
       // log("%cGlicol has now launched an official website 🚀: \n\nhttps://glicol.org\n\nStill, this playground will continue to be used for quick prototyping, solo live coding and code sharing.", "font-size: 16px")
       log("%c"+window.art, "color: gray") //#3E999F
       // log("%c"+window.version, "background: black; color:white")
@@ -607,25 +612,31 @@ window.updateCode = (code) => {
 }
 
 window.run = (code) =>{
+
   // const regexp = /\{([^{}]|(\?R))*\}/g
-  const regexp = /(?<=\{)[^}]*(?=})/g   // this is working but not for nested
-  let match;
-  let toreplace = [];
-  while ((match = regexp.exec(code)) !== null) {
-    toreplace.push(match[0])
-  }
-  toreplace.map((str)=>{
 
-    let result = str.includes('\n') || str.includes(';') ?
-     Function(`'use strict'; return ()=>{${str}}`)()() : 
-     Function(`'use strict'; return ()=>(${str})`)()()
+  // a working JS mix
+  
+  // const regexp = /(?<=\{)[^}]*(?=})/g   // this is working but not for nested
+  // let match;
+  // let toreplace = [];
+  // while ((match = regexp.exec(code)) !== null) {
+  //   toreplace.push(match[0])
+  // }
+  // toreplace.map((str)=>{
 
-    if (typeof result !== "undefined") {
-      code = code.replace(`{${str}}`, result)
-    } else {
-      code = code.replace(`{${str}}`, "")
-    }
-  })
+  //   let result = str.includes('\n') || str.includes(';') ?
+  //    Function(`'use strict'; return ()=>{${str}}`)()() : 
+  //    Function(`'use strict'; return ()=>(${str})`)()()
+
+  //   if (typeof result !== "undefined") {
+  //     code = code.replace(`{${str}}`, result)
+  //   } else {
+  //     code = code.replace(`{${str}}`, "")
+  //   }
+  // })
+
+
   window.code = code
   if (!window.isGlicolRunning) {
     window.runCode(code)

@@ -4,9 +4,16 @@ use glicol::Engine;
 
 fn main () {
     let mut engine = Engine::<128>::new(44100);
-    engine.set_code("o: sin ~mod >> mul 0.3
-
-    ~mod: script \"10.0\" ");
+    engine.set_code(r#"
+    mod: script "
+    let x = [];
+    for i in 0..128 {
+        let pha = phase / (44100.0 / 440.0);
+        x.push(sin(pha * 2.0 * PI()));
+        phase += 1.0;
+    };
+    x"
+    "#);
     // engine.set_code("update_thing808: imp 1.0 >> bd 0.3 >> plate 0.1");
     // engine.set_code("a: sin 100 >> mul ~xx; ~xx: sin 0.1 >> mul 0.1 >> add 0.8");
     // engine.set_code("a: tri 10");

@@ -20,14 +20,14 @@ pub fn preprocess_signal(a: &String) -> Result<String, EngineError> {
         
     // TODO: this is not robust
     // e.g. o:sin 440 will not be seperated
-    let q: String = a.replace(";","\n\n").replace("\n", " \n");
+    let q: String = a.replace(";",";\n").replace(":"," : ").replace("\n", " \n").replace(">>"," >> ");
     let v: Vec<&str> = q.split(" ").filter(|c| c != &"").collect();
 
     println!("preprocess_signal {:?}", v);
     let mut b = "".to_string();
     let mut skip = false;
     for (i, c) in v.iter().enumerate() {
-        if *c == "sin" || *c == "saw" || *c == "squ" || *c == "tri" || *c == "pha" {
+        if (*c == "sin" || *c == "saw" || *c == "squ" || *c == "tri" || *c == "pha") && (v[i-1] == ":" || v[i-1] == ">>") {
             if v.len() <= i + 1 {
                 return Err(EngineError::InsufficientParameter((0, 0)))
             }
@@ -91,7 +91,7 @@ pub fn preprocess_mul(a: &String) -> Result<String, EngineError> {
                 b += c;
                 b += " ";
             }
-        } else if c == &"mul" || c == &"*" {
+        } else if c == &"mul" {
             if v[i+1].parse::<f32>().is_ok() {
                 append.push((current_ref, &x[index..(index+1)], v[i+1]));
                 find = true;
