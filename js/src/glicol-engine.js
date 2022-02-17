@@ -250,6 +250,18 @@ class GlicolEngine extends AudioWorkletProcessor {
             // this.port.postMessage({value: "hi"})
             
             if (e.data.type === "load") {
+                console.log(e.data)
+                // var importObject = { imports: { imported_func: arg => console.log(arg) } };
+                // WebAssembly.instantiateStreaming( e.data.obj, importObject).then(obj => {
+                //     this._wasm = obj.instance
+                //     this._size = 256
+                //     this._outPtr = this._wasm.exports.alloc(this._size)
+                //     this._outBuf = new Float32Array(
+                //       this._wasm.exports.memory.buffer,
+                //       this._outPtr,
+                //       this._size
+                //     )
+                // })
                 WebAssembly.instantiate(e.data.obj).then(obj => {
                     this._wasm = obj.instance
                     this._size = 256

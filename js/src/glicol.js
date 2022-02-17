@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.7.2"
+// window.version = "v0.7.2"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -473,8 +473,10 @@ window.loadModule = async () => {
       fetch(source+'glicol_wasm.wasm')
       .then(response => response.arrayBuffer())
       .then(arrayBuffer => {
+        // WebAssembly.instantiateStreaming(arrayBuffer)
         window.node.port.postMessage({
-        type: "load", obj: arrayBuffer})
+          type: "load", obj: arrayBuffer
+        })
       })
 
       window.actx.destination.channelInterpretation = "discrete";
