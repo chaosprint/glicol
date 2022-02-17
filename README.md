@@ -75,7 +75,7 @@ For VST plugins development, see the [README.md](./rs/README.md) file in the `rs
     - `glicol-ext` = `glicol-synth` + `glicol-parser` + `glicol-macro`
     - `glicol-js` = `glicol-main` + `glicol-wasm`
 - [x] `0.7.0` support mixing js with glicol in `glicol-js` using Regex; add visualisation
-- [ ] `0.8.0` embed `Rhai` in glicol 🎉
+- [x] `0.8.0` embed `Rhai` in glicol 🎉
 ```
 main: script "
     output.clear();
@@ -101,3 +101,17 @@ Please let me know in [issues](https://github.com/chaosprint/glicol/issues) or [
 - new features suggestion
 - bug report
 - missing and confusion in any docs and guides
+
+## Resources
+
+So far, the best place to try Glicol is:
+
+https://glicol.org
+
+There you can find guides, examples, and an browser-based environment for collaboration.
+
+The Glicol Web App (https://glicol.web.app) is used to demo the latest version of Glicol, which can be less stable.
+
+Note that in both websites, the browser console can give a lot of information, such as quick reference for different nodes.
+
+I am also working on the Glicol book. Stay tuned!
