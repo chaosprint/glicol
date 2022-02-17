@@ -252,8 +252,12 @@ class GlicolEngine extends AudioWorkletProcessor {
             if (e.data.type === "load") {
                 
 
-                WebAssembly.instantiate(e.data.obj).then(obj => {
-                  console.log(obj)
+                WebAssembly.instantiate(e.data.obj, {
+                  env: {
+                    now: Date.now
+                  }
+                }).then(obj => {
+                  // console.log(obj)
                     this._wasm = obj.instance
                     this._size = 256
                     this._outPtr = this._wasm.exports.alloc(this._size)

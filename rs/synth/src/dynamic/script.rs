@@ -4,8 +4,6 @@ use dasp_signal::{self as signal, Signal};
 use dasp_interpolate::linear::Linear;
 use dasp_interpolate::sinc::Sinc;
 use rhai::{Engine, Array, Scope, Dynamic, EvalAltResult};
-use std::sync::Mutex;
-
 use super::super::{GlicolNodeData, NodeData, BoxedNodeSend, mono_node};
 type Fixed = ring_buffer::Fixed<Vec<f32>>;
 
@@ -14,7 +12,7 @@ pub struct Script<const N: usize> {
     sr: usize,
     code: String,
     scope: Scope<'static>,
-    // engine: Engine,
+    engine: Engine,
     phase: usize,
 }
 
@@ -22,16 +20,16 @@ impl<const N: usize> Script<N> {
     pub fn new() -> Self {
         let mut phase: usize = 0;
         let mut scope = Scope::new();
-        scope.push("x1", 0.1)
-        .push("x2", 0.2)
-        .push("y1", 0.2)
-        .push("y2", 0.2)
-        .push("phase", phase as f64);
+        // scope.push("x1", 0.1)
+        // .push("x2", 0.2)
+        // .push("y1", 0.2)
+        // .push("y2", 0.2)
+        // .push("phase", phase as f64);
         Self { 
             buf: ring_buffer::Fixed::from(vec![0.0]), 
             sr: 44100, 
             code: "21.0*2.0".to_owned(),
-            // engine: Engine::new(),
+            engine: Engine::new(),
             scope,
             phase
         }
@@ -62,8 +60,8 @@ impl<const N: usize> Node<N> for Script<N> {
 
         // let ast = self.engine.compile_with_scope(&mut self.scope, &self.code).unwrap();
         // let result: Array = self.engine.eval_ast_with_scope(&mut self.scope, &ast).unwrap();
-        // let ast = self.engine.compile(&self.code).unwrap();
-        // let result: Array = self.engine.eval_ast(&ast).unwrap();
+        let ast = self.engine.compile(&self.code).unwrap();
+        let result: Array = self.engine.eval_ast(&ast).unwrap();
         if l - has_clock as usize > 1 { // has mod
             // let modulator = inputs[0].buffers()[0].clone();
             // let input_sig = inputs[1].buffers()[0].clone();
@@ -79,7 +77,7 @@ impl<const N: usize> Node<N> for Script<N> {
         } else {
             // let input_sig = inputs[0].buffers()[0].clone();
             for i in 0..N {
-                // output[0][i] = result[i].as_float().unwrap() as f32;
+                output[0][i] = result[i].as_float().unwrap() as f32;
                 // println!("result {:?}", result);
                 // match result {
                 //     Ok(v) => output[0][i] = v as f32,
