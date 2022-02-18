@@ -77,17 +77,17 @@ For VST plugins development, see the [README.md](./rs/README.md) file in the `rs
 - [x] `0.7.0` support mixing js with glicol in `glicol-js` using Regex; add visualisation
 - [x] `0.8.0` embed `Rhai` in glicol 🎉
 ```
-main: script "
+main: script `
     output.clear();
     for i in 0..128 {
         output.push(sin(2.0*PI()*phase / (44100.0 / 55.0 )));
         phase += 1.0;
     };
     output
-" >> script "
+` >> script `
     output = input.map(|i|i*0.1);
     output
-"
+`
 ```
 - [ ] `0.9.0` better docs/tutorials, music examples and bug fix
 - [ ] detailed and robust error handling; may swtich to `nom` parser
