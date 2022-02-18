@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.8.1"
+window.version = "v0.8.2"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -414,7 +414,7 @@ window.warn = function consoleWithNoSource(...params) {
 }
 
 window.visualizerColor = '#3b82f6';
-window.visualizerBackground = "white"
+window.visualizerBackground = "rgba(255, 255, 255, 0.5)"
 
 window.visualizeTimeDomainData = ({canvas, analyser}) => {
   let ctx = canvas.getContext("2d");
@@ -561,22 +561,20 @@ window.loadModule = async () => {
 }
 window.loadModule();
 
-window.code = `~a: choose 48 55 51 58
+window.code = `~gate: speed 2.0
+>> seq 60 _60 _42 48
+~amp: ~gate >> envperc 0.001 0.1
+// mix js
+~pit: ~gate >> mul {{Math.pow(2, (60-69)/12) * 440}}
 
-~b: choose 36 60 0 0 0 0 0
-
-// how about changing the speed to 4.0 and 
-//click the update button above?
-~trigger: speed 8.0 >> seq ~a ~b >> mul 2.0
-
-~env: ~trigger >> envperc 0.01 0.1 >> mul 0.2
-
-~pitch: ~trigger >> mul 261.626
-
-lead: saw ~pitch >> mul ~env >> rlpf ~cut 3.0 
->> mul 0.6 >> plate 0.1
-
-~cut: squ 0.5 >> mul 3700.0 >> add 4000.0`
+~lead: saw ~pit >> mul ~amp >> lpf ~mod 5.0
+>> script \`
+    output = input.map(|x|x*0.1);
+    output
+\` // rhai script
+~mod: sin 0.2 >> mul 1300 >> add 1500;
+mix: ~lead >> add ~drum >> plate 0.1 // optinal semicolon
+~drum: speed 4.0 >> seq 60 >> bd 0.1;`
 
 
 window.isGlicolRunning = false

@@ -9,10 +9,10 @@ symbol = ${ "\\" ~ ASCII_ALPHANUMERIC* ~ "_"? ~ ASCII_DIGIT* }
 seq = @{ compound ~ (WHITESPACE+ ~ compound)*}
 compound = ${ note+ }
 note = ${ midi | rest | reference }
-string = ${ "\"" ~ inner ~ "\"" }
+string = ${ "`" ~ inner ~ "`" }
 inner = @{ char* }
 char = {
-    !("\"" | "\\") ~ ANY
+    !("`" | "\\") ~ ANY
     | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
     | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }

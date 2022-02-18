@@ -204,7 +204,7 @@ pub fn make_node<const N: usize>(
 
     let nodedata = match alias {
         // "script" => Closure::<N>::new().code(paras.as_str().replace("\"", "")).build(),
-        "script" => Script::<N>::new().code(paras.as_str().replace("\"", "")).build(),
+        "script" => Script::<N>::new().code(paras.as_str().replace("`", "")).build(),
         "sin" => sin_osc!(N => {freq: get_num(&p[0]), sr: sr}),
         "saw" => saw_osc!(N => {freq: get_num(&p[0]), sr: sr}),
         "squ" => squ_osc!(N => {freq: get_num(&p[0]), sr: sr}),
