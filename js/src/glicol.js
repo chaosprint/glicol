@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.8.2"
+// window.version = "v0.8.2"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -413,8 +413,9 @@ window.warn = function consoleWithNoSource(...params) {
   setTimeout(console.warn.bind(console, ...params));
 }
 
-window.visualizerColor = '#3b82f6';
+window.ampVisualColor = '#3b82f6';
 window.visualizerBackground = "rgba(255, 255, 255, 0.5)"
+window.freqVisualColor = '#f472b6'
 
 window.visualizeTimeDomainData = ({canvas, analyser}) => {
   let ctx = canvas.getContext("2d");
@@ -433,7 +434,7 @@ window.visualizeTimeDomainData = ({canvas, analyser}) => {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.lineWidth = 1;
-    ctx.strokeStyle = window.visualizerColor;
+    ctx.strokeStyle = window.ampVisualColor;
 
     ctx.beginPath();
 
@@ -456,6 +457,42 @@ window.visualizeTimeDomainData = ({canvas, analyser}) => {
 
     ctx.lineTo(canvas.width, canvas.height/2);
     ctx.stroke();
+  };
+
+  draw();
+}
+
+window.visualizeFrequencyData = ({canvas, analyser}) => {
+  let ctx = canvas.getContext("2d");
+
+  let bufferLength = analyser.frequencyBinCount;
+  let dataArray = new Uint8Array(bufferLength);
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  function draw() {
+    requestAnimationFrame(draw);
+
+    analyser.getByteFrequencyData(dataArray);
+
+    ctx.fillStyle = window.visualizerBackground;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const barWidth = (canvas.width / bufferLength) * 2.5;
+
+    for(let i = 0; i < bufferLength; i++) {
+    	let fractionalVolume = dataArray[i]/255
+      let barHeight = fractionalVolume*canvas.height;
+
+      // ctx.fillStyle = 'rgb(' + Math.round(fractionalVolume*155 + 100) + ',20,20)';
+      ctx.fillStyle = window.freqVisualColor;
+      ctx.fillRect(
+      	(barWidth + 1)*i,
+        canvas.height-barHeight,
+        barWidth,
+        barHeight
+       );
+    }
   };
 
   draw();
@@ -647,6 +684,9 @@ window.run = (code) =>{
 
   if ( document.getElementById("visualizer")) {
     window.visualizeTimeDomainData({canvas: document.getElementById("visualizer"), analyser: window.analyser});
+  }
+  if ( document.getElementById("freqVisualizer")) {
+    window.visualizeFrequencyData({canvas: document.getElementById("freqVisualizer"), analyser: window.analyser});
   }
 }
 
