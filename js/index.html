@@ -40,7 +40,6 @@
       document.getElementById("code").value = window.code
       document.getElementById("run").addEventListener("click", ()=>{
         let currentCode = document.getElementById("code").value;
-        window.visualizeTimeDomainData({canvas: document.getElementById("visualizer"), analyser: window.analyser});
         window.run(currentCode)
       })
       document.getElementById("stop").addEventListener("click", ()=>{

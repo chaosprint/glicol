@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.8.0"
+window.version = "v0.8.1"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -413,6 +413,9 @@ window.warn = function consoleWithNoSource(...params) {
   setTimeout(console.warn.bind(console, ...params));
 }
 
+window.visualizerColor = '#3b82f6';
+window.visualizerBackground = "white"
+
 window.visualizeTimeDomainData = ({canvas, analyser}) => {
   let ctx = canvas.getContext("2d");
   let bufferLength = analyser.fftSize;
@@ -426,11 +429,11 @@ window.visualizeTimeDomainData = ({canvas, analyser}) => {
 
     analyser.getByteTimeDomainData(dataArray);
 
-    ctx.fillStyle = '#000000)';
+    ctx.fillStyle = window.visualizerBackground;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.lineWidth = 1;
-    ctx.strokeStyle = '#f0fdf4';
+    ctx.strokeStyle = window.visualizerColor;
 
     ctx.beginPath();
 
@@ -642,6 +645,10 @@ window.run = (code) =>{
     window.runCode(code)
   } else {
     window.updateCode(code)
+  }
+
+  if ( document.getElementById("visualizer")) {
+    window.visualizeTimeDomainData({canvas: document.getElementById("visualizer"), analyser: window.analyser});
   }
 }
 
