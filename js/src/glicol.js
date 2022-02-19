@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.8.4"
+window.version = "v0.8.5"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -445,7 +445,8 @@ window.visualizeTimeDomainData = ({canvas, analyser}) => {
     for(let i = 0; i < bufferLength; i++) {
  
       let v = dataArray[i] / 128.0;
-      let y = v * canvas.height/2;
+      
+      let y = canvas.height - v * canvas.height/2;
 
       if(i === 0) {
         ctx.moveTo(x, y);
