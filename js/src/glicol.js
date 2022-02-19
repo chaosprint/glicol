@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.8.3"
+window.version = "v0.8.4"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -414,7 +414,8 @@ window.warn = function consoleWithNoSource(...params) {
 }
 
 window.ampVisualColor = '#3b82f6';
-window.visualizerBackground = "rgba(255, 255, 255, 0.5)"
+// window.visualizerBackground = "rgba(255, 255, 255, 0.5)"
+window.visualizerBackground = "white"
 window.freqVisualColor = '#f472b6'
 
 window.visualizeTimeDomainData = ({canvas, analyser}) => {

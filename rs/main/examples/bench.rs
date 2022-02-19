@@ -11,10 +11,21 @@ fn main () {
 
     // let i_source = engine.graph.add_node(sin_osc!(128 => {freq: 440.0}));
     let i_source = engine.graph.add_node(Script::new().code(r#"
+        // output.clear();
+        // for i in 0..128 {
+        //     output.push(sin(2*PI()*phase/(44100/440)));
+        //     phase += 1;
+        // };
+        // output.pad(128, 0.0);
+        // output.map(|v, i| sin(2*PI()*(phase+i)/(44100/440)) );
+        // phase += 128;
         output.clear();
         for i in 0..128 {
-            output.push(sin(2.0*PI()*phase / (44100.0 / 440.0)));
-            phase += 1.0;
+            output.push( sin(2*PI()*phase) );
+            phase += 440.0 / 44100.0;
+            // if phase > 1.0 {
+            //     phase -= 1.0
+            // }
         };
         output
     "#.to_owned()).build());
