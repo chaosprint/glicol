@@ -1,0 +1,93 @@
+{
+    "sin": {
+        "description": "sine wave oscillator",
+        "parameters": [{"freq": "Modulable(440.0)"}],
+        "input": "none",
+        "output": "sine wave float number streams, ranging from -1.0 to 1.0",
+        "example": "o: sin 440\n// fm_example: sin ~freq\n// ~freq: sin 20 >> mul 100 >> add 300"
+    },
+    "saw": {
+        "description": "sawtooth wave oscillator",
+        "parameters": [{"freq": "Modulable(440.0)"}],
+        "input": "none",
+        "output": "sawtooth wave float number streams, ranging from -1.0 to 1.0",
+        "example": "o: saw 440\n// fm_example: saw ~freq\n// ~freq: sin 20 >> mul 100 >> add 300"
+    },
+    "squ": {
+        "description": "square wave oscillator",
+        "parameters": [{"freq": "Modulable(440.0)"}],
+        "input": "none",
+        "output": "square wave float number streams, ranging from -1.0 to 1.0",
+        "example": "o: squ 440\n// fm_example: squ ~freq\n// ~freq: sin 20 >> mul 100 >> add 300"
+    },
+    "tri": {
+        "description": "triangle wave oscillator",
+        "parameters": [{"freq": "Modulable(440.0)"}],
+        "input": "none",
+        "output": "triangle wave float number streams, ranging from -1.0 to 1.0",
+        "example": "o: tri 440\n// fm_example: tri ~freq\n// ~freq: sin 20 >> mul 100 >> add 300"
+    },
+    "mul": {
+        "description": "multiply a number to the input signal and send the signal as ouput",
+        "parameters": [{"value": "Modulable(1.0)"}],
+        "input": "a signal",
+        "output": "the modified signal",
+        "example": "o: sin 440.0 >> mul 0.1"
+    },
+    "add": {
+        "description": "add a number to the input signal and send the signal as ouput",
+        "parameters": [{"value": "Modulable(1.0)"}],
+        "input": "a signal",
+        "output": "the modified signal",
+        "example": "o: sin 440.0 >> mul ~mod\n~mod: sin 0.1 >> mul 0.3 >> add 0.5"
+    },
+    "noiz": {
+        "description": "noise signal generator",
+        "parameters": [{"seed": "NonModulable(42)"}],
+        "input": "none",
+        "output": "noise float number streams, ranging from -1.0 to 1.0",
+        "example": "o: noiz 42 >> mul 0.1"
+    },
+    "imp": {
+        "description": "impulse signal generator",
+        "parameters": [{"freq": "NonModulable(1.0)"}],
+        "input": "none",
+        "output": "impulse signal lile [1.0, 0.0, 0.0, ...]; the gap between two 1.0 depends on the frequency.",
+        "example": "o: imp 1.0"
+    },
+    "lpf": {
+        "description": "resonate low pass filter:\ncut off the high frequency part based on cutoff_freq",
+        "parameters": [{"cutoff_freq": "Modulable(100.0)"}, {"q_value": "NonModulable(1.0)"}],
+        "input": "a signal to be filtered",
+        "output": "filtered signal",
+        "example": "o: saw 440.0 >> lpf 100.0 1.0"
+    },
+    "seq": {
+        "description": "unlimited number of midi notes seperated by spaces.\nunderscore means rest.\ncompound note consists of underscrores and midi notes.\none bar will first divided based on spaces.\nthen each compound note will further be divided equally.",
+        "parameters": [{"seq": "Seq"}],
+        "input": "only use 'speed' node for 'seq' node input",
+        "output": "relative pitch converted by the midi notes (60=>1.0; 72=>2.0; 48=>0.5).\nthis pitch float will only come once based on the timing in pattern.\nthe rest of the float stream will be zeroes.",
+        "example": "o: speed 1.0 >> seq 72 _72 _48 60__60 >> sawsynth 0.001 0.05 \n>> lpf 300.0 1.0"
+    },
+    "sp": {
+        "description": "unlimited number of midi notes seperated by spaces.\nunderscore means rest.\ncompound note consists of underscrores and midi notes.\none bar will first divided based on spaces.\nthen each compound note will further be divided equally.",
+        "parameters": [{"sampleName": "NonModulable(\"\")"}],
+        "input": "any none zero value will trigger the sample playback.\nfor eaxample, 1.0 triggers default pitch, 0.5 octave lower.",
+        "output": "the sample playback audio streams.",
+        "example": "load_samples_first_in_console: speed 1.0 >> seq 72 _60 _ _55_60 >> sp \\808bd_0"
+    },
+    "speed": {}, 
+    "linrange": {},
+    "delay": {},
+    "delayn": {},
+    "allpass": {},
+    "apf": {},
+    "mono_sum": {},
+    "buf": {},
+    "pha": {},
+    "state": {},
+    "pan": {},
+    "comb" : {},
+    "mix": {},
+    "onepole": {}
+}

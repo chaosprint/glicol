@@ -97,21 +97,7 @@ main: script `
 > Note that Glicol is still highly experimental, so it can be highly risky for live performances. The API may also change before version 1.0.0.
 
 Please let me know in [issues](https://github.com/chaosprint/glicol/issues) or [discussions](https://github.com/chaosprint/glicol/discussions):
-- your thoughts and experience with glicol
-- new features suggestion
-- bug report
-- missing and confusion in any docs and guides
-
-## Resources
-
-So far, the best place to try Glicol is:
-
-https://glicol.org
-
-There you can find guides, examples, and an browser-based environment for collaboration.
-
-The Glicol Web App (https://glicol.web.app) is used to demo the latest version of Glicol, which can be less stable.
-
-Note that in both websites, the browser console can give a lot of information, such as quick reference for different nodes.
-
-I am also working on the Glicol book. Stay tuned!
+- your thoughts on the experience of glicol
+- new feature suggestion
+- bug report, especially the code that causes a `panic` in browser console
+- missing and confusion in guides and reference on the website

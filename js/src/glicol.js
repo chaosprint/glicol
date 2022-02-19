@@ -1,10 +1,10 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.8.5"
+window.version = "v0.8.6"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
-  fetch(source+'glicol-docs.json')
+  fetch(source+'glicol-api.json')
   .then(response => response.json())
   .then(data => window.docs = data)
 }
@@ -15,18 +15,47 @@ window.help = async (token) => {
     if (!window.docs) {
       await window.loadDocs()
     }
+
+    if (typeof token === "undefined") {
+      window.showAllNodes()
+      return {}
+    }
+
     if (token in window.docs) {
+      log(
+`
+%c sin %c
+${window.docs[token]["description"]}
+
+%c input %c
+${window.docs[token]["input"]}
+
+%c output %c
+${window.docs[token]["output"]}
+
+%c parameters %c
+${JSON.stringify(window.docs[token]["parameters"])}
+
+%c example %c
+${window.docs[token]["example"]}
+`,
+"background: #3b82f6; color:white; font-weight: bold","",
+"font-weight: bold; background: #f472b6; color:white", "",
+"font-weight: bold; background: #f472b6; color:white", "",
+"font-weight: bold; background: #f472b6; color:white", "",
+"font-weight: bold; background: #f472b6; color:white", "",
+)
         // clear()
-        let node = window.docs[token]
-        log(`%cName: %c${token}`, "color: red", "")
-        log(`%cParameters: %c${"description" in node ? node["description"] : null }`, "color: orange", "")
-        table(node["parameters"])
-        log(`%cIutput: %c${node["input"] !== null ? node["input"].description : null }`, "color: yellow", "")
-        if (node["input"] !== null) {table(node["input"].range)}
-        log(`%cOutput: %c${node["output"].description}`, "color: green", "")
-        table(node["output"].range)
-        log(`%cExample:`, "color: cyan")
-        node["example"].forEach(e=>log(e))
+        // let node = window.docs[token]
+        // log(`%cName: %c${token}`, "color: red", "")
+        // log(`%cParameters: %c${"description" in node ? node["description"] : null }`, "color: orange", "")
+        // table(node["parameters"])
+        // log(`%cIutput: %c${node["input"] !== null ? node["input"].description : null }`, "color: yellow", "")
+        // if (node["input"] !== null) {table(node["input"].range)}
+        // log(`%cOutput: %c${node["output"].description}`, "color: green", "")
+        // table(node["output"].range)
+        // log(`%cExample:`, "color: cyan")
+        // node["example"].forEach(e=>log(e))
     }  else {
         warn(`Move your cursor to an non-empty place where you wish to search.
         \nFor example, if you wish to search "sin", your cursor should be inside "sin" like this: s|in`)
@@ -38,7 +67,7 @@ window.setBPM = (beats_per_minute) => {
       window.node.port.postMessage({
       type: "bpm", value: beats_per_minute})
       log(`%cBPM set to: ${beats_per_minute}`, "background: green");
-      log("%c This will be effective when you make some changes to the code.", "background: yellow");
+      log("%cThis will be effective when you make some changes to the code.", "background: blue");
   } else {
       warn("BPM should be a number.")
   }
@@ -576,28 +605,46 @@ window.loadModule = async () => {
       // log("%cGlicol has now launched an official website 🚀: \n\nhttps://glicol.org\n\nStill, this playground will continue to be used for quick prototyping, solo live coding and code sharing.", "font-size: 16px")
       log("%c"+window.art, "color: gray") //#3E999F
       // log("%c"+window.version, "background: black; color:white")
-      log(`\n\n%c Available nodes: `, "background: black; color:white; font-weight: bold");
-      log(["seq","speed","choose","mul","add","apfdecay","delayn",
-      "sin","saw","squ","imp","envperc","sampler","noiz","lpf","plate","onepole",
-      "hpf","pha","pan","delay","apfgain","comb","mix","monosum",
-      "const_sig","*","sp","spd","tri","noise","amplfo","balance"])
+      // log(`\n\n%c Available nodes: `, "background: black; color:white; font-weight: bold");
+      // log(["seq","speed","choose","mul","add","apfdecay","delayn",
+      // "sin","saw","squ","imp","envperc","sampler","noiz","lpf","plate","onepole",
+      // "hpf","pha","pan","delay","apfgain","comb","mix","monosum",
+      // "const_sig","*","sp","spd","tri","noise","amplfo","balance"])
   
       // log(`\n\n%c Fetch help files by: `, "background: black; color:white; font-weight: bold")
       // log(`Move the cursor to a keyword and press %cAlt+D`, "color:green;font-weight:bold", "color: default", "color:green; font-weight:bold", "color:default", "color: green; font-weight:bold");
 
       log(`\n\n%c Useful console commands: `, "background: black; color:white; font-weight: bold")
-      log(`\n%chelp("someNodeName")\n%cGet docs for a node, e.g. help("sin").
+      log(`\n%chelp("someNodeName")\n%cget docs for a node, e.g. help("sin").\nif no parameter is given, will list all nodes.\non glicol web editor, you can use key shortcut alt-d (win) / option-d (mac) to trigger this function.
       
-%csetBPM(someNumber)\n%cSet the BPM. The default is 120.
+%csetBPM(someNumber)\n%cset the BPM. the default is 120. best to do it before you run any code.
 
-%csampleFolder()\n%cChoose a folder that contains samples. The folder you select must have sub-folders that contain samples. For example, (1) visit (https://github.com/chaosprint/Dirt-Samples), click [code] -> [download ZIP]; (2) Extract {Dirt-Samples-master.zip} to {Dirt-Samples-master} folder; (3) Run this command in the console and choose the folder.
+%csampleFolder()\n%cchoose a folder that contains sub-folders that contain samples. for example:\n\n(1) visit (https://github.com/chaosprint/Dirt-Samples), click [code] -> [download ZIP]; \n(2) extract {Dirt-Samples-master.zip} to {Dirt-Samples-master} folder;\n(3) run this command in the console and choose the folder.
 
-%csampleCount()\n%cUse it after calling the "sampleFolder()" function to see the total number of each sample folder.
+%csampleCount()\n%cuse it after calling the "sampleFolder()" function to see the total number of each sample folder.
 
-%caddSample("someName", "URL")\n%cAdd your own samples. The first argument is the sample name you wish to call, and the second arg is the url to the wav file. Keep the augument empty to load local samples. The files should end with .wav. The file name will become the keys. Only lowercase letters and numbers are valid keys, e.g 808bd.`, "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "");
+%caddSample("someName", "URL")\n%cadd your own samples.\nThe first argument is the sample name you wish to call, and the second arg is the url to the wav file. Keep the augument empty to load local samples.\nthe files should end with .wav. The file name will become the keys.\nonly lowercase letters and numbers are valid keys, e.g 808bd.`, "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "");
     })
   })
 }
+
+window.showAllNodes = () => {
+  let obj = {
+    oscillator: ["sin", "squ", "saw", "tri"],
+    sequencing: ["seq", "choose"],
+    sampling: ["sp", "buf(wip)"],
+    signal: ["const_sig", "imp", "noise", "pha"],
+    operator: ["mul", "add"],
+    envelope: ["envperc", "shape(wip)"],
+    filter: ["lpf", "hpf", "onepole", "allpass", "apfgain", "apfdecay", "comb"],
+    effect: ["pan", "balance(wip)"],
+    dynamic: ["script"],
+    extension: ["plate", "bd", "sn", "hh", "sawsynth", "squsynth", "trisynth"],
+  }
+  table(obj)
+  return "_"
+}
+
 window.loadModule();
 
 window.code = `~gate: speed 2.0
@@ -707,4 +754,6 @@ window.artsource = `
 ╚██████╔╝███████╗██║╚██████╗╚██████╔╝███████╗
  ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═════╝ ╚══════╝`
 
-window.art = window.version ? window.artsource + "\n\n" + window.version : window.artsource + "\n\n" + "Local Test Version"
+window.art = window.version ? window.artsource + "\n\n" + window.version + " | https://github.com/chaosprint/glicol" : window.artsource + "\n\n" + "Local Test Version"
+
+// ${JSON.stringify([{"freq": "Modulable(440.0)"}])}
