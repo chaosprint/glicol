@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.8.10"
+window.version = "v0.8.11"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -637,7 +637,7 @@ on glicol web editor, you can use key shortcut alt-d (win) / option-d (mac) to t
 %caddSample("some_name", "wav_sample_url")
 %cadd your own samples. for example:
 
-addSample("808bd_0", "https://cdn.jsdelivr.net/gh/chaosprint/glicol/js/assets/BD0000.wav")
+addSample("808bd_0", "https://cdn.jsdelivr.net/gh/chaosprint/glicol/js/assets/bd0000.wav")
 
 the first argument is the sample name you wish to call in glicol.
 the second argument is the url to the wav file. 
