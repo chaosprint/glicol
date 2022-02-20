@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.8.7"
+window.version = "v0.8.8"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -619,11 +619,31 @@ window.loadModule = async () => {
       
 %csetBPM(someNumber)\n%cset the BPM. the default is 120. best to do it before you run any code.
 
-%csampleFolder()\n%cchoose a folder that contains sub-folders that contain samples. for example:\n\n(1) visit (https://github.com/chaosprint/Dirt-Samples), click [code] -> [download ZIP]; \n(2) extract {Dirt-Samples-master.zip} to {Dirt-Samples-master} folder;\n(3) run this command in the console and choose the folder.
+%csampleFolder()
+%cchoose a folder that contains sub-folders that contain samples. for example:
+(1) visit (https://github.com/chaosprint/Dirt-Samples), click [code] -> [download ZIP];
+(2) extract {Dirt-Samples-master.zip} to {Dirt-Samples-master} folder;\n(3) run this command in the console and choose the folder.
 
-%csampleCount()\n%cuse it after calling the "sampleFolder()" function to see the total number of each sample folder.
+%csampleCount()
+%cuse it after calling the "sampleFolder()" function to see the total number of each sample folder.
 
-%caddSample("someName", "URL")\n%cadd your own samples.\nThe first argument is the sample name you wish to call, and the second arg is the url to the wav file. Keep the augument empty to load local samples.\nthe files should end with .wav. The file name will become the keys.\nonly lowercase letters and numbers are valid keys, e.g 808bd.`, "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "", "color:green; font-weight:bold", "");
+%caddSample("some_name", "https://some.com/some.wav")
+%cadd your own samples.
+the first argument is the sample name you wish to call in glicol.
+the second argument is the url to the wav file. 
+keep the second augument empty to load local samples.
+the files should end with .wav. The file name will become the keys.
+only lowercase letters, underscore and numbers are valid keys, e.g 808bd_0.
+
+%ctrackAmp(someFloat)
+%cset the amplitude of each node chain. useful for avoid clipping.`, 
+
+"color:green; font-weight:bold", "",
+"color:green; font-weight:bold", "", 
+"color:green; font-weight:bold", "", 
+"color:green; font-weight:bold", "", 
+"color:green; font-weight:bold", "", 
+"color:green; font-weight:bold", "");
     })
   })
 }
