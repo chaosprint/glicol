@@ -33,7 +33,7 @@ pub extern "C" fn alloc_uint32array(length: usize) -> *mut f32 {
 
 lazy_static! {
     // TODO: change it to .build()
-    static ref ENGINE:Mutex<Engine<128>> = Mutex::new(Engine::<128>::new(44100));
+    static ref ENGINE:Mutex<Engine<128>> = Mutex::new(Engine::<128>::new());
 }
 
 #[no_mangle] // 64 f32 float // -> *mut [u8; 256] 
@@ -161,4 +161,16 @@ pub extern "C" fn set_bpm(bpm: f32) {
 pub extern "C" fn set_track_amp(amp: f32) {
     let mut engine = ENGINE.lock().unwrap();
     engine.set_track_amp(amp);
+}
+
+#[no_mangle]
+pub extern "C" fn set_sr(sr: f32) {
+    let mut engine = ENGINE.lock().unwrap();
+    engine.set_sr(sr as usize);
+}
+
+#[no_mangle]
+pub extern "C" fn set_seed(seed: f32) {
+    let mut engine = ENGINE.lock().unwrap();
+    engine.set_seed(seed as usize);
 }

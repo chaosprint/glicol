@@ -38,6 +38,7 @@ pub struct Engine<const N: usize> {
     pub adc_nodes: Vec<NodeIndex>,
     pub samples_dict: HashMap<String, &'static[f32]>,
     pub sr: usize,
+    pub seed: usize,
     pub bpm: f32,
     pub chain_string: HashMap<String, String>,
     pub node_by_chain: HashMap<String, Vec<(NodeIndex, String)>>,
@@ -53,7 +54,7 @@ pub struct Engine<const N: usize> {
 }
 
 impl<const N: usize> Engine<N> {
-    pub fn new(sr: usize) -> Self {
+    pub fn new() -> Self {
         let max_nodes = 1024;
         let max_edges = 1024;
         let g = GlicolGraph::<N>::with_capacity(max_nodes, max_edges);
@@ -73,7 +74,8 @@ impl<const N: usize> Engine<N> {
             chain_info: HashMap::new(),
             clock: NodeIndex::new(0),
             audio_in: NodeIndex::new(1),
-            sr,
+            sr: 44100,
+            seed: 42,
             bpm: 120.0,
             elapsed_samples: 0,
             update: false,
@@ -81,6 +83,14 @@ impl<const N: usize> Engine<N> {
             modified: Vec::new(),
             all_refs: Vec::new(),
         }
+    }
+
+    pub fn set_sr(&mut self, sr: usize) {
+        self.sr = sr;
+    }
+
+    pub fn set_seed(&mut self, seed: usize) {
+        self.seed = seed;
     }
 
     // pub fn preprocess(&mut self) -> Result<(), EngineError> {

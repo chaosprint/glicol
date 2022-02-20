@@ -266,6 +266,9 @@ class GlicolEngine extends AudioWorkletProcessor {
                       this._outPtr,
                       this._size
                     )
+                    // console.log(Math.random() * 100);
+                    this._wasm.exports.set_sr(sampleRate);
+                    this._wasm.exports.set_seed(Math.random()*4096);
                 })
 
             } else if (e.data.type === "samples") {

@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.8.8"
+window.version = "v0.8.9"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -533,7 +533,7 @@ window.loadModule = async () => {
 
   window.AudioContext = window.AudioContext || window.webkitAudioContext;
   window.actx = new window.AudioContext({
-    sampleRate: 44100
+    // sampleRate: 44100
   })
   window.analyser = window.actx.createAnalyser();
 
@@ -614,8 +614,15 @@ window.loadModule = async () => {
       // log(`\n\n%c Fetch help files by: `, "background: black; color:white; font-weight: bold")
       // log(`Move the cursor to a keyword and press %cAlt+D`, "color:green;font-weight:bold", "color: default", "color:green; font-weight:bold", "color:default", "color: green; font-weight:bold");
 
-      log(`\n\n%c Useful console commands: `, "background: black; color:white; font-weight: bold")
-      log(`\n%chelp("someNodeName")\n%cget docs for a node, e.g. help("sin").\nif no parameter is given, will list all nodes.\non glicol web editor, you can use key shortcut alt-d (win) / option-d (mac) to trigger this function.
+      // log(`\n\n%c Useful console commands: `, "background: black; color:white; font-weight: bold")
+      log(
+` 
+%cUseful console commands
+
+%chelp("someNodeName")
+%cget docs for a node, e.g. help("sin").
+if no parameter is given, will list all nodes.
+on glicol web editor, you can use key shortcut alt-d (win) / option-d (mac) to trigger this function.
       
 %csetBPM(someNumber)\n%cset the BPM. the default is 120. best to do it before you run any code.
 
@@ -627,17 +634,21 @@ window.loadModule = async () => {
 %csampleCount()
 %cuse it after calling the "sampleFolder()" function to see the total number of each sample folder.
 
-%caddSample("some_name", "https://some.com/some.wav")
-%cadd your own samples.
+%caddSample("some_name", "wav_sample_url")
+%cadd your own samples. for example:
+
+addSample("808bd_0", "https://cdn.jsdelivr.net/gh/chaosprint/glicol/js/assets/BD0000.wav")
+
 the first argument is the sample name you wish to call in glicol.
 the second argument is the url to the wav file. 
 keep the second augument empty to load local samples.
 the files should end with .wav. The file name will become the keys.
-only lowercase letters, underscore and numbers are valid keys, e.g 808bd_0.
+only lowercase letters, underscore and numbers are valid keys.
 
 %ctrackAmp(someFloat)
-%cset the amplitude of each node chain. useful for avoid clipping.`, 
+%cset the amplitude of each node chain. useful for preventing clipping.`, 
 
+"background: black; color:white; font-weight: bold",
 "color:green; font-weight:bold", "",
 "color:green; font-weight:bold", "", 
 "color:green; font-weight:bold", "", 
