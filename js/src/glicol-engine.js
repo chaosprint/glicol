@@ -246,13 +246,9 @@ class GlicolEngine extends AudioWorkletProcessor {
 
         this._codeArray = new Uint8Array(4096);
         this._resultArray = new Uint8Array(256);
-        this.port.onmessage = e => {
-            // this.port.postMessage({value: "hi"})
-            
+        this.port.onmessage = async e => {
             if (e.data.type === "load") {
-                
-
-                WebAssembly.instantiate(e.data.obj, {
+                await WebAssembly.instantiate(e.data.obj, {
                   env: {
                     now: Date.now
                   }
@@ -270,6 +266,7 @@ class GlicolEngine extends AudioWorkletProcessor {
                     this._wasm.exports.set_sr(sampleRate);
                     this._wasm.exports.set_seed(Math.random()*4096);
                 })
+                this.port.postMessage({type: 'ready'})
 
             } else if (e.data.type === "samples") {
                 if(this._wasm) {
@@ -312,8 +309,7 @@ class GlicolEngine extends AudioWorkletProcessor {
             } else if (e.data.type === "amp") {
                 this._wasm.exports.set_track_amp(e.data.value);
             } else if (e.data.type === "run") {
-                // console.log("samplePtr, Length", samplePtr, sampleLength)
-
+                
                 // the code as Uint8 to parse; e.data.value == the code
                 this.code = e.data.value;
                 let codeLen = e.data.value.byteLength
@@ -347,7 +343,7 @@ class GlicolEngine extends AudioWorkletProcessor {
                   lengthInfoPtr, lengthInfoLen,
                   nameInfoPtr, nameInfoLen,
                   nameLenInfoPtr, nameLenInfoLen
-              )
+                )
 
             } else if (e.data.type === "update") {
 
@@ -419,7 +415,7 @@ class GlicolEngine extends AudioWorkletProcessor {
         )
 
         if (result[0] !== 0) {
-            this.port.postMessage(result.slice(0,256))
+            this.port.postMessage({type: 'e', info: result.slice(0,256)})
         }
 
         outputs[0][0].set(this._outBuf.slice(0, 128))

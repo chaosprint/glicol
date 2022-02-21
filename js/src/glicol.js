@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.8.11"
+window.version = "v0.8.12"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -99,7 +99,7 @@ window.sampleFolder = async () => {
         var files = e.target.files;
         log(`%cSome samples will be skiped as only mono samples are supported so far.`, "color: red; font-weight: bold", "")
         for (var i = 0; i < files.length; i++) {
-            (async function(file) {
+            await (async function(file) {
                 var reader = new FileReader();
                 reader.onload = async function(e) {
                     if (file.type === "audio/wav") {
@@ -119,6 +119,7 @@ window.sampleFolder = async () => {
                                 sample: buffer.getChannelData(0),
                                 name: encoder.encode(key.replace(".wav", ""))
                               })
+                              window.sampleBuffers[key.replace(".wav", "")] = buffer.getChannelData(0)
                               log(`Sample %c${key.replace(".wav", "")} %cloaded`, "color: green; font-weight: bold", "")
                             }
                         })
@@ -147,6 +148,10 @@ window.sampleCount = () => {
   })
   log(...a)
   log("For example, if you load dirt samples, there are 25 808bd samples {808bd: 25}. You can write Glicol code:\n\n%cout: seq 60 >> sp \\808bd_24\n\n%cThe avalable range for samplename_index is from 0 to sampleAmount - 1.", "background-color: grey; font-weight: bold", "")
+}
+
+window.loadSamples = async () => {
+
 }
 
 window.addSample = async (name, url) => {
@@ -529,6 +534,8 @@ window.visualizeFrequencyData = ({canvas, analyser}) => {
   draw();
 }
 
+window.sampleBuffers = {}
+
 window.loadModule = async () => {
 
   window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -537,7 +544,7 @@ window.loadModule = async () => {
   })
   window.analyser = window.actx.createAnalyser();
 
-  URLFromFiles([source+'glicol-engine.js']).then((e) => {
+  await URLFromFiles([source+'glicol-engine.js']).then((e) => {
     
     window.actx.audioWorklet.addModule(e).then(() => {
 
@@ -583,22 +590,39 @@ window.loadModule = async () => {
         "UnknownError"
       ]
 
-      window.node.port.onmessage = e => {
-        if (e.data[0] > errors.length) {
-          log(e.data[0]-1)
-        }
-        log(`%cError: ${errors[e.data[0]-1]}`, "color: white; background: red")
-        if (e.data[0] === 2) {
-            let name = decoder.decode(e.data.slice(2).filter(v => v !== 0.0))
-            let index = window.code.indexOf(name)
-            let code = window.code.slice(0, index)
+      window.node.port.onmessage = async e => {
     
-            let line = code.split("\n").length;
-            log("%cAt line "+String(line)+".", "color: white; background: green")
-        } else {
-            log("%cAt line "+String(e.data[1]+1)+".", "color: white; background: green")
-        }
-        log("%cError element: "+String(decoder.decode(e.data.slice(2))).replace(/[^ -~]+/g, ""), "color:white;background:pink");
+          if (e.data.type === 'ready') {
+            // log('ready')
+            if (Object.keys(window.sampleBuffers).length !== 0) {
+              for (let key in window.sampleBuffers) {
+                // log(`Sample %c${key} %cloaded`, "color: green; font-weight: bold", "")
+                window.node.port.postMessage({
+                  type: "samples",
+                  sample: window.sampleBuffers[key],
+                  name: encoder.encode(key)
+                })
+              }
+            }
+          } else if (e.date.type === 'e') {
+            if (e.data.info[0] > errors.length) {
+              log(e.data.info[0]-1)
+            }
+            log(`%cError: ${errors[e.data.info[0]-1]}`, "color: white; background: red")
+            if (e.data.info[0] === 2) {
+                let name = decoder.decode(e.data.info.slice(2).filter(v => v !== 0.0))
+                let index = window.code.indexOf(name)
+                let code = window.code.slice(0, index)
+        
+                let line = code.split("\n").length;
+                log("%cAt line "+String(line)+".", "color: white; background: green")
+            } else {
+                log("%cAt line "+String(e.data.info[1]+1)+".", "color: white; background: green")
+            }
+            log("%cError element: "+String(
+              decoder.decode(e.data.info.slice(2))).replace(/[^ -~]+/g, ""),
+               "color:white;background:pink");
+          }
     }
 
       // clear();
@@ -615,7 +639,19 @@ window.loadModule = async () => {
       // log(`Move the cursor to a keyword and press %cAlt+D`, "color:green;font-weight:bold", "color: default", "color:green; font-weight:bold", "color:default", "color: green; font-weight:bold");
 
       // log(`\n\n%c Useful console commands: `, "background: black; color:white; font-weight: bold")
-      log(
+      log(`type %ch()%c or %chelp()%c in console to see some useful commands.`,
+      "font-weight: bold; color: green",
+      "",
+      "font-weight: bold; color: green",
+      ""
+      )
+    })
+  })
+
+}
+
+window.h = () => {
+  log(
 ` 
 %cUseful console commands
 
@@ -637,13 +673,15 @@ on glicol web editor, you can use key shortcut alt-d (win) / option-d (mac) to t
 %caddSample("some_name", "wav_sample_url")
 %cadd your own samples. for example:
 
-addSample("808bd_0", "https://cdn.jsdelivr.net/gh/chaosprint/glicol/js/assets/bd0000.wav")
+// in browser console
+addSample("808bd_0", "https://cdn.jsdelivr.net/gh/chaosprint/glicol@0.8.10/js/assets/BD0000.WAV")
 
-the first argument is the sample name you wish to call in glicol.
-the second argument is the url to the wav file. 
+// in glicol
+o: seq 60 >> sp \\808bd_0
+
+for the first para, only lowercase letters, underscore and numbers are valid
 keep the second augument empty to load local samples.
 the files should end with .wav. The file name will become the keys.
-only lowercase letters, underscore and numbers are valid keys.
 
 %ctrackAmp(someFloat)
 %cset the amplitude of each node chain. useful for preventing clipping.`, 
@@ -654,9 +692,7 @@ only lowercase letters, underscore and numbers are valid keys.
 "color:green; font-weight:bold", "", 
 "color:green; font-weight:bold", "", 
 "color:green; font-weight:bold", "", 
-"color:green; font-weight:bold", "");
-    })
-  })
+"color:green; font-weight:bold", ""); return "👇"
 }
 
 window.showAllNodes = () => {
@@ -678,21 +714,22 @@ window.showAllNodes = () => {
 
 window.loadModule();
 
-window.code = `~gate: speed 2.0
->> seq 60 _60 _42 48
-~amp: ~gate >> envperc 0.001 0.1
-// mix js
-~pit: ~gate >> mul {{Math.pow(2, (60-69)/12) * 440}}
+// window.code = `~gate: speed 2.0
+// >> seq 60 _60 _42 48
+// ~amp: ~gate >> envperc 0.001 0.1
+// // mix js
+// ~pit: ~gate >> mul {{Math.pow(2, (60-69)/12) * 440}}
 
-~lead: saw ~pit >> mul ~amp >> lpf ~mod 5.0
->> script \`
-    output = input.map(|x|x*0.1);
-    output
-\` // rhai script
-~mod: sin 0.2 >> mul 1300 >> add 1500;
-mix: ~lead >> add ~drum >> plate 0.1 // optinal semicolon
-~drum: speed 4.0 >> seq 60 >> bd 0.1;`
+// ~lead: saw ~pit >> mul ~amp >> lpf ~mod 5.0
+// >> script \`
+//     output = input.map(|x|x*0.1);
+//     output
+// \` // rhai script
+// ~mod: sin 0.2 >> mul 1300 >> add 1500;
+// mix: ~lead >> add ~drum >> plate 0.1 // optinal semicolon
+// ~drum: speed 4.0 >> seq 60 >> bd 0.1;`
 
+window.code = `o: imp 1 >> sp \\808_0`
 
 window.isGlicolRunning = false
 
@@ -729,7 +766,7 @@ window.updateCode = (code) => {
   };
 }
 
-window.run = (code) =>{
+window.run = async (code) =>{
 
   // const regexp = /\{([^{}]|(\?R))*\}/g
 
@@ -774,7 +811,8 @@ window.stop = async () => {
   window.isGlicolRunning = false
   window.clear()
   await window.actx.close();
-  window.loadModule()
+  await window.loadModule();
+
 }
 
 window.artsource = `
