@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.8.12"
+window.version = "v0.8.13"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -639,12 +639,16 @@ window.loadModule = async () => {
       // log(`Move the cursor to a keyword and press %cAlt+D`, "color:green;font-weight:bold", "color: default", "color:green; font-weight:bold", "color:default", "color: green; font-weight:bold");
 
       // log(`\n\n%c Useful console commands: `, "background: black; color:white; font-weight: bold")
-      log(`type %ch()%c or %chelp()%c in console to see some useful commands.`,
+      log(
+`
+type %ch()%c in console to see some useful commands.
+
+%cpanic?%c don't panic. %cissue it here: %chttps://github.com/chaosprint/glicol/issues/new
+`,
       "font-weight: bold; color: green",
       "",
-      "font-weight: bold; color: green",
-      ""
-      )
+      "font-weight: bold; color: red",
+      "","", "")
     })
   })
 
@@ -823,6 +827,6 @@ window.artsource = `
 ╚██████╔╝███████╗██║╚██████╗╚██████╔╝███████╗
  ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═════╝ ╚══════╝`
 
-window.art = window.version ? window.artsource + "\n\n" + window.version + " | https://github.com/chaosprint/glicol" : window.artsource + "\n\n" + "Local Test Version"
+window.art = window.version ? window.artsource + "\n\n" + window.version : window.artsource + "\n\n" + "Local Test Version"
 
 // ${JSON.stringify([{"freq": "Modulable(440.0)"}])}
