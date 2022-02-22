@@ -16,7 +16,7 @@ where
             }
         }
     }
-    fn talk(&mut self, info: &str) {
+    fn send_msg(&mut self, _info: (u8, &str)) {
         
     }
 }

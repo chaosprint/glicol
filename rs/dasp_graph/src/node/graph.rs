@@ -56,7 +56,7 @@ where
             out_buf.copy_from_slice(out_node_buf);
         }
     }
-    fn talk(&mut self, info: &str) {
+    fn send_msg(&mut self, _info: (u8, &str)) {
            
     }
 }

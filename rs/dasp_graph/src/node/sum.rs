@@ -38,7 +38,7 @@ impl<const N: usize> Node<N> for Sum {
             }
         }
     }
-    fn talk(&mut self, info: &str) {
+    fn send_msg(&mut self, _info: (u8, &str)) {
         
     }
 }
@@ -64,7 +64,7 @@ impl<const N: usize> Node<N> for SumBuffers {
             out_buffer.copy_from_slice(out_buffer_first);
         }
     }
-    fn talk(&mut self, info: &str) {
+    fn send_msg(&mut self, _info: (u8, &str)) {
         
     }
 }

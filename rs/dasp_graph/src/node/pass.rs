@@ -20,7 +20,7 @@ impl<const N: usize> Node<N> for Pass {
             out_buf.copy_from_slice(in_buf);
         }
     }
-    fn talk(&mut self, info: &str) {
+    fn send_msg(&mut self, _info: (u8, &str)) {
         
     }
 }
