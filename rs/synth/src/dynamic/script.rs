@@ -21,7 +21,11 @@ impl<const N: usize> Script<N> {
     pub fn new() -> Self {
         let mut phase: usize = 0;
         let mut scope = Scope::new();
-        let mut o = Vec::<Dynamic>::with_capacity(128);
+        
+        let mut output = Vec::<Dynamic>::with_capacity(N);
+        // for i in 0..N {
+        //     output.push(Dynamic::from_float(0.0));
+        // }
         scope.push("phase", phase as f32)
         .push("x0", 0.0)
         .push("x1", 0.0)
@@ -55,7 +59,7 @@ impl<const N: usize> Script<N> {
         .push("x", 0.0)
         .push("y", 0.0)
         .push("z", 0.0)
-        .push("output", o);
+        .push("output", output);
         
 
         let mut engine = Engine::new();

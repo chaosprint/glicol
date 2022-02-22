@@ -5,10 +5,19 @@ use glicol_synth::signal::const_sig::*;
 use glicol::Engine;
 use std::time::{Duration, Instant};
 fn main () {
-    let mut engine = Engine::<128>::new(44100);
-    let i_source = engine.graph.add_node(sin_osc!(128 => {freq: 440.0}));
+    let mut engine = Engine::<128>::new();
+    // let i_source = engine.graph.add_node(sin_osc!(128 => {freq: 440.0}));
+    let i_source = engine.graph.add_node(Script::new().code(r#"
+        output.pad(128, 0.0);
+        for i in 0..128 {
+            output[i] = sin(2*PI()*phase) ;
+            phase += 440.0 / 44100.0;
+        };
+        while phase > 1.0 { phase -= 1.0 };
+        output
+    "#.to_owned()).build());
     let i_control = engine.graph.add_node(Script::new().code(r#"
-        output = input.map(|i|i*0.2);
+        output = input.map(|x|x*0.1);
         output
     "#.to_owned()).build());
     engine.make_edge(i_source, i_control);
