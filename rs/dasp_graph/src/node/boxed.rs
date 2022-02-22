@@ -46,11 +46,17 @@ impl<const N: usize> Node<N> for BoxedNode<N> {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         self.0.process(inputs, output)
     }
+    fn talk(&mut self, info: &str) {
+        self.0.talk(info)
+    }
 }
 
 impl<const N: usize> Node<N> for BoxedNodeSend<N> {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         self.0.process(inputs, output)
+    }
+    fn talk(&mut self, info: &str) {
+        self.0.talk(info)
     }
 }
 

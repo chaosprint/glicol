@@ -38,6 +38,9 @@ impl<const N: usize> Node<N> for Sum {
             }
         }
     }
+    fn talk(&mut self, info: &str) {
+        
+    }
 }
 
 impl<const N: usize> Node<N> for SumBuffers {
@@ -60,5 +63,8 @@ impl<const N: usize> Node<N> for SumBuffers {
         for out_buffer in out_buffers {
             out_buffer.copy_from_slice(out_buffer_first);
         }
+    }
+    fn talk(&mut self, info: &str) {
+        
     }
 }

@@ -83,6 +83,7 @@ pub trait Node<const N: usize> {
     /// This `process` method is called by the [`Processor`](../struct.Processor.html) as it
     /// traverses the graph during audio rendering.
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]);
+    fn talk(&mut self, info: &str);
 }
 
 /// A reference to another node that is an input to the current node.
@@ -133,6 +134,9 @@ where
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         (**self).process(inputs, output)
     }
+    fn talk(&mut self, info: &str) {
+        (**self).talk(info)
+    }
 }
 
 impl<T, const N: usize> Node<N> for Box<T>
@@ -142,11 +146,17 @@ where
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         (**self).process(inputs, output)
     }
+    fn talk(&mut self, info: &str) {
+        // (**self).talk(info)
+    }
 }
 
 impl<const N: usize> Node<N> for dyn Fn(&[Input<N>], &mut [Buffer<N>]) {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         (*self)(inputs, output)
+    }
+    fn talk(&mut self, info: &str) {
+        // (**self).talk(info)
     }
 }
 
@@ -154,10 +164,19 @@ impl<const N: usize> Node<N> for dyn FnMut(&[Input<N>], &mut [Buffer<N>]) {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         (*self)(inputs, output)
     }
+    
+    fn talk(&mut self, info: &str) {
+        
+        // (**self).talk(info)
+    }
 }
 
 impl<const N: usize> Node<N> for fn(&[Input<N>], &mut [Buffer<N>]) {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         (*self)(inputs, output)
+    }
+    fn talk(&mut self, info: &str) {
+        // self.info = info
+        // (**self).talk(info)
     }
 }

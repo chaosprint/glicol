@@ -16,4 +16,7 @@ where
             }
         }
     }
+    fn talk(&mut self, info: &str) {
+        
+    }
 }
