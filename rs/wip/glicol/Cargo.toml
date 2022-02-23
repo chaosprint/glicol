@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 petgraph = "0.5.1"
 dasp_graph = { path = "../../dasp_graph" }
-nom = "*"
+glicol_parser = { path = "../parser" }
+
 
 # cargo build --target wasm32-unknown-unknown --release

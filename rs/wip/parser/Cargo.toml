@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 nom = "*"
+slice-diff-patch = "1.2.1"

@@ -1,9 +1,4 @@
-use petgraph::stable_graph::{StableDiGraph};
 use dasp_graph::{NodeData, BoxedNodeSend, Processor, Buffer, Input, Node};
-
-pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
-pub type GlicolGraph<const N: usize> = StableDiGraph<GlicolNodeData<N>, (), u32>;
-pub type GlicolProcessor<const N: usize> = Processor<GlicolGraph<N>, N>;
 
 #[derive(Debug, Copy, Clone)]
 pub struct ConstSig<const N:usize> { val: f32 }
@@ -27,14 +22,3 @@ impl<const N:usize> Node<N> for ConstSig<N> {
         }
     }
 }
-
-// fn main() {
-//     let mut graph = GlicolGraph::<128>::with_capacity(1024, 1024);
-//     let index = graph.add_node( ConstSig::<128>::new(42.)) ;
-//     let mut processor = GlicolProcessor::with_capacity(1024);
-//     processor.process(&mut graph, index);
-//     println!("result {:?}", graph[index].buffers);
-//     graph[index].node.send_msg((0, "440.0"));
-//     processor.process(&mut graph, index);
-//     println!("result after send msg {:?}", graph[index].buffers);
-// }
