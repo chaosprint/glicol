@@ -1,15 +1,19 @@
 pub mod synth;
 
-use synth::oscillator::{SinOsc};
-use synth::signal::{ConstSig};
+use synth::{
+    oscillator::{SinOsc},
+    signal::{ConstSig},
+    operator::{Mul},
+};
 
 use std::collections::HashMap;
 use petgraph::graph::{NodeIndex};
 use petgraph::stable_graph::{StableDiGraph};
 use dasp_graph::{NodeData, BoxedNodeSend, Processor,  }; //Input, NodeBuffer
 
-extern crate glicol_parser;
+// extern crate glicol_parser;
 use glicol_parser::{single_chain};
+use slice_diff_patch::*;
 
 pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
 pub type GlicolGraph<const N: usize> = StableDiGraph<GlicolNodeData<N>, (), u32>;
@@ -49,31 +53,113 @@ impl<const N: usize> Engine<'static, N> {
         let result = single_chain(code).unwrap().1; // the result should be Ok(("unparsed str", ("name", [Node]) ))
         let name = result.0;
         let node_chain = result.1;
+        if self.ast.contains_key(name) {
+            let mut old = vec![];
+            let mut new = vec![];
 
-        // println!("node_chain {:?}", node_chain);
-        self.ast.insert(name, node_chain);
-        // &self.ast
-        self.ast_to_graph();
+            for pair in &self.ast[name] {
+                old.push(pair.0);
+                old.push(pair.1);
+            }
+
+            for pair in node_chain {
+                new.push(pair.0);
+                new.push(pair.1);
+            }
+
+            // let old: Vec<String> = self.ast[name].iter().map(|name_para_pair|{
+            //     let mut pair_str = name_para_pair.0.to_owned();
+            //     pair_str.push_str(" ");
+            //     pair_str.push_str(name_para_pair.1);
+            //     pair_str
+            // }).collect();
+
+            // let new: Vec<String> = node_chain.iter().map(|name_para_pair|{
+            //     let mut pair_str = name_para_pair.0.to_owned();
+            //     pair_str.push_str(" ");
+            //     pair_str.push_str(name_para_pair.1);
+            //     pair_str
+            // }).collect();
+
+            let diff = diff_diff(&old, &new);
+            let lcs = lcs_diff(&old, &new);
+            let wu = wu_diff(&old, &new);
+
+            println!("old {:?}", &old);
+            println!("new {:?}", &new);
+            println!("diff {:?}", diff);
+            println!("lcs {:?}", lcs);
+            println!("wu {:?}", wu);
+            for change in lcs {
+                match change {
+                    Change::Update((index, value)) => {
+                        let nodeplace = (index - 1) / 2;
+                        println!("nodeindex{:?}", nodeplace);
+                        println!("self.index_info[name][nodeindex] {:?}", self.index_info[name][nodeplace]);
+                        let nodeindex = self.index_info[name][nodeplace];
+                        println!("value{:?}", value);
+                        self.graph[nodeindex].node.send_msg((0, value))
+                    },
+                    Change::Remove(index) => {
+                        // delete both the node in ast and self.nodeindex_hashmap
+
+                    },
+                    Change::Insert((index, value)) => {
+                        
+                    }
+                }
+            }
+            panic!();
+            // lcs should be [Update(), Remove() ]
+            // do the action to the node index self.node_chain[name]
+            
+        } else {
+            // println!("node_chain{:?}, " , &node_chain);
+            
+            let chain: Vec<NodeIndex> = node_chain.iter().map(|node_info: &(&str, &str)| -> NodeIndex {
+                match node_info.0 {
+                    // need to consider how this step should be safe
+                    "const_sig" => self.graph.add_node( ConstSig::<N>::new(node_info.1.parse::<f32>().unwrap()) ),
+                    "sin" => self.graph.add_node( SinOsc::<N>::new().freq(node_info.1.parse::<f32>().unwrap()).build() ),
+                    "mul" => self.graph.add_node( Mul::<N>::new(node_info.1.parse::<f32>().unwrap()) ),
+                    _ => unimplemented!()
+                }
+            }).collect();
+            self.ast.insert(name, node_chain);
+            self.index_info.insert(name, chain);
+            // panic!()
+            // self.ast_to_graph();
+            // let node_chain: Vec<NodeIndex> = chain.iter().map(|node_info: &(&str, &str)| -> NodeIndex {
+            //     match node_info.0 {
+            //         // need to consider how this step should be safe
+            //         "const_sig" => self.graph.add_node( ConstSig::<N>::new(node_info.1.parse::<f32>().unwrap()) ),
+            //         "sin" => self.graph.add_node( SinOsc::<N>::new().freq(node_info.1.parse::<f32>().unwrap()).build() ),
+            //         "mul" => self.graph.add_node( Mul::<N>::new(node_info.1.parse::<f32>().unwrap()) ),
+            //         _ => unimplemented!()
+            //     }
+            // }).collect();
+        }
     }
 
     // convert the ast from the parsing to a graph full of nodes
     // handle the connection later for lazy evaluation 
     // ast: &HashMap< &'static str, Vec<GlicolNodeInfo<'static> > >
-    pub fn ast_to_graph<'a>(&mut self) {
+    // pub fn ast_to_graph<'a>(&mut self) {
 
-        for (key, chain) in &self.ast {
+    //     for (key, chain) in &self.ast {
             
-            let node_chain: Vec<NodeIndex> = chain.iter().map(|node_info: &(&str, &str)| -> NodeIndex {
-                match node_info.0 {
-                    // need to consider how this step should be safe
-                    "const_sig" => self.graph.add_node( ConstSig::<N>::new(node_info.1.parse::<f32>().unwrap()) ),
-                    "sin" => self.graph.add_node( SinOsc::<N>::new().freq(node_info.1.parse::<f32>().unwrap()).build() ),
-                    _ => unimplemented!()
-                }
-            }).collect();
-            self.index_info.insert(key, node_chain);
-        }
-    }
+    //         let node_chain: Vec<NodeIndex> = chain.iter().map(|node_info: &(&str, &str)| -> NodeIndex {
+    //             match node_info.0 {
+    //                 // need to consider how this step should be safe
+    //                 "const_sig" => self.graph.add_node( ConstSig::<N>::new(node_info.1.parse::<f32>().unwrap()) ),
+    //                 "sin" => self.graph.add_node( SinOsc::<N>::new().freq(node_info.1.parse::<f32>().unwrap()).build() ),
+    //                 "mul" => self.graph.add_node( Mul::<N>::new(node_info.1.parse::<f32>().unwrap()) ),
+    //                 _ => unimplemented!()
+    //             }
+    //         }).collect();
+    //         self.index_info.insert(key, node_chain);
+    //     }
+    // }
 
     pub fn handle_graph_connection(&mut self) {
         // 1. connect pararell nodes in each chain
