@@ -53,6 +53,14 @@ impl<const N: usize> Engine<'static, N> {
         let result = single_chain(code).unwrap().1; // the result should be Ok(("unparsed str", ("name", [Node]) ))
         let name = result.0;
         let node_chain = result.1;
+
+        // the idea is that we get a new ast,
+        // the ast should be a hashmap.
+        // { chain_name: [...nodes] }
+        // we compare the new key vec in the new ast with the old key vec
+        // with lcs, we get the deleted, added and common
+        // we further compare the nodes inside those common chains
+
         if self.ast.contains_key(name) {
             let mut old = vec![];
             let mut new = vec![];

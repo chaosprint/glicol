@@ -1,0 +1,31 @@
+[package]
+name = "dasp_graph"
+description = "A digital audio signal processing graph."
+version = "0.11.0"
+authors = ["mitchmindtree <mitchell.nordine@gmail.com>"]
+readme = "../README.md"
+keywords = ["dsp", "audio", "graph", "pcm", "audio"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/rustaudio/dasp.git"
+homepage = "https://github.com/rustaudio/dasp"
+edition = "2018"
+
+[features]
+default = ["all-nodes"]
+all-nodes = ["node-boxed", "node-delay", "node-graph", "node-pass", "node-signal", "node-sum"]
+node-boxed = []
+node-delay = ["dasp_ring_buffer"]
+node-graph = []
+node-pass = []
+node-signal = ["dasp_frame", "dasp_signal"]
+node-sum = ["dasp_slice"]
+
+[dependencies]
+dasp_frame = { version = "0.11", default-features = false, features = ["std"], optional = true }
+dasp_ring_buffer = { version = "0.11", default-features = false, features = ["std"], optional = true }
+dasp_signal = { version = "0.11", default-features = false, features = ["std"], optional = true }
+dasp_slice = { version = "0.11", default-features = false, features = ["std"], optional = true }
+petgraph = { version = "0.5", default-features = false }
+
+[dev-dependencies]
+petgraph = { version = "0.5", features = ["stable_graph"] }

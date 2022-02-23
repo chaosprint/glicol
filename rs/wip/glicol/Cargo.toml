@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 petgraph = "0.5.1"
-dasp_graph = { path = "../../dasp_graph" }
+dasp_graph = { path = "../dasp_graph" }
 glicol_parser = { path = "../parser" }
 slice-diff-patch = "1.2.1"
 
