@@ -131,7 +131,6 @@ use petgraph::visit::{
     Visitable, 
 };
 use petgraph::{Incoming, Outgoing};
-use petgraph::graph::{NodeIndex};
 
 #[cfg(feature = "node-boxed")]
 pub use node::{BoxedNode, BoxedNodeSend};
@@ -188,7 +187,7 @@ where
     dfs_post_order: DfsPostOrder<G::NodeId, G::Map>,
     // Solely for collecting the inputs of a node in order to apply its `Node::process` method.
     inputs: Vec<node::Input<N>>,
-    pub processed: Vec<G::NodeId>
+    // pub processed: Vec<G::NodeId>
 }
 
 /// For use as the node weight within a dasp graph. Contains the node and its buffers.
@@ -223,7 +222,7 @@ where
         Self {
             dfs_post_order,
             inputs,
-            processed: vec![]
+            // processed: vec![]
         }
     }
 
@@ -326,7 +325,7 @@ pub fn process<G, T, const N: usize>(
     processor.dfs_post_order.reset(Reversed(&*graph));
     processor.dfs_post_order.move_to(node);
     while let Some(n) = processor.dfs_post_order.next(Reversed(&*graph)) {
-        if processor.processed.contains(&n) {continue};
+        // if processor.processed.contains(&n) {continue};
         let data: *mut NodeData<T, N> = graph.node_weight_mut(n).expect(NO_NODE) as *mut _;
         processor.inputs.clear();
         for in_n in (&*graph).neighbors_directed(n, Incoming) {
@@ -347,7 +346,7 @@ pub fn process<G, T, const N: usize>(
                 .node
                 .process(&processor.inputs, &mut (*data).buffers);
         }
-        processor.processed.push(n);
+        // processor.processed.push(n);
     }
 }
 
