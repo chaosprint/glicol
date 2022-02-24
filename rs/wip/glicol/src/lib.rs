@@ -9,11 +9,12 @@ use synth::{
 use std::collections::HashMap;
 use petgraph::graph::{NodeIndex};
 use petgraph::stable_graph::{StableDiGraph};
-use dasp_graph::{NodeData, BoxedNodeSend, Processor,  }; //Input, NodeBuffer
+use dasp_graph::{NodeData, BoxedNodeSend, Processor, node::Sum }; //Input, NodeBuffer
 
-use glicol_parser::*; use pest::Parser;
+use glicol_parser::*; 
+// use pest::Parser;
 // use glicol_parser::{single_chain};
-use slice_diff_patch::*;
+use lcs_diff::diff; use lcs_diff::DiffResult;
 
 pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
 pub type GlicolGraph<const N: usize> = StableDiGraph<GlicolNodeData<N>, (), u32>;
@@ -22,17 +23,23 @@ pub type GlicolProcessor<const N: usize> = Processor<GlicolGraph<N>, N>;
 pub struct Engine<'a, const N: usize> {
     pub graph: GlicolGraph<N>,
     pub processor: GlicolProcessor<N>,
-    ast: HashMap<&'a str, Vec<(&'a str, &'a str)>>,
+    code: &'static str,
+    ast: HashMap<&'a str, (Vec<&'a str>, Vec<&'a str>)>,
     index_info: HashMap<&'a str, Vec<NodeIndex>>,
+    output_index: NodeIndex,
 }
 
 impl<const N: usize> Engine<'static, N> {
     pub fn new() -> Self {
+        let mut graph = GlicolGraph::<N>::with_capacity(1024, 1024);
+        let output_index = graph.add_node(NodeData::new2(BoxedNodeSend::<N>::new(Sum{})));
         Self {
-            graph: GlicolGraph::<N>::with_capacity(1024, 1024),
+            graph,
             processor: GlicolProcessor::<N>::with_capacity(1024),
             ast: HashMap::new(),
+            code: "",
             index_info: HashMap::new(),
+            output_index
         }
     }
 
@@ -46,13 +53,76 @@ impl<const N: usize> Engine<'static, N> {
         self.graph[index].node.send_msg(msg);
     }
 
-    pub fn set_code(&mut self, code: &'static str) -> Result<(), EngineError> {
-        let mut line = match GlicolParser::parse(Rule::block, code) {
-            Ok(mut result) => {result.next().unwrap()},
-            Err(e) => {return Err(EngineError::ParsingError(e));}
-        };
-        
-        Ok(())
+    pub fn set_code(&mut self, code: &'static str) {
+        self.code = code;
+    }
+
+    pub fn parse(&mut self) {
+        let new_ast = get_glicol_ast(&self.code).unwrap();
+        for (key, node_info_tuple) in &new_ast {
+            if self.ast.contains_key(key) {
+                let old_chain = &self.ast[key].0;
+                let new_chain = &node_info_tuple.0;
+                for action in diff(old_chain, new_chain) {
+                    match action {
+                        DiffResult::Common(v) => {
+                            println!("common {:?}", v)
+                        },
+                        DiffResult::Removed(v) => {
+                            println!("Removed {:?}", v)
+                        },
+                        DiffResult::Added(v) => {
+                            println!("Added {:?}", v)
+                        },
+                    }
+                }
+                println!("diff {:?}", diff(old_chain, new_chain));
+            } else {
+                self.ast.insert(key, node_info_tuple.clone());
+                self.add_whole_chain(key, node_info_tuple.clone());
+            }
+        }
+    }
+
+    pub fn add_whole_chain(&mut self, key: &'static str, node_info_tuple: (Vec<&'static str>, Vec<&'static str>)) {
+        let mut index_list = vec![];
+        for i in 0..node_info_tuple.0.len() {
+            let index = self.graph.add_node(
+                match node_info_tuple.0[i] {
+                    "sin" => SinOsc::<N>::new().freq(node_info_tuple.1[i].parse::<f32>().unwrap()).build(),
+                    "mul" => Mul::<N>::new(node_info_tuple.1[i].parse::<f32>().unwrap()),
+                    "constsig" => ConstSig::<N>::new(node_info_tuple.1[i].parse::<f32>().unwrap()),
+                    _ => unimplemented!()
+                }
+            );
+            index_list.push(index);
+        }
+        self.index_info.insert(key, index_list);
+    }
+
+    pub fn handle_connection(&mut self) {
+        self.graph.clear_edges();
+        for (key, chain) in &self.index_info {
+            match chain.len() {
+                0 => {},
+                1 => {
+                    self.graph.add_edge(chain[0], self.output_index, ());
+                },
+                2 => {
+                    self.graph.add_edge(chain[0], chain[1], ());
+                    self.graph.add_edge(chain[1], self.output_index, ());
+                },
+                _ => {
+                    for i in 0..chain.len() - 1 {
+                        if i == chain.len() - 1 {
+                            self.graph.add_edge(chain[i], self.output_index ,());
+                        } else {
+                            self.graph.add_edge(chain[i],chain[i+1] ,());
+                        }
+                    }
+                }
+            }
+        }
     }
 
     pub fn set_code2(&mut self) {
@@ -185,15 +255,15 @@ impl<const N: usize> Engine<'static, N> {
     // }
 
     pub fn next_block(&mut self) {  //  -> &Vec<Buffer<N>> 
-        for (name, index_list) in &self.index_info {
+        // for (name, index_list) in &self.index_info {
             // let index_list = &chain;
-            if name.chars().next().unwrap() != '~' {
-                self.processor.process(&mut self.graph, *index_list.last().unwrap());
-                println!("result {:?}", &self.graph[*index_list.last().unwrap()].buffers);
+            // if name.chars().next().unwrap() != '~' {
+            self.processor.process(&mut self.graph, self.output_index);
+            println!("result {:?}", &self.graph[self.output_index].buffers);
                 // &self.graph[self.index].buffers
-            }
-        }
-        self.processor.processed.clear();
+            // }
+        // }
+        // self.processor.processed.clear();
     }
 }
 

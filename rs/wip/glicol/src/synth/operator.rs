@@ -13,8 +13,8 @@ impl<const N:usize> Mul<N> {
 impl<const N:usize> Node<N> for Mul<N> {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         for i in 0..N {
-            output[0][i] = self.val;
-            // output[0][i] = inputs[0].buffers()[0][i] * self.val;
+            // output[0][i] = self.val;
+            output[0][i] = inputs[0].buffers()[0][i] * self.val;
         }
     }
     fn send_msg(&mut self, info: (u8, &str)) {

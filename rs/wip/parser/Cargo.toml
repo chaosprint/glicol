@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 pest = "*"
 pest_derive = "*"
+lcs-diff = "*"

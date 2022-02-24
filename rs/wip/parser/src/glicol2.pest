@@ -1,41 +1,51 @@
 // this solution compared with previous one, checks each node during parsing
 // this can capture most of the errors, but yet it is necessary to report things earlier
 
-block = ${ ("\n"|WHITESPACE)* ~ ( (line|comment) ~ WHITESPACE* ~ ";"? ~ WHITESPACE* ~ ("\n" ~ WHITESPACE*)* )+}
+block = ${ SOI ~ ("\n"|WHITESPACE)* ~ ( (line|comment) ~ WHITESPACE* ~ ";"? ~ WHITESPACE* ~ ("\n" ~ WHITESPACE*)* )* ~ EOI}
 comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE* ~ !NEWLINE}
 line = ${ reference ~ WHITESPACE* ~ ":" ~ WHITESPACE* ~ chain}
 chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE+ ~ node)*  }
 
-node = ${ (seqnode|choose|mul|add|sin|saw|squ|tri|pan|speed|noiz|onepole|sp) }
+node = ${ (seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noiz|onepole|sp|constsig) }
 
 //  ~ WHITESPACE* ~ paras ~ (WHITESPACE+ ~ paras)*
 // bd = ${ "bd" ~ WHITESPACE+ ~ float ~ WHITESPACE+ ~ float }
 // sn = ${ "sn" ~ WHITESPACE+ ~ float ~ WHITESPACE+ ~ float }
 
-seqnode = ${ "seq" ~ WHITESPACE+ ~ seq}
+seq = ${ "seq" ~ WHITESPACE+ ~ compound_notes }
 choose = ${ "choose" ~ WHITESPACE+ ~ integer ~ (WHITESPACE+ ~ integer)*}
 
-mul = ${"mul" ~ WHITESPACE+ ~ (float | integer | reference) }
-add = ${"add" ~ WHITESPACE+ ~ (float | integer | reference) }
-sin = ${"sin" ~ WHITESPACE+ ~ (float | integer | reference) }
-saw = ${"saw" ~ WHITESPACE+ ~ (float | integer | reference) }
-squ = ${"squ" ~ WHITESPACE+ ~ (float | integer | reference) }
-tri = ${"tri" ~ WHITESPACE+ ~ (float | integer | reference) }
-pan = ${"pan" ~ WHITESPACE+ ~ (float | integer | reference) }
+mul = ${"mul" ~ WHITESPACE+ ~ !node_name ~ (float | integer | reference) }
+add = ${"add" ~ WHITESPACE+ ~ !node_name ~ (float | integer | reference) }
+sin = ${"sin" ~ WHITESPACE+ ~ !node_name ~ ( float | integer | reference) }
+saw = ${"saw" ~ WHITESPACE+ ~ !node_name ~ (float | integer | reference) }
+squ = ${"squ" ~ WHITESPACE+ ~ !node_name ~ (float | integer | reference) }
+tri = ${"tri" ~ WHITESPACE+ ~ !node_name ~ (float | integer | reference) }
+pan = ${"pan" ~ WHITESPACE+ ~ !node_name ~ (float | integer | reference) }
+constsig = ${"constsig" ~ WHITESPACE+ ~ !node_name ~ (float | integer | reference) }
 
 // single float
 speed = ${"speed" ~ WHITESPACE+ ~ float}
 noiz = ${("noiz"|"noise") ~ WHITESPACE+ ~ float}
 onepole = ${"onepole" ~ WHITESPACE+ ~ float}
 sp = ${("sp"|"sampler") ~ WHITESPACE+ ~ symbol }
-
-paras = ${  float | symbol | seq | reference}
+// paras = ${  float | symbol | seq | reference}
 float = ${ (("+" | "-")? ~ ASCII_DIGIT+) ~ "." ~ ASCII_DIGIT* ~ (^"e" ~ integer)? }
 symbol = ${ "\\" ~ ASCII_ALPHANUMERIC* ~ "_"? ~ ASCII_DIGIT* }
-seq = @{ compound ~ (WHITESPACE+ ~ compound)*}
+compound_notes = @{ compound ~ (WHITESPACE+ ~ compound)*}
 compound = ${ note+ }
 note = ${ integer | rest | reference }
 reference = ${ ("~"|"_")? ~ ASCII_ALPHA_LOWER+ ~ ("_" | ASCII_ALPHA_LOWER | ASCII_DIGIT )* }
+rest = ${ "_" }
+integer = ${ (ASCII_DIGIT)+ ~ !"." }
+WHITESPACE = _{" "|","|"|"|"\t"}
+
+node_name = ${"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|
+"linrange"|"apfdecay"|"delayn"|"delaymod"|
+"sin"|"squ"|"imp"|"envperc"|"sampler"|"noiz"|"lpf"|"plate"|"onepole"|
+"hpf"|"pha"|"buf"|"state"|"freeverb"|"pan"|"delay"|"apfgain"|"comb"|"mix"|"monosum"|
+"const_sig"|"constsig"|"*"|"sp"|"spd"|"tri"|"noise"|"amplfo"|"balance"|"rlpf"|"rhpf"|"kick"|"ks"|
+"pha"|"shape"|"sawsynth"|"saw"|"script"|"closure"| "r" }
 
 // name = ${"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|"apfdecay"|"delayn"|"delaymod"|
 // "sin"|"squ"|"imp"|"noiz"|"onepole"|"sampler"|"sp"|"sp"|"spd"|
@@ -43,7 +53,3 @@ reference = ${ ("~"|"_")? ~ ASCII_ALPHA_LOWER+ ~ ("_" | ASCII_ALPHA_LOWER | ASCI
 // "pha"|"buf"|"state"|"pan"|"delay"|"apfgain"|"comb"|"mix"|"monosum"|
 // "const_sig"|"*"|"tri"|"noise"|"amplfo"|"balance"|"rlpf"|"rhpf"|"kick"|"ks"|
 // "pha"|"shape"|"sawsynth"|"saw"}
-
-rest = ${ "_" }
-integer = ${ (ASCII_DIGIT)+ ~ !"." }
-WHITESPACE = _{" "|","|"|"|"\t"}

@@ -1,20 +1,27 @@
+use glicol_parser::*;
 use pest::Parser;
-use pest::error::Error;
-use pest_derive::*;
 use pest::error::ErrorVariant;
-use std::collections::HashMap;
+// use lcs_diff::*;
 
-#[derive(Parser)]
-#[grammar = "glicol2.pest"]
-pub struct GlicolParser;
+// fn main() {
+//     let a = [1, 3, 5];
+//     let b = [3, 4, 5];
+//     // println!("result {:?}", diff(&a, &b));
+//     let result = diff(&a, &b);
+//     for r in result {
+//         println!("result {:?}", r);
+//     }
+// }
 
-pub fn get_glicol_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<&'a str>)>, Error<Rule>> {
-    let mut block = match GlicolParser::parse(Rule::block, code) {
+fn main() {
+    let mut block = match GlicolParser::parse(Rule::block, r#"out: sin 440 >> mul 0.1 >> add 0.1; b: seq 60 _60 >> sp \808;"#) {
         Ok(v) => v,
         Err(e) => {
             println!("in location: {:?}; line_col: {:?}", e.location, e.line_col);
-            match &e.variant {
+
+            match e.variant {
                 ErrorVariant::ParsingError{ positives, negatives } => { 
+
                     if positives.len() != 0 {
                         print!("\n\nexpecting ");
                         for possible in positives { print!("{:?} ", possible) }
@@ -25,14 +32,15 @@ pub fn get_glicol_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str
                         for possible in negatives { print!("{:?} ", possible) }
                         print!("\n\n");
                     }
-                },
+                    panic!();
+                }
                 _ => {panic!("unknonw parsing error")}
             }
-            return Err(e)
+            
         }
     };
     let lines = block.next().unwrap(); // this can be a comment though, but we call it a line
-    let mut ast = HashMap::new();
+    let mut ast = std::collections::HashMap::new();
     for line in lines.into_inner() {
         match line.as_rule() {
             Rule::line => {
@@ -87,13 +95,6 @@ pub fn get_glicol_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str
                                         chain_node_names.push("sp");
                                         chain_paras.push(paras.as_str());
                                     },
-                                    Rule::constsig => {
-                                        println!("node {:?}", node.as_str());
-                                        let paras = node.into_inner().next().unwrap();
-                                        println!("paras {:?}", paras.as_str());
-                                        chain_node_names.push("constsig");
-                                        chain_paras.push(paras.as_str());
-                                    },
                                     _ => {}
                                 }
                             }
@@ -107,5 +108,5 @@ pub fn get_glicol_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str
             _ => {},
         };
     }
-    Ok(ast)
+    println!("ast {:?}", ast);
 }
