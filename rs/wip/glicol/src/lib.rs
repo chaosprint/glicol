@@ -42,8 +42,6 @@ impl<const N: usize> Engine<'static, N> {
         node_index_in_chain: u8, 
         msg: (u8, &str)
     ) {
-        // we store the chain order in a vec?
-        // does the order matters?
         let index = self.index_info[chain_name][node_index_in_chain as usize];
         self.graph[index].node.send_msg(msg);
     }
@@ -53,6 +51,7 @@ impl<const N: usize> Engine<'static, N> {
             Ok(mut result) => {result.next().unwrap()},
             Err(e) => {return Err(EngineError::ParsingError(e));}
         };
+        
         Ok(())
     }
 
@@ -177,13 +176,13 @@ impl<const N: usize> Engine<'static, N> {
     //     }
     // }
 
-    pub fn handle_graph_connection(&mut self) {
-        // 1. connect pararell nodes in each chain
+    // pub fn handle_graph_connection(&mut self) {
+    //     // 1. connect pararell nodes in each chain
 
-        // 2. finish the sidechain connection
+    //     // 2. finish the sidechain connection
 
-        // self.index = self.graph.add_node( ConstSig::<N>::new(42.) )
-    }
+    //     // self.index = self.graph.add_node( ConstSig::<N>::new(42.) )
+    // }
 
     pub fn next_block(&mut self) {  //  -> &Vec<Buffer<N>> 
         for (name, index_list) in &self.index_info {
@@ -194,6 +193,7 @@ impl<const N: usize> Engine<'static, N> {
                 // &self.graph[self.index].buffers
             }
         }
+        self.processor.processed.clear();
     }
 }
 
