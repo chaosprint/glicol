@@ -10,5 +10,6 @@ petgraph = "0.5.1"
 dasp_graph = { path = "../dasp_graph" }
 glicol_parser = { path = "../parser" }
 slice-diff-patch = "1.2.1"
+pest = "*"
 
 # cargo build --target wasm32-unknown-unknown --release
