@@ -61,6 +61,3 @@ impl<const N: usize> Node<N> for SinOsc<N> {
         }
     }
 }
-
-
-

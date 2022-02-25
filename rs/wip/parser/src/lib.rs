@@ -1,6 +1,7 @@
 use pest::Parser;
 use pest::error::Error;
 use pest_derive::*;
+use pest::iterators::Pair;
 use pest::error::ErrorVariant;
 use std::collections::HashMap;
 
@@ -8,7 +9,7 @@ use std::collections::HashMap;
 #[grammar = "glicol2.pest"]
 pub struct GlicolParser;
 
-pub fn get_glicol_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<&'a str>)>, Error<Rule>> {
+pub fn get_glicol_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<Pair<'a, Rule>>)>, Error<Rule>> {
     let mut block = match GlicolParser::parse(Rule::block, code) {
         Ok(v) => v,
         Err(e) => {
@@ -57,42 +58,56 @@ pub fn get_glicol_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str
                                         let paras = node.into_inner().next().unwrap();
                                         println!("paras {:?}", paras.as_str());//"440"
                                         chain_node_names.push("sin");
-                                        chain_paras.push(paras.as_str());
+                                        chain_paras.push(paras);
                                     },
                                     Rule::mul => {
                                         println!("node {:?}", node.as_str());
                                         let paras = node.into_inner().next().unwrap();
                                         println!("paras {:?}", paras.as_str());
                                         chain_node_names.push("mul");
-                                        chain_paras.push(paras.as_str());
+                                        chain_paras.push(paras);
                                     },
                                     Rule::add => {
                                         println!("node {:?}", node.as_str());
                                         let paras = node.into_inner().next().unwrap();
                                         println!("paras {:?}", paras.as_str());
                                         chain_node_names.push("add");
-                                        chain_paras.push(paras.as_str());
+                                        chain_paras.push(paras);
                                     },
                                     Rule::seq => {
                                         println!("node {:?}", node.as_str());
                                         let paras = node.into_inner().next().unwrap();
                                         println!("paras {:?}", paras.as_str());
                                         chain_node_names.push("seq");
-                                        chain_paras.push(paras.as_str());
+                                        chain_paras.push(paras);
                                     },
                                     Rule::sp => {
                                         println!("node {:?}", node.as_str());
                                         let paras = node.into_inner().next().unwrap();
                                         println!("paras {:?}", paras.as_str());
                                         chain_node_names.push("sp");
-                                        chain_paras.push(paras.as_str());
+                                        chain_paras.push(paras);
                                     },
                                     Rule::constsig => {
                                         println!("node {:?}", node.as_str());
                                         let paras = node.into_inner().next().unwrap();
                                         println!("paras {:?}", paras.as_str());
                                         chain_node_names.push("constsig");
-                                        chain_paras.push(paras.as_str());
+                                        chain_paras.push(paras);
+                                    },
+                                    Rule::lpf => {
+                                        println!("node {:?}", node.as_str());
+                                        let paras = node.into_inner().next().unwrap();
+                                        // let mut p1 =  paras.as_str();
+                                        // let p2 = paras.into_inner().next().unwrap().as_str();
+                                        // println!("paras1 {:?}", p1);
+                                        // println!("paras1 {:?}", p2);
+                                        // p1.push_str(p2);
+
+                                        // let paras2 = paras1.into_inner().next().unwrap();
+                                        // println!("paras2 {:?}", paras2.as_str());
+                                        // chain_node_names.push("lpf");
+                                        chain_paras.push(paras);
                                     },
                                     _ => {}
                                 }

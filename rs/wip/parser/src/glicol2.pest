@@ -6,7 +6,7 @@ comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE* ~ !NEWLINE}
 line = ${ reference ~ WHITESPACE* ~ ":" ~ WHITESPACE* ~ chain}
 chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE+ ~ node)*  }
 
-node = ${ (seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noiz|onepole|sp|constsig) }
+node = ${ (seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noiz|onepole|sp|constsig|lpf) }
 
 //  ~ WHITESPACE* ~ paras ~ (WHITESPACE+ ~ paras)*
 // bd = ${ "bd" ~ WHITESPACE+ ~ float ~ WHITESPACE+ ~ float }
@@ -15,14 +15,15 @@ node = ${ (seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noiz|onepole|sp|constsig
 seq = ${ "seq" ~ WHITESPACE+ ~ compound_notes }
 choose = ${ "choose" ~ WHITESPACE+ ~ integer ~ (WHITESPACE+ ~ integer)*}
 
-mul = ${"mul" ~ WHITESPACE+ ~ !node_name ~ (float | integer | reference) }
-add = ${"add" ~ WHITESPACE+ ~ !node_name ~ (float | integer | reference) }
-sin = ${"sin" ~ WHITESPACE+ ~ !node_name ~ ( float | integer | reference) }
-saw = ${"saw" ~ WHITESPACE+ ~ !node_name ~ (float | integer | reference) }
-squ = ${"squ" ~ WHITESPACE+ ~ !node_name ~ (float | integer | reference) }
-tri = ${"tri" ~ WHITESPACE+ ~ !node_name ~ (float | integer | reference) }
-pan = ${"pan" ~ WHITESPACE+ ~ !node_name ~ (float | integer | reference) }
-constsig = ${"constsig" ~ WHITESPACE+ ~ !node_name ~ (float | integer | reference) }
+lpf = ${"lpf" ~ WHITESPACE+ ~ !node_name ~ (number | reference) ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
+mul = ${"mul" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+add = ${"add" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+sin = ${"sin" ~ WHITESPACE+ ~ !node_name ~ ( number | reference) }
+saw = ${"saw" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+squ = ${"squ" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+tri = ${"tri" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+pan = ${"pan" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+constsig = ${"constsig" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 
 // single float
 speed = ${"speed" ~ WHITESPACE+ ~ float}
@@ -30,6 +31,7 @@ noiz = ${("noiz"|"noise") ~ WHITESPACE+ ~ float}
 onepole = ${"onepole" ~ WHITESPACE+ ~ float}
 sp = ${("sp"|"sampler") ~ WHITESPACE+ ~ symbol }
 // paras = ${  float | symbol | seq | reference}
+number = ${ float | integer}
 float = ${ (("+" | "-")? ~ ASCII_DIGIT+) ~ "." ~ ASCII_DIGIT* ~ (^"e" ~ integer)? }
 symbol = ${ "\\" ~ ASCII_ALPHANUMERIC* ~ "_"? ~ ASCII_DIGIT* }
 compound_notes = @{ compound ~ (WHITESPACE+ ~ compound)*}

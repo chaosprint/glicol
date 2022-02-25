@@ -1,20 +1,13 @@
 pub mod synth;
-
-use synth::{
-    oscillator::{SinOsc},
-    signal::{ConstSig},
-    operator::{Mul},
-};
+use synth::makenode;
 
 use std::collections::HashMap;
-use petgraph::graph::{NodeIndex};
-use petgraph::stable_graph::{StableDiGraph};
+use petgraph::{graph::NodeIndex, stable_graph::StableDiGraph};
 use dasp_graph::{NodeData, BoxedNodeSend, Processor, node::Sum }; //Input, NodeBuffer
 
 use glicol_parser::*; 
-// use pest::Parser;
-// use glicol_parser::{single_chain};
-use lcs_diff::diff; use lcs_diff::DiffResult;
+use pest::iterators::Pair;
+use lcs_diff::{diff, DiffResult};
 
 pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
 pub type GlicolGraph<const N: usize> = StableDiGraph<GlicolNodeData<N>, (), u32>;
@@ -24,9 +17,13 @@ pub struct Engine<'a, const N: usize> {
     pub graph: GlicolGraph<N>,
     pub processor: GlicolProcessor<N>,
     code: &'static str,
-    ast: HashMap<&'a str, (Vec<&'a str>, Vec<&'a str>)>,
-    index_info: HashMap<&'a str, Vec<NodeIndex>>,
+    ast: HashMap<&'a str, (Vec<&'a str>, Vec<Pair<'a, Rule>>)>,
+    new_ast: HashMap<&'a str, (Vec<&'a str>, Vec<Pair<'a, Rule>>)>,
+    pub index_info: HashMap<&'a str, Vec<NodeIndex>>,
     output_index: NodeIndex,
+    node_add_list: Vec<(&'a str, usize, GlicolNodeData<N>)>,
+    node_remove_list: Vec<(&'a str, usize)>,
+    node_update_list: Vec<(&'a str, usize, Pair<'a, Rule>)>,    
 }
 
 impl<const N: usize> Engine<'static, N> {
@@ -37,9 +34,13 @@ impl<const N: usize> Engine<'static, N> {
             graph,
             processor: GlicolProcessor::<N>::with_capacity(1024),
             ast: HashMap::new(),
+            new_ast: HashMap::new(),
             code: "",
             index_info: HashMap::new(),
-            output_index
+            output_index,
+            node_add_list: vec![],
+            node_remove_list: vec![],
+            node_update_list: vec![],
         }
     }
 
@@ -53,51 +54,141 @@ impl<const N: usize> Engine<'static, N> {
         self.graph[index].node.send_msg(msg);
     }
 
+    // todo pub fn set bpm set sr set seed ...
+
     pub fn set_code(&mut self, code: &'static str) {
         self.code = code;
     }
 
+    pub fn update(&mut self) {
+        self.parse();
+        self.make_graph();
+    }
+
+    // prepare the NodeData::new2(BoxedNodeSend::<N>::new(Sum{}))
+    // but do not do anything to the graph
+    // get: add info , which chain, where
+    // modify info 
+    // delete info
+    // sidechain info, when handling the graph, check if all the sidechain exists
     pub fn parse(&mut self) {
-        let new_ast = get_glicol_ast(&self.code).unwrap();
-        for (key, node_info_tuple) in &new_ast {
+        self.new_ast = get_glicol_ast(&self.code).unwrap();
+        self.node_add_list.clear();
+        self.node_update_list.clear();
+        self.node_remove_list.clear();
+        // also remove the whole chain in_old but not_in_new, after ensuring there is no problem with new stuff
+        // println!("\n\nold ast {:?}\n\n new {:?}", self.ast, self.new_ast);
+        for (key, node_info_tuple) in &self.new_ast {
             if self.ast.contains_key(key) {
                 let old_chain = &self.ast[key].0;
                 let new_chain = &node_info_tuple.0;
+                let old_chain_para = &self.ast[key].1;
+                let new_chain_para = &node_info_tuple.1;
                 for action in diff(old_chain, new_chain) {
                     match action {
                         DiffResult::Common(v) => {
-                            println!("common {:?}", v)
+                            // let common_node_name = v.data;
+                            let old_i = v.old_index.unwrap();
+                            let new_i = v.new_index.unwrap();
+                            println!("common {:?}", v);
+                            println!("common node: old_index {:?}", old_i);
+                            // println!("common para {:?}", old_chain_para[old_i]);
+                            // println!("new para {:?}", new_chain_para[new_i]);
+                            self.node_update_list.push(
+                                (key, // which chain
+                                old_i, // where in chain
+                                new_chain_para[new_i].clone() // new paras
+                            ))
                         },
                         DiffResult::Removed(v) => {
+                            // let removed_node_name = v.data;
+                            let old_i = v.old_index.unwrap();
+                            self.node_remove_list.push((key, old_i));
                             println!("Removed {:?}", v)
                         },
                         DiffResult::Added(v) => {
-                            println!("Added {:?}", v)
+                            println!("Added {:?}", v);
+                            let new_i = v.new_index.unwrap();
+                            let insert_i = v.new_index.unwrap();
+                            let nodename = v.data;
+                            let mut paras = new_chain_para[new_i].clone();
+                            let nodedata = makenode(nodename, &mut paras);
+                            self.node_add_list.push((key, insert_i, nodedata))
                         },
                     }
                 }
-                println!("diff {:?}", diff(old_chain, new_chain));
+                // println!("diff {:?}", diff(old_chain, new_chain));
             } else {
-                self.ast.insert(key, node_info_tuple.clone());
-                self.add_whole_chain(key, node_info_tuple.clone());
+                for i in 0..node_info_tuple.0.len() {
+                    let name = node_info_tuple.0[i];
+                    let mut paras = node_info_tuple.1[i].clone();
+                    let nodedata = makenode(name, &mut paras);
+                    self.node_add_list.push((key, i, nodedata));
+                };
+                // self.ast.insert(key, node_info_tuple.clone());
+                // self.add_whole_chain(key, node_info_tuple.clone());
             }
         }
     }
 
-    pub fn add_whole_chain(&mut self, key: &'static str, node_info_tuple: (Vec<&'static str>, Vec<&'static str>)) {
-        let mut index_list = vec![];
-        for i in 0..node_info_tuple.0.len() {
-            let index = self.graph.add_node(
-                match node_info_tuple.0[i] {
-                    "sin" => SinOsc::<N>::new().freq(node_info_tuple.1[i].parse::<f32>().unwrap()).build(),
-                    "mul" => Mul::<N>::new(node_info_tuple.1[i].parse::<f32>().unwrap()),
-                    "constsig" => ConstSig::<N>::new(node_info_tuple.1[i].parse::<f32>().unwrap()),
-                    _ => unimplemented!()
+    pub fn make_graph(&mut self) {
+        self.handle_ref_check();
+        self.handle_remove_chain();
+        self.handle_node_remove();
+        self.handle_node_add();
+        self.handle_node_update();
+        self.handle_connection();
+        self.ast = self.new_ast.clone();
+    }
+
+    pub fn handle_ref_check(&self) {
+        // ref pair is like (~mod -> a node [e.g key: out, pos_in_chain: 3])
+        // ref check should use the new ast hashmap
+        // because old ast hashmap has something that may need to be deleted
+    }
+
+    pub fn handle_remove_chain(&mut self) {
+        // there are some chains show up in old_ast but not in new ast
+        for key in self.ast.keys() {
+            if !self.new_ast.contains_key(key) {
+                println!("remove {:?}", key);
+                for index in &self.index_info[key] {
+                    self.graph.remove_node(*index);
                 }
-            );
-            index_list.push(index);
+                self.index_info.remove_entry(key);       
+            }
         }
-        self.index_info.insert(key, index_list);
+    }
+
+    pub fn handle_node_add(&mut self) {
+        while !self.node_add_list.is_empty() {
+            let (key, position_in_chain, nodedata) = self.node_add_list.remove(0);
+            if !self.index_info.contains_key(key) {
+                self.index_info.insert(key, vec![]);
+            };
+            let nodeindex = self.graph.add_node(nodedata);
+            if let Some(chain) = self.index_info.get_mut(key) {
+                chain.insert(position_in_chain, nodeindex);
+            }
+        }
+    }
+    pub fn handle_node_update(&mut self) {
+        while !self.node_update_list.is_empty() {
+            let (key, position_in_chain, paras) = self.node_update_list.remove(0);
+            if let Some(chain) = self.index_info.get_mut(key) {
+                self.graph[chain[position_in_chain]].node.send_msg((0, paras.as_str()));
+            }
+        }
+    }
+    pub fn handle_node_remove(&mut self) {
+        while !self.node_remove_list.is_empty() {
+            let (key, position_in_chain) = self.node_remove_list.remove(0);
+            if let Some(chain) = self.index_info.get_mut(key) {
+                let node_index = chain[position_in_chain];
+                self.graph.remove_node(node_index);
+                chain.remove(position_in_chain);
+            }
+        }
     }
 
     pub fn handle_connection(&mut self) {
@@ -125,158 +216,8 @@ impl<const N: usize> Engine<'static, N> {
         }
     }
 
-    pub fn set_code2(&mut self) {
-         // can panic now with error TODO: error handling
-        //  let result = single_chain(code).unwrap().1; // the result should be Ok(("unparsed str", ("name", [Node]) ))
-        //  let name = result.0;
-        //  let node_chain = result.1;
- 
-        //  // the idea is that we get a new ast,
-        //  // the ast should be a hashmap.
-        //  // { chain_name: [...nodes] }
-        //  // we compare the new key vec in the new ast with the old key vec
-        //  // with lcs, we get the deleted, added and common
-        //  // we further compare the nodes inside those common chains
- 
-        //  if self.ast.contains_key(name) {
-        //      let mut old = vec![];
-        //      let mut new = vec![];
- 
-        //      for pair in &self.ast[name] {
-        //          old.push(pair.0);
-        //          old.push(pair.1);
-        //      }
- 
-        //      for pair in node_chain {
-        //          new.push(pair.0);
-        //          new.push(pair.1);
-        //      }
- 
-        //      // let old: Vec<String> = self.ast[name].iter().map(|name_para_pair|{
-        //      //     let mut pair_str = name_para_pair.0.to_owned();
-        //      //     pair_str.push_str(" ");
-        //      //     pair_str.push_str(name_para_pair.1);
-        //      //     pair_str
-        //      // }).collect();
- 
-        //      // let new: Vec<String> = node_chain.iter().map(|name_para_pair|{
-        //      //     let mut pair_str = name_para_pair.0.to_owned();
-        //      //     pair_str.push_str(" ");
-        //      //     pair_str.push_str(name_para_pair.1);
-        //      //     pair_str
-        //      // }).collect();
- 
-        //      let diff = diff_diff(&old, &new);
-        //      let lcs = lcs_diff(&old, &new);
-        //      let wu = wu_diff(&old, &new);
- 
-        //      println!("old {:?}", &old);
-        //      println!("new {:?}", &new);
-        //      println!("diff {:?}", diff);
-        //      println!("lcs {:?}", lcs);
-        //      println!("wu {:?}", wu);
-        //      for change in lcs {
-        //          match change {
-        //              Change::Update((index, value)) => {
-        //                  let nodeplace = (index - 1) / 2;
-        //                  println!("nodeindex{:?}", nodeplace);
-        //                  println!("self.index_info[name][nodeindex] {:?}", self.index_info[name][nodeplace]);
-        //                  let nodeindex = self.index_info[name][nodeplace];
-        //                  println!("value{:?}", value);
-        //                  self.graph[nodeindex].node.send_msg((0, value))
-        //              },
-        //              Change::Remove(index) => {
-        //                  // delete both the node in ast and self.nodeindex_hashmap
- 
-        //              },
-        //              Change::Insert((index, value)) => {
-                         
-        //              }
-        //          }
-        //      }
-        //      panic!();
-        //      // lcs should be [Update(), Remove() ]
-        //      // do the action to the node index self.node_chain[name]
-             
-        //  } else {
-        //      // println!("node_chain{:?}, " , &node_chain);
-             
-        //      let chain: Vec<NodeIndex> = node_chain.iter().map(|node_info: &(&str, &str)| -> NodeIndex {
-        //          match node_info.0 {
-        //              // need to consider how this step should be safe
-        //              "const_sig" => self.graph.add_node( ConstSig::<N>::new(node_info.1.parse::<f32>().unwrap()) ),
-        //              "sin" => self.graph.add_node( SinOsc::<N>::new().freq(node_info.1.parse::<f32>().unwrap()).build() ),
-        //              "mul" => self.graph.add_node( Mul::<N>::new(node_info.1.parse::<f32>().unwrap()) ),
-        //              _ => unimplemented!()
-        //          }
-        //      }).collect();
-        //      self.ast.insert(name, node_chain);
-        //      self.index_info.insert(name, chain);
-        //      // panic!()
-        //      // self.ast_to_graph();
-        //      // let node_chain: Vec<NodeIndex> = chain.iter().map(|node_info: &(&str, &str)| -> NodeIndex {
-        //      //     match node_info.0 {
-        //      //         // need to consider how this step should be safe
-        //      //         "const_sig" => self.graph.add_node( ConstSig::<N>::new(node_info.1.parse::<f32>().unwrap()) ),
-        //      //         "sin" => self.graph.add_node( SinOsc::<N>::new().freq(node_info.1.parse::<f32>().unwrap()).build() ),
-        //      //         "mul" => self.graph.add_node( Mul::<N>::new(node_info.1.parse::<f32>().unwrap()) ),
-        //      //         _ => unimplemented!()
-        //      //     }
-        //      // }).collect();
-        //  }
-    }
-
-    // convert the ast from the parsing to a graph full of nodes
-    // handle the connection later for lazy evaluation 
-    // ast: &HashMap< &'static str, Vec<GlicolNodeInfo<'static> > >
-    // pub fn ast_to_graph<'a>(&mut self) {
-
-    //     for (key, chain) in &self.ast {
-            
-    //         let node_chain: Vec<NodeIndex> = chain.iter().map(|node_info: &(&str, &str)| -> NodeIndex {
-    //             match node_info.0 {
-    //                 // need to consider how this step should be safe
-    //                 "const_sig" => self.graph.add_node( ConstSig::<N>::new(node_info.1.parse::<f32>().unwrap()) ),
-    //                 "sin" => self.graph.add_node( SinOsc::<N>::new().freq(node_info.1.parse::<f32>().unwrap()).build() ),
-    //                 "mul" => self.graph.add_node( Mul::<N>::new(node_info.1.parse::<f32>().unwrap()) ),
-    //                 _ => unimplemented!()
-    //             }
-    //         }).collect();
-    //         self.index_info.insert(key, node_chain);
-    //     }
-    // }
-
-    // pub fn handle_graph_connection(&mut self) {
-    //     // 1. connect pararell nodes in each chain
-
-    //     // 2. finish the sidechain connection
-
-    //     // self.index = self.graph.add_node( ConstSig::<N>::new(42.) )
-    // }
-
     pub fn next_block(&mut self) {  //  -> &Vec<Buffer<N>> 
-        // for (name, index_list) in &self.index_info {
-            // let index_list = &chain;
-            // if name.chars().next().unwrap() != '~' {
-            self.processor.process(&mut self.graph, self.output_index);
-            println!("result {:?}", &self.graph[self.output_index].buffers);
-                // &self.graph[self.index].buffers
-            // }
-        // }
-        // self.processor.processed.clear();
+        self.processor.process(&mut self.graph, self.output_index);
+        println!("result {:?}", &self.graph[self.output_index].buffers);
     }
-}
-
-#[derive(Debug, Eq, PartialEq)]
-pub enum EngineError {
-    NonExistControlNodeError(String), // handled
-    ParameterError((usize, usize)), // handled
-    SampleNotExistError((usize, usize)), // handled
-    InsufficientParameter((usize, usize)),
-    NotModuableError((usize, usize)),
-    ParaTypeError((usize, usize)),
-    NodeNameError((String, usize, usize)),  // handled
-    ParsingError(pest::error::Error<glicol_parser::Rule>), // handled
-    HandleNodeError, // handled
-    ParsingIncompleteError(usize),
 }
