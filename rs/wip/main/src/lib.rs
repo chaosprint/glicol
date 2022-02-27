@@ -3,7 +3,7 @@ use synth::makenode;
 
 use std::collections::HashMap;
 use petgraph::{graph::NodeIndex, stable_graph::StableDiGraph};
-use dasp_graph::{NodeData, BoxedNodeSend, Processor, node::Sum }; //Input, NodeBuffer
+use dasp_graph::{NodeData, BoxedNodeSend, Processor, node::Sum, Buffer }; //Input, NodeBuffer
 
 use glicol_parser::*; 
 use pest::iterators::Pair;
@@ -216,8 +216,9 @@ impl<const N: usize> Engine<'static, N> {
         }
     }
 
-    pub fn next_block(&mut self) {  //  -> &Vec<Buffer<N>> 
+    pub fn next_block(&mut self) -> &[Buffer<N>] {  //  -> &Vec<Buffer<N>> 
         self.processor.process(&mut self.graph, self.output_index);
-        println!("result {:?}", &self.graph[self.output_index].buffers);
+        // println!("result {:?}", &self.graph[self.output_index].buffers);
+        &self.graph[self.output_index].buffers
     }
 }
