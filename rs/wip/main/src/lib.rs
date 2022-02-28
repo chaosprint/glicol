@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use petgraph::{graph::NodeIndex, stable_graph::StableDiGraph};
 use dasp_graph::{NodeData, BoxedNodeSend, Processor, node::Sum, Buffer }; //Input, NodeBuffer
 
-use glicol_parser::*; 
+use glicol_parser::{get_ast, get_num, GlicolPara}; 
 use pest::iterators::Pair;
 use lcs_diff::{diff, DiffResult};
 
@@ -13,17 +13,18 @@ pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
 pub type GlicolGraph<const N: usize> = StableDiGraph<GlicolNodeData<N>, (), u32>;
 pub type GlicolProcessor<const N: usize> = Processor<GlicolGraph<N>, N>;
 
+// #[derive(Debug)]
 pub struct Engine<'a, const N: usize> {
     pub graph: GlicolGraph<N>,
     pub processor: GlicolProcessor<N>,
     code: &'static str,
-    ast: HashMap<&'a str, (Vec<&'a str>, Vec<Pair<'a, Rule>>)>,
-    new_ast: HashMap<&'a str, (Vec<&'a str>, Vec<Pair<'a, Rule>>)>,
+    ast: HashMap<&'a str, (Vec<&'a str>, Vec<Vec<GlicolPara>>)>,
+    new_ast: HashMap<&'a str, (Vec<&'a str>, Vec<Vec<GlicolPara>>)>,
     pub index_info: HashMap<&'a str, Vec<NodeIndex>>,
     output_index: NodeIndex,
     node_add_list: Vec<(&'a str, usize, GlicolNodeData<N>)>,
     node_remove_list: Vec<(&'a str, usize)>,
-    node_update_list: Vec<(&'a str, usize, Pair<'a, Rule>)>,    
+    node_update_list: Vec<(&'a str, usize, Vec<GlicolPara>)>,    
 }
 
 impl<const N: usize> Engine<'static, N> {
@@ -56,11 +57,12 @@ impl<const N: usize> Engine<'static, N> {
 
     // todo pub fn set bpm set sr set seed ...
 
-    pub fn set_code(&mut self, code: &'static str) {
-        self.code = code;
-    }
+    // pub fn set_code(&mut self, code: &'static str) {
+    //     self.code = code;
+    // }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, code: &'static str) {
+        self.code = code;
         self.parse();
         self.make_graph();
     }
@@ -72,7 +74,7 @@ impl<const N: usize> Engine<'static, N> {
     // delete info
     // sidechain info, when handling the graph, check if all the sidechain exists
     pub fn parse(&mut self) {
-        self.new_ast = get_glicol_ast(&self.code).unwrap();
+        self.new_ast = get_ast(&self.code).unwrap();
         self.node_add_list.clear();
         self.node_update_list.clear();
         self.node_remove_list.clear();
@@ -123,8 +125,10 @@ impl<const N: usize> Engine<'static, N> {
                     let name = node_info_tuple.0[i];
                     let mut paras = node_info_tuple.1[i].clone();
                     let nodedata = makenode(name, &mut paras);
+                    println!("self.node_add_list {:?} {}", key, i);
                     self.node_add_list.push((key, i, nodedata));
                 };
+                
                 // self.ast.insert(key, node_info_tuple.clone());
                 // self.add_whole_chain(key, node_info_tuple.clone());
             }
@@ -171,12 +175,13 @@ impl<const N: usize> Engine<'static, N> {
                 chain.insert(position_in_chain, nodeindex);
             }
         }
+        println!("node index map {:?}", self.index_info);
     }
     pub fn handle_node_update(&mut self) {
         while !self.node_update_list.is_empty() {
             let (key, position_in_chain, paras) = self.node_update_list.remove(0);
             if let Some(chain) = self.index_info.get_mut(key) {
-                self.graph[chain[position_in_chain]].node.send_msg((0, paras.as_str()));
+                self.graph[chain[position_in_chain]].node.send_msg((0, &get_num(paras[0]).to_string()));
             }
         }
     }
@@ -218,7 +223,7 @@ impl<const N: usize> Engine<'static, N> {
 
     pub fn next_block(&mut self) -> &[Buffer<N>] {  //  -> &Vec<Buffer<N>> 
         self.processor.process(&mut self.graph, self.output_index);
-        // println!("result {:?}", &self.graph[self.output_index].buffers);
+        println!("result {:?}", &self.graph[self.output_index].buffers);
         &self.graph[self.output_index].buffers
     }
 }

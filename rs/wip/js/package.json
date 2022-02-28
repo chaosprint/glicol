@@ -1,0 +1,14 @@
+{
+  "name": "glicol",
+  "version": "0.0.0",
+  "description": "Glicol as an independent JavaScript library.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^2.3.0",
+    "vite-plugin-cross-origin-isolation": "^0.1.1"
+  }
+}

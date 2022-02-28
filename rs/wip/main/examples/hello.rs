@@ -4,9 +4,8 @@ use std::collections::HashMap;
 
 fn main() {
     let mut engine = Engine::<128>::new();
-    engine.set_code("o: constsig 42.0");
-    engine.update();
+    engine.update("o: sin 440.0");
     engine.next_block();
-    engine.send_msg("o", 0, (0, "440."));
+    engine.send_msg("o", 0, (0, "1."));
     engine.next_block();
 }

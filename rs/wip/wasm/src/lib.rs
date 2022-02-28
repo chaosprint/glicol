@@ -98,8 +98,7 @@ pub extern "C" fn update(arr_ptr: *mut u8, length: usize) {
     let mut engine = ENGINE.lock().unwrap();
     let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
     let code = std::str::from_utf8(encoded).unwrap();
-    engine.set_code(code);
-    engine.update();
+    engine.update(code);
 }
 
 // #[no_mangle]

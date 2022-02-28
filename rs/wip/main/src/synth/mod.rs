@@ -9,15 +9,15 @@ use {
 };
 
 use dasp_graph::{NodeData, BoxedNodeSend}; //, Processor, Buffer, Input, Node
-use glicol_parser::*;
-use pest::iterators::Pair;
+use glicol_parser::{GlicolPara, get_num};
+// use pest::iterators::Pair;
 
 pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
 // pub type NodeResult<const N: usize> = Result<(GlicolNodeData<N>, Vec<String>), GlicolError>;
 
 pub fn makenode<const N: usize>(
     name: &str,
-    paras: &mut Pair<Rule>,
+    paras: &mut Vec<GlicolPara>,
     // pos: (usize, usize),
     // samples_dict: &HashMap<String, &'static[f32]>,
     // sr: usize,
@@ -26,13 +26,13 @@ pub fn makenode<const N: usize>(
     let nodedata = match name {
         "sin" => {
             // todo consider multi paras, consider refs
-            SinOsc::new().freq(paras.as_str().parse::<f32>().unwrap()).build()
+            SinOsc::new().freq(get_num(paras[0])).build()
         },
         "mul" => {
-            Mul::new(paras.as_str().parse::<f32>().unwrap())
+            Mul::new(get_num(paras[0]))
         },
         "constsig" => {
-            ConstSig::new(paras.as_str().parse::<f32>().unwrap())
+            ConstSig::new(get_num(paras[0]))
         },
         _ => unimplemented!(),
     };
