@@ -1,14 +1,36 @@
 use glicol_synth::{
-    graph::StableGraph,
+    AudioContextBuilder,
+    AudioContextConfig,
+    AudioContext,
+    audiocontext,
     node::oscillator::SinOsc,
+    
 };
 
 fn main() {
-    // let mut graph = StableGraph::<128>::new().chan(4).with_capacity(256, 256);
-    // alternative
-    let mut graph = StableGraph::<16>::new(); // stereo, 1024, 1024
+    // let mut context = AudioContextBuilder::<128>::new()
+    // .sr(44100)
+    // .channels(2)
+    // .max_nodes(1024)
+    // .max_edges(1024)
+    // .build();
 
-    let index = graph.add_mono_node(
+    // // alternative
+    // let mut context = AudioContext::<128>::new(
+    //     AudioContextConfig {
+    //         sr: 44100,
+    //         max_nodes: 256,
+    //         max_edges: 256,
+    //         ..AudioContextConfig::default()
+    //     }
+    // );
+
+    let mut context = audiocontext!(128, {
+        sr: 44100,
+        channels: 2
+    });
+
+    let index = context.add_mono_node(
         // alternative: SinOsc::new().freq(440.).sr(44100)
         SinOsc {
             freq: 440.0,
@@ -18,10 +40,10 @@ fn main() {
     );
 
     // all the process will happen to the destination node
-    graph.connect(index, graph.destination);
+    context.connect(index, context.destination);
 
     // that's all, you can use this graph.next_block() in a callback loop
-    println!("first block {:?}", graph.next_block());
+    println!("first block {:?}", context.next_block());
 }
 
 // real-time communication
