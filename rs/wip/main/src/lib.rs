@@ -3,25 +3,24 @@ use synth::makenode;
 
 use std::collections::HashMap;
 use petgraph::{graph::NodeIndex, stable_graph::StableDiGraph};
-use dasp_graph::{NodeData, BoxedNodeSend, Processor, node::Sum, Buffer }; //Input, NodeBuffer
-
 use glicol_parser::{get_ast, get_num, GlicolPara}; 
-use pest::iterators::Pair;
+use glicol_synth::{AudioContext, AudioContextConfig, NodeData, BoxedNodeSend, Buffer};
 use lcs_diff::{diff, DiffResult};
 
 pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
-pub type GlicolGraph<const N: usize> = StableDiGraph<GlicolNodeData<N>, (), u32>;
-pub type GlicolProcessor<const N: usize> = Processor<GlicolGraph<N>, N>;
+// pub type GlicolGraph<const N: usize> = StableDiGraph<GlicolNodeData<N>, (), u32>;
+// pub type GlicolProcessor<const N: usize> = Processor<GlicolGraph<N>, N>;
 
 // #[derive(Debug)]
 pub struct Engine<'a, const N: usize> {
-    pub graph: GlicolGraph<N>,
-    pub processor: GlicolProcessor<N>,
+    // pub graph: GlicolGraph<N>,
+    // pub processor: GlicolProcessor<N>,
+    pub context: AudioContext<N>,
     code: &'static str,
     ast: HashMap<&'a str, (Vec<&'a str>, Vec<Vec<GlicolPara>>)>,
     new_ast: HashMap<&'a str, (Vec<&'a str>, Vec<Vec<GlicolPara>>)>,
     pub index_info: HashMap<&'a str, Vec<NodeIndex>>,
-    output_index: NodeIndex,
+    // output_index: NodeIndex,
     node_add_list: Vec<(&'a str, usize, GlicolNodeData<N>)>,
     node_remove_list: Vec<(&'a str, usize)>,
     node_update_list: Vec<(&'a str, usize, Vec<GlicolPara>)>,    
@@ -29,16 +28,18 @@ pub struct Engine<'a, const N: usize> {
 
 impl<const N: usize> Engine<'static, N> {
     pub fn new() -> Self {
-        let mut graph = GlicolGraph::<N>::with_capacity(1024, 1024);
-        let output_index = graph.add_node(NodeData::new2(BoxedNodeSend::<N>::new(Sum{})));
+        // let mut graph = GlicolGraph::<N>::with_capacity(1024, 1024);
+        // let output_index = graph.add_node(NodeData::new2(BoxedNodeSend::<N>::new(Sum{})));
+        let mut context = AudioContext::<N>::new(AudioContextConfig::default());
+        // let output_index = context.graph.add_node(NodeData::new2(BoxedNodeSend::<N>::new(Sum{})));
         Self {
-            graph,
-            processor: GlicolProcessor::<N>::with_capacity(1024),
+            context,
+            // processor: GlicolProcessor::<N>::with_capacity(1024),
             ast: HashMap::new(),
             new_ast: HashMap::new(),
             code: "",
             index_info: HashMap::new(),
-            output_index,
+            // output_index,
             node_add_list: vec![],
             node_remove_list: vec![],
             node_update_list: vec![],
@@ -52,7 +53,7 @@ impl<const N: usize> Engine<'static, N> {
         msg: (u8, &str)
     ) {
         let index = self.index_info[chain_name][node_index_in_chain as usize];
-        self.graph[index].node.send_msg(msg);
+        self.context.graph[index].node.send_msg(msg);
     }
 
     // todo pub fn set bpm set sr set seed ...
@@ -157,7 +158,7 @@ impl<const N: usize> Engine<'static, N> {
             if !self.new_ast.contains_key(key) {
                 println!("remove {:?}", key);
                 for index in &self.index_info[key] {
-                    self.graph.remove_node(*index);
+                    self.context.graph.remove_node(*index);
                 }
                 self.index_info.remove_entry(key);       
             }
@@ -170,7 +171,7 @@ impl<const N: usize> Engine<'static, N> {
             if !self.index_info.contains_key(key) {
                 self.index_info.insert(key, vec![]);
             };
-            let nodeindex = self.graph.add_node(nodedata);
+            let nodeindex = self.context.graph.add_node(nodedata);
             if let Some(chain) = self.index_info.get_mut(key) {
                 chain.insert(position_in_chain, nodeindex);
             }
@@ -181,7 +182,7 @@ impl<const N: usize> Engine<'static, N> {
         while !self.node_update_list.is_empty() {
             let (key, position_in_chain, paras) = self.node_update_list.remove(0);
             if let Some(chain) = self.index_info.get_mut(key) {
-                self.graph[chain[position_in_chain]].node.send_msg((0, &get_num(paras[0]).to_string()));
+                self.context.graph[chain[position_in_chain]].node.send_msg((0, &get_num(paras[0]).to_string()));
             }
         }
     }
@@ -190,30 +191,30 @@ impl<const N: usize> Engine<'static, N> {
             let (key, position_in_chain) = self.node_remove_list.remove(0);
             if let Some(chain) = self.index_info.get_mut(key) {
                 let node_index = chain[position_in_chain];
-                self.graph.remove_node(node_index);
+                self.context.graph.remove_node(node_index);
                 chain.remove(position_in_chain);
             }
         }
     }
 
     pub fn handle_connection(&mut self) {
-        self.graph.clear_edges();
+        self.context.graph.clear_edges();
         for (key, chain) in &self.index_info {
             match chain.len() {
                 0 => {},
                 1 => {
-                    self.graph.add_edge(chain[0], self.output_index, ());
+                    self.context.graph.add_edge(chain[0], self.context.destination, ());
                 },
                 2 => {
-                    self.graph.add_edge(chain[0], chain[1], ());
-                    self.graph.add_edge(chain[1], self.output_index, ());
+                    self.context.graph.add_edge(chain[0], chain[1], ());
+                    self.context.graph.add_edge(chain[1], self.context.destination, ());
                 },
                 _ => {
                     for i in 0..chain.len() - 1 {
                         if i == chain.len() - 1 {
-                            self.graph.add_edge(chain[i], self.output_index ,());
+                            self.context.graph.add_edge(chain[i], self.context.destination ,());
                         } else {
-                            self.graph.add_edge(chain[i],chain[i+1] ,());
+                            self.context.graph.add_edge(chain[i],chain[i+1] ,());
                         }
                     }
                 }
@@ -222,8 +223,8 @@ impl<const N: usize> Engine<'static, N> {
     }
 
     pub fn next_block(&mut self) -> &[Buffer<N>] {  //  -> &Vec<Buffer<N>> 
-        self.processor.process(&mut self.graph, self.output_index);
-        println!("result {:?}", &self.graph[self.output_index].buffers);
-        &self.graph[self.output_index].buffers
+        self.context.processor.process(&mut self.context.graph, self.context.destination);
+        println!("result {:?}", &self.context.graph[self.context.destination].buffers);
+        &self.context.graph[self.context.destination].buffers
     }
 }

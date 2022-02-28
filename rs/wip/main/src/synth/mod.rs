@@ -8,7 +8,7 @@ use {
     operator::{Mul},
 };
 
-use dasp_graph::{NodeData, BoxedNodeSend}; //, Processor, Buffer, Input, Node
+use glicol_synth::{NodeData, BoxedNodeSend}; //, Processor, Buffer, Input, Node
 use glicol_parser::{GlicolPara, get_num};
 // use pest::iterators::Pair;
 

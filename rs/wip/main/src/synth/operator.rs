@@ -1,4 +1,4 @@
-use dasp_graph::{NodeData, BoxedNodeSend, Processor, Buffer, Input, Node};
+use glicol_synth::{NodeData, BoxedNodeSend, Processor, Buffer, Input, Node};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Mul<const N:usize> { val: f32 }

@@ -8,8 +8,8 @@ use petgraph::visit::{
 use petgraph::{Incoming, Outgoing};
 use petgraph::{
     graph::NodeIndex,
-    stable_graph::StableDiGraph,
-    graph::DiGraph,
+    // stable_graph::StableGraph,
+    // graph::Graph,
     prelude::EdgeIndex
 };
 
@@ -22,8 +22,8 @@ pub use node::{Sum};
 mod buffer;
 pub mod node;
 
-pub mod graph;
-pub use graph::StableGraph;
+// pub mod graph;
+// pub use graph::StableGraph;
 
 pub struct AudioContextBuilder<const N: usize> {
     sr: usize,
@@ -116,13 +116,13 @@ macro_rules! audiocontext {
 }
 
 pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
-pub type GlicolGraph<const N: usize> = StableDiGraph<GlicolNodeData<N>, (), u32>;
+pub type GlicolGraph<const N: usize> = petgraph::stable_graph::StableDiGraph<GlicolNodeData<N>, (), u32>;
 pub type GlicolProcessor<const N: usize> = Processor<GlicolGraph<N>, N>;
 
 pub struct AudioContext<const N: usize> {
     pub destination: NodeIndex,
-    graph: GlicolGraph<N>,
-    processor: GlicolProcessor<N>
+    pub graph: GlicolGraph<N>,
+    pub processor: GlicolProcessor<N>
 }
 
 impl<const N: usize> AudioContext<N> {

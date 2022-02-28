@@ -4,28 +4,28 @@ use glicol_synth::{
     AudioContext,
     audiocontext,
     node::oscillator::SinOsc,
-    
 };
 
 fn main() {
-    // let mut context = AudioContextBuilder::<128>::new()
-    // .sr(44100)
-    // .channels(2)
-    // .max_nodes(1024)
-    // .max_edges(1024)
-    // .build();
+    let mut context = AudioContextBuilder::<128>::new()
+    .sr(44100)
+    .channels(2)
+    .max_nodes(1024)
+    .max_edges(1024)
+    .build();
 
-    // // alternative
-    // let mut context = AudioContext::<128>::new(
-    //     AudioContextConfig {
-    //         sr: 44100,
-    //         max_nodes: 256,
-    //         max_edges: 256,
-    //         ..AudioContextConfig::default()
-    //     }
-    // );
+    // another option
+    let mut _context = AudioContext::<128>::new(
+        AudioContextConfig {
+            sr: 44100,
+            max_nodes: 256,
+            max_edges: 256,
+            ..AudioContextConfig::default()
+        }
+    );
 
-    let mut context = audiocontext!(128, {
+    // yet another option
+    let mut _context = audiocontext!(128, {
         sr: 44100,
         channels: 2
     });

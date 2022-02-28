@@ -1,4 +1,4 @@
-use dasp_graph::{Buffer, Input, Node, NodeData, BoxedNodeSend};
+use glicol_synth::{Buffer, Input, Node, NodeData, BoxedNodeSend};
 
 #[derive(Debug, Copy, Clone)]
 pub struct SinOsc<const N: usize> {

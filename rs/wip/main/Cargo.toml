@@ -6,9 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-petgraph = "0.5.1"
-dasp_graph = { path = "../dasp_graph" }
+petgraph = { version = "0.6",  features = ["stable_graph"] }
+# dasp_graph = { path = "../dasp_graph" }
 glicol_parser = { path = "../parser" }
+glicol_synth = { path = "../synth" }
 lcs-diff = "*"
 pest = "*"
 
