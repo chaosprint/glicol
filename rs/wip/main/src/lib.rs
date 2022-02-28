@@ -2,7 +2,7 @@ pub mod synth;
 use synth::makenode;
 
 use std::collections::HashMap;
-use petgraph::{graph::NodeIndex, stable_graph::StableDiGraph};
+use petgraph::{graph::NodeIndex};
 use glicol_parser::{get_ast, get_num, GlicolPara}; 
 use glicol_synth::{AudioContext, AudioContextConfig, NodeData, BoxedNodeSend, Buffer};
 use lcs_diff::{diff, DiffResult};
@@ -30,7 +30,7 @@ impl<const N: usize> Engine<'static, N> {
     pub fn new() -> Self {
         // let mut graph = GlicolGraph::<N>::with_capacity(1024, 1024);
         // let output_index = graph.add_node(NodeData::new2(BoxedNodeSend::<N>::new(Sum{})));
-        let mut context = AudioContext::<N>::new(AudioContextConfig::default());
+        let context = AudioContext::<N>::new(AudioContextConfig::default());
         // let output_index = context.graph.add_node(NodeData::new2(BoxedNodeSend::<N>::new(Sum{})));
         Self {
             context,
@@ -85,7 +85,7 @@ impl<const N: usize> Engine<'static, N> {
             if self.ast.contains_key(key) {
                 let old_chain = &self.ast[key].0;
                 let new_chain = &node_info_tuple.0;
-                let old_chain_para = &self.ast[key].1;
+                // let old_chain_para = &self.ast[key].1;
                 let new_chain_para = &node_info_tuple.1;
                 for action in diff(old_chain, new_chain) {
                     match action {
@@ -199,7 +199,7 @@ impl<const N: usize> Engine<'static, N> {
 
     pub fn handle_connection(&mut self) {
         self.context.graph.clear_edges();
-        for (key, chain) in &self.index_info {
+        for (_key, chain) in &self.index_info {
             match chain.len() {
                 0 => {},
                 1 => {

@@ -304,6 +304,42 @@ class GlicolEngine extends AudioWorkletProcessor {
                     this._size
                 )
                 }
+            } else if (e.data.type === "stereosamples") {
+              if(this._wasm) {
+                // console.log("sample data: ", e.data.sample)
+                // console.log(e.data.name)
+
+                let s = e.data.sample
+                // let s = Float32Array.from(_s, i => i/32768.0)
+
+                sampleLength = s.length;
+                samplePtr = this._wasm.exports.alloc(sampleLength);
+                sampleArray = new Float32Array(
+                    this._wasm.exports.memory.buffer,
+                    samplePtr,
+                    sampleLength
+                );
+
+                this.ptrArr.push(samplePtr)
+                this.lenArr.push(sampleLength)
+
+                sampleArray.set(s);
+                
+                let nameLen = e.data.name.byteLength // the name is added with _stereo_
+                let namePtr = this._wasm.exports.alloc_uint8array(nameLen);
+                let name = new Uint8Array(this._wasm.exports.memory.buffer, namePtr, nameLen);
+                name.set(e.data.name);
+                           
+                this.nameArr.push(namePtr)
+                this.nameLenArr.push(nameLen)
+
+                // need to reset this
+                this._outBuf = new Float32Array(
+                    this._wasm.exports.memory.buffer,
+                    this._outPtr,
+                    this._size
+                )
+              }
             } else if (e.data.type === "bpm") {
                 // this._wasm.exports.set_bpm(e.data.value);
             } else if (e.data.type === "amp") {
@@ -357,7 +393,7 @@ class GlicolEngine extends AudioWorkletProcessor {
                 this._wasm.exports.update(codeUint8ArrayPtr, codeLen)
             } else if (e.data.type === "sab") {
                 this._param_reader = new TextParameterReader(new RingBuffer(e.data.data, Uint8Array));
-            }  else if (e.data.type === "result") {
+            } else if (e.data.type === "result") {
                 this._result_reader = new TextParameterReader(new RingBuffer(e.data.data, Uint8Array));
             } else {
                 throw "unexpected.";
