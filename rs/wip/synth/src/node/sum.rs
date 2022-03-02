@@ -1,4 +1,4 @@
-use crate::{Buffer, Input, Node};
+use crate::{Buffer, Input, Node, Message};
 
 /// A stateless node that sums each of the inputs onto the output.
 ///
@@ -38,7 +38,7 @@ impl<const N: usize> Node<N> for Sum {
             }
         }
     }
-    fn send_msg(&mut self, _info: (u8, &str)) {
+    fn send_msg(&mut self, _info: Message) {
         
     }
 }
@@ -64,7 +64,7 @@ impl<const N: usize> Node<N> for SumBuffers {
             out_buffer.copy_from_slice(out_buffer_first);
         }
     }
-    fn send_msg(&mut self, _info: (u8, &str)) {
+    fn send_msg(&mut self, _info: Message) {
         
     }
 }

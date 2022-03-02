@@ -1,4 +1,4 @@
-use crate::{Buffer, Input, Node};
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
 
 #[derive(Debug, Copy, Clone)]
 pub struct SinOsc {
@@ -15,6 +15,13 @@ impl std::default::Default for SinOsc {
             sr: 44100,
         }
     }
+}
+
+impl SinOsc {
+    // pub fn new() -> Self {
+    //     Self::default()
+    // }
+    impl_to_boxed_nodedata!();
 }
 
 impl<const N: usize> Node<N> for SinOsc {
@@ -42,9 +49,16 @@ impl<const N: usize> Node<N> for SinOsc {
             _ => return ()
         }
     }
-    fn send_msg(&mut self, info: (u8, &str)) {
-        if info.0 == 0 && info.1.parse::<f32>().is_ok() {
-            self.freq = info.1.parse::<f32>().unwrap();
+    fn send_msg(&mut self, info: Message) {
+
+        match info {
+            Message::SetToNumber(v) => {
+                match v.0 {
+                    0 => {self.freq = v.1},
+                    _ => {}
+                }
+            }
+            _ => {}
         }
     }
 }

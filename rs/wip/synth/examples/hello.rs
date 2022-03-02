@@ -3,7 +3,7 @@ use glicol_synth::{
     AudioContextConfig,
     AudioContext,
     audiocontext,
-    node::oscillator::SinOsc,
+    oscillator::SinOsc,
 };
 
 fn main() {
@@ -31,7 +31,7 @@ fn main() {
     });
 
     let index = context.add_mono_node(
-        // alternative: SinOsc::new().freq(440.).sr(44100)
+        // alternative: SinOsc::new();
         SinOsc {
             freq: 440.0,
             sr: 44100, // you can replace these two lines with

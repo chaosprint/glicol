@@ -15,12 +15,19 @@ mod pass;
 #[cfg(feature = "node-sum")]
 mod sum;
 
-pub use oscillator::SinOsc;
-pub mod oscillator;
+mod oscillator;
+mod operator;
+mod signal;
+
+pub use oscillator::*;
+pub use operator::*;
+pub use signal::*;
+
+use crate::Message;
 
 pub trait Node<const N: usize> {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]);
-    fn send_msg(&mut self, info: (u8, &str));
+    fn send_msg(&mut self, info: Message);
 }
 
 pub struct Input<const N: usize> {
@@ -68,7 +75,7 @@ where
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         (**self).process(inputs, output)
     }
-    fn send_msg(&mut self, info: (u8, &str)) {
+    fn send_msg(&mut self, info: Message) {
         (**self).send_msg(info)
     }
 }
@@ -80,7 +87,7 @@ where
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         (**self).process(inputs, output)
     }
-    fn send_msg(&mut self, _info: (u8, &str)) {
+    fn send_msg(&mut self, _info: Message) {
     }
 }
 
@@ -88,7 +95,7 @@ impl<const N: usize> Node<N> for dyn Fn(&[Input<N>], &mut [Buffer<N>]) {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         (*self)(inputs, output)
     }
-    fn send_msg(&mut self, _info: (u8, &str)) {
+    fn send_msg(&mut self, _info: Message) {
     }
 }
 
@@ -97,7 +104,7 @@ impl<const N: usize> Node<N> for dyn FnMut(&[Input<N>], &mut [Buffer<N>]) {
         (*self)(inputs, output)
     }
     
-    fn send_msg(&mut self, _info: (u8, &str)) {
+    fn send_msg(&mut self, _info: Message) {
     }
 }
 
@@ -105,6 +112,6 @@ impl<const N: usize> Node<N> for fn(&[Input<N>], &mut [Buffer<N>]) {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         (*self)(inputs, output)
     }
-    fn send_msg(&mut self, _info: (u8, &str)) {
+    fn send_msg(&mut self, _info: Message) {
     }
 }

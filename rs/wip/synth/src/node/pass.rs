@@ -1,4 +1,4 @@
-use crate::{Buffer, Input, Node};
+use crate::{Buffer, Input, Node, Message};
 
 /// A simple node that passes an input directly to the output.
 ///
@@ -20,7 +20,7 @@ impl<const N: usize> Node<N> for Pass {
             out_buf.copy_from_slice(in_buf);
         }
     }
-    fn send_msg(&mut self, _info: (u8, &str)) {
+    fn send_msg(&mut self, _info: Message) {
         
     }
 }

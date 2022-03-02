@@ -1,50 +1,17 @@
-// it is possible to denote a node id
-// we use the counter example again
-
-use petgraph::stable_graph::{StableDiGraph};
-use glicol_synth::{NodeData, BoxedNodeSend, Processor, Buffer, Input, Node};
-
-pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
-pub type GlicolGraph<const N: usize> = StableDiGraph<GlicolNodeData<N>, (), u32>;
-pub type GlicolProcessor<const N: usize> = Processor<GlicolGraph<N>, N>;
+use glicol_synth::{AudioContextBuilder, Buffer, Input, Node, Message, ConstSig};
 
 #[derive(Debug, Copy, Clone)]
-struct Counter<const N:usize> { n: usize }
-
-impl<const N:usize> Counter<N> {
-    pub fn new() -> NodeData<BoxedNodeSend<N>, N> {
-        NodeData::new1( BoxedNodeSend::<N>::new( Self { n:0 } ) )
-    }
-}
-
-impl<const N:usize> Node<N> for Counter<N> {
-    fn process(&mut self, _inputs: &[Input<N>], output: &mut [Buffer<N>]) {
-        for i in 0..N {
-            output[0][i] = self.n as f32;
-            self.n += 1;
-        }
-    }
-    fn send_msg(&mut self, info: (u8, &str)) {
-        if info.0 == 0 {
-            self.n = info.1.parse::<f32>().unwrap() as usize;
-        }
-    }
-}
-
-#[derive(Debug, Copy, Clone)]
-struct Powf<const N:usize> { 
+struct Powf {
     val: f32,
-    main_input_node_id: usize,
-    sidechain_node_id: usize, // in this example, we don't need more sidechain
+    main_input: usize,
+    sidechain_input: usize,
 }
 
-impl<const N:usize> Powf<N> {
-    pub fn new(val: f32) -> NodeData<BoxedNodeSend<N>, N> {
-        NodeData::new1( BoxedNodeSend::<N>::new( Self { val, main_input_node_id: 0, sidechain_node_id: 1 } ) )
-    }
+impl Powf {
+    pub fn new(val: f32) -> Self { Self {val, main_input:0, sidechain_input:0 } }
 }
 
-impl<const N:usize> Node<N> for Powf<N> {
+impl<const N:usize> Node<N> for Powf {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
         match inputs.len() {
             1 => {
@@ -53,38 +20,19 @@ impl<const N:usize> Node<N> for Powf<N> {
                 }
             },
             2 => {
-                let mut main = &inputs[0]; 
-                let mut sidechain = &inputs[1];
-
-                // match inputs[0].node_id {
-                //     self.main_input_node_id => { },
-                //     self.sidechain_node_id => {},
-                //     _ => {}
-                // };
-
-                // match inputs[0].node_id {
-                //     self.main_input_node_id => { },
-                //     self.sidechain_node_id => {},
-                //     _ => {}
-                // };
-
-                if self.main_input_node_id == inputs[0].node_id {
-                    main = &inputs[0]
-                } else if self.sidechain_node_id == inputs[0].node_id {
-                    sidechain = &inputs[0]
+                let mut main = &inputs[1];
+                let mut sidechain = &inputs[0];
+                
+                if self.main_input == inputs[0].node_id {
+                    main = &inputs[0];
+                    sidechain = &inputs[1];
                 }
-
-                if self.main_input_node_id == inputs[1].node_id {
-                    main = &inputs[1]
-                } else if self.sidechain_node_id == inputs[1].node_id  {
-                    sidechain = &inputs[1]
+                
+                if self.sidechain_input == inputs[1].node_id {
+                    main = &inputs[0];
+                    sidechain = &inputs[1];
                 }
-
-                println!("inputs[0] {}", inputs[0].node_id);
-                println!("inputs[1] {}", inputs[1].node_id);
-                // let main = match inputs[0] {
-
-                // }
+                
                 for i in 0..N {
                     output[0][i] = main.buffers()[0][i].powf(sidechain.buffers()[0][i]);
                 }
@@ -92,66 +40,46 @@ impl<const N:usize> Node<N> for Powf<N> {
             _ => {}
         }
     }
-    fn send_msg(&mut self, info: (u8, &str)) {
-        match info.1 {
-            "main" => {
-                self.main_input_node_id = info.0 as usize;
-            } // is the main input,
-            "sidechain" => {
-                self.sidechain_node_id = info.0 as usize;
+    fn send_msg(&mut self, info: Message) {
+        match info {
+            Message::MainInput(v) => {
+                self.main_input = v.index();
+                
+            },
+            Message::SidechainInput(v) => {
+                self.sidechain_input = v.index();
             },
             _ => {}
         }
     }
 }
 
-#[derive(Debug, Copy, Clone)]
-struct ConstSig<const N:usize> { val: f32 }
-
-impl<const N:usize> ConstSig<N> {
-    pub fn new(val: f32) -> NodeData<BoxedNodeSend<N>, N> {
-        // NodeData::new1( Self {val} )
-        NodeData::new1( BoxedNodeSend::<N>::new( Self {val} ) )
-    }
-}
-
-impl<const N:usize> Node<N> for ConstSig<N> {
-    fn process(&mut self, _inputs: &[Input<N>], output: &mut [Buffer<N>]) {
-        for i in 0..N {
-            output[0][i] = self.val;
-        }
-    }
-    fn send_msg(&mut self, info: (u8, &str)) {
-        if info.0 == 0 {
-            self.val = info.1.parse::<f32>().unwrap();
-        }
-    }
-}
-
-pub enum Msg {
-    InputOrder((u8, usize))
-}
-
 fn main() {
-    let mut graph = GlicolGraph::<128>::with_capacity(1024, 1024);
+    let mut context = AudioContextBuilder::<128>::new().channels(1).build();
 
-    let node_index_a = graph.add_node( Counter::<128>::new());
-    let node_index_b = graph.add_node( Powf::<128>::new(0.5));
-    let node_index_c = graph.add_node( ConstSig::<128>::new(2.)); // this 42 will overide 0.5
+    let node_index_a = context.add_mono_node( ConstSig::new(2.0) );
 
+    // node b is a powf node, see its def above
+    // when it has two input,
+    // it use the main input as the base, to the power of the sidechain input
+    let node_index_b = context.add_mono_node( Powf::new(1.0) );
+    let node_index_c = context.add_mono_node( ConstSig::new(3.0) );
 
-    // we don't need the edge index here 
-    let _e1 = graph.add_edge(node_index_a, node_index_b, ());
-    let _e2 = graph.add_edge(node_index_c, node_index_b, ());
+    // node a goes to b first, so node a is the main input of node b
+    let _ = context.connect(node_index_a, node_index_b);
+    // node c goes to b second, so node c is the sidechain input
+    let _ = context.connect(node_index_c, node_index_b);
+    let _ = context.connect(node_index_b, context.destination);
 
-    // we can tell node b which is the main input, and which one is the sidechain
-    graph[node_index_b].node.send_msg((node_index_c.index() as u8, "sidechain"));
+    // get lots of 8.0, because main input is 2, sidechain is 3
+    // 2 to the power of 3, that's 8
+    println!("result {:?}", context.next_block());
 
-    // comment out the line above and try this instead
-    // graph[node_index_b].node.send_msg((node_index_c.index() as u8, "main"));
+    // we can set node c as the main input of b
+    context.send_msg(node_index_b, Message::MainInput(node_index_c));
 
-    let mut processor = GlicolProcessor::with_capacity(1024);
-    processor.process(&mut graph, node_index_b);
-    println!("node_index_a result {:?}", graph[node_index_b].buffers);
-
+    // then we get a lot of 9.0
+    // as the main input is now 3.0; sidechain is 2.0
+    // 3.0^2.0 = 9.0
+    println!("result {:?}", context.next_block());
 }

@@ -1,4 +1,4 @@
-use glicol_synth::{node::SinOsc, NodeData, BoxedNodeSend, Processor};
+use glicol_synth::{SinOsc, NodeData, BoxedNodeSend, Processor, Message};
 use petgraph::stable_graph::{StableDiGraph};
 
 pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
@@ -8,20 +8,14 @@ pub type GlicolProcessor<const N: usize> = Processor<GlicolGraph<N>, N>;
 fn main() {
     let mut graph = GlicolGraph::<128>::with_capacity(1024, 1024);
 
-    let index = graph.add_node( 
-        NodeData::new1( 
-            BoxedNodeSend::<128>::new(
-                SinOsc::new().freq(440.0).build()
-            ) 
-        )
-    );
+    let index = graph.add_node( SinOsc::default().to_boxed_nodedata(1) );
 
     let mut processor = GlicolProcessor::with_capacity(1024);
     processor.process(&mut graph, index);
 
     println!("result {:?}", graph[index].buffers);
 
-    graph[index].node.send_msg((0, "440.0"));
+    graph[index].node.send_msg(Message::SetToNumber((0, 42.)));
     processor.process(&mut graph, index);
     println!("result after send msg {:?}", graph[index].buffers);
 }
