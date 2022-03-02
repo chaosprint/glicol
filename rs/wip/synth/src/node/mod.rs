@@ -15,9 +15,9 @@ mod pass;
 #[cfg(feature = "node-sum")]
 mod sum;
 
-mod oscillator;
-mod operator;
-mod signal;
+pub mod oscillator;
+pub mod operator;
+pub mod signal;
 
 pub use oscillator::*;
 pub use operator::*;

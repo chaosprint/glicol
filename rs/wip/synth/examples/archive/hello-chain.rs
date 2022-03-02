@@ -1,12 +1,8 @@
 use glicol_synth::{
     AudioContextBuilder,
-    AudioContextConfig,
-    AudioContext,
     audiocontext,
     oscillator::SinOsc,
     operator::Mul,
-    Pass,
-    Node
 };
 
 const SAMPLE_RATE: usize = 44100;
@@ -29,7 +25,3 @@ fn main() {
     context.connect(nodeid_list[nodeid_list.len()-1], context.destination);
     println!("first block {:?}", context.next_block());
 }
-
-// real-time communication
-// graph.send_msg( index, 0, Message::Float(42.) );
-// println!("after msg {:?}", graph.next_block());

@@ -18,9 +18,24 @@ impl std::default::Default for SinOsc {
 }
 
 impl SinOsc {
-    // pub fn new() -> Self {
-    //     Self::default()
-    // }
+    pub fn new() -> Self {
+        Self::default()
+    }
+    pub fn freq(self, freq: f32) -> Self {
+        Self {
+            freq, ..self
+        }
+    }
+    pub fn sr(self, sr: usize) -> Self {
+        Self {
+            sr, ..self
+        }
+    }
+    pub fn phase(self, phase: f32) -> Self {
+        Self {
+            phase, ..self
+        }
+    }
     impl_to_boxed_nodedata!();
 }
 

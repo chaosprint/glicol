@@ -1,6 +1,5 @@
 use glicol_synth::{AudioContextBuilder, Buffer, Input, Node, Message, ConstSig};
 
-#[derive(Debug, Copy, Clone)]
 struct Powf {
     val: f32,
     main_input: usize,
@@ -34,7 +33,9 @@ impl<const N:usize> Node<N> for Powf {
                 }
                 
                 for i in 0..N {
-                    output[0][i] = main.buffers()[0][i].powf(sidechain.buffers()[0][i]);
+                    output[0][i] = main.buffers()[0][i].powf(
+                        sidechain.buffers()[0][i]
+                    );
                 }
             },
             _ => {}
@@ -55,7 +56,7 @@ impl<const N:usize> Node<N> for Powf {
 }
 
 fn main() {
-    let mut context = AudioContextBuilder::<128>::new().channels(1).build();
+    let mut context = AudioContextBuilder::<32>::new().channels(1).build();
 
     let node_index_a = context.add_mono_node( ConstSig::new(2.0) );
 

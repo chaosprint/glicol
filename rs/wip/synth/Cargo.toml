@@ -16,4 +16,5 @@ petgraph = { version = "0.6",  features = ["stable_graph"] }
 dasp_slice = { version = "0.11", default-features = false, features = ["std"], optional = true }
 
 [dev-dependencies]
+gnuplot = "*"
 petgraph = { version = "0.6",  features = ["stable_graph"] }
