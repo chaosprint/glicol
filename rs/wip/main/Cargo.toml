@@ -12,5 +12,6 @@ glicol_parser = { path = "../parser" }
 glicol_synth = { path = "../synth" }
 lcs-diff = "*"
 pest = "*"
+glicol_macros = { path = "../macros" }
 
 # cargo build --target wasm32-unknown-unknown --release

@@ -6,7 +6,7 @@ comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE* ~ !NEWLINE}
 line = ${ reference ~ WHITESPACE* ~ ":" ~ WHITESPACE* ~ chain}
 chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE* ~ node)*  }
 
-node = ${ (seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noiz|onepole|sp|constsig|lpf) }
+node = ${ (seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noiz|onepole|sp|constsig|lpf|onepole) }
 
 //  ~ WHITESPACE* ~ paras ~ (WHITESPACE+ ~ paras)*
 // bd = ${ "bd" ~ WHITESPACE+ ~ float ~ WHITESPACE+ ~ float }
@@ -24,11 +24,11 @@ squ = ${"squ" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 tri = ${"tri" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 pan = ${"pan" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 constsig = ${"constsig" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+onepole = ${"onepole" ~ WHITESPACE+ ~ !node_name ~ ( number | reference) }
 
 // single float
 speed = ${"speed" ~ WHITESPACE+ ~ float}
 noiz = ${("noiz"|"noise") ~ WHITESPACE+ ~ float}
-onepole = ${"onepole" ~ WHITESPACE+ ~ float}
 sp = ${("sp"|"sampler") ~ WHITESPACE+ ~ symbol }
 // paras = ${  float | symbol | seq | reference}
 number = ${ float | integer}
