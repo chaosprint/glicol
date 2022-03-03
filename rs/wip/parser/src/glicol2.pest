@@ -4,7 +4,7 @@
 block = ${ SOI ~ ("\n"|WHITESPACE)* ~ ( (line|comment) ~ WHITESPACE* ~ ";"? ~ WHITESPACE* ~ ("\n" ~ WHITESPACE*)* )* ~ EOI}
 comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE* ~ !NEWLINE}
 line = ${ reference ~ WHITESPACE* ~ ":" ~ WHITESPACE* ~ chain}
-chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE+ ~ node)*  }
+chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE* ~ node)*  }
 
 node = ${ (seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noiz|onepole|sp|constsig|lpf) }
 

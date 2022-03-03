@@ -15,9 +15,20 @@ impl Mul {
 
 impl<const N:usize> Node<N> for Mul {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
-        for i in 0..N {
-            output[0][i] = inputs[0].buffers()[0][i] * self.val;
+        match inputs.len() {
+            1 => {
+                for i in 0..N {
+                    output[0][i] = inputs[0].buffers()[0][i] * self.val;
+                }
+            },
+            2 => {
+                for i in 0..N {
+                    output[0][i] = inputs[0].buffers()[0][i] * inputs[1].buffers()[0][i];
+                }
+            },
+            _ => {}
         }
+        
     }
     fn send_msg(&mut self, info: Message) {
         match info {

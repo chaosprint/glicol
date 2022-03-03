@@ -15,13 +15,10 @@ mod pass;
 #[cfg(feature = "node-sum")]
 mod sum;
 
-pub mod oscillator;
-pub mod operator;
-pub mod signal;
-
-pub use oscillator::*;
-pub use operator::*;
-pub use signal::*;
+pub mod oscillator; pub use oscillator::*;
+pub mod operator; pub use operator::*;
+pub mod signal; pub use signal::*;
+pub mod filter; pub use filter::*;
 
 use crate::Message;
 

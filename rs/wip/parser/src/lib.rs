@@ -10,10 +10,10 @@ use std::collections::HashMap;
 pub struct GlicolParser;
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-pub enum GlicolPara {
+pub enum GlicolPara<'a> {
     Number(f32),
-    Reference(&'static str),
-    Symbol(&'static str),
+    Reference(&'a str),
+    Symbol(&'a str),
     // Seq(&'static str),
 }
 
@@ -71,23 +71,48 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                     Rule::sin => {
                                         println!("node {:?}", node.as_str()); //"sin 440"
                                         let paras = node.into_inner().next().unwrap();
-                                        println!("paras {:?}", paras.as_str());//"440"
+                                        println!("paras {:?}", paras.as_str());//"440"                                        
                                         chain_node_names.push("sin");
-                                        chain_paras.push(vec![GlicolPara::Number(paras.as_str().parse::<f32>().unwrap())]);
+                                        match paras.as_rule() {
+                                            Rule::number => {
+                                                chain_paras.push(vec![GlicolPara::Number(paras.as_str().parse::<f32>().unwrap())]);
+                                            },
+                                            Rule::reference => {
+                                                chain_paras.push(vec![GlicolPara::Reference(paras.as_str())]);
+                                            },
+                                            _ => {}
+                                        }
+                                        
                                     },
                                     Rule::mul => {
                                         println!("node {:?}", node.as_str());
                                         let paras = node.into_inner().next().unwrap();
                                         println!("paras {:?}", paras.as_str());
                                         chain_node_names.push("mul");
-                                        chain_paras.push(vec![GlicolPara::Number(paras.as_str().parse::<f32>().unwrap())]);
+                                        match paras.as_rule() {
+                                            Rule::number => {
+                                                chain_paras.push(vec![GlicolPara::Number(paras.as_str().parse::<f32>().unwrap())]);
+                                            },
+                                            Rule::reference => {
+                                                chain_paras.push(vec![GlicolPara::Reference(paras.as_str())]);
+                                            },
+                                            _ => {}
+                                        }
                                     },
                                     Rule::add => {
                                         println!("node {:?}", node.as_str());
                                         let paras = node.into_inner().next().unwrap();
                                         println!("paras {:?}", paras.as_str());
                                         chain_node_names.push("add");
-                                        chain_paras.push(vec![GlicolPara::Number(paras.as_str().parse::<f32>().unwrap())]);
+                                        match paras.as_rule() {
+                                            Rule::number => {
+                                                chain_paras.push(vec![GlicolPara::Number(paras.as_str().parse::<f32>().unwrap())]);
+                                            },
+                                            Rule::reference => {
+                                                chain_paras.push(vec![GlicolPara::Reference(paras.as_str())]);
+                                            },
+                                            _ => {}
+                                        }
                                     },
                                     Rule::seq => {
                                         println!("node {:?}", node.as_str());
