@@ -25,6 +25,7 @@ pub struct Engine<'a, const N: usize> {
     node_remove_list: Vec<(&'a str, usize)>,
     node_update_list: Vec<(&'a str, usize, Vec<GlicolPara<'a>>)>,
     refpairlist: Vec<(Vec<&'a str>, (&'a str, usize))>,
+    pub samples_dict: HashMap<&'a str, (&'a [f32], usize)>
 }
 
 impl<const N: usize> Engine<'static, N> {
@@ -44,8 +45,13 @@ impl<const N: usize> Engine<'static, N> {
             node_add_list: vec![],
             node_remove_list: vec![],
             node_update_list: vec![],
-            refpairlist: vec![]
+            refpairlist: vec![],
+            samples_dict: HashMap::new()
         }
+    }
+
+    pub fn add_sample(&mut self, info: (&'static str, &'static [f32], usize) ) {
+        self.samples_dict.insert(info.0, (info.1, info.2));
     }
 
     pub fn send_msg(

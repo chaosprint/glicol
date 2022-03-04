@@ -94,6 +94,23 @@ pub extern "C" fn process(in_ptr: *mut f32, out_ptr: *mut f32, size: usize) {
 // }
 
 #[no_mangle]
+pub extern "C" fn add_sample(
+    name_ptr: *mut u8,
+    name_len: usize,
+    arr_ptr: *mut f32, 
+    length: usize, 
+    channels: usize
+) {
+    let mut engine = ENGINE.lock().unwrap();
+    let encoded:&mut [u8] = unsafe { from_raw_parts_mut(name_ptr, name_len) };
+    let name = std::str::from_utf8(encoded).unwrap();
+    let sample:&mut [f32] = unsafe { from_raw_parts_mut(arr_ptr, length) };
+    engine.add_sample((name, sample, channels));
+    // engine.update(code);
+}
+
+
+#[no_mangle]
 pub extern "C" fn update(arr_ptr: *mut u8, length: usize) {
     let mut engine = ENGINE.lock().unwrap();
     let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
