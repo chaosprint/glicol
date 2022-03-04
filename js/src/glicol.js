@@ -1,6 +1,6 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
-window.version = "v0.8.13"
+// window.version = "v0.8.13"
 const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 
 window.loadDocs = async () => {
@@ -751,7 +751,7 @@ window.runCode = (code) => {
 
   try {
     window.node.port.postMessage({
-      type: "run",
+      type: "update",
       value: window.encoder.encode(code)
     })
   } catch (e) {

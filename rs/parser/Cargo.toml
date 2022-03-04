@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 pest = "*"
 pest_derive = "*"
+glicol_macros = {path = "../macros"}
