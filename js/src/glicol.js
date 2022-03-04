@@ -152,7 +152,7 @@ window.sampleCount = () => {
 
 window.loadSamples = async () => {
     // window.actx.suspend()
-    ['bd0000', 'clav-delay-pan-loop-68'].forEach(async name=>{
+    ['bd0000', 'clav', "pandrum", "panfx"].forEach(async name=>{
       let myRequest = new Request(`./assets/${name}.wav`);
       await fetch(myRequest).then(response => response.arrayBuffer())
       .then(arrayBuffer => {
