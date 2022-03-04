@@ -1,30 +1,58 @@
-block = ${ SOI ~ ("\n"|WHITESPACE)* ~ ( (line|comment) ~ WHITESPACE* ~ ";"? ~ WHITESPACE* ~ ("\n" ~ WHITESPACE*)* )+ ~ EOI}
+// this solution compared with previous one, checks each node during parsing
+// this can capture most of the errors, but yet it is necessary to report things earlier
+
+block = ${ SOI ~ ("\n"|WHITESPACE)* ~ ( (line|comment) ~ WHITESPACE* ~ ";"? ~ WHITESPACE* ~ ("\n" ~ WHITESPACE*)* )* ~ EOI}
 comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE* ~ !NEWLINE}
-line = ${ reference ~ WHITESPACE+? ~ ":" ~ WHITESPACE+? ~ chain}
-chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE+ ~ node)*  }
-node = ${ name ~ WHITESPACE* ~ paras ~ (WHITESPACE+ ~ paras)* }
-paras = ${  float | symbol | seq | reference | string }
-float = ${ (("+" | "-")? ~ ASCII_DIGIT+) ~ "." ~ ASCII_DIGIT* ~ (^"e" ~ "-"? ~ ASCII_DIGIT+)? }
+line = ${ reference ~ WHITESPACE* ~ ":" ~ WHITESPACE* ~ chain}
+chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE* ~ node)*  }
+
+node = ${ (seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noiz|onepole|sp|constsig|lpf|onepole|imp) }
+
+//  ~ WHITESPACE* ~ paras ~ (WHITESPACE+ ~ paras)*
+// bd = ${ "bd" ~ WHITESPACE+ ~ float ~ WHITESPACE+ ~ float }
+// sn = ${ "sn" ~ WHITESPACE+ ~ float ~ WHITESPACE+ ~ float }
+
+seq = ${ "seq" ~ WHITESPACE+ ~ compound_notes }
+choose = ${ "choose" ~ WHITESPACE+ ~ integer ~ (WHITESPACE+ ~ integer)*}
+
+lpf = ${"lpf" ~ WHITESPACE+ ~ !node_name ~ (number | reference) ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
+mul = ${"mul" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+imp = ${"imp" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+add = ${"add" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+sin = ${"sin" ~ WHITESPACE+ ~ !node_name ~ ( number | reference) }
+saw = ${"saw" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+squ = ${"squ" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+tri = ${"tri" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+pan = ${"pan" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+constsig = ${"constsig" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+onepole = ${"onepole" ~ WHITESPACE+ ~ !node_name ~ ( number | reference) }
+
+// single float
+speed = ${"speed" ~ WHITESPACE+ ~ float}
+noiz = ${("noiz"|"noise") ~ WHITESPACE+ ~ float}
+sp = ${("sp"|"sampler") ~ WHITESPACE+ ~ !( node_name | reference | number ) ~ symbol }
+// paras = ${  float | symbol | seq | reference}
+number = ${ float | integer}
+float = ${ (("+" | "-")? ~ ASCII_DIGIT+) ~ "." ~ ASCII_DIGIT* ~ (^"e" ~ integer)? }
 symbol = ${ "\\" ~ ASCII_ALPHANUMERIC* ~ "_"? ~ ASCII_DIGIT* }
-seq = @{ compound ~ (WHITESPACE+ ~ compound)*}
+compound_notes = @{ compound ~ (WHITESPACE+ ~ compound)*}
 compound = ${ note+ }
-note = ${ midi | rest | reference }
-string = ${ "`" ~ inner ~ "`" }
-inner = @{ char* }
-char = {
-    !("`" | "\\") ~ ANY
-    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
-    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
-}
+note = ${ integer | rest | reference }
 reference = ${ ("~"|"_")? ~ ASCII_ALPHA_LOWER+ ~ ("_" | ASCII_ALPHA_LOWER | ASCII_DIGIT )* }
-name = ${"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|
+rest = ${ "_" }
+integer = ${ (ASCII_DIGIT)+ ~ !"." }
+WHITESPACE = _{" "|","|"|"|"\t"}
+
+node_name = ${"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|
 "linrange"|"apfdecay"|"delayn"|"delaymod"|
 "sin"|"squ"|"imp"|"envperc"|"sampler"|"noiz"|"lpf"|"plate"|"onepole"|
 "hpf"|"pha"|"buf"|"state"|"freeverb"|"pan"|"delay"|"apfgain"|"comb"|"mix"|"monosum"|
-"const_sig"|"*"|"sp"|"spd"|"tri"|"noise"|"amplfo"|"balance"|"rlpf"|"rhpf"|"kick"|"ks"|
+"const_sig"|"constsig"|"*"|"sp"|"spd"|"tri"|"noise"|"amplfo"|"balance"|"rlpf"|"rhpf"|"kick"|"ks"|
 "pha"|"shape"|"sawsynth"|"saw"|"script"|"closure"| "r" }
-rest = ${ "_" }
-midi = ${ (ASCII_DIGIT)+ ~ !"." }
-WHITESPACE = _{" "|","|"|"}
 
-// name is now required!
+// name = ${"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|"apfdecay"|"delayn"|"delaymod"|
+// "sin"|"squ"|"imp"|"noiz"|"onepole"|"sampler"|"sp"|"sp"|"spd"|
+// "envperc"|"lpf"|"plate"|"hpf"|
+// "pha"|"buf"|"state"|"pan"|"delay"|"apfgain"|"comb"|"mix"|"monosum"|
+// "const_sig"|"*"|"tri"|"noise"|"amplfo"|"balance"|"rlpf"|"rhpf"|"kick"|"ks"|
+// "pha"|"shape"|"sawsynth"|"saw"}

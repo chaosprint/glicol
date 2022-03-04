@@ -1,8 +1,9 @@
 use glicol_synth::{
     oscillator::{SinOsc, SquOsc, TriOsc, SawOsc},
     filter::{ResonantLowPassFilter, OnePole},
-    signal::{ConstSig},
+    signal::{ConstSig, Impulse},
     operator::{Mul, Add},
+    sampling::Sampler,
 };
 
 use glicol_synth::{NodeData, BoxedNodeSend}; //, Processor, Buffer, Input, Node
@@ -16,11 +17,21 @@ pub fn makenode<'a, const N: usize>(
     name: &str,
     paras: &mut Vec<GlicolPara<'a>>,
     // pos: (usize, usize),
-    // samples_dict: &HashMap<String, &'static[f32]>,
+    samples_dict: &std::collections::HashMap<&'a str, (&'static[f32], usize)>,
     // sr: usize,
     // bpm: f32,
 ) -> (GlicolNodeData<N>, Vec<&'a str>) {
     let (nodedata, reflist) = match name {
+        "sp" => {
+            match paras[0] {
+                GlicolPara::Symbol(s) => {
+                    (Sampler::new(samples_dict[s]).to_boxed_nodedata(2), vec![])
+                }
+                _ => {
+                    unimplemented!();
+                }
+            }
+        },
         "lpf" => {
             let data = ResonantLowPassFilter::new().cutoff(
                 match paras[0] {
@@ -110,15 +121,13 @@ pub fn makenode<'a, const N: usize>(
             }
             
         },
-        "mul" => get_one_para_from_number_or_ref!(Mul),
-        "onepole" => get_one_para_from_number_or_ref!(OnePole),
-        "add" => {
+        "imp" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (Add::new(v).to_boxed_nodedata(1), vec![])
+                    (Impulse::new().freq(v).to_boxed_nodedata(1), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (Add::new(0.0).to_boxed_nodedata(1), vec![s])
+                    (Impulse::new().freq(0.0).to_boxed_nodedata(1), vec![s])
                 },
                 _ => {
                     unimplemented!();
@@ -126,17 +135,11 @@ pub fn makenode<'a, const N: usize>(
             }
             
         },
-        "constsig" => {
-            match paras[0] {
-                GlicolPara::Number(v) => {
-                    (ConstSig::new(v).to_boxed_nodedata(1), vec![])
-                },
-                _ => {
-                    unimplemented!();
-                }
-            }
-        },
-        _ => unimplemented!(),
+        "mul" => get_one_para_from_number_or_ref!(Mul),
+        "onepole" => get_one_para_from_number_or_ref!(OnePole),
+        "add" => get_one_para_from_number_or_ref!(Add),
+        "constsig" => get_one_para_from_number_or_ref!(ConstSig),
+        _ => unimplemented!()
     };
     return (nodedata, reflist)
 }

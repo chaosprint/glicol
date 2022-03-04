@@ -50,8 +50,8 @@ impl<const N: usize> Engine<'static, N> {
         }
     }
 
-    pub fn add_sample(&mut self, info: (&'static str, &'static [f32], usize) ) {
-        self.samples_dict.insert(info.0, (info.1, info.2));
+    pub fn add_sample(&mut self, name:&'static str, sample: &'static [f32], channels: usize ) {
+        self.samples_dict.insert(name, (sample, channels));
     }
 
     pub fn send_msg(
@@ -118,7 +118,7 @@ impl<const N: usize> Engine<'static, N> {
                             let insert_i = v.new_index.unwrap();
                             let nodename = v.data;
                             let mut paras = new_chain_para[new_i].clone();
-                            let (nodedata, reflist) = makenode(nodename, &mut paras);
+                            let (nodedata, reflist) = makenode(nodename, &mut paras, &self.samples_dict);
                             self.refpairlist.push((reflist, (key, insert_i)));
                             self.node_add_list.push((key, insert_i, nodedata));                            
                         },
@@ -129,7 +129,7 @@ impl<const N: usize> Engine<'static, N> {
                 for i in 0..node_info_tuple.0.len() {
                     let name = node_info_tuple.0[i];
                     let mut paras = node_info_tuple.1[i].clone();
-                    let (nodedata, reflist)  = makenode(name, &mut paras);
+                    let (nodedata, reflist)  = makenode(name, &mut paras, &self.samples_dict);
                     self.refpairlist.push((reflist, (key, i)));
                     println!("self.node_add_list {:?} {}", key, i);
                     self.node_add_list.push((key, i, nodedata));

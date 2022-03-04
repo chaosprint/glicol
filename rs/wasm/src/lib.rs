@@ -105,7 +105,7 @@ pub extern "C" fn add_sample(
     let encoded:&mut [u8] = unsafe { from_raw_parts_mut(name_ptr, name_len) };
     let name = std::str::from_utf8(encoded).unwrap();
     let sample:&mut [f32] = unsafe { from_raw_parts_mut(arr_ptr, length) };
-    engine.add_sample((name, sample, channels));
+    engine.add_sample(name, sample, channels);
     // engine.update(code);
 }
 

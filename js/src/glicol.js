@@ -173,7 +173,7 @@ window.loadSamples = async () => {
                 sample: sample,
                 channels: buffer.numberOfChannels,
                 length: buffer.length,
-                name: encoder.encode(name.replace("-","_")),
+                name: encoder.encode("\\"+ name.replace("-","_")),
                 sr: buffer.sampleRate
               })
           }, function(e){ log("Error with decoding audio data" + e.err); })

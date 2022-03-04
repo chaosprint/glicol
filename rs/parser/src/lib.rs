@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use glicol_macros::one_para_number_or_ref;
 
 #[derive(Parser)]
-#[grammar = "glicol2.pest"]
+#[grammar = "glicol.pest"]
 pub struct GlicolParser;
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
@@ -70,7 +70,7 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                             for node_pair in chain.into_inner() {
                                 let node = node_pair.into_inner().next().unwrap();
                                 match node.as_rule() {
-                                    
+                                    Rule::imp =>  one_para_number_or_ref!("imp"),
                                     Rule::tri =>  one_para_number_or_ref!("tri"),
                                     Rule::squ => one_para_number_or_ref!("squ"),
                                     Rule::saw => one_para_number_or_ref!("saw"),
@@ -90,7 +90,7 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                         let paras = node.into_inner().next().unwrap();
                                         println!("paras {:?}", paras.as_str());
                                         chain_node_names.push("sp");
-                                        chain_paras.push(vec![GlicolPara::Number(paras.as_str().parse::<f32>().unwrap())]);
+                                        chain_paras.push(vec![GlicolPara::Symbol(paras.as_str())]);
                                     },
                                     Rule::constsig => one_para_number_or_ref!("constsig"),
                                     Rule::lpf => {

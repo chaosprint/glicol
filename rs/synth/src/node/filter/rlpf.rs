@@ -44,7 +44,7 @@ impl ResonantLowPassFilter {
 
 impl<const N: usize> Node<N> for ResonantLowPassFilter {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
-        println!("\n\ninputs[1] \n\n {:?}\n\n", inputs[1].buffers());
+        // println!("\n\ninputs[1] \n\n {:?}\n\n", inputs[1].buffers());
         match inputs.len() {
             1 => {
                 let theta_c = 2.0 * std::f32::consts::PI * self.cutoff / self.sr as f32;
