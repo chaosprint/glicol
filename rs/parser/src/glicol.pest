@@ -1,20 +1,14 @@
-// this solution compared with previous one, checks each node during parsing
-// this can capture most of the errors, but yet it is necessary to report things earlier
-
 block = ${ SOI ~ ("\n"|WHITESPACE)* ~ ( (line|comment) ~ WHITESPACE* ~ ";"? ~ WHITESPACE* ~ ("\n" ~ WHITESPACE*)* )* ~ EOI}
 comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE* ~ !NEWLINE}
 line = ${ reference ~ WHITESPACE* ~ ":" ~ WHITESPACE* ~ chain}
 chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE* ~ node)*  }
 
-node = ${ (seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noiz|onepole|sp|constsig|lpf|onepole|imp) }
+node = ${ (seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noiz|onepole|sp|constsig|lpf|onepole|imp|delayn|delayms) }
 
-//  ~ WHITESPACE* ~ paras ~ (WHITESPACE+ ~ paras)*
-// bd = ${ "bd" ~ WHITESPACE+ ~ float ~ WHITESPACE+ ~ float }
-// sn = ${ "sn" ~ WHITESPACE+ ~ float ~ WHITESPACE+ ~ float }
-
+delayn = ${"delayn" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+delayms = ${"delayms" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 seq = ${ "seq" ~ WHITESPACE+ ~ compound_notes }
 choose = ${ "choose" ~ WHITESPACE+ ~ integer ~ (WHITESPACE+ ~ integer)*}
-
 lpf = ${"lpf" ~ WHITESPACE+ ~ !node_name ~ (number | reference) ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
 mul = ${"mul" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 imp = ${"imp" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
@@ -49,10 +43,3 @@ node_name = ${"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|
 "hpf"|"pha"|"buf"|"state"|"freeverb"|"pan"|"delay"|"apfgain"|"comb"|"mix"|"monosum"|
 "const_sig"|"constsig"|"*"|"sp"|"spd"|"tri"|"noise"|"amplfo"|"balance"|"rlpf"|"rhpf"|"kick"|"ks"|
 "pha"|"shape"|"sawsynth"|"saw"|"script"|"closure"| "r" }
-
-// name = ${"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|"apfdecay"|"delayn"|"delaymod"|
-// "sin"|"squ"|"imp"|"noiz"|"onepole"|"sampler"|"sp"|"sp"|"spd"|
-// "envperc"|"lpf"|"plate"|"hpf"|
-// "pha"|"buf"|"state"|"pan"|"delay"|"apfgain"|"comb"|"mix"|"monosum"|
-// "const_sig"|"*"|"tri"|"noise"|"amplfo"|"balance"|"rlpf"|"rhpf"|"kick"|"ks"|
-// "pha"|"shape"|"sawsynth"|"saw"}

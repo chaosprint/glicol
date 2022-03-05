@@ -70,6 +70,8 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                             for node_pair in chain.into_inner() {
                                 let node = node_pair.into_inner().next().unwrap();
                                 match node.as_rule() {
+                                    Rule::delayn =>  one_para_number_or_ref!("delayn"),
+                                    Rule::delayms =>  one_para_number_or_ref!("delayms"),
                                     Rule::imp =>  one_para_number_or_ref!("imp"),
                                     Rule::tri =>  one_para_number_or_ref!("tri"),
                                     Rule::squ => one_para_number_or_ref!("squ"),

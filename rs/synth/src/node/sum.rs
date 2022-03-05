@@ -37,6 +37,7 @@ impl<const N: usize> Node<N> for Sum {
                 }
             }
         }
+        // println!("{:?}", output);
     }
     fn send_msg(&mut self, _info: Message) {
         

@@ -14,6 +14,9 @@ node-sum = ["dasp_slice"]
 # glicol_macros = { path = "../macros"}
 petgraph = { version = "0.6",  features = ["stable_graph"] }
 dasp_slice = { version = "0.11", default-features = false, features = ["std"], optional = true }
+dasp_ring_buffer = "*"
+dasp_signal = "*"
+dasp_interpolate = { version = "*", features = ["linear", "sinc"] }
 
 [dev-dependencies]
 gnuplot = "*"

@@ -4,6 +4,7 @@ use glicol_synth::{
     signal::{ConstSig, Impulse},
     operator::{Mul, Add},
     sampling::Sampler,
+    delay::{DelayN, DelayMs}
 };
 
 use glicol_synth::{NodeData, BoxedNodeSend}; //, Processor, Buffer, Input, Node
@@ -136,6 +137,32 @@ pub fn makenode<'a, const N: usize>(
             
         },
         "mul" => get_one_para_from_number_or_ref!(Mul),
+        "delayn" => {
+            match paras[0] {
+                GlicolPara::Number(v) => {
+                    (DelayN::new(v as usize).to_boxed_nodedata(1), vec![])
+                },
+                GlicolPara::Reference(s) => {
+                    (DelayN::new(0).to_boxed_nodedata(1), vec![s])
+                },
+                _ => {
+                    unimplemented!();
+                }
+            }
+        },
+        "delayms" => {
+            match paras[0] {
+                GlicolPara::Number(v) => {
+                    (DelayMs::new().delay(v).to_boxed_nodedata(1), vec![])
+                },
+                GlicolPara::Reference(s) => {
+                    (DelayMs::new().delay(2000.).to_boxed_nodedata(1), vec![s])
+                },
+                _ => {
+                    unimplemented!();
+                }
+            }
+        },
         "onepole" => get_one_para_from_number_or_ref!(OnePole),
         "add" => get_one_para_from_number_or_ref!(Add),
         "constsig" => get_one_para_from_number_or_ref!(ConstSig),
