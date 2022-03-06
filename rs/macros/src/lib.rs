@@ -35,10 +35,10 @@ pub fn get_one_para_from_number_or_ref(item: TokenStream) -> TokenStream {
         {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (#name::new(v).to_boxed_nodedata(1), vec![])
+                    (#name::new(v).to_boxed_nodedata(2), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (#name::new(0.0).to_boxed_nodedata(1), vec![s])
+                    (#name::new(0.0).to_boxed_nodedata(2), vec![s])
                 },
                 _ => {
                     unimplemented!();

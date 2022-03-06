@@ -158,11 +158,11 @@ impl<const N: usize> AudioContext<N> {
         return node_index
     }
 
-    pub fn add_multi_chan_node<T>(&mut self, node: T) -> NodeIndex
+    pub fn add_multi_chan_node<T>(&mut self, chan: usize, node: T) -> NodeIndex
     where T: Node<N> + Send + 'static,
     {
         let node_index = self.graph.add_node( // channel?
-            NodeData::multi_chan_node (2,
+            NodeData::multi_chan_node (chan,
                 BoxedNodeSend::<N>::new(
                     node
                 )

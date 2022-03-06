@@ -30,23 +30,18 @@ pub struct Engine<'a, const N: usize> {
 
 impl<const N: usize> Engine<'static, N> {
     pub fn new() -> Self {
-        // let mut graph = GlicolGraph::<N>::with_capacity(1024, 1024);
-        // let output_index = graph.add_node(NodeData::new2(BoxedNodeSend::<N>::new(Sum{})));
         let context = AudioContext::<N>::new(AudioContextConfig::default());
-        // let output_index = context.graph.add_node(NodeData::new2(BoxedNodeSend::<N>::new(Sum{})));
         Self {
             context,
-            // processor: GlicolProcessor::<N>::with_capacity(1024),
             ast: HashMap::new(),
             new_ast: HashMap::new(),
             code: "",
             index_info: HashMap::new(),
-            // output_index,
             node_add_list: vec![],
             node_remove_list: vec![],
             node_update_list: vec![],
             refpairlist: vec![],
-            samples_dict: HashMap::new()
+            samples_dict: HashMap::new(),
         }
     }
 
@@ -65,6 +60,7 @@ impl<const N: usize> Engine<'static, N> {
     }
 
     pub fn update(&mut self, code: &'static str) {
+        self.add_sample(r#"\808_0"#, &[0.42, 0.0], 2);
         self.code = code;
         self.parse();
         self.make_graph();
@@ -228,7 +224,11 @@ impl<const N: usize> Engine<'static, N> {
                     }
                 },
                 _ => {
-                    for i in 0..chain.len() - 1 {
+                    // self.context.chain(chain.clone());
+                    // if !key.contains("~") {
+                    //     self.context.connect(chain[chain.len()-1], self.context.destination);
+                    // }
+                    for i in 0..chain.len() {
                         if i == chain.len() - 1 {
                             if !key.contains("~") {
                                 self.context.graph.add_edge(chain[i], self.context.destination ,());

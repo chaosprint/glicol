@@ -45,7 +45,7 @@ pub fn makenode<'a, const N: usize>(
                     GlicolPara::Number(v) => v,
                     _ => unimplemented!()
                 }
-            ).to_boxed_nodedata(1);
+            ).to_boxed_nodedata(2);
 
             let mut reflist = vec![];
             match paras[0] {
@@ -69,10 +69,10 @@ pub fn makenode<'a, const N: usize>(
         "tri" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (TriOsc::new().freq(v).to_boxed_nodedata(1), vec![])
+                    (TriOsc::new().freq(v).to_boxed_nodedata(2), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (TriOsc::new().freq(0.0).to_boxed_nodedata(1), vec![s])
+                    (TriOsc::new().freq(0.0).to_boxed_nodedata(2), vec![s])
                 },
                 _ => {
                     unimplemented!();
@@ -83,10 +83,10 @@ pub fn makenode<'a, const N: usize>(
         "squ" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (SquOsc::new().freq(v).to_boxed_nodedata(1), vec![])
+                    (SquOsc::new().freq(v).to_boxed_nodedata(2), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (SquOsc::new().freq(0.0).to_boxed_nodedata(1), vec![s])
+                    (SquOsc::new().freq(0.0).to_boxed_nodedata(2), vec![s])
                 },
                 _ => {
                     unimplemented!();
@@ -97,10 +97,10 @@ pub fn makenode<'a, const N: usize>(
         "saw" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (SawOsc::new().freq(v).to_boxed_nodedata(1), vec![])
+                    (SawOsc::new().freq(v).to_boxed_nodedata(2), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (SawOsc::new().freq(0.0).to_boxed_nodedata(1), vec![s])
+                    (SawOsc::new().freq(0.0).to_boxed_nodedata(2), vec![s])
                 },
                 _ => {
                     unimplemented!();
@@ -111,10 +111,10 @@ pub fn makenode<'a, const N: usize>(
         "sin" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (SinOsc::new().freq(v).to_boxed_nodedata(1), vec![])
+                    (SinOsc::new().freq(v).to_boxed_nodedata(2), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (SinOsc::new().freq(0.0).to_boxed_nodedata(1), vec![s])
+                    (SinOsc::new().freq(0.0).to_boxed_nodedata(2), vec![s])
                 },
                 _ => {
                     unimplemented!();
@@ -125,10 +125,10 @@ pub fn makenode<'a, const N: usize>(
         "imp" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (Impulse::new().freq(v).to_boxed_nodedata(1), vec![])
+                    (Impulse::new().freq(v).to_boxed_nodedata(2), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (Impulse::new().freq(0.0).to_boxed_nodedata(1), vec![s])
+                    (Impulse::new().freq(0.0).to_boxed_nodedata(2), vec![s])
                 },
                 _ => {
                     unimplemented!();
@@ -136,14 +136,26 @@ pub fn makenode<'a, const N: usize>(
             }
             
         },
-        "mul" => get_one_para_from_number_or_ref!(Mul),
+        "mul" => {
+            match paras[0] {
+                GlicolPara::Number(v) => {
+                    (Mul::new(v).to_boxed_nodedata(2), vec![])
+                },
+                GlicolPara::Reference(s) => {
+                    (Mul::new(0.0).to_boxed_nodedata(2), vec![s])
+                },
+                _ => {
+                    unimplemented!();
+                }
+            }
+        },
         "delayn" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (DelayN::new(v as usize).to_boxed_nodedata(1), vec![])
+                    (DelayN::new(v as usize).to_boxed_nodedata(2), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (DelayN::new(0).to_boxed_nodedata(1), vec![s])
+                    (DelayN::new(0).to_boxed_nodedata(2), vec![s])
                 },
                 _ => {
                     unimplemented!();
@@ -153,10 +165,10 @@ pub fn makenode<'a, const N: usize>(
         "delayms" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (DelayMs::new().delay(v).to_boxed_nodedata(1), vec![])
+                    (DelayMs::new().delay(v).to_boxed_nodedata(2), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (DelayMs::new().delay(2000.).to_boxed_nodedata(1), vec![s])
+                    (DelayMs::new().delay(2000.).to_boxed_nodedata(2), vec![s])
                 },
                 _ => {
                     unimplemented!();

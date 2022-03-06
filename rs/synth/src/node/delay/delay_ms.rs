@@ -1,11 +1,11 @@
 use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
 use dasp_ring_buffer as ring_buffer;
-use dasp_signal::{self as signal, Signal};
-use dasp_interpolate::{
-    Interpolator,
-    sinc::Sinc,
+// use dasp_signal::{self as signal, Signal};
+// use dasp_interpolate::{
+    // Interpolator,
+    // sinc::Sinc,
     // linear::Linear,
-};
+// };
 // use dasp_interpolate::
 
 type Fixed = ring_buffer::Fixed<Vec<f32>>;
@@ -50,18 +50,24 @@ impl<const N: usize> Node<N> for DelayMs {
                 }
             },
             2 => {
-                let new_delay_n = (inputs[0].buffers()[0][0] / 1000. * self.sr as f32 ) as usize;
+                for i in 0..N {
+                    let new_delay_n = (inputs[0].buffers()[0][i] / 1000. * self.sr as f32 ) as usize;
+                    self.buf.set_first(new_delay_n);
+                    output[0][i] = self.buf.push(inputs[1].buffers()[0][i]);
+                }
+                
+                // let new_delay_n = (inputs[0].buffers()[0][0] / 1000. * self.sr as f32 ) as usize;
 
                 // this will cause some padding 0.0 if the new_delay_n is longer
                 // or lost some previous samples if the new_delay_n is shorter
-                self.buf.set_first(new_delay_n);
-                let interp = Sinc::new(self.buf.clone());
-                for i in 0..N {
-                    let pos = i as f64 / N as f64;
-                    let x = interp.interpolate(pos);
-                    output[0][i] = x;
-                    let _ = self.buf.push(inputs[1].buffers()[0][i]);
-                }
+                // self.buf.set_first(new_delay_n);
+                // let interp = Sinc::new(self.buf.clone());
+                // for i in 0..N {
+                //     let pos = i as f64 / N as f64;
+                //     let x = interp.interpolate(pos);
+                //     output[0][i] = x;
+                //     let _ = self.buf.push(inputs[1].buffers()[0][i]);
+                // }
 
                 // let x = interp.interpolate(0.1);                               
 

@@ -24,8 +24,8 @@ impl Sampler {
 
 impl<const N: usize> Node<N> for Sampler {
     fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
-        // output[0].silence();
-        // output[1].silence();
+        output[0].silence();
+        output[1].silence();
         match inputs.len() {
             1 => {
                 let input_buf = &mut inputs[0].buffers();
