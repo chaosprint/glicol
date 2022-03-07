@@ -12,6 +12,7 @@ use petgraph::visit::{
 };
 use petgraph::{Incoming};
 
+/// TODO: Consider replacing the node inputs to a HashMap
 
 pub struct Processor<G, const N: usize>
 where

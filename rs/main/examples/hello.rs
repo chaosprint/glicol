@@ -9,7 +9,9 @@ fn main() {
 
     // ~mod: sin 0.2 >> mul 200.0 >> add 500.0");
     // engine.add_sample("\\bb", &[1.0], 1);
-    engine.update(r#"o: imp 1 >> sp \bb"#);
+    engine.update(r#"o: imp 1 >> sp \808_0 >> delayms ~mod
+
+    ~mod: sin 0.2 >> mul 100 >> add 200"#);
     // for e in engine.context.graph.edges(engine.context.destination) {
     //     println!("destinations {:?}", e);
     // }
