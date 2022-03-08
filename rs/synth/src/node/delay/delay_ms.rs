@@ -1,13 +1,13 @@
 use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
 use dasp_ring_buffer as ring_buffer;
-use dasp_signal::{self as signal, Signal};
-use dasp_interpolate::{
-    Interpolator,
-    sinc::Sinc,
-    linear::Linear,
-};
+// use dasp_signal::{self as signal, Signal};
+// use dasp_interpolate::{
+    // Interpolator,
+    // sinc::Sinc,
+    // linear::Linear,
+// };
 type Fixed = ring_buffer::Fixed<Vec<f32>>;
-type Bounded = ring_buffer::Bounded<Vec<f32>>;
+// type Bounded = ring_buffer::Bounded<Vec<f32>>;
 
 // enum RingBuffer {
 //     Fix(Fixed),
@@ -19,12 +19,12 @@ pub struct DelayMs {
     buf: Fixed,
     buf2: Fixed,
     sr: usize,
-    delay_n: usize,
+    // delay_n: usize,
 }
 
 impl DelayMs {
     pub fn new() -> Self {
-        Self { buf: Fixed::from(vec![0.0]), buf2: Fixed::from(vec![0.0]), sr: 44100, delay_n: 1 }
+        Self { buf: Fixed::from(vec![0.0]), buf2: Fixed::from(vec![0.0]), sr: 44100 }
     }
     pub fn delay(self, delay: f32) -> Self {
         let buf; let buf2; let delay_n;
@@ -38,7 +38,7 @@ impl DelayMs {
             buf = Fixed::from(vec![0.0; delay_n]);
             buf2 = Fixed::from(vec![0.0; delay_n]);
         };
-        Self { buf, buf2, delay_n, ..self}
+        Self { buf, buf2, ..self}
     }
     
     pub fn sr(self, sr:usize) -> Self {
@@ -68,7 +68,7 @@ impl<const N: usize> Node<N> for DelayMs {
                     let pos_int = pos.floor() as usize;
                     let pos_frac = pos.fract();
                     output[0][i] = self.buf.get(pos_int) * pos_frac + self.buf.get(pos_int+1) * (1.-pos_frac);
-                    output[0][i] = self.buf2.get(pos_int) * pos_frac + self.buf2.get(pos_int+1) * (1.-pos_frac);
+                    output[1][i] = self.buf2.get(pos_int) * pos_frac + self.buf2.get(pos_int+1) * (1.-pos_frac);
                     self.buf.push(inputs[1].buffers()[0][i]);
                     self.buf2.push(inputs[1].buffers()[1][i]);
                 }
@@ -77,7 +77,7 @@ impl<const N: usize> Node<N> for DelayMs {
         }
     }
 
-    fn send_msg(&mut self, info: Message) {
+    fn send_msg(&mut self, _info: Message) {
 
         // match info {
         //     Message::SetToNumber(v) => {

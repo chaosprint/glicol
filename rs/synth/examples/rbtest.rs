@@ -1,10 +1,10 @@
 use dasp_ring_buffer as ring_buffer;
-use dasp_signal::{self as signal, Signal, FromIterator};
-use dasp_interpolate::{
-    Interpolator,
-    sinc::Sinc,
-    linear::Linear,
-};
+// use dasp_signal::{self as signal, Signal, FromIterator};
+// use dasp_interpolate::{
+//     Interpolator,
+//     sinc::Sinc,
+//     linear::Linear,
+// };
 // use dasp_signal::{self as signal, Signal};
 
 fn main() {

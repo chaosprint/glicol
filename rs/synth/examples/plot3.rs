@@ -2,7 +2,7 @@ use gnuplot::*;
 use glicol_synth::{ 
     AudioContextBuilder,
     operator::{Mul, Add},
-    sampling::{Sampler},
+    // sampling::{Sampler},
     oscillator::SinOsc,
     delay::{DelayMs},
     signal::Impulse,

@@ -1,5 +1,5 @@
-pub mod synth;
-use synth::makenode;
+pub mod util;
+use util::makenode;
 
 use std::collections::HashMap;
 use petgraph::{graph::NodeIndex};
@@ -24,7 +24,7 @@ pub struct Engine<'a, const N: usize> {
     node_add_list: Vec<(&'a str, usize, GlicolNodeData<N>)>,
     node_remove_list: Vec<(&'a str, usize)>,
     node_update_list: Vec<(&'a str, usize, Vec<GlicolPara<'a>>)>,
-    refpairlist: Vec<(Vec<&'a str>, (&'a str, usize))>,
+    refpairlist: Vec<(Vec<&'a str>, &'a str, usize)>,
     pub samples_dict: HashMap<&'a str, (&'a [f32], usize)>
 }
 
@@ -84,7 +84,7 @@ impl<const N: usize> Engine<'static, N> {
             if self.ast.contains_key(key) {
                 let old_chain = &self.ast[key].0;
                 let new_chain = &node_info_tuple.0;
-                // let old_chain_para = &self.ast[key].1;
+                let old_chain_para = &self.ast[key].1;
                 let new_chain_para = &node_info_tuple.1;
                 for action in diff(old_chain, new_chain) {
                     match action {
@@ -94,13 +94,15 @@ impl<const N: usize> Engine<'static, N> {
                             let new_i = v.new_index.unwrap();
                             println!("common {:?}", v);
                             println!("common node: old_index {:?}", old_i);
-                            // println!("common para {:?}", old_chain_para[old_i]);
-                            // println!("new para {:?}", new_chain_para[new_i]);
-                            self.node_update_list.push(
-                                (key, // which chain
-                                old_i, // where in chain
-                                new_chain_para[new_i].clone() // new paras
-                            ))
+                            println!("common node old para {:?}", old_chain_para[old_i]);
+                            println!("common node new para {:?}", new_chain_para[new_i]);
+                            if old_chain_para[old_i] != new_chain_para[new_i] {
+                                self.node_update_list.push(
+                                    (key, // which chain
+                                    old_i, // where in chain
+                                    new_chain_para[new_i].clone() // new paras
+                                ))
+                            }
                         },
                         DiffResult::Removed(v) => {
                             // let removed_node_name = v.data;
@@ -115,7 +117,7 @@ impl<const N: usize> Engine<'static, N> {
                             let nodename = v.data;
                             let mut paras = new_chain_para[new_i].clone();
                             let (nodedata, reflist) = makenode(nodename, &mut paras, &self.samples_dict);
-                            self.refpairlist.push((reflist, (key, insert_i)));
+                            self.refpairlist.push((reflist, key, insert_i));
                             self.node_add_list.push((key, insert_i, nodedata));                            
                         },
                     }
@@ -126,7 +128,7 @@ impl<const N: usize> Engine<'static, N> {
                     let name = node_info_tuple.0[i];
                     let mut paras = node_info_tuple.1[i].clone();
                     let (nodedata, reflist)  = makenode(name, &mut paras, &self.samples_dict);
-                    self.refpairlist.push((reflist, (key, i)));
+                    self.refpairlist.push((reflist, key, i));
                     println!("self.node_add_list {:?} {}", key, i);
                     self.node_add_list.push((key, i, nodedata));
                 };
@@ -190,8 +192,22 @@ impl<const N: usize> Engine<'static, N> {
     pub fn handle_node_update(&mut self) {
         while !self.node_update_list.is_empty() {
             let (key, position_in_chain, paras) = self.node_update_list.remove(0);
+            println!("handle update {:?} {:?}", key, position_in_chain);
             if let Some(chain) = self.index_info.get_mut(key) {
-                self.context.graph[chain[position_in_chain]].node.send_msg(Message::SetToNumber((0, get_num(paras[0]))));
+                for (i, para) in paras.iter().enumerate() {
+                    // let node = &self.context.graph[chain[position_in_chain]].node;
+                    match para {
+                        GlicolPara::Number(v) => self.context.graph[
+                            chain[position_in_chain]].node.send_msg(
+                                Message::SetToNumber((i as u8, *v))),
+                        GlicolPara::Reference(s) => {
+                            self.refpairlist.push((vec![s], key, position_in_chain));
+                        },
+                        _ => {}
+                    }
+                    ;
+
+                }
             }
         }
     }
@@ -241,7 +257,7 @@ impl<const N: usize> Engine<'static, N> {
             }
         }
         for refpairs in &self.refpairlist {
-            let index = self.index_info[refpairs.1.0][refpairs.1.1];
+            let index = self.index_info[refpairs.1][refpairs.2];
             for refname in &refpairs.0 {
                 self.context.connect(*self.index_info[refname].last().unwrap(), index);
             }
