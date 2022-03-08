@@ -1,10 +1,11 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, HashMap, Message, impl_to_boxed_nodedata};
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct Impulse {
     clock: usize,
     period: usize,
-    sr: usize
+    sr: usize,
+    input_order: Vec<usize>
 }
 
 impl Impulse {
@@ -13,6 +14,7 @@ impl Impulse {
             clock: 0,
             period: 44100,
             sr: 44100,
+            input_order: Vec::new()
         }
     }
     pub fn freq(self, freq: f32) -> Self {
@@ -28,10 +30,10 @@ impl Impulse {
 }
 
 impl<const N: usize> Node<N> for Impulse {
-    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
-        if inputs.len() > 0 {
-            self.clock = inputs[0].buffers()[0][0] as usize;
-        }
+    fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
+        // if inputs.len() > 0 {
+        //     self.clock = inputs[0].buffers()[0][0] as usize;
+        // }
         // println!("processed");
         // for o in output {
         //     o.iter_mut().for_each(|s| *s = self.sig.next() as f32);
@@ -45,15 +47,18 @@ impl<const N: usize> Node<N> for Impulse {
     fn send_msg(&mut self, info: Message) {
 
         match info {
-            Message::SetToNumber(v) => {
-                match v.0 {
-                    0 => {
-                        let period = (self.sr as f32 / v.1) as usize;
-                        self.period = period
-                    },
+            Message::SetToNumber(pos, value) => {
+                match pos {
+                    0 => {self.period = (self.sr as f32 / value) as usize},
                     _ => {}
                 }
-            }
+            },
+            Message::Index(i) => {
+                self.input_order.push(i)
+            },
+            Message::IndexOrder(pos, index) => {
+                self.input_order.insert(pos, index)
+            },
             _ => {}
         }
     }

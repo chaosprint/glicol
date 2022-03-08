@@ -1,6 +1,6 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, HashMap, impl_to_boxed_nodedata};
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct ResonantLowPassFilter {
     cutoff: f32,
     q: f32,
@@ -10,6 +10,7 @@ pub struct ResonantLowPassFilter {
     y1: f32,
     y2: f32,
     sr: usize,
+    input_order: Vec<usize>,
 }
 
 impl ResonantLowPassFilter {
@@ -23,6 +24,7 @@ impl ResonantLowPassFilter {
             y1: 0.,
             y2: 0.,
             sr: 44100,
+            input_order: vec![]
         }
     }
     pub fn cutoff(self, cutoff: f32) -> Self {
@@ -43,10 +45,11 @@ impl ResonantLowPassFilter {
 
 
 impl<const N: usize> Node<N> for ResonantLowPassFilter {
-    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
+    fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         // println!("\n\ninputs[1] \n\n {:?}\n\n", inputs[1].buffers());
         match inputs.len() {
             1 => {
+                let main_input = inputs.values_mut().next().unwrap();
                 let theta_c = 2.0 * std::f32::consts::PI * self.cutoff / self.sr as f32;
                 let d = 1.0 / self.q;
                 let beta = 0.5 * (1.0-d*theta_c.sin()/2.0) / (1.0+d*theta_c.sin()/2.0);
@@ -57,7 +60,7 @@ impl<const N: usize> Node<N> for ResonantLowPassFilter {
                 let b1 = -2.0 * gama;
                 let b2 = 2.0 * beta;
                 for i in 0..N {
-                    let x0 = inputs[0].buffers()[0][i];
+                    let x0 = main_input.buffers()[0][i];
                     let y = a0 * self.x0 + a1 * self.x1 + a2 * self.x2 
                     - b1 * self.y1 - b2 * self.y2;
     
@@ -69,7 +72,10 @@ impl<const N: usize> Node<N> for ResonantLowPassFilter {
                 }
             },
             2 => {
-                let theta_c = 2.0 * std::f32::consts::PI * inputs[0].buffers()[0][0] / self.sr as f32;
+                let main_input = &inputs[&self.input_order[0]]; // can panic if there is no id
+                let ref_input = &inputs[&self.input_order[1]]; // can panic if there is no id
+                
+                let theta_c = 2.0 * std::f32::consts::PI * ref_input.buffers()[0][0] / self.sr as f32;
                 let d = 1.0 / self.q;
                 let beta = 0.5 * (1.0-d*theta_c.sin()/2.0) / (1.0+d*theta_c.sin()/2.0);
                 let gama = (0.5 + beta) * theta_c.cos();
@@ -80,7 +86,7 @@ impl<const N: usize> Node<N> for ResonantLowPassFilter {
                 let b2 = 2.0 * beta;
     
                 for i in 0..N {
-                    let x0 = inputs[1].buffers()[0][i];
+                    let x0 = main_input.buffers()[0][i];
                     let y = a0 * self.x0 + a1 * self.x1 + a2 * self.x2 - b1 * self.y1 - b2 * self.y2;
                     output[0][i] = y;
                     self.x2 = self.x1;
@@ -94,15 +100,20 @@ impl<const N: usize> Node<N> for ResonantLowPassFilter {
     }
 
     fn send_msg(&mut self, info: Message) {
-
         match info {
-            Message::SetToNumber(v) => {
-                match v.0 {
-                    0 => {self.cutoff = v.1},
-                    1 => {self.q = v.1},
+            Message::SetToNumber(pos, value) => {
+                match pos {
+                    0 => {self.cutoff = value},
+                    1 => {self.q = value},
                     _ => {}
                 }
-            }
+            },
+            Message::Index(i) => {
+                self.input_order.push(i)
+            },
+            Message::IndexOrder(pos, index) => {
+                self.input_order.insert(pos, index)
+            },
             _ => {}
         }
     }

@@ -20,9 +20,9 @@ use hashbrown::HashMap;
 pub mod oscillator; pub use oscillator::*;
 pub mod operator; pub use operator::*;
 pub mod signal; pub use signal::*;
-// pub mod filter; pub use filter::*;
-// pub mod sampling; pub use sampling::*;
-// pub mod delay; pub use delay::*;
+pub mod filter; pub use filter::*;
+pub mod sampling; pub use sampling::*;
+pub mod delay; pub use delay::*;
 
 use crate::Message;
 

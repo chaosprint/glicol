@@ -19,12 +19,13 @@ pub struct DelayMs {
     buf: Fixed,
     buf2: Fixed,
     sr: usize,
+    input_order: Vec<usize>
     // delay_n: usize,
 }
 
 impl DelayMs {
     pub fn new() -> Self {
-        Self { buf: Fixed::from(vec![0.0]), buf2: Fixed::from(vec![0.0]), sr: 44100 }
+        Self { buf: Fixed::from(vec![0.0]), buf2: Fixed::from(vec![0.0]), sr: 44100, input_order: vec![] }
     }
     pub fn delay(self, delay: f32) -> Self {
         let buf; let buf2; let delay_n;
@@ -50,16 +51,20 @@ impl DelayMs {
 
 
 impl<const N: usize> Node<N> for DelayMs {
-    fn process(&mut self, inputs: &HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
+    fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         match inputs.len() {
             1 => {
+                let main_input = inputs.values_mut().next().unwrap();
                 for i in 0..N {
-                    output[0][i] = self.buf.push(inputs[0].buffers()[0][i]);
-                    output[1][i] = self.buf2.push(inputs[0].buffers()[1][i]);
+                    output[0][i] = self.buf.push(main_input.buffers()[0][i]);
+                    output[1][i] = self.buf2.push(main_input.buffers()[1][i]);
                 }
             },
             2 => {
-                let mod_buf = &mut inputs[0].buffers();
+                let main_input = &inputs[&self.input_order[0]]; // can panic if there is no id
+                let ref_input = &inputs[&self.input_order[1]]; // can panic if there is no id
+
+                let mod_buf = &mut ref_input.buffers();
                 for i in 0..N {
                     let mut pos = - mod_buf[0][i] / 1000. * self.sr as f32;
                     while pos < 0. {
@@ -69,24 +74,35 @@ impl<const N: usize> Node<N> for DelayMs {
                     let pos_frac = pos.fract();
                     output[0][i] = self.buf.get(pos_int) * pos_frac + self.buf.get(pos_int+1) * (1.-pos_frac);
                     output[1][i] = self.buf2.get(pos_int) * pos_frac + self.buf2.get(pos_int+1) * (1.-pos_frac);
-                    self.buf.push(inputs[1].buffers()[0][i]);
-                    self.buf2.push(inputs[1].buffers()[1][i]);
+                    self.buf.push(main_input.buffers()[0][i]);
+                    self.buf2.push(main_input.buffers()[1][i]);
                 }
             }
             _ => {return ()}
         }
     }
 
-    fn send_msg(&mut self, _info: Message) {
-
-        // match info {
-        //     Message::SetToNumber(v) => {
-        //         match v.0 {
-        //             0 => { self.buf.set_first(v.1 as usize) },
-        //             _ => {}
-        //         }
-        //     }
-        //     _ => {}
-        // }
+    fn send_msg(&mut self, info: Message) {
+        match info {
+            Message::SetToNumber(pos, value) => {
+                match pos {
+                    0 => {
+                        let delay_n = (value / 1000. * self.sr as f32) as usize;
+                        // buf = Fixed::from(vec![0.0; delay_n]);
+                        // buf2 = Fixed::from(vec![0.0; delay_n]);
+                        self.buf.set_first(delay_n);
+                        self.buf2.set_first(delay_n);
+                    },
+                    _ => {}
+                }
+            },
+            Message::Index(i) => {
+                self.input_order.push(i)
+            },
+            Message::IndexOrder(pos, index) => {
+                self.input_order.insert(pos, index)
+            },
+            _ => {}
+        }
     }
 }

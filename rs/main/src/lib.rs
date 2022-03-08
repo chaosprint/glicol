@@ -24,7 +24,7 @@ pub struct Engine<'a, const N: usize> {
     node_add_list: Vec<(&'a str, usize, GlicolNodeData<N>)>,
     node_remove_list: Vec<(&'a str, usize)>,
     node_update_list: Vec<(&'a str, usize, Vec<GlicolPara<'a>>)>,
-    refpairlist: Vec<(Vec<&'a str>, &'a str, usize)>,
+    pub refpairlist: Vec<(Vec<&'a str>, &'a str, usize)>,
     pub samples_dict: HashMap<&'a str, (&'a [f32], usize)>
 }
 
@@ -231,13 +231,13 @@ impl<const N: usize> Engine<'static, N> {
                 0 => {},
                 1 => {
                     if !key.contains("~") {
-                        self.context.graph.add_edge(chain[0], self.context.destination, ());
+                        self.context.connect(chain[0], self.context.destination);
                     }
                 },
                 2 => {
-                    self.context.graph.add_edge(chain[0], chain[1], ());
+                    self.context.connect(chain[0], chain[1]);
                     if !key.contains("~") {
-                        self.context.graph.add_edge(chain[1], self.context.destination, ());
+                        self.context.connect(chain[1], self.context.destination);
                     }
                 },
                 _ => {
@@ -248,10 +248,10 @@ impl<const N: usize> Engine<'static, N> {
                     for i in 0..chain.len() {
                         if i == chain.len() - 1 {
                             if !key.contains("~") {
-                                self.context.graph.add_edge(chain[i], self.context.destination ,());
+                                self.context.connect(chain[i], self.context.destination);
                             }
                         } else {
-                            self.context.graph.add_edge(chain[i],chain[i+1] ,());
+                            self.context.connect(chain[i],chain[i+1]);
                         }
                     }
                 }

@@ -1,4 +1,4 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, HashMap, impl_to_boxed_nodedata};
 
 #[derive(Debug, Clone)]
 pub struct Sampler {
@@ -7,6 +7,7 @@ pub struct Sampler {
     len: usize,
     endindex: usize,
     clock: usize,
+    input_order: Vec<usize>
 }
 
 impl Sampler {
@@ -16,19 +17,21 @@ impl Sampler {
             sample,
             len: sample.0.len()/sample.1,
             endindex:  sample.0.len()-1,
-            clock: 0
+            clock: 0,
+            input_order: vec![]
         }
     }
     impl_to_boxed_nodedata!();
 }
 
 impl<const N: usize> Node<N> for Sampler {
-    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
+    fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         output[0].silence();
         output[1].silence();
         match inputs.len() {
             1 => {
-                let input_buf = &mut inputs[0].buffers();
+                let main_input = inputs.values_mut().next().unwrap();
+                let input_buf = &mut main_input.buffers();
                 for i in 0..N {
                     if input_buf[0][i] > 0.0 {
                         let dur = self.len as f32 / input_buf[0][i] as f32;
@@ -94,16 +97,21 @@ impl<const N: usize> Node<N> for Sampler {
             _ => return ()
         }
     }
-    fn send_msg(&mut self, _info: Message) {
-
-        // match info {
-        //     Message::SetToNumber(v) => {
-        //         match v.0 {
-        //             0 => {self.freq = v.1},
-        //             _ => {}
-        //         }
-        //     }
-        //     _ => {}
-        // }
+    fn send_msg(&mut self, info: Message) {
+        match info {
+            // Message::SetToNumber(pos, value) => {
+            //     match pos {
+            //         0 => {self.val = value},
+            //         _ => {}
+            //     }
+            // },
+            Message::Index(i) => {
+                self.input_order.push(i)
+            },
+            Message::IndexOrder(pos, index) => {
+                self.input_order.insert(pos, index)
+            },
+            _ => {}
+        }
     }
 }
