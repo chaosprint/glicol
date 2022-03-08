@@ -18,7 +18,7 @@ impl Mul {
 
 impl<const N:usize> Node<N> for Mul {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
-        // println!("inputs[0] {:?}", inputs[0].buffers());
+        println!("inputs {:?} self.input_order {:?}", inputs, self.input_order);
         // panic!();
         match inputs.len() {
             1 => {
@@ -41,8 +41,8 @@ impl<const N:usize> Node<N> for Mul {
                 }
             },
             2 => {
-                let main_input = &inputs[&self.input_order[0]]; // can panic if there is no id
-                let ref_input = &inputs[&self.input_order[1]]; // can panic if there is no id
+                let ref_input = &inputs[&self.input_order[0]]; // can panic if there is no id
+                let main_input = &inputs[&self.input_order[1]]; // can panic if there is no id
                 match main_input.buffers().len() {
                     1 => {
                         for i in 0..N {
@@ -76,6 +76,9 @@ impl<const N:usize> Node<N> for Mul {
             Message::IndexOrder(pos, index) => {
                 self.input_order.insert(pos, index)
             },
+            Message::ResetOrder => {
+                self.input_order.clear();
+            }
             _ => {}
         }
     }

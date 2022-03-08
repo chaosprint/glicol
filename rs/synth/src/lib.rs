@@ -40,5 +40,6 @@ pub enum Message {
     MainInput(petgraph::graph::NodeIndex),
     SidechainInput(petgraph::graph::NodeIndex),
     Index(usize),
-    IndexOrder(usize, usize)
+    IndexOrder(usize, usize),
+    ResetOrder
 }

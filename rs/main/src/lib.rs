@@ -3,7 +3,7 @@ use util::makenode;
 
 use std::collections::HashMap;
 use petgraph::{graph::NodeIndex};
-use glicol_parser::{get_ast, get_num, GlicolPara}; 
+use glicol_parser::{get_ast, GlicolPara}; 
 use glicol_synth::{AudioContext, AudioContextConfig, NodeData, BoxedNodeSend, Buffer, Message};
 use lcs_diff::{diff, DiffResult};
 
@@ -78,7 +78,8 @@ impl<const N: usize> Engine<'static, N> {
         self.node_add_list.clear();
         self.node_update_list.clear();
         self.node_remove_list.clear();
-        self.refpairlist.clear();
+        // self.refpairlist.clear(); // will this delete something?
+
         // also remove the whole chain in_old but not_in_new, after ensuring there is no problem with new stuff
         // println!("\n\nold ast {:?}\n\n new {:?}", self.ast, self.new_ast);
         for (key, node_info_tuple) in &self.new_ast {
@@ -206,9 +207,10 @@ impl<const N: usize> Engine<'static, N> {
                         },
                         _ => {}
                     }
-                    ;
-
                 }
+                self.context.graph[
+                            chain[position_in_chain]].node.send_msg(Message::ResetOrder);
+                // self.context.send_msg(index: NodeIndex, msg: Message)
             }
         }
     }
