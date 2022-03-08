@@ -1,5 +1,5 @@
-pub mod util;
-use util::makenode;
+pub mod util; use util::makenode;
+pub mod error; pub use error::{EngineError, get_error_info};
 
 use std::collections::HashMap;
 use petgraph::{graph::NodeIndex};
@@ -49,22 +49,23 @@ impl<const N: usize> Engine<'static, N> {
         self.samples_dict.insert(name, (sample, channels));
     }
 
-    pub fn send_msg(
-        &mut self, 
-        chain_name: &str, 
-        node_index_in_chain: u8, 
-        pos: u8,
-        number: f32
-    ) {
-        let index = self.index_info[chain_name][node_index_in_chain as usize];
-        self.context.graph[index].node.send_msg(Message::SetToNumber(pos, number));
-    }
+    // pub fn send_msg(
+    //     &mut self, 
+    //     chain_name: &str, 
+    //     node_index_in_chain: u8, 
+    //     pos: u8,
+    //     number: f32
+    // ) {
+    //     let index = self.index_info[chain_name][node_index_in_chain as usize];
+    //     self.context.graph[index].node.send_msg(Message::SetToNumber(pos, number));
+    // }
 
-    pub fn update(&mut self, code: &'static str) {
+    pub fn update(&mut self, code: &'static str) -> Result<(), EngineError>  {
         self.add_sample(r#"\808_0"#, &[0.42, 0.0], 2);
         self.code = code;
-        self.parse();
+        self.parse()?;
         self.make_graph();
+        Ok(())
     }
 
     // prepare the NodeData::new2(BoxedNodeSend::<N>::new(Sum{}))
@@ -73,8 +74,8 @@ impl<const N: usize> Engine<'static, N> {
     // modify info 
     // delete info
     // sidechain info, when handling the graph, check if all the sidechain exists
-    pub fn parse(&mut self) {
-        self.new_ast = get_ast(&self.code).unwrap();
+    pub fn parse(&mut self) -> Result<(), EngineError> {
+        self.new_ast = get_ast(&self.code)?;
         self.node_add_list.clear();
         self.node_update_list.clear();
         self.node_remove_list.clear();
@@ -161,6 +162,7 @@ impl<const N: usize> Engine<'static, N> {
                 // self.add_whole_chain(key, node_info_tuple.clone());
             }
         }
+        Ok(())
     }
 
     pub fn make_graph(&mut self) {

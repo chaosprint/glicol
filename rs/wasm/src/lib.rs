@@ -111,11 +111,40 @@ pub extern "C" fn add_sample(
 
 
 #[no_mangle]
-pub extern "C" fn update(arr_ptr: *mut u8, length: usize) {
+pub extern "C" fn update(arr_ptr: *mut u8, length: usize) -> *mut u8 {
+    
+
     let mut engine = ENGINE.lock().unwrap();
     let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
     let code = std::str::from_utf8(encoded).unwrap();
-    engine.update(code);
+    let mut console:[u8;256] = match engine.update(code) {
+        Ok(_) => [0; 256],
+        Err(_e) => {
+            let mut result = [0; 256];
+            // let mut result = [0; 256];
+            result[0] = 1;
+            // let s = "error".as_bytes();
+            // if s.len() < 254 {
+            //     for i in 2..s.len()+2 {
+            //         result[i] = s[i-2]
+            //     }
+            // } else {
+            //     for i in 2..256 {
+            //         result[i] = s[i-2]
+            //     }
+            // }
+            result[2] = 101;
+            result[3] = 114;
+            result[4] = 114;
+            result[5] = 111;
+            result[6] = 114;
+            
+            std::mem::forget(result);
+            // let ptr = result.as_mut_ptr();
+            result
+        }
+    };
+    console.as_mut_ptr()
 }
 
 // #[no_mangle]

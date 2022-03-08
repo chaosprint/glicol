@@ -1,10 +1,21 @@
-use glicol::Engine;
+use glicol::Engine; use glicol::{EngineError, get_error_info};
+
 // use glicol::GlicolNodeInfo;
 // use std::collections::HashMap;
 
 fn main() {
     let mut engine = Engine::<128>::new();
-    engine.update("o: constsig 42 >>mul ~am; ~am: constsig 0.3");
+    match engine.update("o: imp 1 >>") {
+        Ok(_) => {},
+        Err(e) => {
+            match e {
+                EngineError::ParsingError(e) => {
+                    println!("{:?}", get_error_info(e))
+                },
+                _ => unimplemented!()
+            }
+        }
+    };
     println!("refpairlist {:?}", engine.refpairlist);
     // engine.update("o: saw 500 >> lpf 100.0 1.0;
 

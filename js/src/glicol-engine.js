@@ -266,7 +266,7 @@ class GlicolEngine extends AudioWorkletProcessor {
                     // this._wasm.exports.set_sr(sampleRate);
                     // this._wasm.exports.set_seed(Math.random()*4096);
                 })
-                this.port.postMessage({type: 'ready'})
+                // this.port.postMessage({type: 'ready'})
             } else if (e.data.type === "loadsample") {
 
               console.log("data: ", e.data)
@@ -420,9 +420,17 @@ class GlicolEngine extends AudioWorkletProcessor {
                 let codeUint8ArrayPtr = this._wasm.exports.alloc_uint8array(codeLen);
                 let codeUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, codeUint8ArrayPtr, codeLen);
                 codeUint8Array.set(e.data.value);
-
                 // for updating, no need to pass in samples
-                this._wasm.exports.update(codeUint8ArrayPtr, codeLen)
+                this.resultPtr = this._wasm.exports.update(codeUint8ArrayPtr, codeLen)
+                this.result = new Uint8Array(
+                  this._wasm.exports.memory.buffer,
+                  this.resultPtr,
+                  256
+                )
+                console.log(this.resultPtr, this.result )
+                // if (result[0] !== 0) {
+                this.port.postMessage({type: 'e', info: this.result.slice(0,256)})
+                // }
             } else if (e.data.type === "sab") {
                 this._param_reader = new TextParameterReader(new RingBuffer(e.data.data, Uint8Array));
             } else if (e.data.type === "result") {
@@ -445,7 +453,17 @@ class GlicolEngine extends AudioWorkletProcessor {
             codeUint8Array.set(this._codeArray.slice(0, size));
 
             // for updating, no need to pass in samples
-            this._wasm.exports.update(codeUint8ArrayPtr, size)
+            this.resultPtr = this._wasm.exports.update(codeUint8ArrayPtr, size)
+
+            this.result = new Uint8Array(
+              this._wasm.exports.memory.buffer,
+              this.resultPtr,
+              256
+            )
+            console.log("deque", this.resultPtr, this.result.slice(0,256))
+            // if (result[0] !== 0) {
+            this.port.postMessage({type: 'e', info: this.result.slice(0,256)})
+            // }
         }
 
       //   if (midiSize) {
@@ -467,7 +485,8 @@ class GlicolEngine extends AudioWorkletProcessor {
             this._inBuf.set(inputs[0][0])
         }
 
-        let resultPtr = this._wasm.exports.process(
+        // let resultPtr = 
+        this._wasm.exports.process(
           this._inPtr, this._outPtr, this._size)
 
         this._outBuf = new Float32Array(
@@ -476,15 +495,6 @@ class GlicolEngine extends AudioWorkletProcessor {
             this._size
         )
     
-        let result = new Uint8Array(
-            this._wasm.exports.memory.buffer,
-            resultPtr,
-            256
-        )
-
-        if (result[0] !== 0) {
-            this.port.postMessage({type: 'e', info: result.slice(0,256)})
-        }
 
         outputs[0][0].set(this._outBuf.slice(0, 128))
         outputs[0][1].set(this._outBuf.slice(128, 256))

@@ -619,39 +619,43 @@ window.loadModule = async () => {
         "UnknownError"
       ]
 
-      window.node.port.onmessage = async e => {
-    
-          if (e.data.type === 'ready') {
-            // log('ready')
-            if (Object.keys(window.sampleBuffers).length !== 0) {
-              for (let key in window.sampleBuffers) {
-                // log(`Sample %c${key} %cloaded`, "color: green; font-weight: bold", "")
-                window.node.port.postMessage({
-                  type: "samples",
-                  sample: window.sampleBuffers[key],
-                  name: encoder.encode(key)
-                })
-              }
-            }
-          } else if (e.date.type === 'e') {
-            if (e.data.info[0] > errors.length) {
-              log(e.data.info[0]-1)
-            }
-            log(`%cError: ${errors[e.data.info[0]-1]}`, "color: white; background: red")
-            if (e.data.info[0] === 2) {
-                let name = decoder.decode(e.data.info.slice(2).filter(v => v !== 0.0))
-                let index = window.code.indexOf(name)
-                let code = window.code.slice(0, index)
+      window.node.port.onmessage = e => {
+          
+          // if (e.data.type === 'ready') {
+          //   // log('ready')
+          //   if (Object.keys(window.sampleBuffers).length !== 0) {
+          //     for (let key in window.sampleBuffers) {
+          //       // log(`Sample %c${key} %cloaded`, "color: green; font-weight: bold", "")
+          //       window.node.port.postMessage({
+          //         type: "samples",
+          //         sample: window.sampleBuffers[key],
+          //         name: encoder.encode(key)
+          //       })
+          //     }
+          //   }
+          // } else if (e.date.type === 'e') {
+          log(String(e.data.info.slice(2).filter(v => v !== 0.0)))
+          log(String(e.data.info.slice(2, 7)))
+          log(decoder.decode(e.data.info.slice(2, 7)))
+          // log(decoder.decode(e.data.info.slice(2).filter(v => v !== 0.0)))
+            // if (e.data.info[0] > errors.length) {
+            //   log(e.data.info[0]-1)
+            // }
+            // log(`%cError: ${errors[e.data.info[0]-1]}`, "color: white; background: red")
+            // if (e.data.info[0] === 2) {
+            //     let name = decoder.decode(e.data.info.slice(2).filter(v => v !== 0.0))
+            //     let index = window.code.indexOf(name)
+            //     let code = window.code.slice(0, index)
         
-                let line = code.split("\n").length;
-                log("%cAt line "+String(line)+".", "color: white; background: green")
-            } else {
-                log("%cAt line "+String(e.data.info[1]+1)+".", "color: white; background: green")
-            }
-            log("%cError element: "+String(
-              decoder.decode(e.data.info.slice(2))).replace(/[^ -~]+/g, ""),
-               "color:white;background:pink");
-          }
+            //     let line = code.split("\n").length;
+            //     log("%cAt line "+String(line)+".", "color: white; background: green")
+            // } else {
+            //     log("%cAt line "+String(e.data.info[1]+1)+".", "color: white; background: green")
+            // }
+            // log("%cError element: "+String(
+            //   decoder.decode(e.data.info.slice(2))).replace(/[^ -~]+/g, ""),
+            //    "color:white;background:pink");
+          // }
     }
 
       // clear();
