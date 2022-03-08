@@ -36,8 +36,8 @@ impl<const N:usize> Node<N> for Add {
                 }
             },
             2 => {
-                let main_input = &inputs[&self.input_order[0]]; // can panic if there is no id
-                let ref_input = &inputs[&self.input_order[1]]; // can panic if there is no id
+                let main_input = &inputs[&self.input_order[1]]; // can panic if there is no id
+                let ref_input = &inputs[&self.input_order[0]]; // can panic if there is no id
                 match main_input.buffers().len() {
                     1 => {
                         for i in 0..N {

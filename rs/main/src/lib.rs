@@ -78,7 +78,7 @@ impl<const N: usize> Engine<'static, N> {
         self.node_add_list.clear();
         self.node_update_list.clear();
         self.node_remove_list.clear();
-        // self.refpairlist.clear(); // will this delete something?
+        self.refpairlist.clear(); // we recalculate all the sidechains since some index can change
 
         // also remove the whole chain in_old but not_in_new, after ensuring there is no problem with new stuff
         // println!("\n\nold ast {:?}\n\n new {:?}", self.ast, self.new_ast);
@@ -96,6 +96,7 @@ impl<const N: usize> Engine<'static, N> {
                             let new_i = v.new_index.unwrap();
                             println!("common {:?}", v);
                             println!("common node: old_index {:?}", old_i);
+                            println!("common node: new_i {:?}", new_i);
                             println!("common node old para {:?}", old_chain_para[old_i]);
                             println!("common node new para {:?}", new_chain_para[new_i]);
                             if old_chain_para[old_i] != new_chain_para[new_i] {
@@ -104,7 +105,28 @@ impl<const N: usize> Engine<'static, N> {
                                     old_i, // where in chain
                                     new_chain_para[new_i].clone() // new paras
                                 ))
+                            } else {
+                                let mut reflist = vec![];
+                                for para in &new_chain_para[new_i] {
+                                    match para {
+                                        GlicolPara::Reference(v) => {
+                                            reflist.push(*v);
+                                        },
+                                        _ => {},
+                                    }
+                                }
+                                if !reflist.is_empty() {
+                                    self.refpairlist.push((reflist, key, new_i));
+                                }
                             }
+
+                            // if old_i != new_i {
+                            //     self.node_update_list.push(
+                            //         (key, // which chain
+                            //         new_i, // where in chain
+                            //         new_chain_para[new_i].clone() // new paras
+                            //     ))
+                            // }
                         },
                         DiffResult::Removed(v) => {
                             // let removed_node_name = v.data;
@@ -228,18 +250,25 @@ impl<const N: usize> Engine<'static, N> {
     pub fn handle_connection(&mut self) {
         self.context.graph.clear_edges();
         println!("self.index_info {:?}", self.index_info);
+        for refpairs in &self.refpairlist {
+            let index = self.index_info[refpairs.1][refpairs.2];
+            self.context.graph[index].node.send_msg(Message::ResetOrder);
+            for refname in &refpairs.0 {
+                self.context.connect(*self.index_info[refname].last().unwrap(), index);
+            }
+        }
         for (key, chain) in &self.index_info {
             match chain.len() {
                 0 => {},
                 1 => {
                     if !key.contains("~") {
-                        self.context.connect(chain[0], self.context.destination);
+                        self.context.connect_with_order(chain[0], self.context.destination, 0);
                     }
                 },
                 2 => {
-                    self.context.connect(chain[0], chain[1]);
+                    self.context.connect_with_order(chain[0], chain[1], 0);
                     if !key.contains("~") {
-                        self.context.connect(chain[1], self.context.destination);
+                        self.context.connect_with_order(chain[1], self.context.destination, 0);
                     }
                 },
                 _ => {
@@ -250,21 +279,16 @@ impl<const N: usize> Engine<'static, N> {
                     for i in 0..chain.len() {
                         if i == chain.len() - 1 {
                             if !key.contains("~") {
-                                self.context.connect(chain[i], self.context.destination);
+                                self.context.connect_with_order(chain[i], self.context.destination, 0);
                             }
                         } else {
-                            self.context.connect(chain[i],chain[i+1]);
+                            self.context.connect_with_order(chain[i],chain[i+1], 0);
                         }
                     }
                 }
             }
         }
-        for refpairs in &self.refpairlist {
-            let index = self.index_info[refpairs.1][refpairs.2];
-            for refname in &refpairs.0 {
-                self.context.connect(*self.index_info[refname].last().unwrap(), index);
-            }
-        }
+
     }
 
     pub fn next_block(&mut self) -> &[Buffer<N>] {  //  -> &Vec<Buffer<N>> 
