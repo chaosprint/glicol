@@ -53,10 +53,11 @@ impl<const N: usize> Engine<'static, N> {
         &mut self, 
         chain_name: &str, 
         node_index_in_chain: u8, 
-        msg: (u8, f32)
+        pos: u8,
+        number: f32
     ) {
         let index = self.index_info[chain_name][node_index_in_chain as usize];
-        self.context.graph[index].node.send_msg(Message::SetToNumber(msg));
+        self.context.graph[index].node.send_msg(Message::SetToNumber(pos, number));
     }
 
     pub fn update(&mut self, code: &'static str) {
@@ -199,7 +200,7 @@ impl<const N: usize> Engine<'static, N> {
                     match para {
                         GlicolPara::Number(v) => self.context.graph[
                             chain[position_in_chain]].node.send_msg(
-                                Message::SetToNumber((i as u8, *v))),
+                                Message::SetToNumber(i as u8, *v)),
                         GlicolPara::Reference(s) => {
                             self.refpairlist.push((vec![s], key, position_in_chain));
                         },

@@ -1,4 +1,5 @@
 use crate::{Buffer, Input, Node, Message};
+use hashbrown::HashMap;
 
 /// A stateless node that sums each of the inputs onto the output.
 ///
@@ -23,14 +24,14 @@ pub struct Sum;
 pub struct SumBuffers;
 
 impl<const N: usize> Node<N> for Sum {
-    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
+    fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         // Fill the output with silence.
         for out_buffer in output.iter_mut() {
             out_buffer.silence();
         }
         // Sum the inputs onto the output.
         for (channel, out_buffer) in output.iter_mut().enumerate() {
-            for input in inputs {
+            for input in inputs.values() {
                 let in_buffers = input.buffers();
                 if let Some(in_buffer) = in_buffers.get(channel) {
                     dasp_slice::add_in_place(out_buffer, in_buffer);
@@ -45,7 +46,7 @@ impl<const N: usize> Node<N> for Sum {
 }
 
 impl<const N: usize> Node<N> for SumBuffers {
-    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
+    fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         // Get the first output buffer.
         let mut out_buffers = output.iter_mut();
         let out_buffer_first = match out_buffers.next() {
@@ -55,7 +56,7 @@ impl<const N: usize> Node<N> for SumBuffers {
         // Fill it with silence.
         out_buffer_first.silence();
         // Sum all input buffers onto the first output buffer.
-        for input in inputs {
+        for input in inputs.values() {
             for in_buffer in input.buffers() {
                 dasp_slice::add_in_place(out_buffer_first, in_buffer);
             }

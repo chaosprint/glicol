@@ -1,4 +1,4 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, HashMap, impl_to_boxed_nodedata};
 use dasp_ring_buffer as ring_buffer;
 // use dasp_signal::{self as signal, Signal};
 // use dasp_interpolate::{
@@ -50,7 +50,7 @@ impl DelayMs {
 
 
 impl<const N: usize> Node<N> for DelayMs {
-    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
+    fn process(&mut self, inputs: &HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         match inputs.len() {
             1 => {
                 for i in 0..N {

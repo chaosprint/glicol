@@ -1,11 +1,12 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata, HashMap};
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct SawOsc {
     pub freq: f32,
     pub phase: f32,
     pub sr: usize,
     inc: f32,
+    input_order: Vec<usize>,
 }
 
 impl std::default::Default for SawOsc {
@@ -15,6 +16,7 @@ impl std::default::Default for SawOsc {
             phase: 0.0,
             sr: 44100,
             inc: 0.,
+            input_order: vec![]
         }
     }
 }
@@ -42,7 +44,7 @@ impl SawOsc {
 }
 
 impl<const N: usize> Node<N> for SawOsc {
-    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
+    fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         match inputs.len() {
             0 => {
                 for i in 0..N {
@@ -53,8 +55,16 @@ impl<const N: usize> Node<N> for SawOsc {
                     }
                 }
             },
-            1 => {
-                    let mod_buf = &mut inputs[0].buffers();
+            1 => {  
+                    let mod_input =  match self.input_order.len() {
+                        0 => {
+                            &mut *inputs.values_mut().next().unwrap()
+                        },
+                        _ => {
+                            &inputs[&self.input_order[0]]
+                        }
+                    };
+                    let mod_buf = mod_input.buffers();
                     for i in 0..N {
                         output[0][i] = self.phase * 2. - 1.;
                         if mod_buf[0][i] != 0. {
@@ -72,12 +82,18 @@ impl<const N: usize> Node<N> for SawOsc {
     fn send_msg(&mut self, info: Message) {
 
         match info {
-            Message::SetToNumber(v) => {
-                match v.0 {
-                    0 => {self.freq = v.1},
+            Message::SetToNumber(pos, value) => {
+                match pos {
+                    0 => {self.freq = value},
                     _ => {}
                 }
-            }
+            },
+            Message::Index(i) => {
+                self.input_order.push(i)
+            },
+            Message::IndexOrder(pos, index) => {
+                self.input_order.insert(pos, index)
+            },
             _ => {}
         }
     }

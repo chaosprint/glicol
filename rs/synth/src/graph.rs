@@ -4,7 +4,7 @@ use crate::{
     node::Node,
     BoxedNode,
 };
-
+use hashbrown::HashMap;
 use petgraph::data::{DataMap, DataMapMut};
 use petgraph::visit::{
     Data, DfsPostOrder, GraphBase, IntoNeighborsDirected, Reversed, //NodeCount, NodeIndexable, 
@@ -21,7 +21,7 @@ where
     // State related to the traversal of the audio graph starting from the output node.
     dfs_post_order: DfsPostOrder<G::NodeId, G::Map>,
     // Solely for collecting the inputs of a node in order to apply its `Node::process` method.
-    inputs: Vec<Input<N>>,
+    inputs: HashMap<usize, Input<N>>,
     // pub processed: Vec<G::NodeId>
 }
 
@@ -44,7 +44,7 @@ where
     {
         let mut dfs_post_order = DfsPostOrder::default();
         dfs_post_order.stack = Vec::with_capacity(max_nodes);
-        let inputs = Vec::with_capacity(max_nodes);
+        let inputs = HashMap::new(); //Vec::with_capacity(max_nodes);
         Self {
             dfs_post_order,
             inputs,
@@ -133,7 +133,7 @@ pub fn process<G, T, const N: usize>(
 
             let input_container = graph.node_weight(in_n).expect(NO_NODE);
             let input = Input::new(&input_container.buffers, (&*graph).to_index(in_n));
-            processor.inputs.push(input);
+            processor.inputs.insert((&*graph).to_index(in_n), input);
         }
         // Here we deference our raw pointer to the `NodeData`. The only references to the graph at
         // this point in time are the input references and the node itself. We know that the input
@@ -142,7 +142,7 @@ pub fn process<G, T, const N: usize>(
         unsafe {
             (*data)
                 .node
-                .process(&processor.inputs, &mut (*data).buffers);
+                .process(&mut processor.inputs, &mut (*data).buffers);
         }
     }
 }

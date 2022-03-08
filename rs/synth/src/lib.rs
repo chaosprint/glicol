@@ -20,6 +20,9 @@ pub use node::{Sum};
 #[cfg(feature = "node-pass")]
 pub use node::{Pass};
 
+pub use hashbrown::HashMap;
+pub use arrayvec::ArrayVec;
+
 #[macro_export]
 macro_rules! impl_to_boxed_nodedata {
     () => {
@@ -29,10 +32,13 @@ macro_rules! impl_to_boxed_nodedata {
     };
 }
 
+
 #[derive(Debug)]
 pub enum Message {
-    SetToNumber((u8, f32)),
-    SetToSymbol((u8, &'static str)),
+    SetToNumber(u8, f32),
+    SetToSymbol(u8, &'static str),
     MainInput(petgraph::graph::NodeIndex),
     SidechainInput(petgraph::graph::NodeIndex),
+    Index(usize),
+    IndexOrder(usize, usize)
 }

@@ -173,6 +173,13 @@ impl<const N: usize> AudioContext<N> {
 
     pub fn connect(&mut self, from: NodeIndex, to: NodeIndex) -> EdgeIndex {
         let edge_index = self.graph.add_edge(from, to, ());
+        self.graph[to].node.send_msg(Message::Index(from.index()));
+        return edge_index
+    }
+
+    pub fn connect_with_order(&mut self, from: NodeIndex, to: NodeIndex, pos: usize) -> EdgeIndex {
+        let edge_index = self.graph.add_edge(from, to, ());
+        self.graph[to].node.send_msg(Message::IndexOrder(pos, from.index()));
         return edge_index
     }
 
@@ -180,6 +187,7 @@ impl<const N: usize> AudioContext<N> {
         let mut v = vec![];
         for pair in chain.windows(2) {
             v.push(self.graph.add_edge(pair[0], pair[1], ()));
+            self.graph[pair[1]].node.send_msg(Message::Index(pair[0].index()));
         };
         v
     }

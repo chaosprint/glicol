@@ -1,4 +1,5 @@
 use crate::{Buffer, Input, Node, Message};
+use hashbrown::HashMap;
 
 /// A simple node that passes an input directly to the output.
 ///
@@ -11,14 +12,14 @@ use crate::{Buffer, Input, Node, Message};
 pub struct Pass;
 
 impl<const N: usize> Node<N> for Pass {
-    fn process(&mut self, inputs: &[Input<N>], output: &mut [Buffer<N>]) {
-        let input = match inputs.get(0) {
-            None => return,
-            Some(input) => input,
-        };
-        for (out_buf, in_buf) in output.iter_mut().zip(input.buffers()) {
-            out_buf.copy_from_slice(in_buf);
-        }
+    fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
+        // let input = match inputs.get(0) {
+        //     None => return,
+        //     Some(input) => input,
+        // };
+        // for (out_buf, in_buf) in output.iter_mut().zip(input.buffers()) {
+        //     out_buf.copy_from_slice(in_buf);
+        // }
     }
     fn send_msg(&mut self, _info: Message) {
         

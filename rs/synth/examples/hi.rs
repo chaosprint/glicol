@@ -1,6 +1,7 @@
 use glicol_synth::{
     AudioContextBuilder,
-    signal::ConstSig,
+    oscillator::SinOsc,
+    operator::Mul,
     Message
 };
 
@@ -10,7 +11,7 @@ fn main() {
     .channels(1)
     .build();
 
-    let node_a = context.add_mono_node(ConstSig::new(42.));
+    let node_a = context.add_mono_node(SinOsc::new().freq(42.));
 
     // all the process will happen to the destination node
     context.connect(node_a, context.destination);
