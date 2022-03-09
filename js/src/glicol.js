@@ -634,10 +634,10 @@ window.loadModule = async () => {
           //     }
           //   }
           // } else if (e.date.type === 'e') {
-          log(String(e.data.info.slice(2).filter(v => v !== 0.0)))
-          log(String(e.data.info.slice(2, 7)))
-          log(decoder.decode(e.data.info.slice(2, 7)))
-          // log(decoder.decode(e.data.info.slice(2).filter(v => v !== 0.0)))
+          // log(String(e.data.info.slice(2).filter(v => v !== 0.0)))
+          // log(String(e.data.info.slice(2, 7)))
+          // log(decoder.decode(e.data.info.slice(2, 7)))
+          log(decoder.decode(e.data.info.slice(2).filter(v => v !== 0.0)))
             // if (e.data.info[0] > errors.length) {
             //   log(e.data.info[0]-1)
             // }
@@ -772,35 +772,35 @@ window.isGlicolRunning = false
 
 window.encoder = new TextEncoder('utf-8');
 
-window.runCode = (code) => {
+// window.runCode = (code) => {
 
-  try {
-    window.actx.suspend()
-    window.actx.resume()
-    window.isGlicolRunning = true
-  } catch (e) {
-    console.log(e)
-  }
+//   try {
+//     window.actx.suspend()
+//     window.actx.resume()
+//     window.isGlicolRunning = true
+//   } catch (e) {
+//     console.log(e)
+//   }
 
-  try {
-    window.node.port.postMessage({
-      type: "update",
-      value: window.encoder.encode(code)
-    })
-  } catch (e) {
-    console.log(e)
-  }
-}
+//   try {
+//     window.node.port.postMessage({
+//       type: "update",
+//       value: window.encoder.encode(code)
+//     })
+//   } catch (e) {
+//     console.log(e)
+//   }
+// }
 
 window.updateCode = (code) => {
   try { window.actx.resume() } catch (e) {console.log(e)}
   if (window.paramWriter.available_write()) {
     window.paramWriter.enqueue(window.encoder.encode(code))
   }
-  window.node.onmessage = (event) => {
-    // Handling data from the processor.
-    console.log(event);
-  };
+  // window.node.onmessage = (event) => {
+  //   // Handling data from the processor.
+  //   console.log(event);
+  // };
 }
 
 window.run = async (code) =>{
@@ -830,11 +830,11 @@ window.run = async (code) =>{
 
 
   window.code = code
-  if (!window.isGlicolRunning) {
-    window.runCode(code)
-  } else {
-    window.updateCode(code)
-  }
+  // if (!window.isGlicolRunning) {
+  //   window.runCode(code)
+  // } else {
+  window.updateCode(code)
+  // }
 
   if ( document.getElementById("visualizer")) {
     window.visualizeTimeDomainData({canvas: document.getElementById("visualizer"), analyser: window.analyser});

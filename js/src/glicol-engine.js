@@ -1,9 +1,9 @@
 // https://github.com/padenot/ringbuf.js
 // customised for Glicol
 
-let exports = {}
+// let exports = {}
 
-Object.defineProperty(exports, '__esModule', { value: true });
+// Object.defineProperty(exports, '__esModule', { value: true });
 
 // customised for Glicol
 // TextParameter has a varied length
@@ -220,9 +220,9 @@ class RingBuffer {
   }
 }
 
-exports.TextParameterReader = TextParameterReader;
-exports.TextParameterWriter = TextParameterWriter;
-exports.RingBuffer = RingBuffer;
+// exports.TextParameterReader = TextParameterReader;
+// exports.TextParameterWriter = TextParameterWriter;
+// exports.RingBuffer = RingBuffer;
 
 class GlicolEngine extends AudioWorkletProcessor {
     static get parameterDescriptors() {
@@ -230,22 +230,8 @@ class GlicolEngine extends AudioWorkletProcessor {
     }
     constructor() {
         super()
-        var sampleLength, samplePtr, sampleArray;
-        this.ptrArr = [];
-        this.lenArr = [];
-        this.nameArr = [];
-        this.nameLenArr = [];
-
-        var allocUint32Array = (arr, wasmFunc, wasmBuffer) => {
-            let len = arr.length
-            let ptr = wasmFunc(len); // actually it's byteoffset
-            let tempArr = new Uint32Array(wasmBuffer, ptr, len)
-            tempArr.set(arr)
-            return {ptr: ptr, len: len}
-        }
-
         this._codeArray = new Uint8Array(4096);
-        this._resultArray = new Uint8Array(256);
+        
         this.port.onmessage = async e => {
             if (e.data.type === "load") {
                 await WebAssembly.instantiate(e.data.obj, {
@@ -268,11 +254,8 @@ class GlicolEngine extends AudioWorkletProcessor {
                 })
                 // this.port.postMessage({type: 'ready'})
             } else if (e.data.type === "loadsample") {
-
               console.log("data: ", e.data)
-
               let channels = e.data.channels;
-              
               let length = e.data.sample.length;
               let samplePtr = this._wasm.exports.alloc(length);
               let sampleArrayBuffer = new Float32Array(
@@ -298,139 +281,10 @@ class GlicolEngine extends AudioWorkletProcessor {
                 this._outPtr,
                 this._size
               )
-
-            } else if (e.data.type === "samples") {
-                if(this._wasm) {
-                
-                // console.log(e.data.name)
-
-                let s = e.data.sample
-                // let s = Float32Array.from(_s, i => i/32768.0)
-
-                sampleLength = s.length;
-                samplePtr = this._wasm.exports.alloc(sampleLength);
-                sampleArray = new Float32Array(
-                    this._wasm.exports.memory.buffer,
-                    samplePtr,
-                    sampleLength
-                );
-
-                this.ptrArr.push(samplePtr)
-                this.lenArr.push(sampleLength)
-
-                sampleArray.set(s);
-                
-                let nameLen = e.data.name.byteLength
-                let namePtr = this._wasm.exports.alloc_uint8array(nameLen);
-                let name = new Uint8Array(this._wasm.exports.memory.buffer, namePtr, nameLen);
-                name.set(e.data.name);
-                
-                           
-                this.nameArr.push(namePtr)
-                this.nameLenArr.push(nameLen)
-
-                // need to reset this
-                this._outBuf = new Float32Array(
-                    this._wasm.exports.memory.buffer,
-                    this._outPtr,
-                    this._size
-                )
-              }
-            } else if (e.data.type === "stereosamples") {
-              if(this._wasm) {
-                // console.log("sample data: ", e.data.sample)
-                // console.log(e.data.name)
-
-                let s = e.data.sample
-                // let s = Float32Array.from(_s, i => i/32768.0)
-
-                sampleLength = s.length;
-                samplePtr = this._wasm.exports.alloc(sampleLength);
-                sampleArray = new Float32Array(
-                    this._wasm.exports.memory.buffer,
-                    samplePtr,
-                    sampleLength
-                );
-
-                this.ptrArr.push(samplePtr)
-                this.lenArr.push(sampleLength)
-
-                sampleArray.set(s);
-                
-                let nameLen = e.data.name.byteLength // the name is added with _stereo_
-                let namePtr = this._wasm.exports.alloc_uint8array(nameLen);
-                let name = new Uint8Array(this._wasm.exports.memory.buffer, namePtr, nameLen);
-                name.set(e.data.name);
-                           
-                this.nameArr.push(namePtr)
-                this.nameLenArr.push(nameLen)
-
-                // need to reset this
-                this._outBuf = new Float32Array(
-                    this._wasm.exports.memory.buffer,
-                    this._outPtr,
-                    this._size
-                )
-              }
             } else if (e.data.type === "bpm") {
                 // this._wasm.exports.set_bpm(e.data.value);
             } else if (e.data.type === "amp") {
                 // this._wasm.exports.set_track_amp(e.data.value);
-            } else if (e.data.type === "run") {
-                
-                // the code as Uint8 to parse; e.data.value == the code
-                this.code = e.data.value;
-                let codeLen = e.data.value.byteLength
-                let codeUint8ArrayPtr = this._wasm.exports.alloc_uint8array(codeLen);
-                let codeUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, codeUint8ArrayPtr, codeLen);
-                codeUint8Array.set(e.data.value);
-
-                let sampleInfoLen = this.ptrArr.length
-                let sampleInfoPtr = this._wasm.exports.alloc_uint32array(sampleInfoLen)
-                let sampleInfo = new Uint32Array(this._wasm.exports.memory.buffer, sampleInfoPtr, sampleInfoLen) 
-                sampleInfo.set(this.ptrArr)
-
-                let lengthInfoLen = this.lenArr.length
-                let lengthInfoPtr = this._wasm.exports.alloc_uint32array(lengthInfoLen)
-                let lengthInfo = new Uint32Array(this._wasm.exports.memory.buffer, lengthInfoPtr, lengthInfoLen) 
-                lengthInfo.set(this.lenArr)
-
-                let nameInfoLen = this.nameArr.length
-                let nameInfoPtr = this._wasm.exports.alloc_uint32array(nameInfoLen)
-                let nameInfo = new Uint32Array(this._wasm.exports.memory.buffer, nameInfoPtr, nameInfoLen) 
-                nameInfo.set(this.nameArr)
-
-                let nameLenInfoLen = this.nameArr.length
-                let nameLenInfoPtr = this._wasm.exports.alloc_uint32array(nameLenInfoLen)
-                let nameLenInfo = new Uint32Array(this._wasm.exports.memory.buffer, nameLenInfoPtr, nameLenInfoLen) 
-                nameLenInfo.set(this.nameLenArr)
-
-                this._wasm.exports.run(
-                  codeUint8ArrayPtr, codeLen,
-                  sampleInfoPtr, sampleInfoLen,
-                  lengthInfoPtr, lengthInfoLen,
-                  nameInfoPtr, nameInfoLen,
-                  nameLenInfoPtr, nameLenInfoLen
-                )
-
-            } else if (e.data.type === "update") {
-
-                // the code as Uint8 to parse
-                let codeLen = e.data.value.byteLength
-                let codeUint8ArrayPtr = this._wasm.exports.alloc_uint8array(codeLen);
-                let codeUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, codeUint8ArrayPtr, codeLen);
-                codeUint8Array.set(e.data.value);
-                // for updating, no need to pass in samples
-                this.resultPtr = this._wasm.exports.update(codeUint8ArrayPtr, codeLen)
-                this.result = new Uint8Array(
-                  this._wasm.exports.memory.buffer,
-                  this.resultPtr,
-                  256
-                )
-                console.log(this.resultPtr, this.result )
-                // if (result[0] !== 0) {
-                this.port.postMessage({type: 'e', info: this.result.slice(0,256)})
-                // }
             } else if (e.data.type === "sab") {
                 this._param_reader = new TextParameterReader(new RingBuffer(e.data.data, Uint8Array));
             } else if (e.data.type === "result") {
@@ -453,17 +307,16 @@ class GlicolEngine extends AudioWorkletProcessor {
             codeUint8Array.set(this._codeArray.slice(0, size));
 
             // for updating, no need to pass in samples
-            this.resultPtr = this._wasm.exports.update(codeUint8ArrayPtr, size)
-
-            this.result = new Uint8Array(
+            let resultPtr = this._wasm.exports.alloc_uint8array(256);
+            let result = new Uint8Array(
               this._wasm.exports.memory.buffer,
-              this.resultPtr,
+              resultPtr,
               256
             )
-            console.log("deque", this.resultPtr, this.result.slice(0,256))
-            // if (result[0] !== 0) {
-            this.port.postMessage({type: 'e', info: this.result.slice(0,256)})
-            // }
+            this._wasm.exports.update(codeUint8ArrayPtr, size, resultPtr)
+            if (result[0] !== 0) {
+              this.port.postMessage({type: 'e', info: result.slice(0,256)})
+            }
         }
 
       //   if (midiSize) {
@@ -471,11 +324,7 @@ class GlicolEngine extends AudioWorkletProcessor {
       //     let codeUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, codeUint8ArrayPtr, size);
       //     codeUint8Array.set(this._codeArray.slice(0, size));
 
-      //     // for updating, no need to pass in samples
-    //     this._wasm.exports.update(codeUint8ArrayPtr, size)
-      // }
-
-        if (inputs[0][0]) {
+        if (inputs[0][0]) { // TODO: support stereo or multi-chan
             this._inPtr = this._wasm.exports.alloc(128)
             this._inBuf = new Float32Array(
                 this._wasm.exports.memory.buffer,
@@ -485,7 +334,6 @@ class GlicolEngine extends AudioWorkletProcessor {
             this._inBuf.set(inputs[0][0])
         }
 
-        // let resultPtr = 
         this._wasm.exports.process(
           this._inPtr, this._outPtr, this._size)
 
@@ -495,7 +343,6 @@ class GlicolEngine extends AudioWorkletProcessor {
             this._size
         )
     
-
         outputs[0][0].set(this._outBuf.slice(0, 128))
         outputs[0][1].set(this._outBuf.slice(128, 256))
         return true

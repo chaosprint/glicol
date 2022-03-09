@@ -5,15 +5,17 @@ use glicol::Engine; use glicol::{EngineError, get_error_info};
 
 fn main() {
     let mut engine = Engine::<128>::new();
-    match engine.update("o: imp 1 >>") {
+    match engine.update("o: imp 100 >> mul ~mod
+    ~mo: sin 1 >> mul 0.5 >> add 0.5") {
         Ok(_) => {},
         Err(e) => {
-            match e {
-                EngineError::ParsingError(e) => {
-                    println!("{:?}", get_error_info(e))
-                },
-                _ => unimplemented!()
-            }
+            println!("{:?}", e);
+            // match e {
+            //     EngineError::ParsingError(e) => {
+            //         println!("{:?}", get_error_info(e))
+            //     },
+            //     _ => unimplemented!()
+            // }
         }
     };
     println!("refpairlist {:?}", engine.refpairlist);

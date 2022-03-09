@@ -15,20 +15,20 @@ pub extern "C" fn alloc(size: usize) -> *mut f32 {
 }
 
 #[no_mangle]
-pub extern "C" fn alloc_uint8array(length: usize) -> *mut f32 {
+pub extern "C" fn alloc_uint8array(length: usize) -> *mut u8 {
     let mut arr = Vec::<u8>::with_capacity(length);
     let ptr = arr.as_mut_ptr();
     std::mem::forget(arr);
-    ptr as *mut f32
+    ptr
 }
 
-#[no_mangle]
-pub extern "C" fn alloc_uint32array(length: usize) -> *mut f32 {
-    let mut arr = Vec::<u32>::with_capacity(length);
-    let ptr = arr.as_mut_ptr();
-    std::mem::forget(arr);
-    ptr as *mut f32
-}
+// #[no_mangle]
+// pub extern "C" fn alloc_uint32array(length: usize) -> *mut f32 {
+//     let mut arr = Vec::<u32>::with_capacity(length);
+//     let ptr = arr.as_mut_ptr();
+//     std::mem::forget(arr);
+//     ptr as *mut f32
+// }
 
 lazy_static! {
     static ref ENGINE:Mutex<Engine<'static, 128>> = Mutex::new(Engine::<128>::new());
@@ -111,19 +111,30 @@ pub extern "C" fn add_sample(
 
 
 #[no_mangle]
-pub extern "C" fn update(arr_ptr: *mut u8, length: usize) -> *mut u8 {
+pub extern "C" fn update(arr_ptr: *mut u8, length: usize, result_ptr: *mut u8) {
     
 
     let mut engine = ENGINE.lock().unwrap();
     let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
     let code = std::str::from_utf8(encoded).unwrap();
-    let mut console:[u8;256] = match engine.update(code) {
-        Ok(_) => [0; 256],
-        Err(_e) => {
-            let mut result = [0; 256];
-            // let mut result = [0; 256];
-            result[0] = 1;
-            // let s = "error".as_bytes();
+    let result:&mut [u8] = unsafe { from_raw_parts_mut(result_ptr, 256) };
+    match engine.update(code) {
+        Ok(_) => {
+            for i in 0..256 {
+                result[i] = 0
+            }
+        },
+        Err(e) => {
+            let error = format!("{:?}", e);
+            let s = error.as_bytes();
+            for i in 2..256 {
+                if i - 2 < s.len() {
+                    result[i] = s[i-2]
+                } else {
+                    result[i] = 0
+                }
+                
+            }
             // if s.len() < 254 {
             //     for i in 2..s.len()+2 {
             //         result[i] = s[i-2]
@@ -133,18 +144,8 @@ pub extern "C" fn update(arr_ptr: *mut u8, length: usize) -> *mut u8 {
             //         result[i] = s[i-2]
             //     }
             // }
-            result[2] = 101;
-            result[3] = 114;
-            result[4] = 114;
-            result[5] = 111;
-            result[6] = 114;
-            
-            std::mem::forget(result);
-            // let ptr = result.as_mut_ptr();
-            result
         }
     };
-    console.as_mut_ptr()
 }
 
 // #[no_mangle]
