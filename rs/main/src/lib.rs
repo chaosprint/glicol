@@ -15,9 +15,10 @@ pub struct Engine<'a, const N: usize> {
     new_ast: HashMap<&'a str, (Vec<&'a str>, Vec<Vec<GlicolPara<'a>>>)>,
     pub index_info: HashMap<&'a str, Vec<NodeIndex>>,
     pub index_info_backup: HashMap<&'a str, Vec<NodeIndex>>,
-    temp_node_index: Vec<NodeIndex>,
+    temp_node_index: Vec<NodeIndex>, // created in the adding process, will be deleted if err
     node_add_list: Vec<(&'a str, usize, GlicolNodeData<N>)>,
     node_remove_list: Vec<(&'a str, usize)>,
+    node_index_to_remove: Vec<NodeIndex>, // stored in order not to touch the graph if err
     node_update_list: Vec<(&'a str, usize, Vec<GlicolPara<'a>>)>,
     pub refpairlist: Vec<(Vec<&'a str>, &'a str, usize)>,
     pub samples_dict: HashMap<&'a str, (&'a [f32], usize)>
@@ -36,6 +37,7 @@ impl<const N: usize> Engine<'static, N> {
             temp_node_index: vec![],
             node_add_list: vec![],
             node_remove_list: vec![],
+            node_index_to_remove: vec![],
             node_update_list: vec![],
             refpairlist: vec![],
             samples_dict: HashMap::new(),
@@ -47,7 +49,7 @@ impl<const N: usize> Engine<'static, N> {
     }
 
     pub fn update(&mut self, code: &'static str) -> Result<(), EngineError>  {
-        self.add_sample(r#"\808_0"#, &[0.42, 0.0], 2);
+        self.samples_dict.insert(r#"\808_0"#, (&[0.42, 0.0], 2));
         self.code = code;
         self.parse()?;
         self.make_graph()?;
@@ -64,6 +66,8 @@ impl<const N: usize> Engine<'static, N> {
         self.node_add_list.clear();
         self.node_update_list.clear();
         self.node_remove_list.clear();
+        self.temp_node_index.clear();
+        self.node_index_to_remove.clear();
         self.refpairlist.clear(); // we recalculate all the sidechains since some index can change
 
         // also remove the whole chain in_old but not_in_new, after ensuring there is no problem with new stuff
@@ -117,7 +121,7 @@ impl<const N: usize> Engine<'static, N> {
                             let insert_i = v.new_index.unwrap();
                             let nodename = v.data;
                             let mut paras = new_chain_para[new_i].clone();
-                            let (nodedata, reflist) = makenode(nodename, &mut paras, &self.samples_dict);
+                            let (nodedata, reflist) = makenode(nodename, &mut paras, &self.samples_dict)?;
                             if !reflist.is_empty() {
                                 self.refpairlist.push((reflist, key, insert_i));
                             }
@@ -131,7 +135,7 @@ impl<const N: usize> Engine<'static, N> {
                 for i in 0..node_info_tuple.0.len() {
                     let name = node_info_tuple.0[i];
                     let mut paras = node_info_tuple.1[i].clone();
-                    let (nodedata, reflist)  = makenode(name, &mut paras, &self.samples_dict);
+                    let (nodedata, reflist)  = makenode(name, &mut paras, &self.samples_dict)?;
                     if !reflist.is_empty() {
                         self.refpairlist.push((reflist, key, i));
                     }         
@@ -145,30 +149,35 @@ impl<const N: usize> Engine<'static, N> {
 
     pub fn make_graph(&mut self) -> Result<(), EngineError> {
 
-        // TODO: the order needs further testing
-        // node update and node add will all influence the graph info
-        // in node update, the user may provide a new error: e.g. non-exist ref
-        // in node add, user may write a new node that uses non-exist sample
         self.handle_remove_chain();
         self.handle_node_remove();
         self.handle_node_add();
-        self.handle_node_update();
-        match self.handle_ref_check() {
+        match self.handle_node_update() {
             Ok(_) => {},
-            Err(e) => {
-                // remove the added node
-                // use the old index
-                for id in &self.temp_node_index {
+            Err(e) => self.clean_up(e)?
+        };
+        match self.handle_ref_check() {
+            Ok(_) => {
+                for id in &self.node_index_to_remove {
                     self.context.graph.remove_node(*id);
                 }
-                self.index_info = self.index_info_backup.clone();
-                return Err(e)
-            }
+            },
+            Err(e) => self.clean_up(e)?
         };
         self.handle_connection();
         self.ast = self.new_ast.clone();
         self.index_info_backup = self.index_info.clone();
         Ok(())
+    }
+
+    pub fn clean_up(&mut self, e: EngineError) -> Result<(), EngineError> {
+        // remove the added node
+        // use the old index
+        for id in &self.temp_node_index {
+            self.context.graph.remove_node(*id);
+        }
+        self.index_info = self.index_info_backup.clone();
+        return Err(e)
     }
 
     pub fn handle_ref_check(&self) -> Result<(), EngineError> {
@@ -194,7 +203,8 @@ impl<const N: usize> Engine<'static, N> {
             if !self.new_ast.contains_key(key) {
                 println!("remove {:?}", key);
                 for index in &self.index_info[key] {
-                    self.context.graph.remove_node(*index);
+                    // self.context.graph.remove_node(*index);
+                    self.node_index_to_remove.push(*index)
                 }
                 self.index_info.remove_entry(key);       
             }
@@ -215,7 +225,7 @@ impl<const N: usize> Engine<'static, N> {
         }
         println!("node index map {:?}", self.index_info);
     }
-    pub fn handle_node_update(&mut self) {
+    pub fn handle_node_update(&mut self) -> Result<(), EngineError> {
         while !self.node_update_list.is_empty() {
             let (key, position_in_chain, paras) = self.node_update_list.pop().unwrap(); // ok as is it not empty
             println!("handle update {:?} {:?}", key, position_in_chain);
@@ -230,11 +240,13 @@ impl<const N: usize> Engine<'static, N> {
                             self.refpairlist.push((vec![s], key, position_in_chain));
                         },
                         GlicolPara::Symbol(s) => {
+                            if !self.samples_dict.contains_key(*s) {
+                                return Err(EngineError::NonExsitSample((*s).to_owned()))
+                            }
                             self.context.graph[
                             chain[position_in_chain]].node.send_msg(
                                 Message::SetToSamples(i as u8, self.samples_dict[*s]))
-                        },
-                        _ => {}
+                        }
                     }
                 }
                 self.context.graph[
@@ -242,6 +254,7 @@ impl<const N: usize> Engine<'static, N> {
                 // self.context.send_msg(index: NodeIndex, msg: Message)
             }
         }
+        Ok(())
     }
     pub fn handle_node_remove(&mut self) {
         while !self.node_remove_list.is_empty() {
@@ -250,10 +263,11 @@ impl<const N: usize> Engine<'static, N> {
             let (key, position_in_chain) = self.node_remove_list.pop().unwrap();
 
             // println!("self.index_info {:?}", self.index_info);
-            if let Some(chain) = self.index_info.get_mut(key) {
+            if let Some(chain) = self.index_info.get_mut(key) { // touch the index is fine, as we have a backup
                 // println!("chain {:?} position_in_chain {:?}", chain, position_in_chain);
                 let node_index = chain[position_in_chain];
-                self.context.graph.remove_node(node_index);
+                // self.context.graph.remove_node(node_index);
+                self.node_index_to_remove.push(node_index);
                 chain.remove(position_in_chain);
             }
         }

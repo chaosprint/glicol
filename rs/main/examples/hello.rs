@@ -5,20 +5,21 @@ use glicol::Engine; use glicol::{EngineError, get_error_info};
 
 fn main() {
     let mut engine = Engine::<128>::new();
-    match engine.update("o: imp 100 >> mul ~mod
-    ~mo: sin 1 >> mul 0.5 >> add 0.5") {
-        Ok(_) => {},
-        Err(e) => {
-            println!("{:?}", e);
-            // match e {
-            //     EngineError::ParsingError(e) => {
-            //         println!("{:?}", get_error_info(e))
-            //     },
-            //     _ => unimplemented!()
-            // }
-        }
-    };
-    println!("refpairlist {:?}", engine.refpairlist);
+    engine.update(r#"o: constsig 42"#).unwrap();
+    // match engine.update("o: imp 100 >> mul ~mod
+    // ~mo: sin 1 >> mul 0.5 >> add 0.5") {
+    //     Ok(_) => {},
+    //     Err(e) => {
+    //         println!("{:?}", e);
+    //         // match e {
+    //         //     EngineError::ParsingError(e) => {
+    //         //         println!("{:?}", get_error_info(e))
+    //         //     },
+    //         //     _ => unimplemented!()
+    //         // }
+    //     }
+    // };
+    // println!("refpairlist {:?}", engine.refpairlist);
     // engine.update("o: saw 500 >> lpf 100.0 1.0;
 
     // ~mod: sin 0.2 >> mul 200.0 >> add 500.0");
@@ -29,7 +30,7 @@ fn main() {
     // for e in engine.context.graph.edges(engine.context.destination) {
     //     println!("destinations {:?}", e);
     // }
-    engine.next_block();
+    println!("next block {:?}", engine.next_block());
     // engine.send_msg("o", 0, (0, "1."));
     // engine.next_block();
 }

@@ -27,8 +27,10 @@ fn main() {
     // engine.update(r#"o: imp 100 >> mul ~mod
     // ~mo: sin 10 >> add 1.0"#).unwrap();
     // engine.next_block();
-    engine.update(r#"o: imp 100"#).unwrap();
+    engine.update(r#"o: sin 110 >> mul 0.1"#).unwrap();
     println!(" engine.next_block() {:?}", engine.next_block());
-    engine.update(r#"o: saw 10"#).unwrap();
+    engine.update(r#"o: sin 110 >> add 0.0"#).unwrap();
+    println!(" engine.next_block() {:?}", engine.next_block());
+    engine.update(r#"o: sin 110 >> mul 0.1"#).unwrap();
     println!(" engine.next_block() {:?}", engine.next_block());
 }

@@ -99,9 +99,14 @@ impl<const N: usize> Node<N> for Sampler {
     }
     fn send_msg(&mut self, info: Message) {
         match info {
-            Message::SetToSamples(pos, value) => {
+            Message::SetToSamples(pos, sample) => {
                 match pos {
-                    0 => {self.sample = value},
+                    0 => {
+                        self.sample = sample;
+                        self.len = sample.0.len()/sample.1;
+                        self.endindex = sample.0.len()-1;
+                        self.playback.clear();
+                    },
                     _ => {}
                 }
             },

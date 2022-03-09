@@ -257,10 +257,10 @@ class GlicolEngine extends AudioWorkletProcessor {
                 // this._wasm.exports.set_bpm(e.data.value);
             } else if (e.data.type === "amp") {
                 // this._wasm.exports.set_track_amp(e.data.value);
-            } else if (e.data.type === "sab") {
+            // } else if (e.data.type === "sab") {
                 
-            } else if (e.data.type === "result") {
-                this._result_reader = new TextParameterReader(new RingBuffer(e.data.data, Uint8Array));
+            // } else if (e.data.type === "result") {
+                // this._result_reader = new TextParameterReader(new RingBuffer(e.data.data, Uint8Array));
             } else {
                 throw "unexpected.";
             }

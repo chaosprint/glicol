@@ -10,6 +10,7 @@ use glicol_synth::{
 use glicol_synth::{NodeData, BoxedNodeSend}; //, Processor, Buffer, Input, Node
 use glicol_parser::{GlicolPara};
 use glicol_macros::get_one_para_from_number_or_ref;
+use crate::EngineError;
 
 pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
 // pub type NodeResult<const N: usize> = Result<(GlicolNodeData<N>, Vec<String>), GlicolError>;
@@ -21,11 +22,14 @@ pub fn makenode<'a, const N: usize>(
     samples_dict: &std::collections::HashMap<&'a str, (&'static[f32], usize)>,
     // sr: usize,
     // bpm: f32,
-) -> (GlicolNodeData<N>, Vec<&'a str>) {
+) -> Result<(GlicolNodeData<N>, Vec<&'a str>), EngineError> {
     let (nodedata, reflist) = match name {
         "sp" => {
             match paras[0] {
                 GlicolPara::Symbol(s) => {
+                    if !samples_dict.contains_key(s) {
+                        return Err(EngineError::NonExsitSample(s.to_owned()))
+                    }
                     (Sampler::new(samples_dict[s]).to_boxed_nodedata(2), vec![])
                 }
                 _ => {
@@ -180,5 +184,5 @@ pub fn makenode<'a, const N: usize>(
         "constsig" => get_one_para_from_number_or_ref!(ConstSig),
         _ => unimplemented!()
     };
-    return (nodedata, reflist)
+    return Ok((nodedata, reflist))
 }

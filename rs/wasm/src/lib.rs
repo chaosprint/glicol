@@ -113,7 +113,6 @@ pub extern "C" fn add_sample(
 #[no_mangle]
 pub extern "C" fn update(arr_ptr: *mut u8, length: usize, result_ptr: *mut u8) {
     
-
     let mut engine = ENGINE.lock().unwrap();
     let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
     let code = std::str::from_utf8(encoded).unwrap();
