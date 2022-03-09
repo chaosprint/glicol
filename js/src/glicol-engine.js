@@ -1,11 +1,5 @@
 // https://github.com/padenot/ringbuf.js
 // customised for Glicol
-
-// let exports = {}
-
-// Object.defineProperty(exports, '__esModule', { value: true });
-
-// customised for Glicol
 // TextParameter has a varied length
 class TextParameterWriter {
   // From a RingBuffer, build an object that can enqueue a parameter change in
@@ -17,9 +11,6 @@ class TextParameterWriter {
     // const SIZE_ELEMENT = 5;
     this.ringbuf = ringbuf
   }
-  // Returns the number of samples that have been successfuly written to the
-  // queue. `buf` is not written to during this call, so the samples that
-  // haven't been written to the queue are still available.
   enqueue(buf) {
     return this.ringbuf.push(buf);
   }
@@ -37,9 +28,6 @@ class TextParameterReader {
     }
     this.ringbuf = ringbuf;
   }
-  // Attempt to dequeue at most `buf.length` samples from the queue. This
-  // returns the number of samples dequeued. If greater than 0, the samples are
-  // at the beginning of `buf`
   dequeue(buf) {
     if (this.ringbuf.empty()) {
       return 0;
@@ -57,7 +45,6 @@ class TextParameterReader {
 //
 // The producer and the consumer can be separate thread, but cannot change role,
 // except with external synchronization.
-
 class RingBuffer {
   static getStorageForCapacity(capacity, type) {
     if (!type.BYTES_PER_ELEMENT) {
@@ -66,14 +53,11 @@ class RingBuffer {
     var bytes = 8 + (capacity + 1) * type.BYTES_PER_ELEMENT;
     return new SharedArrayBuffer(bytes);
   }
-  // `sab` is a SharedArrayBuffer with a capacity calculated by calling
-  // `getStorageForCapacity` with the desired capacity.
   constructor(sab, type) {
     if (!ArrayBuffer.__proto__.isPrototypeOf(type) &&
       type.BYTES_PER_ELEMENT !== undefined) {
       throw "Pass a concrete typed array class as second argument";
     }
-
     // Maximum usable size is 1<<32 - type.BYTES_PER_ELEMENT bytes in the ring
     // buffer for this version, easily changeable.
     // -4 for the write ptr (uint32_t offsets)
@@ -91,9 +75,6 @@ class RingBuffer {
   type() {
     return this._type.name;
   }
-  // Push bytes to the ring buffer. `bytes` is an typed array of the same type
-  // as passed in the ctor, to be written to the queue.
-  // Returns the number of elements written to the queue.
   push(elements) {
     var rd = Atomics.load(this.read_ptr, 0);
     var wr = Atomics.load(this.write_ptr, 0);
@@ -119,10 +100,6 @@ class RingBuffer {
 
     return to_write;
   }
-  // Read `elements.length` elements from the ring buffer. `elements` is a typed
-  // array of the same type as passed in the ctor.
-  // Returns the number of elements read from the queue, they are placed at the
-  // beginning of the array passed as parameter.
   pop(elements) {
     var rd = Atomics.load(this.read_ptr, 0);
     var wr = Atomics.load(this.write_ptr, 0);
@@ -211,8 +188,6 @@ class RingBuffer {
     return this.capacity;
   }
 
-  // Copy `size` elements from `input`, starting at offset `offset_input`, to
-  // `output`, starting at offset `offset_output`.
   _copy(input, offset_input, output, offset_output, size) {
     for (var i = 0; i < size; i++) {
       output[offset_output + i] = input[offset_input + i];
@@ -220,18 +195,15 @@ class RingBuffer {
   }
 }
 
-// exports.TextParameterReader = TextParameterReader;
-// exports.TextParameterWriter = TextParameterWriter;
-// exports.RingBuffer = RingBuffer;
-
 class GlicolEngine extends AudioWorkletProcessor {
     static get parameterDescriptors() {
         return []
     }
-    constructor() {
-        super()
+    constructor(options) {
+        super(options)
         this._codeArray = new Uint8Array(4096);
-        
+        const { codeQueue } = options.processorOptions;
+        this._param_reader = new TextParameterReader(new RingBuffer(codeQueue, Uint8Array));
         this.port.onmessage = async e => {
             if (e.data.type === "load") {
                 await WebAssembly.instantiate(e.data.obj, {
@@ -252,7 +224,7 @@ class GlicolEngine extends AudioWorkletProcessor {
                     // this._wasm.exports.set_sr(sampleRate);
                     // this._wasm.exports.set_seed(Math.random()*4096);
                 })
-                // this.port.postMessage({type: 'ready'})
+                this.port.postMessage({type: 'ready'})
             } else if (e.data.type === "loadsample") {
               console.log("data: ", e.data)
               let channels = e.data.channels;
@@ -286,7 +258,7 @@ class GlicolEngine extends AudioWorkletProcessor {
             } else if (e.data.type === "amp") {
                 // this._wasm.exports.set_track_amp(e.data.value);
             } else if (e.data.type === "sab") {
-                this._param_reader = new TextParameterReader(new RingBuffer(e.data.data, Uint8Array));
+                
             } else if (e.data.type === "result") {
                 this._result_reader = new TextParameterReader(new RingBuffer(e.data.data, Uint8Array));
             } else {
