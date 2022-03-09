@@ -99,12 +99,12 @@ impl<const N: usize> Node<N> for Sampler {
     }
     fn send_msg(&mut self, info: Message) {
         match info {
-            // Message::SetToNumber(pos, value) => {
-            //     match pos {
-            //         0 => {self.val = value},
-            //         _ => {}
-            //     }
-            // },
+            Message::SetToSamples(pos, value) => {
+                match pos {
+                    0 => {self.sample = value},
+                    _ => {}
+                }
+            },
             Message::Index(i) => {
                 self.input_order.push(i)
             },

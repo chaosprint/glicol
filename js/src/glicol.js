@@ -249,8 +249,9 @@ window.loadModule = async () => {
       window.node.connect(analyser)
       window.analyser.connect(window.actx.destination)
       window.decoder = new TextDecoder('utf-8');
-      window.node.port.onmessage = e => {
+      window.node.port.onmessage = async e => {
         if (e.data.type === 'ready') {
+          
           if (Object.keys(window.sampleBuffers).length !== 0) {
             for (let key in window.sampleBuffers) {
               let buffer = window.sampleBuffers[key];
@@ -273,6 +274,8 @@ window.loadModule = async () => {
                 sr: buffer.sampleRate
               })
             }
+          } else {
+            await window.loadSamples()
           }
         } else if (e.data.type === 'e') {
           log(decoder.decode(e.data.info.slice(2).filter(v => v !== 0.0)))

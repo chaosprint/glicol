@@ -229,6 +229,11 @@ impl<const N: usize> Engine<'static, N> {
                         GlicolPara::Reference(s) => {
                             self.refpairlist.push((vec![s], key, position_in_chain));
                         },
+                        GlicolPara::Symbol(s) => {
+                            self.context.graph[
+                            chain[position_in_chain]].node.send_msg(
+                                Message::SetToSamples(i as u8, self.samples_dict[*s]))
+                        },
                         _ => {}
                     }
                 }

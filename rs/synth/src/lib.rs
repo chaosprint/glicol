@@ -37,6 +37,7 @@ macro_rules! impl_to_boxed_nodedata {
 pub enum Message {
     SetToNumber(u8, f32),
     SetToSymbol(u8, &'static str),
+    SetToSamples(u8, (&'static [f32], usize)),
     MainInput(petgraph::graph::NodeIndex),
     SidechainInput(petgraph::graph::NodeIndex),
     Index(usize),
