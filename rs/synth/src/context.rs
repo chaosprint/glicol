@@ -98,7 +98,7 @@ macro_rules! audiocontext {
 }
 
 pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
-pub type GlicolGraph<const N: usize> = petgraph::stable_graph::StableDiGraph<GlicolNodeData<N>, (), u32>;
+pub type GlicolGraph<const N: usize> = petgraph::graph::Graph<GlicolNodeData<N>, ()>;
 pub type GlicolProcessor<const N: usize> = Processor<GlicolGraph<N>, N>;
 
 pub struct AudioContext<const N: usize> {
@@ -108,8 +108,6 @@ pub struct AudioContext<const N: usize> {
 }
 
 impl<const N: usize> AudioContext<N> {
-    /// the easist way to create a stable graph
-    /// default stereo output
     pub fn new(config: AudioContextConfig) -> Self {
         let mut graph = GlicolGraph::<N>::with_capacity(config.max_nodes, config.max_edges);
         let destination = graph.add_node( NodeData::multi_chan_node(config.channels, BoxedNodeSend::<N>::new(Sum) ) );

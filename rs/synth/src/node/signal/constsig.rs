@@ -15,6 +15,7 @@ impl ConstSig {
 
 impl<const N:usize> Node<N> for ConstSig {
     fn process(&mut self, _inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
+        
         for i in 0..N {
             output[0][i] = self.val;
         }

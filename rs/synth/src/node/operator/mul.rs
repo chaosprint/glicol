@@ -43,6 +43,8 @@ impl<const N:usize> Node<N> for Mul {
             2 => {
                 let ref_input = &inputs[&self.input_order[0]]; // can panic if there is no id
                 let main_input = &inputs[&self.input_order[1]]; // can panic if there is no id
+                println!("sidechain input node id for mul {}", ref_input.node_id);
+                println!("main input node id for mul {}", main_input.node_id);
                 match main_input.buffers().len() {
                     1 => {
                         for i in 0..N {
