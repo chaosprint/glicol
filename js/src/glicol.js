@@ -5,7 +5,7 @@
 // window.version = "v0.8.13"
 
 
-const source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
+window.source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 fetch(source+'utils.js').then(res=>res.text()).then( text =>
   eval(text)
 )

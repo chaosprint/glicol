@@ -145,35 +145,41 @@ window.sampleCount = () => {
 }
 
 window.loadSamples = async () => {
-    // window.actx.suspend()
-    ['bd0000', 'clav', "pandrum", "panfx", "cb"].forEach(async name=>{
-      let myRequest = new Request(`./assets/${name}.wav`);
-      await fetch(myRequest).then(response => response.arrayBuffer())
-      .then(arrayBuffer => {
-          window.actx.decodeAudioData(arrayBuffer, buffer => {
-              // log(new Int16Array(buffer.getChannelData(0).buffer))
-              window.sampleBuffers[name] = buffer
-              var sample;
-              if (buffer.numberOfChannels === 1) {
-                sample = buffer.getChannelData(0);
-              } else if (buffer.numberOfChannels === 2) {
-                sample = new Float32Array( buffer.length * 2);
-                sample.set(buffer.getChannelData(0), 0);
-                sample.set(buffer.getChannelData(1), buffer.length);
-              } else {
-                throw(Error("Only support mono or stereo samples."))
-              }
-              window.node.port.postMessage({
-                type: "loadsample",
-                sample: sample,
-                channels: buffer.numberOfChannels,
-                length: buffer.length,
-                name: encoder.encode("\\"+ name.replace("-","_")),
-                sr: buffer.sampleRate
-              })
-          }, function(e){ log("Error with decoding audio data" + e.err); })
-      });
+    fetch(source+'sample-list.json')
+    .then(response => response.json())
+    .then(data => {
+      log(Object.keys(data))
+      Object.keys(data).forEach(async name=>{
+        let myRequest = new Request(source.replace("src/", "")+`assets/${name}.wav`);
+        await fetch(myRequest).then(response => response.arrayBuffer())
+        .then(arrayBuffer => {
+            window.actx.decodeAudioData(arrayBuffer, buffer => {
+                // log(new Int16Array(buffer.getChannelData(0).buffer))
+                window.sampleBuffers[name] = buffer
+                var sample;
+                if (buffer.numberOfChannels === 1) {
+                  sample = buffer.getChannelData(0);
+                } else if (buffer.numberOfChannels === 2) {
+                  sample = new Float32Array( buffer.length * 2);
+                  sample.set(buffer.getChannelData(0), 0);
+                  sample.set(buffer.getChannelData(1), buffer.length);
+                } else {
+                  throw(Error("Only support mono or stereo samples."))
+                }
+                window.node.port.postMessage({
+                  type: "loadsample",
+                  sample: sample,
+                  channels: buffer.numberOfChannels,
+                  length: buffer.length,
+                  name: encoder.encode("\\"+ name.replace("-","_")),
+                  sr: buffer.sampleRate
+                })
+            }, function(e){ log("Error with decoding audio data" + e.err); })
+        });
+      })
     })
+    // window.actx.suspend()
+    // ['bd0000', 'clav', "pandrum", "panfx", "cb"]
 }
 
 window.addSample = async (name, url) => {
