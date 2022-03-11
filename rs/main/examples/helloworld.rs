@@ -5,7 +5,7 @@ use glicol_synth::signal::const_sig::*;
 use glicol::Engine;
 
 fn main () {
-    let mut engine = Engine::<128>::new(44100);
+    let mut engine = Engine::<128>::new();
     // let i_source = engine.graph.add_node(sin_osc!(128 => {freq: 440.0}));
     let i_source = engine.graph.add_node(Script::new().code(r#""#.to_owned()).build());
     // let i_source = engine.graph.add_node(ConstSig::<128>::new(81.));
