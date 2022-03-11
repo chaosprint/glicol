@@ -2,8 +2,8 @@ pub mod util; use util::makenode;
 pub mod error; pub use error::{EngineError, get_error_info};
 use std::collections::HashMap;
 use petgraph::{graph::NodeIndex};
-use glicol_parser::{get_ast, GlicolPara}; 
-use glicol_synth::{AudioContext, AudioContextConfig, NodeData, BoxedNodeSend, Buffer, Message};
+use glicol_parser::{get_ast}; 
+use glicol_synth::{AudioContext, AudioContextConfig, NodeData, BoxedNodeSend, Buffer, Message, GlicolPara};
 use lcs_diff::{diff, DiffResult};
 
 pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
@@ -72,12 +72,12 @@ impl<const N: usize> Engine<'static, N> {
 
         // also remove the whole chain in_old but not_in_new, after ensuring there is no problem with new stuff
         // println!("\n\nold ast {:?}\n\n new {:?}", self.ast, self.new_ast);
-        for (key, node_info_tuple) in &self.new_ast {
+        for (key, node_info_tuple) in &mut self.new_ast {
             if self.ast.contains_key(key) {
                 let old_chain = &self.ast[key].0;
                 let new_chain = &node_info_tuple.0;
                 let old_chain_para = &self.ast[key].1;
-                let new_chain_para = &node_info_tuple.1;
+                let new_chain_para = &mut node_info_tuple.1;
                 for action in diff(old_chain, new_chain) {
                     match action {
                         DiffResult::Common(v) => {
@@ -95,7 +95,14 @@ impl<const N: usize> Engine<'static, N> {
                                     old_i, // where in chain
                                     new_chain_para[new_i].clone() // new paras
                                 ))
-                            } else {
+                            } else { 
+                                // the paras can be the same
+                                // but if the paras are refs, the source chain of refs can change
+                                // e.g. the main chain is o: constsig 42 >> mul ~a
+                                // the ref ~a: constsig 0.5 becomes ~a: constsig 0.5 >> mul 0.5
+                                // need to reconnect them with the ref source
+                                // note that when update, the reflist is cleared,
+                                // so we will need to rebuild all the ref connection anyway
                                 let mut reflist = vec![];
                                 for para in &new_chain_para[new_i] {
                                     match para {
@@ -120,7 +127,7 @@ impl<const N: usize> Engine<'static, N> {
                             let new_i = v.new_index.unwrap();
                             let insert_i = v.new_index.unwrap();
                             let nodename = v.data;
-                            let mut paras = new_chain_para[new_i].clone();
+                            let mut paras = &mut new_chain_para[new_i];
                             let (nodedata, reflist) = makenode(nodename, &mut paras, &self.samples_dict)?;
                             if !reflist.is_empty() {
                                 self.refpairlist.push((reflist, key, insert_i));
@@ -246,6 +253,11 @@ impl<const N: usize> Engine<'static, N> {
                             self.context.graph[
                             chain[position_in_chain]].node.send_msg(
                                 Message::SetToSamples(i as u8, self.samples_dict[*s]))
+                        },
+                        GlicolPara::Sequence(s) => {
+                            self.context.graph[
+                            chain[position_in_chain]].node.send_msg(
+                                Message::SetToSeq(i as u8, s.clone()))
                         }
                     }
                 }

@@ -30,7 +30,7 @@ impl Impulse {
 }
 
 impl<const N: usize> Node<N> for Impulse {
-    fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
+    fn process(&mut self, _inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         // if inputs.len() > 0 {
         //     self.clock = inputs[0].buffers()[0][0] as usize;
         // }

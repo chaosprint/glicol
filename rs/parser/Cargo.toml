@@ -10,3 +10,4 @@ edition = "2018"
 pest = "*"
 pest_derive = "*"
 glicol_macros = {path = "../macros"}
+glicol_synth = {path = "../synth"}

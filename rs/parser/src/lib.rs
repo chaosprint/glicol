@@ -6,18 +6,11 @@ use pest::error::ErrorVariant;
 use std::collections::HashMap;
 
 use glicol_macros::one_para_number_or_ref;
+use glicol_synth::GlicolPara;
 
 #[derive(Parser)]
 #[grammar = "glicol.pest"]
 pub struct GlicolParser;
-
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-pub enum GlicolPara<'a> {
-    Number(f32),
-    Reference(&'a str),
-    Symbol(&'a str),
-    // Seq(&'static str),
-}
 
 pub fn get_num(para: GlicolPara) -> f32 {
     match para {
@@ -81,11 +74,46 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                     Rule::mul => one_para_number_or_ref!("mul"),
                                     Rule::add => one_para_number_or_ref!("add"),
                                     Rule::seq => {
+                                        let mut event = Vec::<(f32, GlicolPara)>::new();
                                         println!("node {:?}", node.as_str());
                                         let paras = node.into_inner().next().unwrap();
                                         println!("paras {:?}", paras.as_str());
                                         chain_node_names.push("seq");
-                                        chain_paras.push(vec![GlicolPara::Number(paras.as_str().parse::<f32>().unwrap())]);
+                                        // to do, more than a symbol
+                                        // should be an event that contains time and note
+                                        // GlicolPara::Symbol(paras.as_str())
+                                        let compounds: Vec<_> = paras.into_inner().collect();
+                                        // one bar will firstly be divided here
+                                        let compounds_num = compounds.len();
+                                        // println!("{:?}", );
+                                        for (i, compound) in compounds.into_iter().enumerate() {
+                                            let relative_time_base = i as f32 /compounds_num as f32;
+                                            let elements: Vec<_> = compound.into_inner().collect();
+                                            let elements_n = elements.len();
+
+                                            for (j, element) in elements.into_iter().enumerate() {
+                                                let relative_time_sub = 1./ compounds_num as f32 * j as f32 / elements_n as f32;
+                                                let e = element.into_inner().next().unwrap();
+                                                let time = relative_time_sub + relative_time_base;
+                                                match e.as_rule() {
+                                                    Rule::integer => {
+                                                        event.push( (time, GlicolPara::Number(e.as_str().parse::<f32>().unwrap()) ));
+                                                        println!("int {:?}", e.as_str());
+                                                    },
+                                                    Rule::rest => {
+                                                        println!("rest {:?}", e.as_str());
+                                                        // event.push( (time , GlicolPara::Number(0.0) ));
+                                                    },
+                                                    Rule::reference => {
+                                                        println!("ref {:?}", e.as_str());
+                                                        event.push( (time, GlicolPara::Reference(e.as_str()) ));
+                                                    },
+                                                    _=> unimplemented!()
+                                                }
+                                            }
+                                        }
+                                        // GlicolPara::Sequence()
+                                        chain_paras.push(vec![GlicolPara::Sequence(event)]);
                                     },
                                     Rule::sp => {
                                         println!("node {:?}", node.as_str());

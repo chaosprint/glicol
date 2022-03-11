@@ -4,25 +4,25 @@ use glicol_synth::{
     signal::{ConstSig, Impulse},
     operator::{Mul, Add},
     sampling::Sampler,
-    delay::{DelayN, DelayMs}
+    delay::{DelayN, DelayMs},
+    sequencer::Sequencer,
 };
 
-use glicol_synth::{NodeData, BoxedNodeSend}; //, Processor, Buffer, Input, Node
-use glicol_parser::{GlicolPara};
+use glicol_synth::{NodeData, BoxedNodeSend, GlicolPara, HashMap}; //, Processor, Buffer, Input, Node
 use glicol_macros::get_one_para_from_number_or_ref;
 use crate::EngineError;
 
 pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
 // pub type NodeResult<const N: usize> = Result<(GlicolNodeData<N>, Vec<String>), GlicolError>;
 
-pub fn makenode<'a, const N: usize>(
+pub fn makenode<const N: usize>(
     name: &str,
-    paras: &mut Vec<GlicolPara<'a>>,
+    paras: &mut Vec<GlicolPara<'static>>,
     // pos: (usize, usize),
-    samples_dict: &std::collections::HashMap<&'a str, (&'static[f32], usize)>,
+    samples_dict: &std::collections::HashMap<&'static str, (&'static[f32], usize)>,
     // sr: usize,
     // bpm: f32,
-) -> Result<(GlicolNodeData<N>, Vec<&'a str>), EngineError> {
+) -> Result<(GlicolNodeData<N>, Vec<&'static str>), EngineError> {
     let (nodedata, reflist) = match name {
         "sp" => {
             match paras[0] {
@@ -182,6 +182,31 @@ pub fn makenode<'a, const N: usize>(
         "onepole" => get_one_para_from_number_or_ref!(OnePole),
         "add" => get_one_para_from_number_or_ref!(Add),
         "constsig" => get_one_para_from_number_or_ref!(ConstSig),
+        "seq" => {
+            let mut reflist = Vec::<&str>::new();
+            let events = match &paras[0] {
+                GlicolPara::Sequence(s) => s,
+                _ => unimplemented!(),
+            };
+            let mut order = HashMap::new();
+            let mut count = 0;
+            for event in events {
+                match event.1 {
+                    GlicolPara::Number(_n) => {
+
+                    },
+                    GlicolPara::Reference(s) => { // reflist: ["~a", "~b", "~a"]
+                        if !reflist.contains(&s) {
+                            reflist.push(&s);
+                            order.insert(s, count);
+                            count += 1;
+                        }
+                    },
+                    _ => unimplemented!(),
+                }
+            }
+            (Sequencer::new(events.clone()).ref_order(order).to_boxed_nodedata(2), reflist)
+        },
         _ => unimplemented!()
     };
     return Ok((nodedata, reflist))
