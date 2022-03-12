@@ -1,11 +1,13 @@
 use glicol_synth::{
     oscillator::{SinOsc, SquOsc, TriOsc, SawOsc},
-    filter::{ResonantLowPassFilter, OnePole},
+    filter::{ResonantLowPassFilter, OnePole, AllPassFilterGain},
     signal::{ConstSig, Impulse},
     operator::{Mul, Add},
     sampling::Sampler,
     delay::{DelayN, DelayMs},
-    sequencer::Sequencer,
+    sequencer::{Sequencer, Choose},
+    envelope::EnvPerc,
+
 };
 
 use glicol_synth::{NodeData, BoxedNodeSend, GlicolPara, HashMap}; //, Processor, Buffer, Input, Node
@@ -69,6 +71,42 @@ pub fn makenode<const N: usize>(
             //     }
             // }
             
+        },
+        "apfmsgain" => {
+            let data = AllPassFilterGain::new().delay(
+                match paras[0] {
+                    GlicolPara::Number(v) => v,
+                    GlicolPara::Reference(_) => 0.0,
+                    _ => unimplemented!()
+                }
+            ).gain(
+                match paras[1] {
+                    GlicolPara::Number(v) => v,
+                    _ => unimplemented!()
+                }
+            ).to_boxed_nodedata(1);
+
+            let mut reflist = vec![];
+            match paras[0] {
+                GlicolPara::Reference(s) => reflist.push(s),
+                _ => {}
+            };
+            (data, reflist)
+        },
+        "envperc" => {
+            let data = EnvPerc::new().attack(
+                match paras[0] {
+                    GlicolPara::Number(v) => v,
+                    _ => unimplemented!()
+                }
+            ).decay(
+                match paras[1] {
+                    GlicolPara::Number(v) => v,
+                    _ => unimplemented!()
+                }
+            ).to_boxed_nodedata(2);
+            let reflist = vec![];
+            (data, reflist)
         },
         "tri" => {
             match paras[0] {
@@ -192,9 +230,6 @@ pub fn makenode<const N: usize>(
             let mut count = 0;
             for event in events {
                 match event.1 {
-                    GlicolPara::Number(_n) => {
-
-                    },
                     GlicolPara::Reference(s) => { // reflist: ["~a", "~b", "~a"]
                         if !reflist.contains(&s) {
                             reflist.push(&s);
@@ -202,10 +237,19 @@ pub fn makenode<const N: usize>(
                             count += 1;
                         }
                     },
-                    _ => unimplemented!(),
+                    _ => {}
                 }
             }
             (Sequencer::new(events.clone()).ref_order(order).to_boxed_nodedata(2), reflist)
+        },
+        "choose" => {
+            let list = match &paras[0] {
+                GlicolPara::NumberList(v) => {
+                    v
+                },
+                _ => unimplemented!()
+            };
+            (Choose::new(list.clone(), 42).to_boxed_nodedata(2), vec![])
         },
         _ => unimplemented!()
     };

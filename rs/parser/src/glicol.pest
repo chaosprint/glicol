@@ -3,12 +3,14 @@ comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE* ~ !NEWLINE}
 line = ${ reference ~ WHITESPACE* ~ ":" ~ WHITESPACE* ~ chain}
 chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE* ~ node)*  }
 
-node = ${ (seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noiz|onepole|sp|constsig|lpf|onepole|imp|delayn|delayms) }
+node = ${ (seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noiz|onepole|sp|constsig|lpf|onepole|imp|delayn|delayms|envperc|apfmsgain) }
 
+envperc = ${"envperc" ~ WHITESPACE+ ~ !(node_name | reference) ~ number ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
 delayn = ${"delayn" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 delayms = ${"delayms" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 seq = ${ "seq" ~ WHITESPACE+ ~ compound_notes }
 choose = ${ "choose" ~ WHITESPACE+ ~ integer ~ (WHITESPACE+ ~ integer)*}
+apfmsgain = ${ ("apfgain" | "apfmsgain") ~ WHITESPACE+ ~ !node_name ~ (number | reference) ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
 lpf = ${"lpf" ~ WHITESPACE+ ~ !node_name ~ (number | reference) ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
 mul = ${"mul" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 imp = ${"imp" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
@@ -42,4 +44,4 @@ node_name = ${"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|
 "sin"|"squ"|"imp"|"envperc"|"sampler"|"noiz"|"lpf"|"plate"|"onepole"|
 "hpf"|"pha"|"buf"|"state"|"freeverb"|"pan"|"delay"|"apfgain"|"comb"|"mix"|"monosum"|
 "const_sig"|"constsig"|"*"|"sp"|"spd"|"tri"|"noise"|"amplfo"|"balance"|"rlpf"|"rhpf"|"kick"|"ks"|
-"pha"|"shape"|"sawsynth"|"saw"|"script"|"closure"| "r" }
+"pha"|"shape"|"sawsynth"|"saw"|"script"|"closure"| "r" | "apfmsgain" }

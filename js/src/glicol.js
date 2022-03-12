@@ -285,7 +285,7 @@ window.loadModule = async () => {
   })
 }
 window.loadModule();
-window.code = `o: imp 1 >> sp \\808_0`
+window.code = `o: seq 60 >> sp \\cb`
 window.isGlicolRunning = false
 window.encoder = new TextEncoder('utf-8');
 

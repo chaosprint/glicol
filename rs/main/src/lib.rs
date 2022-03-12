@@ -95,7 +95,7 @@ impl<const N: usize> Engine<'static, N> {
                                     old_i, // where in chain
                                     new_chain_para[new_i].clone() // new paras
                                 ))
-                            } else { 
+                            } else {
                                 // the paras can be the same
                                 // but if the paras are refs, the source chain of refs can change
                                 // e.g. the main chain is o: constsig 42 >> mul ~a
@@ -108,6 +108,16 @@ impl<const N: usize> Engine<'static, N> {
                                     match para {
                                         GlicolPara::Reference(v) => {
                                             reflist.push(*v);
+                                        },
+                                        GlicolPara::Sequence(seqs) => {
+                                            for seq in seqs {
+                                                match seq.1 {
+                                                    GlicolPara::Reference(v) => {
+                                                        reflist.push(v);
+                                                    },
+                                                    _ => {}
+                                                }
+                                            }
                                         },
                                         _ => {},
                                     }
@@ -163,14 +173,17 @@ impl<const N: usize> Engine<'static, N> {
             Ok(_) => {},
             Err(e) => self.clean_up(e)?
         };
+        
         match self.handle_ref_check() {
             Ok(_) => {
+                println!(" ref check &self.node_index_to_remove {:?}", &self.node_index_to_remove);
                 for id in &self.node_index_to_remove {
                     self.context.graph.remove_node(*id);
                 }
             },
             Err(e) => self.clean_up(e)?
         };
+        
         self.handle_connection();
         self.ast = self.new_ast.clone();
         self.index_info_backup = self.index_info.clone();
@@ -181,6 +194,7 @@ impl<const N: usize> Engine<'static, N> {
         // remove the added node
         // use the old index
         for id in &self.temp_node_index {
+            println!("graph.remove_node in clean_up {:?}", *id);
             self.context.graph.remove_node(*id);
         }
         self.index_info = self.index_info_backup.clone();
@@ -230,15 +244,18 @@ impl<const N: usize> Engine<'static, N> {
                 chain.insert(position_in_chain, nodeindex);
             }
         }
-        println!("node index map {:?}", self.index_info);
+        println!("node index map after handle add{:?}", self.index_info);
     }
     pub fn handle_node_update(&mut self) -> Result<(), EngineError> {
         while !self.node_update_list.is_empty() {
             let (key, position_in_chain, paras) = self.node_update_list.pop().unwrap(); // ok as is it not empty
             println!("handle update {:?} {:?}", key, position_in_chain);
             if let Some(chain) = self.index_info.get_mut(key) {
+
+                // TODO: reset order here, if ref is wrong, cannot be reverted
+                // self.context.graph[
+                //     chain[position_in_chain]].node.send_msg(Message::ResetOrder);
                 for (i, para) in paras.iter().enumerate() {
-                    // let node = &self.context.graph[chain[position_in_chain]].node;
                     match para {
                         GlicolPara::Number(v) => self.context.graph[
                             chain[position_in_chain]].node.send_msg(
@@ -254,15 +271,42 @@ impl<const N: usize> Engine<'static, N> {
                             chain[position_in_chain]].node.send_msg(
                                 Message::SetToSamples(i as u8, self.samples_dict[*s]))
                         },
-                        GlicolPara::Sequence(s) => {
+                        GlicolPara::Sequence(events) => {
+
+                            // todo: an issue is that when you revert it, these messages cannot be undone
                             self.context.graph[
                             chain[position_in_chain]].node.send_msg(
-                                Message::SetToSeq(i as u8, s.clone()))
+                                Message::SetToSeq(i as u8, events.clone())
+                            );
+                            let mut reflist = vec![];
+                            let mut count = 0;
+                            let mut order = glicol_synth::HashMap::new();
+                            for event in events {
+                                match event.1 {
+                                    GlicolPara::Reference(s) => { // reflist: ["~a", "~b", "~a"]
+                                        if !reflist.contains(&s) {
+                                            reflist.push(&s);
+                                            order.insert(s, count);
+                                            count += 1;
+                                        }
+                                    },
+                                    _ => {}
+                                }
+                            };
+                            self.refpairlist.push((reflist, key, position_in_chain));
+                            self.context.graph[
+                            chain[position_in_chain]].node.send_msg(
+                                Message::SetRefOrder(order)
+                            );
+                        },
+                        GlicolPara::NumberList(l) => {
+                            self.context.graph[
+                            chain[position_in_chain]].node.send_msg(
+                                Message::SetToNumberList(i as u8, l.clone()))
                         }
                     }
                 }
-                self.context.graph[
-                            chain[position_in_chain]].node.send_msg(Message::ResetOrder);
+
                 // self.context.send_msg(index: NodeIndex, msg: Message)
             }
         }

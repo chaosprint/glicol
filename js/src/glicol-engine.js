@@ -280,12 +280,13 @@ class GlicolEngine extends AudioWorkletProcessor {
 
             // for updating, no need to pass in samples
             let resultPtr = this._wasm.exports.alloc_uint8array(256);
+
+            this._wasm.exports.update(codeUint8ArrayPtr, size, resultPtr)
             let result = new Uint8Array(
               this._wasm.exports.memory.buffer,
               resultPtr,
               256
             )
-            this._wasm.exports.update(codeUint8ArrayPtr, size, resultPtr)
             if (result[0] !== 0) {
               this.port.postMessage({type: 'e', info: result.slice(0,256)})
             }

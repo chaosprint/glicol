@@ -98,7 +98,7 @@ macro_rules! audiocontext {
 }
 
 pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
-pub type GlicolGraph<const N: usize> = petgraph::graph::Graph<GlicolNodeData<N>, ()>;
+pub type GlicolGraph<const N: usize> = petgraph::stable_graph::StableGraph<GlicolNodeData<N>, ()>;
 pub type GlicolProcessor<const N: usize> = Processor<GlicolGraph<N>, N>;
 
 pub struct AudioContext<const N: usize> {

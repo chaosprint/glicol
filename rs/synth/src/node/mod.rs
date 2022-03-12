@@ -24,6 +24,7 @@ pub mod filter; pub use filter::*;
 pub mod sampling; pub use sampling::*;
 pub mod sequencer; pub use sequencer::*;
 pub mod delay; pub use delay::*;
+pub mod envelope; pub use envelope::*;
 
 use crate::Message;
 
