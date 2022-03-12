@@ -7,7 +7,7 @@ pub use crate::{
     Processor,
     Message,
     HashMap,
-    Sum,
+    Sum2,
     Pass
 };
 
@@ -114,7 +114,7 @@ pub struct AudioContext<const N: usize> {
 impl<const N: usize> AudioContext<N> {
     pub fn new(config: AudioContextConfig) -> Self {
         let mut graph = GlicolGraph::<N>::with_capacity(config.max_nodes, config.max_edges);
-        let destination = graph.add_node( NodeData::multi_chan_node(config.channels, BoxedNodeSend::<N>::new(Sum) ) );
+        let destination = graph.add_node( NodeData::multi_chan_node(config.channels, BoxedNodeSend::<N>::new(Sum2) ) );
         let input = graph.add_node( NodeData::multi_chan_node(config.channels, BoxedNodeSend::<N>::new(Pass) ) );
         Self {
             graph,

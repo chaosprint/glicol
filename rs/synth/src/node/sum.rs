@@ -23,6 +23,9 @@ pub struct Sum;
 #[derive(Clone, Debug, PartialEq)]
 pub struct SumBuffers;
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct Sum2;
+
 impl<const N: usize> Node<N> for Sum {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         // Fill the output with silence.
@@ -39,6 +42,34 @@ impl<const N: usize> Node<N> for Sum {
             }
         }
         // println!("{:?}", output);
+    }
+    fn send_msg(&mut self, _info: Message) {
+        
+    }
+}
+
+
+
+impl<const N: usize> Node<N> for Sum2 {
+    fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
+        // Fill the output with silence.
+        for out_buffer in output.iter_mut() {
+            out_buffer.silence();
+        }
+        // Sum the inputs onto the output.
+        for (channel, out_buffer) in output.iter_mut().enumerate() {
+            for input in inputs.values() {
+                let in_buffers = input.buffers();
+                match in_buffers.get(channel) {
+                    Some(in_buffer) => {
+                        dasp_slice::add_in_place(out_buffer, in_buffer);
+                    },
+                    None => {
+                        dasp_slice::add_in_place(out_buffer, &in_buffers[0]);
+                    }
+                };
+            }
+        }
     }
     fn send_msg(&mut self, _info: Message) {
         

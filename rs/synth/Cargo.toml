@@ -19,6 +19,7 @@ dasp_signal = "*"
 dasp_interpolate = { version = "*", features = ["linear", "sinc"] }
 hashbrown = "*"
 arrayvec = "*"
+rhai = { version = "*", features = ["sync", "f32_float", "only_i32"] }
 
 [dev-dependencies]
 gnuplot = "*"

@@ -9,6 +9,7 @@ use glicol_synth::{
     envelope::EnvPerc,
     effect::{Plate},
     compound::{Bd},
+    dynamic::Meta,
     Pass,
 };
 
@@ -36,9 +37,15 @@ pub fn makenode<const N: usize>(
                     }
                     (Sampler::new(samples_dict[s]).to_boxed_nodedata(2), vec![])
                 }
-                _ => {
-                    unimplemented!();
-                }
+                _ => unimplemented!()
+            }
+        },
+        "meta" => {
+            match paras[0] {
+                GlicolPara::Symbol(s) => {
+                    (Meta::new().code(s).to_boxed_nodedata(1), vec![])
+                },
+                _ => unimplemented!()
             }
         },
         "lpf" => {
@@ -113,10 +120,10 @@ pub fn makenode<const N: usize>(
         "tri" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (TriOsc::new().freq(v).to_boxed_nodedata(2), vec![])
+                    (TriOsc::new().freq(v).to_boxed_nodedata(1), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (TriOsc::new().freq(0.0).to_boxed_nodedata(2), vec![s])
+                    (TriOsc::new().freq(0.0).to_boxed_nodedata(1), vec![s])
                 },
                 _ => {
                     unimplemented!();
@@ -127,10 +134,10 @@ pub fn makenode<const N: usize>(
         "squ" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (SquOsc::new().freq(v).to_boxed_nodedata(2), vec![])
+                    (SquOsc::new().freq(v).to_boxed_nodedata(1), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (SquOsc::new().freq(0.0).to_boxed_nodedata(2), vec![s])
+                    (SquOsc::new().freq(0.0).to_boxed_nodedata(1), vec![s])
                 },
                 _ => {
                     unimplemented!();
@@ -141,10 +148,10 @@ pub fn makenode<const N: usize>(
         "saw" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (SawOsc::new().freq(v).to_boxed_nodedata(2), vec![])
+                    (SawOsc::new().freq(v).to_boxed_nodedata(1), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (SawOsc::new().freq(0.0).to_boxed_nodedata(2), vec![s])
+                    (SawOsc::new().freq(0.0).to_boxed_nodedata(1), vec![s])
                 },
                 _ => {
                     unimplemented!();
@@ -155,16 +162,15 @@ pub fn makenode<const N: usize>(
         "sin" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (SinOsc::new().freq(v).to_boxed_nodedata(2), vec![])
+                    (SinOsc::new().freq(v).to_boxed_nodedata(1), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (SinOsc::new().freq(0.0).to_boxed_nodedata(2), vec![s])
+                    (SinOsc::new().freq(0.0).to_boxed_nodedata(1), vec![s])
                 },
                 _ => {
                     unimplemented!();
                 }
             }
-            
         },
         "plate" => {
             match paras[0] {
@@ -180,10 +186,10 @@ pub fn makenode<const N: usize>(
         "imp" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (Impulse::new().freq(v).to_boxed_nodedata(2), vec![])
+                    (Impulse::new().freq(v).to_boxed_nodedata(1), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (Impulse::new().freq(0.0).to_boxed_nodedata(2), vec![s])
+                    (Impulse::new().freq(0.0).to_boxed_nodedata(1), vec![s])
                 },
                 _ => {
                     unimplemented!();

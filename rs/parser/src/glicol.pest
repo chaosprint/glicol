@@ -5,8 +5,16 @@ chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE* ~ node
 
 node = ${ (seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noiz|onepole|
 sp|constsig|lpf|onepole|imp|delayn|delayms|envperc|apfmsgain|plate|sendpass|
-get|bd) }
+get|bd|meta) }
 
+meta = ${ ("meta"|"script") ~ WHITESPACE+ ~ code}
+code = ${ "`" ~ inner ~ "`" }
+inner = @{ char* }
+char = {
+    !("`" | "\\") ~ ANY
+    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
 get = ${ "get"? ~ WHITESPACE+ ~ !(node_name) ~ reference}
 sendpass = ${ "sendpass" ~ WHITESPACE+ ~ reference ~ (WHITESPACE+ ~ reference)*}
 plate = ${"plate" ~ WHITESPACE+ ~ !(node_name | reference) ~ number}

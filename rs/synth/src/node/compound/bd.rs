@@ -32,10 +32,10 @@ impl<const N: usize> Bd<N> {
         let env_amp = context.add_mono_node( EnvPerc::new().attack(0.003).decay(decay));
         context.tags.insert("d", env_amp);
         let env_pitch = context.add_mono_node( EnvPerc::new().attack(0.01).decay(0.1));
-        let mul = context.add_mono_node( Mul::new(50.));
-        let add = context.add_mono_node( Add::new(60.));
-        let sin = context.add_mono_node( SinOsc::new() );
-        let sin_amp = context.add_mono_node( Mul::new(0.) );
+        let mul = context.add_stereo_node( Mul::new(50.));
+        let add = context.add_stereo_node( Add::new(60.));
+        let sin = context.add_stereo_node( SinOsc::new() );
+        let sin_amp = context.add_stereo_node( Mul::new(0.) );
         context.chain(vec![sin, sin_amp, context.destination]);
         context.chain(vec![input, env_amp, sin_amp]);
         context.chain(vec![input, env_pitch, mul, add, sin]);

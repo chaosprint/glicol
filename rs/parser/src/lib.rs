@@ -193,6 +193,13 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                     },
                                     Rule::plate => one_para_number_or_ref!("plate"),
                                     Rule::get => one_para_number_or_ref!("get"),
+                                    Rule::meta => {
+                                        println!("node {:?}", node.as_str());
+                                        let paras = node.into_inner().next().unwrap();
+                                        println!("paras {:?}", paras.as_str());
+                                        chain_node_names.push("meta");
+                                        chain_paras.push(vec![GlicolPara::Symbol(paras.as_str())]);
+                                    },
                                     _ => {}
                                 }
                             }

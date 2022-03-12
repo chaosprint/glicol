@@ -6,7 +6,7 @@ pub use boxed::{BoxedNode, BoxedNodeSend};
 #[cfg(feature = "node-pass")]
 pub use pass::Pass;
 #[cfg(feature = "node-sum")]
-pub use sum::Sum;
+pub use sum::Sum; pub use sum::Sum2;
 
 #[cfg(feature = "node-boxed")]
 mod boxed;
@@ -27,6 +27,7 @@ pub mod delay; pub use delay::*;
 pub mod envelope; pub use envelope::*;
 pub mod effect; pub use effect::*;
 pub mod compound; pub use compound::*;
+pub mod dynamic; pub use dynamic::*;
 
 use crate::Message;
 
