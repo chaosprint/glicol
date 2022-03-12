@@ -6,7 +6,9 @@ pub use crate::{
     BoxedNodeSend,
     Processor,
     Message,
-    Sum
+    HashMap,
+    Sum,
+    Pass
 };
 
 use petgraph::{
@@ -102,7 +104,9 @@ pub type GlicolGraph<const N: usize> = petgraph::stable_graph::StableGraph<Glico
 pub type GlicolProcessor<const N: usize> = Processor<GlicolGraph<N>, N>;
 
 pub struct AudioContext<const N: usize> {
+    pub input: NodeIndex,
     pub destination: NodeIndex,
+    pub tags: HashMap<&'static str, NodeIndex>,
     pub graph: GlicolGraph<N>,
     pub processor: GlicolProcessor<N>
 }
@@ -111,24 +115,29 @@ impl<const N: usize> AudioContext<N> {
     pub fn new(config: AudioContextConfig) -> Self {
         let mut graph = GlicolGraph::<N>::with_capacity(config.max_nodes, config.max_edges);
         let destination = graph.add_node( NodeData::multi_chan_node(config.channels, BoxedNodeSend::<N>::new(Sum) ) );
+        let input = graph.add_node( NodeData::multi_chan_node(config.channels, BoxedNodeSend::<N>::new(Pass) ) );
         Self {
             graph,
             destination,
+            input,
+            tags: HashMap::new(),
             processor: GlicolProcessor::<N>::with_capacity(config.max_nodes),
         }
     }
 
     /// an alternative to new() specify the estimated max node and edge numbers
     /// to avoid dynamic allocation
-    pub fn with_capacity(nodes: usize, edges: usize) -> Self {
-        let mut graph = GlicolGraph::<N>::with_capacity(nodes, edges);
-        let destination = graph.add_node( NodeData::new2( BoxedNodeSend::<N>::new( Sum)  ) );
-        Self {
-            graph,
-            destination,
-            processor: GlicolProcessor::<N>::with_capacity(nodes),
-        }
-    }
+    // pub fn with_capacity(nodes: usize, edges: usize) -> Self {
+    //     let mut graph = GlicolGraph::<N>::with_capacity(nodes, edges);
+    //     let destination = graph.add_node( NodeData::new2( BoxedNodeSend::<N>::new( Sum)  ) );
+    //     let input = graph.add_node( NodeData::multi_chan_node(config.channels, BoxedNodeSend::<N>::new(Pass) ) );
+    //     Self {
+    //         graph,
+    //         destination,
+    //         input,
+    //         processor: GlicolProcessor::<N>::with_capacity(nodes),
+    //     }
+    // }
 
     pub fn add_mono_node<T>(&mut self, node: T) -> NodeIndex
     where T: Node<N> + Send + 'static,
@@ -188,6 +197,21 @@ impl<const N: usize> AudioContext<N> {
             self.graph[pair[1]].node.send_msg(Message::Index(pair[0].index()));
         };
         v
+    }
+
+    pub fn chain_boxed(&mut self, chain: Vec<GlicolNodeData<N>>) 
+    -> (Vec<NodeIndex>, Vec<EdgeIndex>) {
+        let mut indexes = vec![];
+        let mut v = vec![];
+        for node in chain {
+            let id = self.graph.add_node(node);
+            indexes.push(id);
+        }
+        for pair in indexes.windows(2) {
+            v.push(self.graph.add_edge(pair[0], pair[1], ()));
+            self.graph[pair[1]].node.send_msg(Message::Index(pair[0].index()));
+        };
+        (indexes, v)
     }
 
     pub fn add_node_chain(&mut self, chain: Vec<NodeData<BoxedNodeSend<N>, N>>) -> (Vec<NodeIndex>, Vec<EdgeIndex>)

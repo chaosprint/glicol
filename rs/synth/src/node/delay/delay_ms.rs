@@ -57,7 +57,7 @@ impl<const N: usize> Node<N> for DelayMs {
                 let main_input = inputs.values_mut().next().unwrap();
                 for i in 0..N {
                     output[0][i] = self.buf.push(main_input.buffers()[0][i]);
-                    output[1][i] = self.buf2.push(main_input.buffers()[1][i]);
+                    // output[1][i] = self.buf2.push(main_input.buffers()[1][i]);
                 }
             },
             2 => {

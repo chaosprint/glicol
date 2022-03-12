@@ -12,14 +12,14 @@ use hashbrown::HashMap;
 pub struct Pass;
 
 impl<const N: usize> Node<N> for Pass {
-    fn process(&mut self, _inputs: &mut HashMap<usize, Input<N>>, _output: &mut [Buffer<N>]) {
-        // let input = match inputs.get(0) {
-        //     None => return,
-        //     Some(input) => input,
-        // };
-        // for (out_buf, in_buf) in output.iter_mut().zip(input.buffers()) {
-        //     out_buf.copy_from_slice(in_buf);
-        // }
+    fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
+        let input = match inputs.values().next() {
+            None => return,
+            Some(input) => input,
+        };
+        for (out_buf, in_buf) in output.iter_mut().zip(input.buffers()) {
+            out_buf.copy_from_slice(in_buf);
+        }
     }
     fn send_msg(&mut self, _info: Message) {
         

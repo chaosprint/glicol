@@ -7,7 +7,9 @@ use glicol_synth::{
     delay::{DelayN, DelayMs},
     sequencer::{Sequencer, Choose},
     envelope::EnvPerc,
-
+    effect::{Plate},
+    compound::{Bd},
+    Pass,
 };
 
 use glicol_synth::{NodeData, BoxedNodeSend, GlicolPara, HashMap}; //, Processor, Buffer, Input, Node
@@ -164,6 +166,17 @@ pub fn makenode<const N: usize>(
             }
             
         },
+        "plate" => {
+            match paras[0] {
+                GlicolPara::Number(v) => {
+                    (Plate::new(v).to_boxed_nodedata(2), vec![])
+                },
+                _ => {
+                    unimplemented!();
+                }
+            }
+            
+        },
         "imp" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
@@ -220,6 +233,17 @@ pub fn makenode<const N: usize>(
         "onepole" => get_one_para_from_number_or_ref!(OnePole),
         "add" => get_one_para_from_number_or_ref!(Add),
         "constsig" => get_one_para_from_number_or_ref!(ConstSig),
+        "bd" => get_one_para_from_number_or_ref!(Bd),
+        "get" => {
+            let mut reflist = Vec::<&str>::new();
+            match paras[0] {
+                GlicolPara::Reference(s) => {
+                    reflist.push(s)
+                },
+                _ => unimplemented!()
+            }
+            ( NodeData::new2( BoxedNodeSend::new(Pass{}) ), reflist)
+        },
         "seq" => {
             let mut reflist = Vec::<&str>::new();
             let events = match &paras[0] {
@@ -251,6 +275,15 @@ pub fn makenode<const N: usize>(
             };
             (Choose::new(list.clone(), 42).to_boxed_nodedata(2), vec![])
         },
+        // "sendpass" => {
+        //     let reflist = match &paras[0] {
+        //         GlicolPara::RefList(v) => {
+        //             v
+        //         },
+        //         _ => unimplemented!()
+        //     };
+        //     ( Pass{}.to_boxed_nodedata(2), reflist)
+        // },
         _ => unimplemented!()
     };
     return Ok((nodedata, reflist))
