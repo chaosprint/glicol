@@ -1,14 +1,14 @@
 use glicol_synth::{
     oscillator::{SinOsc, SquOsc, TriOsc, SawOsc},
     filter::{ResonantLowPassFilter, OnePole, AllPassFilterGain},
-    signal::{ConstSig, Impulse},
+    signal::{ConstSig, Impulse, Noise},
     operator::{Mul, Add},
     sampling::Sampler,
     delay::{DelayN, DelayMs},
     sequencer::{Sequencer, Choose},
     envelope::EnvPerc,
     effect::{Plate},
-    compound::{Bd},
+    compound::{Bd, Hh, Sn, SawSynth, SquSynth, TriSynth},
     dynamic::Meta,
     Pass,
 };
@@ -236,10 +236,25 @@ pub fn makenode<const N: usize>(
                 }
             }
         },
+        "noise" => {
+            match paras[0] {
+                GlicolPara::Number(v) => {
+                    (Noise::new(v as usize).to_boxed_nodedata(1), vec![])
+                },
+                _ => {
+                    unimplemented!();
+                }
+            }
+        },
         "onepole" => get_one_para_from_number_or_ref!(OnePole),
         "add" => get_one_para_from_number_or_ref!(Add),
         "constsig" => get_one_para_from_number_or_ref!(ConstSig),
         "bd" => get_one_para_from_number_or_ref!(Bd),
+        "hh" => get_one_para_from_number_or_ref!(Hh),
+        "sn" => get_one_para_from_number_or_ref!(Sn),
+        "sawsynth" => get_one_para_from_number_or_ref!(SawSynth),
+        "squsynth" => get_one_para_from_number_or_ref!(SquSynth),
+        "trisynth" => get_one_para_from_number_or_ref!(TriSynth),
         "get" => {
             let mut reflist = Vec::<&str>::new();
             match paras[0] {

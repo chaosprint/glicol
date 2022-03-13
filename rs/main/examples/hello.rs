@@ -5,7 +5,7 @@ use glicol::Engine; use glicol::{EngineError, get_error_info};
 
 fn main() {
     let mut engine = Engine::<8>::new();
-    engine.update(r#"o: seq ~a; ~a: choose 60"#).unwrap();
+    engine.update(r#"o: seq _ 60 >> sn 0.1"#).unwrap();
     // match engine.update("o: imp 100 >> mul ~mod
     // ~mo: sin 1 >> mul 0.5 >> add 0.5") {
     //     Ok(_) => {},

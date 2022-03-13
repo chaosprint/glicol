@@ -3,9 +3,9 @@ comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE* ~ !NEWLINE}
 line = ${ reference ~ WHITESPACE* ~ ":" ~ WHITESPACE* ~ chain}
 chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE* ~ node)*  }
 
-node = ${ (seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noiz|onepole|
+node = ${ (seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noise|onepole|
 sp|constsig|lpf|onepole|imp|delayn|delayms|envperc|apfmsgain|plate|sendpass|
-get|bd|meta) }
+get|bd|sn|hh|meta|sawsynth|squsynth|trisynth) }
 
 meta = ${ ("meta"|"script") ~ WHITESPACE+ ~ code}
 code = ${ "`" ~ inner ~ "`" }
@@ -15,7 +15,7 @@ char = {
     | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
     | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }
-get = ${ "get"? ~ WHITESPACE+ ~ !(node_name) ~ reference}
+get = ${ ("get" ~ WHITESPACE+)? ~ !(node_name) ~ reference}
 sendpass = ${ "sendpass" ~ WHITESPACE+ ~ reference ~ (WHITESPACE+ ~ reference)*}
 plate = ${"plate" ~ WHITESPACE+ ~ !(node_name | reference) ~ number}
 envperc = ${"envperc" ~ WHITESPACE+ ~ !(node_name | reference) ~ number ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
@@ -28,6 +28,11 @@ lpf = ${"lpf" ~ WHITESPACE+ ~ !node_name ~ (number | reference) ~ WHITESPACE+ ~ 
 mul = ${"mul" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 imp = ${"imp" ~ WHITESPACE+ ~ !node_name ~ (number ) }
 bd = ${"bd" ~ WHITESPACE+ ~ !node_name ~ (number ) }
+sn = ${"sn" ~ WHITESPACE+ ~ !node_name ~ (number ) }
+hh = ${"hh" ~ WHITESPACE+ ~ !node_name ~ (number ) }
+sawsynth = ${"sawsynth" ~ WHITESPACE+ ~ !node_name ~ (number ) }
+squsynth = ${"squsynth" ~ WHITESPACE+ ~ !node_name ~ (number ) }
+trisynth = ${"trisynth" ~ WHITESPACE+ ~ !node_name ~ (number ) }
 add = ${"add" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 sin = ${"sin" ~ WHITESPACE+ ~ !node_name ~ ( number | reference) }
 saw = ${"saw" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
@@ -38,8 +43,8 @@ constsig = ${"constsig" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 onepole = ${"onepole" ~ WHITESPACE+ ~ !node_name ~ ( number | reference) }
 
 // single float
-speed = ${"speed" ~ WHITESPACE+ ~ float}
-noiz = ${("noiz"|"noise") ~ WHITESPACE+ ~ float}
+speed = ${"speed" ~ WHITESPACE+ ~ number}
+noise = ${("noiz"|"noise") ~ WHITESPACE+ ~ number}
 sp = ${("sp"|"sampler") ~ WHITESPACE+ ~ !( node_name | reference | number ) ~ symbol }
 // paras = ${  float | symbol | seq | reference}
 number = ${ float | integer}

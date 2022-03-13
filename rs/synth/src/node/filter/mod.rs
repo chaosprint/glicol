@@ -3,3 +3,5 @@ pub use rlpf::*;
 pub mod onepole;
 pub use onepole::*;
 pub mod apfmsgain; pub use apfmsgain::*;
+mod rhpf;
+pub use rhpf::*;

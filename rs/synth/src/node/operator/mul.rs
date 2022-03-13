@@ -27,6 +27,9 @@ impl<const N:usize> Node<N> for Mul {
                     1 => {
                         for i in 0..N {
                             output[0][i] = main_input.buffers()[0][i] * self.val;
+                            if output.len() > 1 {
+                                output[1][i] = main_input.buffers()[0][i] * self.val;
+                            }
                         }
                     },
                     2 => {
@@ -49,6 +52,9 @@ impl<const N:usize> Node<N> for Mul {
                     1 => {
                         for i in 0..N {
                             output[0][i] = main_input.buffers()[0][i] * ref_input.buffers()[0][i];
+                            if output.len() > 1 {
+                                output[1][i] = main_input.buffers()[0][i] * ref_input.buffers()[0][i];
+                            }
                         }
                     },
                     2 => {

@@ -139,6 +139,11 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                     
                                     Rule::constsig => one_para_number_or_ref!("constsig"),
                                     Rule::bd => one_para_number_or_ref!("bd"),
+                                    Rule::sn => one_para_number_or_ref!("sn"),
+                                    Rule::hh => one_para_number_or_ref!("hh"),
+                                    Rule::sawsynth => one_para_number_or_ref!("sawsynth"),
+                                    Rule::squsynth => one_para_number_or_ref!("squsynth"),
+                                    Rule::trisynth => one_para_number_or_ref!("trisynth"),
                                     Rule::lpf => {
                                         println!("node {:?}", node.as_str());
                                         let mut iter = node.into_inner();
@@ -193,6 +198,7 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                     },
                                     Rule::plate => one_para_number_or_ref!("plate"),
                                     Rule::get => one_para_number_or_ref!("get"),
+                                    Rule::noise => one_para_number_or_ref!("noise"),
                                     Rule::meta => {
                                         println!("node {:?}", node.as_str());
                                         let paras = node.into_inner().next().unwrap();
@@ -200,7 +206,7 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                         chain_node_names.push("meta");
                                         chain_paras.push(vec![GlicolPara::Symbol(paras.as_str())]);
                                     },
-                                    _ => {}
+                                    _ => unimplemented!()
                                 }
                             }
                             // println!("chain.into_inner(); {:?}", chain.into_inner());
