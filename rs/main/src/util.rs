@@ -43,7 +43,7 @@ pub fn makenode<const N: usize>(
         "meta" => {
             match paras[0] {
                 GlicolPara::Symbol(s) => {
-                    (Meta::new().code(s).to_boxed_nodedata(1), vec![])
+                    (Meta::new().code(s).to_boxed_nodedata(2), vec![])
                 },
                 _ => unimplemented!()
             }
@@ -60,7 +60,7 @@ pub fn makenode<const N: usize>(
                     GlicolPara::Number(v) => v,
                     _ => unimplemented!()
                 }
-            ).to_boxed_nodedata(2);
+            ).to_boxed_nodedata(1);
 
             let mut reflist = vec![];
             match paras[0] {
@@ -68,18 +68,6 @@ pub fn makenode<const N: usize>(
                 _ => {}
             };
             (data, reflist)
-            // match paras[0] {
-            //     GlicolPara::Number(v) => {
-            //         (TriOsc::new().freq(v).to_boxed_nodedata(1), vec![])
-            //     },
-            //     GlicolPara::Reference(s) => {
-            //         (TriOsc::new().freq(0.0).to_boxed_nodedata(1), vec![s])
-            //     },
-            //     _ => {
-            //         unimplemented!();
-            //     }
-            // }
-            
         },
         "apfmsgain" => {
             let data = AllPassFilterGain::new().delay(

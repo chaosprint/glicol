@@ -1,23 +1,10 @@
 use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, HashMap, impl_to_boxed_nodedata};
 use dasp_ring_buffer as ring_buffer;
-// use dasp_signal::{self as signal, Signal};
-// use dasp_interpolate::{
-    // Interpolator,
-    // sinc::Sinc,
-    // linear::Linear,
-// };
 type Fixed = ring_buffer::Fixed<Vec<f32>>;
-// type Bounded = ring_buffer::Bounded<Vec<f32>>;
-
-// enum RingBuffer {
-//     Fix(Fixed),
-//     Bound(Bounded)
-// }
 
 #[derive(Debug, Clone)]
 pub struct DelayMs {
     buf: Fixed,
-    buf2: Fixed,
     sr: usize,
     input_order: Vec<usize>
     // delay_n: usize,
@@ -25,21 +12,19 @@ pub struct DelayMs {
 
 impl DelayMs {
     pub fn new() -> Self {
-        Self { buf: Fixed::from(vec![0.0]), buf2: Fixed::from(vec![0.0]), sr: 44100, input_order: vec![] }
+        Self { buf: Fixed::from(vec![0.0]), sr: 44100, input_order: vec![] }
     }
     pub fn delay(self, delay: f32) -> Self {
-        let buf; let buf2; let delay_n;
+        let buf; let delay_n;
         if delay == 0.0 {
             let maxdelay = 2.;
             delay_n = (maxdelay / 1000. * self.sr as f32 ) as usize;
             buf = Fixed::from(vec![0.0; delay_n]);
-            buf2 = Fixed::from(vec![0.0; delay_n]);
         } else {
             delay_n = (delay / 1000. * self.sr as f32) as usize;
             buf = Fixed::from(vec![0.0; delay_n]);
-            buf2 = Fixed::from(vec![0.0; delay_n]);
         };
-        Self { buf, buf2, ..self}
+        Self { buf, ..self}
     }
     
     pub fn sr(self, sr:usize) -> Self {
@@ -73,9 +58,9 @@ impl<const N: usize> Node<N> for DelayMs {
                     let pos_int = pos.floor() as usize;
                     let pos_frac = pos.fract();
                     output[0][i] = self.buf.get(pos_int) * pos_frac + self.buf.get(pos_int+1) * (1.-pos_frac);
-                    output[1][i] = self.buf2.get(pos_int) * pos_frac + self.buf2.get(pos_int+1) * (1.-pos_frac);
+                    // output[1][i] = self.buf2.get(pos_int) * pos_frac + self.buf2.get(pos_int+1) * (1.-pos_frac);
                     self.buf.push(main_input.buffers()[0][i]);
-                    self.buf2.push(main_input.buffers()[1][i]);
+                    // self.buf2.push(main_input.buffers()[1][i]);
                 }
             }
             _ => {return ()}
@@ -91,7 +76,7 @@ impl<const N: usize> Node<N> for DelayMs {
                         // buf = Fixed::from(vec![0.0; delay_n]);
                         // buf2 = Fixed::from(vec![0.0; delay_n]);
                         self.buf.set_first(delay_n);
-                        self.buf2.set_first(delay_n);
+                        // self.buf2.set_first(delay_n);
                     },
                     _ => {}
                 }

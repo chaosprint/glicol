@@ -1,21 +1,12 @@
 use crate::buffer::Buffer;
-use core::fmt;
-
-#[cfg(feature = "node-boxed")]
-pub use boxed::{BoxedNode, BoxedNodeSend};
-#[cfg(feature = "node-pass")]
-pub use pass::Pass;
-#[cfg(feature = "node-sum")]
-pub use sum::Sum; pub use sum::Sum2;
-
-#[cfg(feature = "node-boxed")]
-mod boxed;
-#[cfg(feature = "node-pass")]
-mod pass;
-#[cfg(feature = "node-sum")]
-mod sum;
-
 use hashbrown::HashMap;
+
+#[cfg(feature = "node-boxed")]
+mod boxed; pub use boxed::*;
+#[cfg(feature = "node-pass")]
+mod pass; pub use pass::*;
+#[cfg(feature = "node-sum")]
+mod sum; pub use sum::*;
 
 pub mod oscillator; pub use oscillator::*;
 pub mod operator; pub use operator::*;
@@ -66,9 +57,9 @@ impl<const N: usize> Input<N> {
 // `Send` closures can be stored within the graph and sent between threads.
 unsafe impl<const N: usize> Send for Input<N> {}
 
-impl<const N: usize> fmt::Debug for Input<N> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Debug::fmt(self.buffers(), f)
+impl<const N: usize> core::fmt::Debug for Input<N> {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        core::fmt::Debug::fmt(self.buffers(), f)
     }
 }
 

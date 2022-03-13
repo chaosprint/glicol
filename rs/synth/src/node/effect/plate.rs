@@ -28,11 +28,12 @@ impl<const N: usize> Plate<N> {
 
         context.chain(vec![input, wet1, wet2, wet3, wet4, wet5, wet6, wet7, wet8]);
 
-        let b1 = context.add_mono_node(SinOsc::new().freq(0.1));
-        let b2 = context.add_mono_node(Mul::new(5.5));
-        let b3 = context.add_mono_node(Add::new(29.5));
-        let _ = context.chain(vec![b1, b2, b3, wet8]);
+        let mod1 = context.add_mono_node(SinOsc::new().freq(0.1));
+        let mod2 = context.add_mono_node(Mul::new(5.5));
+        let mod3 = context.add_mono_node(Add::new(29.5));
+        let _ = context.chain(vec![mod1, mod2, mod3, wet8]);
 
+        // we are going to take some halfway delay from line a
         let aa = context.add_mono_node(DelayN::new(394));
         context.connect(wet8, aa);
         let ab = context.add_mono_node(DelayN::new(2800));
@@ -40,17 +41,19 @@ impl<const N: usize> Plate<N> {
         let ac = context.add_mono_node(DelayN::new(1204));
         context.connect(ab, ac);
 
-        let (ba, _) = context.chain_boxed(vec![
+        // testing another syntax style
+        let (ba, _edges) = context.chain_boxed(vec![
             DelayN::new(2000).to_boxed_nodedata(1),
             OnePole::new(0.1).to_boxed_nodedata(1),
             AllPassFilterGain::new().delay(7.596).gain(0.5).to_boxed_nodedata(1),
         ]);
         context.connect(ac, ba[0]);
+
         let bb = context.add_mono_node(AllPassFilterGain::new().delay(35.78).gain(0.5));
         context.connect(ba[2], bb);
         let bc = context.add_mono_node(AllPassFilterGain::new().delay(100.).gain(0.5));
         context.connect(bb, bc);
-        let _ = context.chain(vec![b1, b2, b3, bc]);
+        let _ = context.chain(vec![mod1, mod2, mod3, bc]); // modulate here
 
         let ca = context.add_mono_node(DelayN::new(179));
         context.connect(bc, ca);
@@ -86,11 +89,15 @@ impl<const N: usize> Plate<N> {
         let fb2 = context.add_mono_node(Mul::new(0.3));
         context.chain(vec![fb, fb1, fb2, wet7]); // back to feedback
         
+
+        // start to take some signal out
         let left_subtract = context.add_mono_node(crate::node::Sum{});
         context.connect(bb,left_subtract);
         context.connect(db,left_subtract);
         context.connect(ea2,left_subtract);
         context.connect(fa2,left_subtract);
+
+        // turn these signal into -
         let left_subtract2 = context.add_mono_node(Mul::new(-1.0));
         context.connect(left_subtract,left_subtract2);
         
@@ -99,13 +106,15 @@ impl<const N: usize> Plate<N> {
         context.connect(ab,left);
         context.connect(cb,left);
         context.connect(left_subtract2,left);
-        let left1 = context.add_mono_node(Mul::new(mix));
-        context.tags.insert("mix1", left1);
-        let left2 = context.add_mono_node(Add::new(0.0)); // input dry * (1.-mix)
-        let mixdiffleft = context.add_mono_node(Mul::new(1.-mix));
-        context.tags.insert("mixdiff1", mixdiffleft);
-        context.chain(vec![input, mixdiffleft, left2]);
-        context.chain(vec![left,left1,left2]);
+        let leftwet = context.add_mono_node(Mul::new(mix));
+        context.tags.insert("mix1", leftwet);
+        let leftmix = context.add_mono_node(crate::node::Sum{});
+        
+        // input dry * (1.-mix)
+        let leftdrymix = context.add_mono_node(Mul::new(1.-mix));
+        context.tags.insert("mixdiff1", leftdrymix);
+        context.chain(vec![input, leftdrymix, leftmix]);
+        context.chain(vec![left, leftwet, leftmix]);
         
         let right_subtract = context.add_mono_node(crate::node::Sum{});
         context.connect(eb,right_subtract);
@@ -120,20 +129,19 @@ impl<const N: usize> Plate<N> {
         context.connect(db,right);
         context.connect(fb,right);
         context.connect(right_subtract2,right);
-        let right1 = context.add_mono_node(Mul::new(mix));
-        context.tags.insert("mix2", right1);
-        let right2 = context.add_mono_node(Add::new(0.0)); // input dry * (1.-mix)
+        let rightwet = context.add_mono_node(Mul::new(mix));
+        context.tags.insert("mix2", rightwet);
+        let rightmix = context.add_mono_node(crate::node::Sum{}); // input dry * (1.-mix)
 
-        let mixdiff = context.add_mono_node(Mul::new(1.-mix));
-        context.tags.insert("mixdiff2", mixdiff);
-        context.chain(vec![input, mixdiff, right2]);
-
-        context.chain(vec![right,right1,right2]);
+        let rightdry = context.add_mono_node(Mul::new(1.-mix));
+        context.tags.insert("mixdiff2", rightdry);
+        context.chain(vec![input, rightdry, rightmix]);
+        context.chain(vec![right, rightwet,rightmix]);
         
         let balance = context.add_stereo_node(Balance::new());
-        context.connect(left,balance);
-        context.connect(right,balance);
-        context.connect(balance, context.destination); 
+        context.connect(leftmix,balance);
+        context.connect(rightmix,balance);
+        context.connect(balance, context.destination);
         Self {
             input,
             context,
