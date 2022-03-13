@@ -4,8 +4,8 @@ window.help = async (token) => {
     }
 
     if (typeof token === "undefined") {
-      window.showAllNodes()
-      return {}
+      table(window.showAllNodes())
+      return window.emoj
     }
 
     if (token in window.docs) {
@@ -38,6 +38,8 @@ ${window.docs[token]["example"]}
     }
 }
 
+
+window.emoj = '👇'
 
 window.log = function consoleWithNoSource(...params) {
     setTimeout(console.log.bind(console, ...params));
@@ -81,41 +83,58 @@ if (typeof amp === "number") {
 }
 
 
-window.sampleFolder = async () => {
+window.addSampleFolder = async () => {
     var input = document.createElement('input');
     input.type = 'file';
     input.webkitdirectory = true
     input.directory = true
     input.multiple = true
 
-    window.samples = {}
+    var samplePath = {}
     input.onchange = async (e) => {
         var files = e.target.files;
-        log(`%cSome samples will be skiped as only mono samples are supported so far.`, "color: red; font-weight: bold", "")
+        // log(`%cSome samples will be skiped as only mono samples are supported so far.`, "color: red; font-weight: bold", "")
         for (var i = 0; i < files.length; i++) {
             await (async function(file) {
                 var reader = new FileReader();
                 reader.onload = async function(e) {
-                    if (file.type === "audio/wav") {
-
+                    log("file type", file.type)
+                    if (file.type.includes("audio")) {
                         await window.actx.decodeAudioData(e.target.result, buffer => {
-                            if (buffer.numberOfChannels === 1) {
-                              let path = file.webkitRelativePath.split("/")
-                              path.shift()
-                              if (path[0] in window.samples) {
-                                window.samples[path[0]] += 1
-                              } else {
-                                window.samples[path[0]] = 0
-                              }
-                              let key = path[0].toLowerCase() + "_" + String(window.samples[path[0]])
-                              window.node.port.postMessage({
-                                type: "samples",
-                                sample: buffer.getChannelData(0),
-                                name: encoder.encode(key.replace(".wav", ""))
-                              })
-                              window.sampleBuffers[key.replace(".wav", "")] = buffer.getChannelData(0)
-                              log(`Sample %c${key.replace(".wav", "")} %cloaded`, "color: green; font-weight: bold", "")
+                            // if (buffer.numberOfChannels === 1) {
+                            // log('file.webkitRelativePath',file.webkitRelativePath, file)
+                            const path = file.webkitRelativePath.split("/")
+                            const reversed = path.reverse()
+                            const filename = reversed[0]
+                            const folder = reversed[1]
+                            // log("path reversed", reversed)
+                            if (folder in samplePath) {
+                              samplePath[folder] += 1
+                            } else {
+                              samplePath[folder] = 0
                             }
+                            const name = folder.toLowerCase() + "_" + String(samplePath[folder])
+                            log("name", name)
+                            window.sampleBuffers[name] = buffer
+                            var sample;
+                            if (buffer.numberOfChannels === 1) {
+                              sample = buffer.getChannelData(0);
+                            } else if (buffer.numberOfChannels === 2) {
+                              sample = new Float32Array( buffer.length * 2);
+                              sample.set(buffer.getChannelData(0), 0);
+                              sample.set(buffer.getChannelData(1), buffer.length);
+                            } else {
+                              throw(Error("Only support mono or stereo samples."))
+                            }
+
+                            window.node.port.postMessage({
+                              type: "loadsample",
+                              sample: sample,
+                              channels: buffer.numberOfChannels,
+                              length: buffer.length,
+                              name: encoder.encode("\\"+ name),
+                              sr: buffer.sampleRate
+                            })
                         })
                     }
                 };
@@ -124,24 +143,6 @@ window.sampleFolder = async () => {
         }
     }
     input.click();
-}
-
-window.sampleCount = () => {
-  let a = []
-  for (let key in window.samples) {
-    let b = {}
-    b[key] = window.samples[key] + 1
-    a.push(b)
-  }
-  a.sort((a, b) => {
-    if (String(a) > String(b)) {
-      return 1
-    } else {
-      return -1
-    }
-  })
-  log(...a)
-  log("For example, if you load dirt samples, there are 25 808bd samples {808bd: 25}. You can write Glicol code:\n\n%cout: seq 60 >> sp \\808bd_24\n\n%cThe avalable range for samplename_index is from 0 to sampleAmount - 1.", "background-color: grey; font-weight: bold", "")
 }
 
 window.loadSamples = async () => {
@@ -182,9 +183,8 @@ window.loadSamples = async () => {
     // ['bd0000', 'clav', "pandrum", "panfx", "cb"]
 }
 
-window.addSample = async (name, url) => {
+window.addSampleFiles = async (name, url) => {
     if (url === undefined) {
-
         var input = document.createElement('input');
         input.type = 'file';
         input.multiple = true
@@ -196,22 +196,34 @@ window.addSample = async (name, url) => {
                 (function(file) {
                     var reader = new FileReader();
                     reader.onload = async function(e) {
-                        let key = file.name.toLowerCase()
+                        let name = file.name.toLowerCase().replace(".wav", "").replace(".mp3", "").replace("-","_").replace(" ","_")
                         await window.actx.decodeAudioData(e.target.result, buffer => {
+                            window.sampleBuffers[name] = buffer
+                            var sample;
+                            if (buffer.numberOfChannels === 1) {
+                              sample = buffer.getChannelData(0);
+                            } else if (buffer.numberOfChannels === 2) {
+                              sample = new Float32Array( buffer.length * 2);
+                              sample.set(buffer.getChannelData(0), 0);
+                              sample.set(buffer.getChannelData(1), buffer.length);
+                            } else {
+                              throw(Error("Only support mono or stereo samples."))
+                            }
                             window.node.port.postMessage({
-                              type: "samples",
-                              sample: buffer.getChannelData(0),
-                              name: encoder.encode(key.replace(".wav", ""))
+                              type: "loadsample",
+                              sample: sample,
+                              channels: buffer.numberOfChannels,
+                              length: buffer.length,
+                              name: encoder.encode("\\"+ name),
+                              sr: buffer.sampleRate
                             })
                         })
-                        log(`Sample %c${key.replace(".wav", "")} %cloaded`, "color: green; font-weight: bold", "")
+                        // log(`Sample %c${key.replace(".wav", "")} %cloaded`, "color: green; font-weight: bold", "")
                     };
                     reader.readAsArrayBuffer(file);
                   })(files[i]);
-                // key = name[i] ? name[i] : files[i].name
             }
         }
-
         input.click();
     } else {
         window.actx.suspend()
@@ -220,17 +232,44 @@ window.addSample = async (name, url) => {
         .then(arrayBuffer => {
             window.actx.decodeAudioData(arrayBuffer, buffer => {
                 // log(new Int16Array(buffer.getChannelData(0).buffer))
-                window.node.port.postMessage({
-                  type: "samples",
-                  sample: buffer.getChannelData(0),
-                  name: encoder.encode(name)
-                })
+                // let name = file.name.toLowerCase().replace(".wav", "").replace(".mp3", "").replace("-","_").replace(" ","_")
+                
+                    window.sampleBuffers[name] = buffer
+                    var sample;
+                    if (buffer.numberOfChannels === 1) {
+                      sample = buffer.getChannelData(0);
+                    } else if (buffer.numberOfChannels === 2) {
+                      sample = new Float32Array( buffer.length * 2);
+                      sample.set(buffer.getChannelData(0), 0);
+                      sample.set(buffer.getChannelData(1), buffer.length);
+                    } else {
+                      throw(Error("Only support mono or stereo samples."))
+                    }
+                    window.node.port.postMessage({
+                      type: "loadsample",
+                      sample: sample,
+                      channels: buffer.numberOfChannels,
+                      length: buffer.length,
+                      name: encoder.encode("\\"+ name),
+                      sr: buffer.sampleRate
+                    })
             }, function(e){ log("Error with decoding audio data" + e.err); })
         });
         window.actx.resume()
     }
 }
+window.showAllSamples = () => Object.keys(window.sampleBuffers)
 
+
+window.getRandSample = (filter) => {
+  var array
+  if (filter) {
+    array = Object.keys(window.sampleBuffers).filter(x=>x.includes(filter))
+  } else {
+    array = Object.keys(window.sampleBuffers)
+  }
+  return array[Math.floor(Math.random() * array.length)]
+}
 
 window.ampVisualColor = '#3b82f6';
 // window.visualizerBackground = "rgba(255, 255, 255, 0.5)"
@@ -324,48 +363,45 @@ window.sampleBuffers = {}
 
 window.h = () => {
     log(
-  `
-  %cUseful console commands
-  
-  %chelp("someNodeName")
-  %cget docs for a node, e.g. help("sin").
-  if no parameter is given, will list all nodes.
-  on glicol web editor, you can use key shortcut alt-d (win) / option-d (mac) to trigger this function.
-        
-  %csetBPM(someNumber)\n%cset the BPM. the default is 120. best to do it before you run any code.
-  
-  %csampleFolder()
-  %cchoose a folder that contains sub-folders that contain samples. for example:
-  (1) visit (https://github.com/chaosprint/Dirt-Samples), click [code] -> [download ZIP];
-  (2) extract {Dirt-Samples-master.zip} to {Dirt-Samples-master} folder;\n(3) run this command in the console and choose the folder.
-  
-  %csampleCount()
-  %cuse it after calling the "sampleFolder()" function to see the total number of each sample folder.
-  
-  %caddSample("some_name", "wav_sample_url")
-  %cadd your own samples. for example:
-  
-  // in browser console
-  addSample("808bd_0", "https://cdn.jsdelivr.net/gh/chaosprint/glicol@0.8.10/js/assets/BD0000.WAV")
-  
-  // in glicol
-  o: seq 60 >> sp \\808bd_0
-  
-  for the first para, only lowercase letters, underscore and numbers are valid
-  keep the second augument empty to load local samples.
-  the files should end with .wav. The file name will become the keys.
-  
-  %ctrackAmp(someFloat)
-  %cset the amplitude of each node chain. useful for preventing clipping.`, 
-  
-  "background: black; color:white; font-weight: bold",
-  "color:green; font-weight:bold", "",
-  "color:green; font-weight:bold", "", 
-  "color:green; font-weight:bold", "", 
-  "color:green; font-weight:bold", "", 
-  "color:green; font-weight:bold", "", 
-  "color:green; font-weight:bold", ""); return "👇"
-  }
+`
+%cUseful console commands
+
+%chelp("someNodeName")
+%cget docs for a node, e.g. help("sin").
+if no parameter is given, will list all nodes.
+on glicol web editor, you can use key shortcut alt-d (win) / option-d (mac) to trigger this function.
+      
+%csetBPM(someNumber)\n%cset the BPM. the default is 120. best to do it before you run any code.
+
+%caddSampleFolder()
+%cchoose a folder that contains sub-folders that contain samples. for example:
+(1) visit (https://github.com/chaosprint/Dirt-Samples), click [code] -> [download ZIP];
+(2) extract {Dirt-Samples-master.zip} to {Dirt-Samples-master} folder;\n(3) run this command in the console and choose the folder.
+
+%caddSampleFiles("some_name", "wav_sample_url")
+%cadd your own samples. for example:
+
+// in browser console
+addSample("808bd_0", "https://cdn.jsdelivr.net/gh/chaosprint/glicol@0.8.10/js/assets/BD0000.WAV")
+
+// in glicol
+o: seq 60 >> sp \\808bd_0
+
+for the first para, only lowercase letters, underscore and numbers are valid
+keep the second augument empty to load local samples.
+the files should end with .wav. The file name will become the keys.
+
+%ctrackAmp(someFloat)
+%cset the amplitude of each node chain. useful for preventing clipping.`, 
+
+"background: black; color:white; font-weight: bold",
+"color:green; font-weight:bold", "",
+"color:green; font-weight:bold", "", 
+"color:green; font-weight:bold", "", 
+"color:green; font-weight:bold", "", 
+"color:green; font-weight:bold", "", 
+"color:green; font-weight:bold", ""); return window.emoj
+}
   
 window.showAllNodes = () => {
 let obj = {
@@ -380,8 +416,7 @@ let obj = {
     dynamic: ["script"],
     extension: ["plate", "bd", "sn", "hh", "sawsynth", "squsynth", "trisynth"],
 }
-table(obj)
-return "_"
+return obj
 }
 
 window.stop = async () => {
@@ -417,3 +452,63 @@ window.displayInfo = () => {
 }
 
 window.displayInfo()
+
+
+// https://stackoverflow.com/questions/5916900/how-can-you-detect-the-version-of-a-browser
+navigator.sayswho = ( function () {
+  var ua = navigator.userAgent, tem,
+      M = ua.match( /(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i ) || [];
+  if ( /trident/i.test( M[1] ) ) {
+      tem = /\brv[ :]+(\d+)/g.exec( ua ) || [];
+      return 'IE ' + ( tem[1] || '' );
+  }
+  if ( M[1] === 'Chrome' ) {
+      tem = ua.match( /\b(OPR|Edge)\/(\d+)/ );
+      if ( tem != null ) return tem.slice( 1 ).join( ' ' ).replace( 'OPR', 'Opera' );
+  }
+  M = M[2] ? [M[1], M[2]] : [navigator.appName, navigator.appVersion, '-?'];
+  if ( ( tem = ua.match( /version\/(\d+)/i ) ) != null ) M.splice( 1, 1, tem[1] );
+  return M.join( ' ' );
+} )();
+//document.getElementById('printVer').innerHTML=navigator.sayswho
+var str = navigator.sayswho;
+var browser = str.substring( 0, str.indexOf( " " ) );
+var version = str.substring( str.indexOf( " " ) );
+version = version.trim();
+version = parseInt( version );
+// console.log( browser );
+// console.log( version );
+
+if (browser == "Chrome") {
+  // if (version < 80) {}
+} else if (browser = "Firefox") {
+  // if (version < 80) {}
+} else {
+  alert("Glicol requires latest version of Chrome or Firefox browsers");
+}
+
+// https://stackoverflow.com/questions/38241480/detect-macos-ios-windows-android-and-linux-os-with-js
+function getOS() {
+  var userAgent = window.navigator.userAgent,
+      platform = window.navigator.platform,
+      macosPlatforms = ['Macintosh', 'MacIntel', 'MacPPC', 'Mac68K'],
+      windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE'],
+      iosPlatforms = ['iPhone', 'iPad', 'iPod'],
+      os = null;
+
+  if (macosPlatforms.indexOf(platform) !== -1) {
+    os = 'Mac OS';
+  } else if (iosPlatforms.indexOf(platform) !== -1) {
+    os = 'iOS';
+  } else if (windowsPlatforms.indexOf(platform) !== -1) {
+    os = 'Windows';
+  } else if (/Android/.test(userAgent)) {
+    os = 'Android';
+  } else if (!os && /Linux/.test(platform)) {
+    os = 'Linux';
+  }
+
+  return os;
+}
+
+log(getOS())
