@@ -134,7 +134,7 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                         let paras = node.into_inner().next().unwrap();
                                         println!("paras {:?}", paras.as_str());
                                         chain_node_names.push("sp");
-                                        chain_paras.push(vec![GlicolPara::Symbol(paras.as_str())]);
+                                        chain_paras.push(vec![GlicolPara::SampleSymbol(paras.as_str())]);
                                     },
                                     
                                     Rule::constsig => one_para_number_or_ref!("constsig"),

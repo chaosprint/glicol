@@ -31,7 +31,7 @@ pub fn makenode<const N: usize>(
     let (nodedata, reflist) = match name {
         "sp" => {
             match paras[0] {
-                GlicolPara::Symbol(s) => {
+                GlicolPara::SampleSymbol(s) => {
                     if !samples_dict.contains_key(s) {
                         return Err(EngineError::NonExsitSample(s.to_owned()))
                     }

@@ -55,6 +55,7 @@ pub enum GlicolPara<'a> {
     NumberList(Vec<f32>),
     Reference(&'a str),
     // RefList(Vec<&'a str>),
+    SampleSymbol(&'a str), // symbol is for sample only
     Symbol(&'a str),
     Sequence(Vec::<(f32, GlicolPara<'a>)>),
 }

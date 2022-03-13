@@ -16,9 +16,9 @@ pub struct Meta<const N: usize> {
 impl<const N: usize> Meta<N> {
 
     pub fn new() -> Self {
-        let mut phase: usize = 0;
+        let phase: usize = 0;
         let mut scope = Scope::new();
-        let mut output = Vec::<Dynamic>::with_capacity(N);
+        let output = Vec::<Dynamic>::with_capacity(N);
 
         scope.push("phase", phase as f32)
         .push("x0", 0.0)

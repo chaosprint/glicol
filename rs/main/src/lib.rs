@@ -263,13 +263,19 @@ impl<const N: usize> Engine<'static, N> {
                         GlicolPara::Reference(s) => {
                             self.refpairlist.push((vec![s], key, position_in_chain));
                         },
-                        GlicolPara::Symbol(s) => {
+                        GlicolPara::SampleSymbol(s) => {
                             if !self.samples_dict.contains_key(*s) {
                                 return Err(EngineError::NonExsitSample((*s).to_owned()))
                             }
                             self.context.graph[
                             chain[position_in_chain]].node.send_msg(
                                 Message::SetToSamples(i as u8, self.samples_dict[*s]))
+                        },
+                        GlicolPara::Symbol(s) => {
+                            
+                            self.context.graph[
+                            chain[position_in_chain]].node.send_msg(
+                                Message::SetToSymbol(i as u8, *s))
                         },
                         GlicolPara::Sequence(events) => {
 
