@@ -136,7 +136,7 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                         chain_node_names.push("sp");
                                         chain_paras.push(vec![GlicolPara::SampleSymbol(paras.as_str())]);
                                     },
-                                    
+                                    Rule::speed => one_para_number_or_ref!("speed"),
                                     Rule::constsig => one_para_number_or_ref!("constsig"),
                                     Rule::bd => one_para_number_or_ref!("bd"),
                                     Rule::sn => one_para_number_or_ref!("sn"),

@@ -5,7 +5,7 @@ use glicol_synth::{
     operator::{Mul, Add},
     sampling::Sampler,
     delay::{DelayN, DelayMs},
-    sequencer::{Sequencer, Choose},
+    sequencer::{Sequencer, Choose, Speed},
     envelope::EnvPerc,
     effect::{Plate},
     compound::{Bd, Hh, Sn, SawSynth, SquSynth, TriSynth},
@@ -234,6 +234,7 @@ pub fn makenode<const N: usize>(
                 }
             }
         },
+        "speed" => get_one_para_from_number_or_ref!(Speed),
         "onepole" => get_one_para_from_number_or_ref!(OnePole),
         "add" => get_one_para_from_number_or_ref!(Add),
         "constsig" => get_one_para_from_number_or_ref!(ConstSig),
