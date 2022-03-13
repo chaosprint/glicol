@@ -93,7 +93,7 @@ pub fn makenode<const N: usize>(
                     GlicolPara::Number(v) => v,
                     _ => unimplemented!()
                 }
-            ).to_boxed_nodedata(1);
+            ).to_boxed_nodedata(2);
 
             let mut reflist = vec![];
             match paras[0] {

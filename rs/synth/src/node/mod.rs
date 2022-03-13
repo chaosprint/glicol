@@ -29,11 +29,9 @@ pub mod effect; pub use effect::*;
 pub mod compound; pub use compound::*;
 pub mod dynamic; pub use dynamic::*;
 
-use crate::Message;
-
 pub trait Node<const N: usize> {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]);
-    fn send_msg(&mut self, info: Message);
+    fn send_msg(&mut self, info: crate::Message);
 }
 
 pub struct Input<const N: usize> {
@@ -81,7 +79,7 @@ where
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         (**self).process(inputs, output)
     }
-    fn send_msg(&mut self, info: Message) {
+    fn send_msg(&mut self, info: crate::Message) {
         (**self).send_msg(info)
     }
 }
@@ -93,7 +91,7 @@ where
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         (**self).process(inputs, output)
     }
-    fn send_msg(&mut self, _info: Message) {
+    fn send_msg(&mut self, _info: crate::Message) {
     }
 }
 
@@ -101,7 +99,7 @@ impl<const N: usize> Node<N> for dyn Fn(&HashMap<usize, Input<N>>, &mut [Buffer<
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         (*self)(inputs, output)
     }
-    fn send_msg(&mut self, _info: Message) {
+    fn send_msg(&mut self, _info: crate::Message) {
     }
 }
 
@@ -110,7 +108,7 @@ impl<const N: usize> Node<N> for dyn FnMut(&HashMap<usize, Input<N>>, &mut [Buff
         (*self)(inputs, output)
     }
     
-    fn send_msg(&mut self, _info: Message) {
+    fn send_msg(&mut self, _info: crate::Message) {
     }
 }
 
@@ -118,6 +116,6 @@ impl<const N: usize> Node<N> for fn(&HashMap<usize, Input<N>>, &mut [Buffer<N>])
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         (*self)(inputs, output)
     }
-    fn send_msg(&mut self, _info: Message) {
+    fn send_msg(&mut self, _info: crate::Message) {
     }
 }
