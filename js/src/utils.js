@@ -391,6 +391,13 @@ for the first para, only lowercase letters, underscore and numbers are valid
 keep the second augument empty to load local samples.
 the files should end with .wav. The file name will become the keys.
 
+%cshowAllSamples()
+%cshow current loaded samples.
+
+%cgetRandSample(optionalFilter)
+%cget a random sample name from current loaded samples.
+e.g. if the filter is '0', it will only return a sample whose name contains '0'.
+
 %ctrackAmp(someFloat)
 %cset the amplitude of each node chain. useful for preventing clipping.`, 
 
@@ -398,6 +405,8 @@ the files should end with .wav. The file name will become the keys.
 "color:green; font-weight:bold", "",
 "color:green; font-weight:bold", "", 
 "color:green; font-weight:bold", "", 
+"color:green; font-weight:bold", "", 
+"color:green; font-weight:bold", "",
 "color:green; font-weight:bold", "", 
 "color:green; font-weight:bold", "", 
 "color:green; font-weight:bold", ""); return window.emoj
