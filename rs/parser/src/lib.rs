@@ -122,6 +122,13 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                         chain_node_names.push("choose");
                                         chain_paras.push(vec![GlicolPara::NumberList(paras)]);
                                     },
+                                    Rule::mix => {
+                                        println!("node {:?}", node.as_str());
+                                        let paras: Vec<_> = node.into_inner().map(|x| GlicolPara::Reference(x.as_str())).collect();
+                                        println!("paras {:?}", paras);
+                                        chain_node_names.push("mix");
+                                        chain_paras.push(paras);
+                                    },
                                     // Rule::sendpass => {
                                     //     println!("node {:?}", node.as_str());
                                     //     let paras: Vec<_> = node.into_inner().map(|x|x.as_str()).collect();

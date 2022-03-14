@@ -11,6 +11,7 @@ use glicol_synth::{
     compound::{Bd, Hh, Sn, SawSynth, SquSynth, TriSynth},
     dynamic::Meta,
     Pass,
+    Sum2,
 };
 
 use glicol_synth::{NodeData, BoxedNodeSend, GlicolPara, HashMap}; //, Processor, Buffer, Input, Node
@@ -237,8 +238,29 @@ pub fn makenode<const N: usize>(
         },
         "speed" => get_one_para_from_number_or_ref!(Speed),
         "onepole" => get_one_para_from_number_or_ref!(OnePole),
-        "add" => get_one_para_from_number_or_ref!(Add),
-        "constsig" => get_one_para_from_number_or_ref!(ConstSig),
+        "add" => {
+            match paras[0] {
+                GlicolPara::Number(v) => {
+                    (Add::new(v).to_boxed_nodedata(2), vec![])
+                },
+                GlicolPara::Reference(s) => {
+                    (Add::new(0.0).to_boxed_nodedata(2), vec![s])
+                },
+                _ => {
+                    unimplemented!();
+                }
+            }
+        },
+        "constsig" => {
+            match paras[0] {
+                GlicolPara::Number(v) => {
+                    (ConstSig::new(v).to_boxed_nodedata(1), vec![])
+                },
+                _ => {
+                    unimplemented!();
+                }
+            }
+        },
         // todo: give sr to them
         "bd" => get_one_para_from_number_or_ref!(Bd),
         "hh" => get_one_para_from_number_or_ref!(Hh),
@@ -322,6 +344,15 @@ pub fn makenode<const N: usize>(
                 _ => unimplemented!()
             };
             (Choose::new(list.clone(), seed as u64).to_boxed_nodedata(2), vec![])
+        },
+        "mix" => {
+            let list: Vec<_> = paras.iter().map(|x|match x  {
+                GlicolPara::Reference(s) => {
+                    *s
+                },
+                _ => unimplemented!()
+            }).collect();
+            ( NodeData::new2( BoxedNodeSend::new(Sum2{})), list)
         },
         // "sendpass" => {
         //     let reflist = match &paras[0] {
