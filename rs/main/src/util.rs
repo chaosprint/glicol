@@ -25,8 +25,9 @@ pub fn makenode<const N: usize>(
     paras: &mut Vec<GlicolPara<'static>>,
     // pos: (usize, usize),
     samples_dict: &std::collections::HashMap<&'static str, (&'static[f32], usize)>,
-    // sr: usize,
-    // bpm: f32,
+    sr: usize,
+    bpm: f32,
+    seed: usize
 ) -> Result<(GlicolNodeData<N>, Vec<&'static str>), EngineError> {
     let (nodedata, reflist) = match name {
         "sp" => {
@@ -43,7 +44,7 @@ pub fn makenode<const N: usize>(
         "meta" => {
             match paras[0] {
                 GlicolPara::Symbol(s) => {
-                    (Meta::new().code(s).to_boxed_nodedata(2), vec![])
+                    (Meta::new().sr(sr).code(s).to_boxed_nodedata(2), vec![])
                 },
                 _ => unimplemented!()
             }
@@ -70,7 +71,7 @@ pub fn makenode<const N: usize>(
             (data, reflist)
         },
         "apfmsgain" => {
-            let data = AllPassFilterGain::new().delay(
+            let data = AllPassFilterGain::new().sr(sr).delay(
                 match paras[0] {
                     GlicolPara::Number(v) => v,
                     GlicolPara::Reference(_) => 0.0,
@@ -91,7 +92,7 @@ pub fn makenode<const N: usize>(
             (data, reflist)
         },
         "envperc" => {
-            let data = EnvPerc::new().attack(
+            let data = EnvPerc::new().sr(sr).attack(
                 match paras[0] {
                     GlicolPara::Number(v) => v,
                     _ => unimplemented!()
@@ -108,10 +109,10 @@ pub fn makenode<const N: usize>(
         "tri" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (TriOsc::new().freq(v).to_boxed_nodedata(1), vec![])
+                    (TriOsc::new().sr(sr).freq(v).to_boxed_nodedata(1), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (TriOsc::new().freq(0.0).to_boxed_nodedata(1), vec![s])
+                    (TriOsc::new().sr(sr).freq(0.0).to_boxed_nodedata(1), vec![s])
                 },
                 _ => {
                     unimplemented!();
@@ -122,10 +123,10 @@ pub fn makenode<const N: usize>(
         "squ" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (SquOsc::new().freq(v).to_boxed_nodedata(1), vec![])
+                    (SquOsc::new().sr(sr).freq(v).to_boxed_nodedata(1), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (SquOsc::new().freq(0.0).to_boxed_nodedata(1), vec![s])
+                    (SquOsc::new().sr(sr).freq(0.0).to_boxed_nodedata(1), vec![s])
                 },
                 _ => {
                     unimplemented!();
@@ -136,10 +137,10 @@ pub fn makenode<const N: usize>(
         "saw" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (SawOsc::new().freq(v).to_boxed_nodedata(1), vec![])
+                    (SawOsc::new().sr(sr).freq(v).to_boxed_nodedata(1), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (SawOsc::new().freq(0.0).to_boxed_nodedata(1), vec![s])
+                    (SawOsc::new().sr(sr).freq(0.0).to_boxed_nodedata(1), vec![s])
                 },
                 _ => {
                     unimplemented!();
@@ -150,10 +151,10 @@ pub fn makenode<const N: usize>(
         "sin" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (SinOsc::new().freq(v).to_boxed_nodedata(1), vec![])
+                    (SinOsc::new().sr(sr).freq(v).to_boxed_nodedata(1), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (SinOsc::new().freq(0.0).to_boxed_nodedata(1), vec![s])
+                    (SinOsc::new().sr(sr).freq(0.0).to_boxed_nodedata(1), vec![s])
                 },
                 _ => {
                     unimplemented!();
@@ -174,10 +175,10 @@ pub fn makenode<const N: usize>(
         "imp" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (Impulse::new().freq(v).to_boxed_nodedata(1), vec![])
+                    (Impulse::new().sr(sr).freq(v).to_boxed_nodedata(1), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (Impulse::new().freq(0.0).to_boxed_nodedata(1), vec![s])
+                    (Impulse::new().sr(sr).freq(0.0).to_boxed_nodedata(1), vec![s])
                 },
                 _ => {
                     unimplemented!();
@@ -214,10 +215,10 @@ pub fn makenode<const N: usize>(
         "delayms" => {
             match paras[0] {
                 GlicolPara::Number(v) => {
-                    (DelayMs::new().delay(v).to_boxed_nodedata(2), vec![])
+                    (DelayMs::new().sr(sr).delay(v).to_boxed_nodedata(2), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (DelayMs::new().delay(2000.).to_boxed_nodedata(2), vec![s])
+                    (DelayMs::new().sr(sr).delay(2000.).to_boxed_nodedata(2), vec![s])
                 },
                 _ => {
                     unimplemented!();
@@ -238,6 +239,7 @@ pub fn makenode<const N: usize>(
         "onepole" => get_one_para_from_number_or_ref!(OnePole),
         "add" => get_one_para_from_number_or_ref!(Add),
         "constsig" => get_one_para_from_number_or_ref!(ConstSig),
+        // todo: give sr to them
         "bd" => get_one_para_from_number_or_ref!(Bd),
         "hh" => get_one_para_from_number_or_ref!(Hh),
         "sn" => get_one_para_from_number_or_ref!(Sn),
@@ -274,7 +276,7 @@ pub fn makenode<const N: usize>(
                     _ => {}
                 }
             }
-            (Sequencer::new(events.clone()).ref_order(order).to_boxed_nodedata(2), reflist)
+            (Sequencer::new(events.clone()).sr(sr).bpm(bpm).ref_order(order).to_boxed_nodedata(2), reflist)
         },
         "choose" => {
             let list = match &paras[0] {
@@ -283,7 +285,7 @@ pub fn makenode<const N: usize>(
                 },
                 _ => unimplemented!()
             };
-            (Choose::new(list.clone(), 42).to_boxed_nodedata(2), vec![])
+            (Choose::new(list.clone(), seed as u64).to_boxed_nodedata(2), vec![])
         },
         // "sendpass" => {
         //     let reflist = match &paras[0] {

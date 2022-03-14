@@ -236,4 +236,10 @@ impl<const N: usize> AudioContext<N> {
     pub fn send_msg(&mut self, index: NodeIndex, msg: Message) {
         self.graph[index].node.send_msg(msg);
     }
+
+    pub fn send_msg_to_all(&mut self, msg: Message) {
+        for nodedata in self.graph.node_weights_mut() {
+            nodedata.node.send_msg(msg.clone());
+        }
+    }
 }

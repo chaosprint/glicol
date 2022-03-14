@@ -45,19 +45,16 @@ impl Sequencer {
 
 impl< const N: usize> Node<N> for Sequencer {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
-        let bar_length = 240.0 / self.bpm as f64 * self.sr as f64 / self.speed as f64;
+        
         match inputs.len() {
-            0 => {  
+            0 => {
+                let bar_length = 240.0 / self.bpm as f64 * self.sr as f64 / self.speed as f64;
                 for i in 0..N {
                     output[0][i] = 0.0;
                     for event in &self.events {
                         if (self.step % (bar_length as usize)) == ((event.0 as f64 * bar_length) as usize) {
                             let midi = match event.1 {
                                 GlicolPara::Number(value) => value,
-                                // GlicolPara::Reference(s) => {
-                                //     let source = &inputs[&self.input_order[self.ref_order[s]]];
-                                //     source.buffers()[0][i]
-                                // },
                                 _ => {0.0}
                             };
         
@@ -72,7 +69,11 @@ impl< const N: usize> Node<N> for Sequencer {
                 }
             },
             _ => {
-                println!("{:?} {:?}", inputs, self.input_order);
+                // println!("{:?} {:?}", inputs, self.input_order);
+                let possible_speed = &self.input_order[self.input_order.len()-1];
+                let has_speed = inputs[possible_speed].buffers()[0][0] > 0. && inputs[possible_speed].buffers()[0][1] == 0.;
+                if has_speed { self.speed = inputs[possible_speed].buffers()[0][0]}
+                let bar_length = 240.0 / self.bpm as f64 * self.sr as f64 / self.speed as f64;
                 for i in 0..N {
                     output[0][i] = 0.0;
                     
@@ -81,7 +82,7 @@ impl< const N: usize> Node<N> for Sequencer {
                             let midi = match event.1 {
                                 GlicolPara::Number(value) => value,
                                 GlicolPara::Reference(s) => {
-                                    let source = &inputs[&self.input_order[self.ref_order[s]]];
+                                    let source = &inputs[&self.input_order[self.ref_order[s] - has_speed as usize]];
                                     source.buffers()[0][i]
                                 },
                                 _ => {return ()}
@@ -101,6 +102,9 @@ impl< const N: usize> Node<N> for Sequencer {
     }
     fn send_msg(&mut self, info: Message) {
         match info {
+            Message::SetBPM(bpm) => {
+                self.bpm = bpm
+            },
             Message::SetToSeq(pos, events) => {
                 match pos {
                     0 => {

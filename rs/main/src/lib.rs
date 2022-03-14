@@ -21,7 +21,11 @@ pub struct Engine<'a, const N: usize> {
     node_index_to_remove: Vec<NodeIndex>, // stored in order not to touch the graph if err
     node_update_list: Vec<(&'a str, usize, Vec<GlicolPara<'a>>)>,
     pub refpairlist: Vec<(Vec<&'a str>, &'a str, usize)>,
-    pub samples_dict: HashMap<&'a str, (&'a [f32], usize)>
+    pub samples_dict: HashMap<&'a str, (&'a [f32], usize)>,
+    bpm: f32,
+    sr: usize,
+    track_amp: f32,
+    seed: usize
 }
 
 impl<const N: usize> Engine<'static, N> {
@@ -41,6 +45,10 @@ impl<const N: usize> Engine<'static, N> {
             node_update_list: vec![],
             refpairlist: vec![],
             samples_dict: HashMap::new(),
+            bpm: 120.,
+            sr: 44100,
+            track_amp: 1.0,
+            seed: 42
         }
     }
 
@@ -138,7 +146,14 @@ impl<const N: usize> Engine<'static, N> {
                             let insert_i = v.new_index.unwrap();
                             let nodename = v.data;
                             let mut paras = &mut new_chain_para[new_i];
-                            let (nodedata, reflist) = makenode(nodename, &mut paras, &self.samples_dict)?;
+                            let (nodedata, reflist) = makenode(
+                                nodename, 
+                                &mut paras,
+                                &self.samples_dict, 
+                                self.sr,
+                                self.bpm,
+                                self.seed                    
+                            )?;
                             if !reflist.is_empty() {
                                 self.refpairlist.push((reflist, key, insert_i));
                             }
@@ -152,7 +167,14 @@ impl<const N: usize> Engine<'static, N> {
                 for i in 0..node_info_tuple.0.len() {
                     let name = node_info_tuple.0[i];
                     let mut paras = node_info_tuple.1[i].clone();
-                    let (nodedata, reflist)  = makenode(name, &mut paras, &self.samples_dict)?;
+                    let (nodedata, reflist)  = makenode(
+                        name, 
+                        &mut paras, 
+                        &self.samples_dict,
+                        self.sr,
+                        self.bpm,
+                        self.seed
+                    )?;
                     if !reflist.is_empty() {
                         self.refpairlist.push((reflist, key, i));
                     }         
@@ -381,4 +403,11 @@ impl<const N: usize> Engine<'static, N> {
         // println!("result {:?}", &self.context.graph[self.context.destination].buffers);
         &self.context.graph[self.context.destination].buffers
     }
+    pub fn set_bpm(&mut self, bpm:f32) {
+        self.bpm = bpm;
+        self.context.send_msg_to_all(Message::SetBPM(bpm));
+    }
+    pub fn set_sr(&mut self, sr:usize) {self.sr = sr}
+    pub fn set_seed(&mut self, seed:usize) {self.seed = seed}
+    pub fn set_track_amp(&mut self, amp:f32) {self.track_amp = amp}
 }

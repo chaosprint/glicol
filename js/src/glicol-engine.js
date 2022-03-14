@@ -221,8 +221,8 @@ class GlicolEngine extends AudioWorkletProcessor {
                       this._size
                     )
                     // console.log(Math.random() * 100);
-                    // this._wasm.exports.set_sr(sampleRate);
-                    // this._wasm.exports.set_seed(Math.random()*4096);
+                    this._wasm.exports.set_sr(sampleRate);
+                    this._wasm.exports.set_seed(Math.random()*4096);
                 })
                 this.port.postMessage({type: 'ready'})
             } else if (e.data.type === "loadsample") {
@@ -254,9 +254,9 @@ class GlicolEngine extends AudioWorkletProcessor {
                 this._size
               )
             } else if (e.data.type === "bpm") {
-                // this._wasm.exports.set_bpm(e.data.value);
+                this._wasm.exports.set_bpm(e.data.value);
             } else if (e.data.type === "amp") {
-                // this._wasm.exports.set_track_amp(e.data.value);
+                this._wasm.exports.set_track_amp(e.data.value);
             // } else if (e.data.type === "sab") {
                 
             // } else if (e.data.type === "result") {

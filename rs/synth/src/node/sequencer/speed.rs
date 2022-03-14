@@ -1,4 +1,4 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata, HashMap, GlicolPara};
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata, HashMap};
 
 #[derive(Debug, Clone)]
 pub struct Speed { val: f32, input_order: Vec<usize> }
@@ -12,6 +12,7 @@ impl Speed {
 
 impl< const N: usize> Node<N> for Speed {
     fn process(&mut self, _inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
+        output[0].silence();
         output[0][0] = self.val;
     }
     fn send_msg(&mut self, info: Message) {

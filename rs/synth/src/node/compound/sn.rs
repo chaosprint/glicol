@@ -12,7 +12,7 @@ use crate::{
     operator::{Mul, Add},
     oscillator::{SinOsc},
     signal::Noise,
-    filter::ResonantHighPassFilter,
+    // filter::ResonantHighPassFilter,
     envelope::EnvPerc,
 };
 

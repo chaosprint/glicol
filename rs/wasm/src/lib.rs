@@ -161,27 +161,27 @@ pub extern "C" fn update(arr_ptr: *mut u8, length: usize, result_ptr: *mut u8) {
 //     engine.reset();
 // }
 
-// #[no_mangle]
-// pub extern "C" fn set_bpm(bpm: f32) {
-//     let mut engine = ENGINE.lock().unwrap();
-//     engine.bpm = bpm;
-//     // engine.reset();
-// }
+#[no_mangle]
+pub extern "C" fn set_bpm(bpm: f32) {
+    let mut engine = ENGINE.lock().unwrap();
+    engine.set_bpm(bpm);
+    // engine.reset();
+}
 
-// #[no_mangle]
-// pub extern "C" fn set_track_amp(amp: f32) {
-//     let mut engine = ENGINE.lock().unwrap();
-//     engine.set_track_amp(amp);
-// }
+#[no_mangle]
+pub extern "C" fn set_track_amp(amp: f32) {
+    let mut engine = ENGINE.lock().unwrap();
+    engine.set_track_amp(amp);
+}
 
-// #[no_mangle]
-// pub extern "C" fn set_sr(sr: f32) {
-//     let mut engine = ENGINE.lock().unwrap();
-//     engine.set_sr(sr as usize);
-// }
+#[no_mangle]
+pub extern "C" fn set_sr(sr: f32) {
+    let mut engine = ENGINE.lock().unwrap();
+    engine.set_sr(sr as usize);
+}
 
-// #[no_mangle]
-// pub extern "C" fn set_seed(seed: f32) {
-//     let mut engine = ENGINE.lock().unwrap();
-//     engine.set_seed(seed as usize);
-// }
+#[no_mangle]
+pub extern "C" fn set_seed(seed: f32) {
+    let mut engine = ENGINE.lock().unwrap();
+    engine.set_seed(seed as usize);
+}
