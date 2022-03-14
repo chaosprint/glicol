@@ -70,7 +70,7 @@ impl< const N: usize> Node<N> for Sequencer {
             },
             _ => {
                 // println!("{:?} {:?}", inputs, self.input_order);
-                let possible_speed = &self.input_order[self.input_order.len()-1];
+                let possible_speed = &self.input_order[0];
                 let has_speed = inputs[possible_speed].buffers()[0][0] > 0. && inputs[possible_speed].buffers()[0][1] == 0.;
                 if has_speed { self.speed = inputs[possible_speed].buffers()[0][0]}
                 let bar_length = 240.0 / self.bpm as f64 * self.sr as f64 / self.speed as f64;
@@ -82,7 +82,7 @@ impl< const N: usize> Node<N> for Sequencer {
                             let midi = match event.1 {
                                 GlicolPara::Number(value) => value,
                                 GlicolPara::Reference(s) => {
-                                    let source = &inputs[&self.input_order[self.ref_order[s] - has_speed as usize]];
+                                    let source = &inputs[&self.input_order[self.ref_order[s] + has_speed as usize]]; //panic?
                                     source.buffers()[0][i]
                                 },
                                 _ => {return ()}
