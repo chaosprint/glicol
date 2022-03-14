@@ -22,7 +22,7 @@ pub struct SquSynth<const N: usize> {
 
 impl<const N: usize> SquSynth<N> {
 
-    pub fn new(decay: f32) -> Self {
+    pub fn new(attack: f32, decay: f32) -> Self {
         let mut context = crate::AudioContextBuilder::<N>::new().channels(2).build();
         let input = context.add_mono_node( Pass{} );
 
@@ -31,7 +31,7 @@ impl<const N: usize> SquSynth<N> {
 
         context.chain(vec![source, amp, context.destination]);
         
-        let env_amp = context.add_mono_node( EnvPerc::new().attack(0.003).decay(decay));
+        let env_amp = context.add_mono_node( EnvPerc::new().attack(attack).decay(decay));
         context.tags.insert("d", env_amp);
         context.chain(vec![input, env_amp, amp]);
 
@@ -73,6 +73,9 @@ impl<const N: usize> Node<N> for SquSynth<N> {
             Message::SetToNumber(pos, value) => {
                 match pos {
                     0 => {
+                        self.context.graph[self.context.tags["d"]].node.send_msg(Message::SetToNumber(0, value))
+                    },
+                    1 => {
                         self.context.graph[self.context.tags["d"]].node.send_msg(Message::SetToNumber(1, value))
                     },
                     _ => {}

@@ -39,8 +39,8 @@ impl<const N:usize> Node<N> for Add {
                 }
             },
             2 => {
-                let main_input = &inputs[&self.input_order[1]]; // can panic if there is no id
-                let ref_input = &inputs[&self.input_order[0]]; // can panic if there is no id
+                let main_input = &inputs[&self.input_order[1]];
+                let ref_input = &inputs[&self.input_order[0]];
                 match main_input.buffers().len() {
                     1 => {
                         for i in 0..N {
@@ -54,7 +54,7 @@ impl<const N:usize> Node<N> for Add {
                         if output.len() < 2 {return ()};
                         for i in 0..N {
                             output[0][i] = main_input.buffers()[0][i] + ref_input.buffers()[0][i];
-                            output[1][i] = main_input.buffers()[1][i] + ref_input.buffers()[0][i];
+                            output[1][i] = main_input.buffers()[1][i] + ref_input.buffers()[1][i];
                         }
                     },
                     _ => {}

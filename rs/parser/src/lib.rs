@@ -5,7 +5,7 @@ use pest_derive::*;
 use pest::error::ErrorVariant;
 use std::collections::HashMap;
 
-use glicol_macros::one_para_number_or_ref;
+use glicol_macros::{one_para_number_or_ref, two_numbers};
 use glicol_synth::GlicolPara;
 
 #[derive(Parser)]
@@ -104,7 +104,7 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                                         println!("rest {:?}", e.as_str());
                                                         // event.push( (time , GlicolPara::Number(0.0) ));
                                                     },
-                                                    Rule::reference => {
+                                                    Rule::note_ref => {
                                                         println!("ref {:?}", e.as_str());
                                                         event.push( (time, GlicolPara::Reference(e.as_str()) ));
                                                     },
@@ -141,9 +141,9 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                     Rule::bd => one_para_number_or_ref!("bd"),
                                     Rule::sn => one_para_number_or_ref!("sn"),
                                     Rule::hh => one_para_number_or_ref!("hh"),
-                                    Rule::sawsynth => one_para_number_or_ref!("sawsynth"),
-                                    Rule::squsynth => one_para_number_or_ref!("squsynth"),
-                                    Rule::trisynth => one_para_number_or_ref!("trisynth"),
+                                    Rule::sawsynth => two_numbers!("sawsynth"),
+                                    Rule::squsynth => two_numbers!("squsynth"),
+                                    Rule::trisynth => two_numbers!("trisynth"),
                                     Rule::lpf => {
                                         println!("node {:?}", node.as_str());
                                         let mut iter = node.into_inner();

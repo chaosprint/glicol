@@ -243,9 +243,45 @@ pub fn makenode<const N: usize>(
         "bd" => get_one_para_from_number_or_ref!(Bd),
         "hh" => get_one_para_from_number_or_ref!(Hh),
         "sn" => get_one_para_from_number_or_ref!(Sn),
-        "sawsynth" => get_one_para_from_number_or_ref!(SawSynth),
-        "squsynth" => get_one_para_from_number_or_ref!(SquSynth),
-        "trisynth" => get_one_para_from_number_or_ref!(TriSynth),
+        "sawsynth" => {
+            let data = SawSynth::new(
+                match paras[0] {
+                    GlicolPara::Number(v) => v,
+                    _ => unimplemented!()
+                },
+                match paras[1] {
+                    GlicolPara::Number(v) => v,
+                    _ => unimplemented!()
+                }
+            ).to_boxed_nodedata(2);
+            (data, vec![])
+        },
+        "squsynth" => {
+            let data = SquSynth::new(
+                match paras[0] {
+                    GlicolPara::Number(v) => v,
+                    _ => unimplemented!()
+                },
+                match paras[1] {
+                    GlicolPara::Number(v) => v,
+                    _ => unimplemented!()
+                }
+            ).to_boxed_nodedata(2);
+            (data, vec![])
+        },
+        "trisynth" => {
+            let data = TriSynth::new(
+                match paras[0] {
+                    GlicolPara::Number(v) => v,
+                    _ => unimplemented!()
+                },
+                match paras[1] {
+                    GlicolPara::Number(v) => v,
+                    _ => unimplemented!()
+                }
+            ).to_boxed_nodedata(2);
+            (data, vec![])
+        },
         "get" => {
             let mut reflist = Vec::<&str>::new();
             match paras[0] {

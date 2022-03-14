@@ -24,9 +24,26 @@ pub fn one_para_number_or_ref(item: TokenStream) -> TokenStream {
         }
     };
     gen.into()
-    
 }
 
+#[proc_macro]
+pub fn two_numbers(item: TokenStream) -> TokenStream {
+    let name = proc_macro2::TokenStream::from(item);
+    let gen = quote! {
+        {
+            println!("node {:?}", node.as_str());
+            let mut iter = node.into_inner();
+            let p1 = iter.next().unwrap();
+            let p2 = iter.next().unwrap();
+            chain_node_names.push(#name);
+            chain_paras.push(vec![
+                GlicolPara::Number(p1.as_str().parse::<f32>().unwrap()),
+                GlicolPara::Number(p2.as_str().parse::<f32>().unwrap())
+            ]);
+        }
+    };
+    gen.into()
+}
 
 #[proc_macro]
 pub fn get_one_para_from_number_or_ref(item: TokenStream) -> TokenStream {

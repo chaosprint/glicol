@@ -41,9 +41,14 @@ fn main() {
     // engine.update(r#"o: seq ~a; ~a: choose 70"#).unwrap();
     // println!(" engine.next_block() {:?}", engine.next_block());
 
-    engine.update(r#"o: sin 10"#).unwrap();
+    // engine.update(r#"o: sin 10"#).unwrap();
+    // println!(" engine.next_block() {:?}", engine.next_block());
+    // engine.update(r#"o: saw 12"#).unwrap();
+    // println!(" engine.next_block() {:?}", engine.next_block());
+
+    engine.update(r#"~a: constsig 10; ~b: constsig 20 >> mul 0.0; o: ~a >> add ~b"#).unwrap();
     println!(" engine.next_block() {:?}", engine.next_block());
-    engine.update(r#"o: saw 12"#).unwrap();
+    engine.update(r#"~a: constsig 10; ~b: constsig 20 >> mul 0.5; o: ~a >> add ~b"#).unwrap();
     println!(" engine.next_block() {:?}", engine.next_block());
 
 }
