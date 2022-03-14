@@ -62,7 +62,6 @@ window.setBPM = (beats_per_minute) => {
         window.node.port.postMessage({
         type: "bpm", value: beats_per_minute})
         log(`%cBPM set to: ${beats_per_minute}`, "background: green");
-        log("%cThis will be effective when you make some changes to the code.", "background: blue");
     } else {
         warn("BPM should be a number.")
     }
@@ -149,7 +148,7 @@ window.loadSamples = async () => {
     fetch(source+'sample-list.json')
     .then(response => response.json())
     .then(data => {
-      log(Object.keys(data))
+      // log(Object.keys(data))
       Object.keys(data).forEach(async name=>{
         let myRequest = new Request(source.replace("src/", "")+`assets/${name}.wav`);
         await fetch(myRequest).then(response => response.arrayBuffer())
@@ -367,29 +366,26 @@ window.h = () => {
 %cUseful console commands
 
 %chelp("someNodeName")
-%cget docs for a node, e.g. help("sin").
-if no parameter is given, will list all nodes.
+%cget docs for a node, e.g. help("sin"). if no parameter is given, will list all nodes.
 on glicol web editor, you can use key shortcut alt-d (win) / option-d (mac) to trigger this function.
       
-%csetBPM(someNumber)\n%cset the BPM. the default is 120. best to do it before you run any code.
+%csetBPM(someNumber)\n%cset the BPM. the default is 120.
 
 %caddSampleFolder()
-%cchoose a folder that contains sub-folders that contain samples. for example:
+%cchoose a folder that contains samples. the sample name will be FOLDERNAME_ORDER in glicol.
+for example:
 (1) visit (https://github.com/chaosprint/Dirt-Samples), click [code] -> [download ZIP];
 (2) extract {Dirt-Samples-master.zip} to {Dirt-Samples-master} folder;\n(3) run this command in the console and choose the folder.
 
 %caddSampleFiles("some_name", "wav_sample_url")
 %cadd your own samples. for example:
-
 // in browser console
-addSample("808bd_0", "https://cdn.jsdelivr.net/gh/chaosprint/glicol@0.8.10/js/assets/BD0000.WAV")
-
+addSampleFiles("bd", "https://cdn.jsdelivr.net/gh/chaosprint/glicol@0.8.10/js/assets/BD0000.WAV")
 // in glicol
-o: seq 60 >> sp \\808bd_0
+o: seq 60 >> sp \\bd
 
 for the first para, only lowercase letters, underscore and numbers are valid
-keep the second augument empty to load local samples.
-the files should end with .wav. The file name will become the keys.
+keep the second augument empty to load local samples. if you load multiple samples, the name will be automatically created for you.
 
 %cshowAllSamples()
 %cshow current loaded samples.
@@ -417,12 +413,12 @@ let obj = {
     oscillator: ["sin", "squ", "saw", "tri"],
     sequencing: ["seq", "choose"],
     sampling: ["sp", "buf(wip)"],
-    signal: ["const_sig", "imp", "noise", "pha"],
+    signal: ["const_sig", "imp", "noise"], //, "pha"
     operator: ["mul", "add"],
     envelope: ["envperc", "shape(wip)"],
-    filter: ["lpf", "hpf", "onepole", "allpass", "apfgain", "apfdecay", "comb"],
+    filter: ["lpf", "hpf", "onepole", "apfgain"], //"allpass", , "apfdecay", "comb"
     effect: ["pan", "balance(wip)"],
-    dynamic: ["script"],
+    dynamic: ["meta"],
     extension: ["plate", "bd", "sn", "hh", "sawsynth", "squsynth", "trisynth"],
 }
 return obj
@@ -520,4 +516,4 @@ function getOS() {
   return os;
 }
 
-log(getOS())
+// log(getOS())
