@@ -5,7 +5,7 @@ use glicol::Engine; use glicol::{EngineError, get_error_info};
 
 fn main() {
     let mut engine = Engine::<8>::new();
-    engine.update_with_code(r#"~a: constsig 4 >> add 0.1; b: ~a"#);
+    engine.update_with_code(r#"~a: constsig 4 >>"#);
     // match engine.update("o: imp 100 >> mul ~mod
     // ~mo: sin 1 >> mul 0.5 >> add 0.5") {
     //     Ok(_) => {},
@@ -30,7 +30,7 @@ fn main() {
     // for e in engine.context.graph.edges(engine.context.destination) {
     //     println!("destinations {:?}", e);
     // }
-    println!("next block {:?}", engine.next_block().unwrap());
+    println!("next block {:?}", engine.next_block());
     // engine.send_msg("o", 0, (0, "1."));
     // engine.next_block();
 }

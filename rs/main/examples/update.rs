@@ -48,8 +48,8 @@ fn main() {
     // println!(" engine.next_block() {:?}", engine.next_block());
 
     engine.update_with_code(r#"a: constsig 10"#);
-    println!(" engine.next_block() {:?}", engine.next_block().unwrap());
+    println!(" engine.next_block() {:?}", engine.next_block());
     engine.update_with_code(r#"a: constsig 2"#);
-    println!(" engine.next_block() {:?}", engine.next_block().unwrap());
+    println!(" engine.next_block() {:?}", engine.next_block());
 
 }
