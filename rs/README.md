@@ -2,11 +2,17 @@
 
 This folder contains files for the engine of Glicol written in Rust.
 
-The engine is divided into several crates.
+The `main` provides an `Engine` that takes the code as input, stores samples, and yield `next_block` of audio constantly.
 
-This is mainly because that proc macro requires such a structure.
+The `parser` offers the `get_ast` function for the `Engine` to parse the code.
 
-Yet this makes it clear that `glicol_synth` crate can be used as a standalone Rust audio library.
+The `macros` is basically some proc macros to make some dev work easier.
+
+The `wasm` crate exports the `Engine` to a WebAssembly file which can be used in web browsers.
+
+The `synth` provides all the audio support.
+
+## Glicol synth as a standalone Rust audio library
 
 You can write an audio project like this:
 

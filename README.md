@@ -69,11 +69,11 @@ See the [README.md](./js/README.md) in `js` folder for details.
 For Rust audio, see the [README.md](./rs/README.md) file in the `rs` folder for details.
 
 ### 5. One more thing
-You can use `script` to write meta node, which is like the `gen~` in Max/MSP.
+You can use `meta` to write meta node, which is like the `gen~` in Max/MSP.
 
 ```
 // a sawtooth osc chained with a onepole filter
-a: script `
+a: meta `
 	f = 220.;
 	output.pad(128, 0.0);
 	if phase == 0 {
@@ -85,7 +85,7 @@ a: script `
 	};
 	if p > 1.0 { p -= 1.0 };
 	output
-` >> script `
+` >> meta `
 	r = 1./2000.;
 	if phase == 0.0 {
 		z = 0.0
