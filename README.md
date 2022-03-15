@@ -16,11 +16,22 @@ Thus, all you need to know is the connection and the io range.
 You can view each node as synth module that you can literally hear/see.
 
 ```
-// an amplitude modulation example
-o: sin 440 >> mul ~mod
-
-~mod: sin 0.5 >> mul 0.3 >> add 0.5
+// amplitude modulation example
+a: sin 440 >> mul ~mod // lazy evaluation
+~mod: sin 0.2 >> mul 0.5 >> add 0.5 // ~mod is a ref
+// names with ~ will be not sent to dac
 ```
+
+```
+// sequencer pattern
+// first divide one bar with space
+// then further divide each part
+// _ means rest
+o: speed 2.0 >> seq 60 _~a _ 60__60
+>> sp \blip
+~a: choose 60 60 0 0 72 72 // quantity alters probability
+```
+
 ### 2. What you see is what you get
 For interaction, Glicol choose a WYSIWYG (what-you-see-is-what-you-get) paradigm. Under the hood, Glicol has implemented LCS algorithm to dynamically update the graph in real-time.
 ### 3. Zero-installation
@@ -38,14 +49,13 @@ The web interface has the following features:
 
 ### 4. Rust audio
 
-Glicol can be used:
+Glicol has its own audio library `glicol_synth` and can be used:
 
 1. as Web Audio API, Tone.js alternative
 2. for developing VST plugins in Rust (has POC, but still WIP)
 3. to program on Bela board (has POC, but still WIP)
 
-The `js` folder contains the Glicol distribution for the web platform.
-The usage is very easy. Just include this into your `index.html`:
+The `js` folder contains the Glicol distribution for the web platform. The usage is very easy. Just include this into your `index.html`:
 ```
 <script src="https://cdn.jsdelivr.net/gh/chaosprint/glicol@latest/js/src/glicol.js"></script>
 ```
