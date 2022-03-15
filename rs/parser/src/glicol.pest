@@ -1,28 +1,69 @@
-block = ${ ("\n"|WHITESPACE)* ~ ( (line|comment) ~ WHITESPACE* ~ ";"? ~ WHITESPACE* ~ ("\n" ~ WHITESPACE*)* )+}
+block = ${ SOI ~ ("\n"|WHITESPACE)* ~ ( (line|comment) ~ WHITESPACE* ~ ";"? ~ WHITESPACE* ~ ("\n" ~ WHITESPACE*)* )* ~ EOI}
 comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE* ~ !NEWLINE}
-line = ${ reference ~ WHITESPACE+? ~ ":" ~ WHITESPACE+? ~ chain}
-chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE+ ~ node)*  }
-node = ${ name? ~ WHITESPACE* ~ paras ~ (WHITESPACE+ ~ paras)* }
-paras = ${  float | symbol | seq | reference | string}
-float = ${ (("+" | "-")? ~ ASCII_DIGIT+) ~ "." ~ ASCII_DIGIT* ~ (^"e" ~ "-"? ~ ASCII_DIGIT+)? }
-symbol = ${ "\\" ~ ASCII_ALPHANUMERIC* ~ "_"? ~ ASCII_DIGIT* }
-seq = @{ compound ~ (WHITESPACE+ ~ compound)*}
-compound = ${ note+ }
-note = ${ midi | rest | reference }
-string = ${ "`" ~ inner ~ "`" }
+line = ${ reference ~ WHITESPACE* ~ ":" ~ WHITESPACE* ~ chain}
+chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE* ~ node)*  }
+
+node = ${ (mix|seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noise|onepole|
+sp|constsig|lpf|onepole|imp|delayn|delayms|envperc|apfmsgain|plate|sendpass|
+get|bd|sn|hh|meta|sawsynth|squsynth|trisynth) }
+
+meta = ${ ("meta"|"script") ~ WHITESPACE+ ~ code}
+code = ${ "`" ~ inner ~ "`" }
 inner = @{ char* }
 char = {
     !("`" | "\\") ~ ANY
     | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
     | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }
+get = ${ ("get" ~ WHITESPACE+)? ~ !(node_name) ~ reference}
+sendpass = ${ "sendpass" ~ WHITESPACE+ ~ reference ~ (WHITESPACE+ ~ reference)*}
+plate = ${"plate" ~ WHITESPACE+ ~ !(node_name | reference) ~ number}
+envperc = ${"envperc" ~ WHITESPACE+ ~ !(node_name | reference) ~ number ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
+delayn = ${"delayn" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+delayms = ${"delayms" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+seq = ${ "seq" ~ WHITESPACE+ ~ compound_notes }
+
+choose = ${ "choose" ~ WHITESPACE+ ~ integer ~ (WHITESPACE+ ~ integer)*}
+mix = ${ "mix" ~ WHITESPACE+ ~ reference ~ (WHITESPACE+ ~ reference)*}
+apfmsgain = ${ ("apfgain" | "apfmsgain") ~ WHITESPACE+ ~ !node_name ~ (number | reference) ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
+lpf = ${"lpf" ~ WHITESPACE+ ~ !node_name ~ (number | reference) ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
+mul = ${"mul" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+imp = ${"imp" ~ WHITESPACE+ ~ !node_name ~ (number ) }
+bd = ${"bd" ~ WHITESPACE+ ~ !node_name ~ (number ) }
+sn = ${"sn" ~ WHITESPACE+ ~ !node_name ~ (number ) }
+hh = ${"hh" ~ WHITESPACE+ ~ !node_name ~ (number ) }
+sawsynth = ${"sawsynth" ~ WHITESPACE+ ~ !(node_name | reference) ~ number ~ WHITESPACE+ ~ !(node_name | reference) ~ number }
+squsynth = ${"squsynth" ~ WHITESPACE+ ~ !(node_name | reference) ~ number ~ WHITESPACE+ ~ !(node_name | reference) ~ number }
+trisynth = ${"trisynth" ~ WHITESPACE+ ~ !(node_name | reference) ~ number ~ WHITESPACE+ ~ !(node_name | reference) ~ number }
+add = ${"add" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+sin = ${"sin" ~ WHITESPACE+ ~ !node_name ~ ( number | reference) }
+saw = ${"saw" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+squ = ${"squ" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+tri = ${"tri" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+pan = ${"pan" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+constsig = ${"constsig" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+onepole = ${"onepole" ~ WHITESPACE+ ~ !node_name ~ ( number | reference) }
+
+// single float
+speed = ${"speed" ~ WHITESPACE+ ~ number}
+noise = ${("noiz"|"noise") ~ WHITESPACE+ ~ number}
+sp = ${("sp"|"sampler") ~ WHITESPACE+ ~ !( node_name | reference | number ) ~ symbol }
+// paras = ${  float | symbol | seq | reference}
+number = ${ float | integer}
+float = ${ (("+" | "-")? ~ ASCII_DIGIT+) ~ "." ~ ASCII_DIGIT* ~ (^"e" ~ integer)? }
+symbol = ${ "\\" ~ ASCII_ALPHANUMERIC* ~ "_"? ~ ASCII_DIGIT* }
+compound_notes = @{ compound ~ (WHITESPACE+ ~ compound)*}
+compound = ${ note+ }
+note = ${ integer | rest | note_ref }
+note_ref = ${ "~" ~  ASCII_ALPHA_LOWER }
 reference = ${ ("~"|"_")? ~ ASCII_ALPHA_LOWER+ ~ ("_" | ASCII_ALPHA_LOWER | ASCII_DIGIT )* }
-name = ${"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|
+rest = ${ "_" }
+integer = ${ (ASCII_DIGIT)+ ~ !"." }
+WHITESPACE = _{" "|","|"|"|"\t"}
+
+node_name = ${"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|
 "linrange"|"apfdecay"|"delayn"|"delaymod"|
 "sin"|"squ"|"imp"|"envperc"|"sampler"|"noiz"|"lpf"|"plate"|"onepole"|
 "hpf"|"pha"|"buf"|"state"|"freeverb"|"pan"|"delay"|"apfgain"|"comb"|"mix"|"monosum"|
-"const_sig"|"*"|"sp"|"spd"|"tri"|"noise"|"amplfo"|"balance"|"rlpf"|"rhpf"|"kick"|"ks"|
-"pha"|"shape"|"sawsynth"|"saw"|"script"|"closure"}
-rest = ${ "_" }
-midi = ${ (ASCII_DIGIT)+ ~ !"." }
-WHITESPACE = _{" "|","|"|"}
+"const_sig"|"constsig"|"*"|"sp"|"spd"|"tri"|"noise"|"amplfo"|"balance"|"rlpf"|"rhpf"|"kick"|"ks"|
+"pha"|"shape"|"sawsynth"|"saw"|"script"|"closure"| "r" | "apfmsgain" |"sendpass"|"mix"|"sum"}

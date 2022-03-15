@@ -2,64 +2,27 @@
 
 This folder contains files for the engine of Glicol written in Rust.
 
-The engine is divided into several crates, including `glicol_parser`, `glicol_synth`, `glicol_ext` and `glicol_macro`.
+The engine is divided into several crates.
 
-The `glicol_parser` is used for parsing Glicol syntax.
+This is mainly because that proc macro requires such a structure.
 
-In this process, the `glicol_synth` is used to build the essential audio nodes, etc.
+Yet this makes it clear that `glicol_synth` crate can be used as a standalone Rust audio library.
 
-For some extra nodes such as `plate` reverb, `glicol_ext` is used.
+You can write an audio project like this:
 
-`glicol_ext` depends on `glicol_synth`, `glicol_parser` and `glicol-macro`.
-
-Their relationship is as follows:
-
-```rust
-glicol_ext = glicol_synth + glicol_parser + glicol_macro
 ```
-
-```rust
-glicol = glicol_parser + glicol_synth + glicol_ext
-```
-
-## As standalone audio lib
-
-Glicol can be used as an independent audio library for other Rust projects.
-
-There are two ways to use Glicol-rs independently. One is to use the big `glicol` crate, and the other is to only use the essential nodes in `glicol_synth` crate.
-
-In the big `glicol` crate, users can use nodes from `glicol_ext`, but have to write more codes:
-
-```rust
-use dasp_graph::{NodeData, BoxedNodeSend};
-use glicol::*;
-use glicol_synth::operation::{mul::*, add::*};
-use glicol_synth::oscillator::sin_osc::*;
+use glicol_synth::{AudioContextBuilder, signal::ConstSig, Message};
 
 fn main() {
-    let mut engine = Engine::new(44100);
-    // return a vec of nodeindex
-    let i_mod = engine.make_chain(vec![sin_osc!({freq: 10.0}), mul!(0.5), add!(0.5)]);
-    let out = engine.make_chain(vec![sin_osc!({freq: 440.0}), mul!()]);
-    engine.make_edge(i_mod[2], out[1]);
-    engine.process(out[1]); // this is a simplified method for calling processor on graph
-    println!("First block {:?}", engine.graph[out[1]].buffers);
-}
-```
+    let mut context = AudioContextBuilder::<128>::new()
+    .sr(44100).channels(1).build();
 
-But a more ergonomic way is to use those nodes with the `glicol_macro`:
+    let node_a = context.add_mono_node(ConstSig::new(42.));
+    context.connect(node_a, context.destination);
+    println!("first block {:?}", context.next_block());
 
-```rust
-use glicol_macro::make_graph;
-use glicol_synth::{SimpleGraph};
-use glicol_parser::{Rule, GlicolParser};
-
-fn main() {
-    let num = 0.1;
-    let mut g = make_graph!{
-        out: ~input >> add #num;
-    };
-    println!("{:?}", g.next_block(&mut [0.0; 128]));
+    context.send_msg(node_a, Message::SetToNumber((0, 100.)) );
+    println!("second block, after msg {:?}", context.next_block());
 }
 ```
 
@@ -70,9 +33,12 @@ First you should have Rust compiler installed. Make sure you can call `cargo` in
 Then:
 ```
 git clone https://github.com/chaosprint/glicol.git
-cd glicol/rs/main
-cargo run --example helloworld
+cd glicol/rs/synth
+cargo run --example hello
+cargo run --example chain
 ```
+
+You can explore more examples in the `./rs/synth/` folder.
 
 ## License
 
