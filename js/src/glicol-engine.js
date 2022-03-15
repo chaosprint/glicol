@@ -214,6 +214,12 @@ class GlicolEngine extends AudioWorkletProcessor {
                   // console.log(obj)
                     this._wasm = obj.instance
                     this._size = 256
+                    this._resultPtr = this._wasm.exports.alloc_uint8array(256);
+                    this._result = new Uint8Array(
+                      this._wasm.exports.memory.buffer,
+                      this._resultPtr,
+                      256
+                    )
                     this._outPtr = this._wasm.exports.alloc(this._size)
                     this._outBuf = new Float32Array(
                       this._wasm.exports.memory.buffer,
@@ -248,10 +254,16 @@ class GlicolEngine extends AudioWorkletProcessor {
 
               this._wasm.exports.add_sample(namePtr, nameLen, samplePtr, length, channels)
 
+              // recall this to ensure
               this._outBuf = new Float32Array(
                 this._wasm.exports.memory.buffer,
                 this._outPtr,
                 this._size
+              )
+              this._result = new Uint8Array(
+                this._wasm.exports.memory.buffer,
+                this._resultPtr,
+                256
               )
             } else if (e.data.type === "bpm") {
                 this._wasm.exports.set_bpm(e.data.value);
@@ -277,19 +289,7 @@ class GlicolEngine extends AudioWorkletProcessor {
             let codeUint8ArrayPtr = this._wasm.exports.alloc_uint8array(size);
             let codeUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, codeUint8ArrayPtr, size);
             codeUint8Array.set(this._codeArray.slice(0, size));
-
-            // for updating, no need to pass in samples
-            let resultPtr = this._wasm.exports.alloc_uint8array(256);
-
-            this._wasm.exports.update(codeUint8ArrayPtr, size, resultPtr)
-            let result = new Uint8Array(
-              this._wasm.exports.memory.buffer,
-              resultPtr,
-              256
-            )
-            if (result[0] !== 0) {
-              this.port.postMessage({type: 'e', info: result.slice(0,256)})
-            }
+            this._wasm.exports.update(codeUint8ArrayPtr, size)
         }
 
       //   if (midiSize) {
@@ -307,14 +307,26 @@ class GlicolEngine extends AudioWorkletProcessor {
             this._inBuf.set(inputs[0][0])
         }
 
+        this._resultPtr = this._wasm.exports.alloc_uint8array(256);
+
         this._wasm.exports.process(
-          this._inPtr, this._outPtr, this._size)
+          this._inPtr, this._outPtr, this._size, this._resultPtr)
 
         this._outBuf = new Float32Array(
-            this._wasm.exports.memory.buffer,
-            this._outPtr,
-            this._size
+          this._wasm.exports.memory.buffer,
+          this._outPtr,
+          this._size
         )
+
+        this._result = new Uint8Array(
+          this._wasm.exports.memory.buffer,
+          this._resultPtr,
+          256
+        )
+        
+        if (this._result[0] !== 0) {
+          this.port.postMessage({type: 'e', info: this._result.slice(0,256)})
+        }
     
         outputs[0][0].set(this._outBuf.slice(0, 128))
         outputs[0][1].set(this._outBuf.slice(128, 256))

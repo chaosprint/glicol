@@ -1,3 +1,5 @@
+// todo: When error, the error info still updates some nodes..
+
 pub mod util; use util::makenode;
 pub mod error; pub use error::{EngineError, get_error_info};
 use std::collections::HashMap;
@@ -25,7 +27,10 @@ pub struct Engine<'a, const N: usize> {
     bpm: f32,
     sr: usize,
     track_amp: f32,
-    seed: usize
+    seed: usize,
+    clock: usize,
+    pub livecoding: bool,
+    need_update: bool,
 }
 
 impl<const N: usize> Engine<'static, N> {
@@ -48,7 +53,10 @@ impl<const N: usize> Engine<'static, N> {
             bpm: 120.,
             sr: 44100,
             track_amp: 1.0,
-            seed: 42
+            seed: 42,
+            clock: 0,
+            livecoding: true,
+            need_update: false,
         }
     }
 
@@ -56,9 +64,14 @@ impl<const N: usize> Engine<'static, N> {
         self.samples_dict.insert(name, (sample, channels));
     }
 
-    pub fn update(&mut self, code: &'static str) -> Result<(), EngineError>  {
-        self.samples_dict.insert(r#"\808_0"#, (&[0.42, 0.0], 2));
+    pub fn update_with_code(&mut self, code: &'static str) {
         self.code = code;
+        self.need_update = true;
+        // self.samples_dict.insert(r#"\test"#, (&[0.42, 0.0], 2));
+    }
+
+    pub fn update(&mut self) -> Result<(), EngineError>  {
+        // self.code = code;
         self.parse()?;
         self.make_graph()?;
         Ok(())
@@ -398,11 +411,55 @@ impl<const N: usize> Engine<'static, N> {
 
     }
 
-    pub fn next_block(&mut self) -> &[Buffer<N>] {  //  -> &Vec<Buffer<N>> 
+    pub fn next_block(&mut self) -> (&[Buffer<N>], [u8; 256]) {  //  -> &Vec<Buffer<N>> 
+        // if self.livecoding {
+        let mut result = [0; 256];
+        let one_bar = (240.0 / self.bpm * self.sr as f32) as usize;
+        if self.need_update && (self.clock + N) % one_bar <= N {
+            self.need_update = false;
+            match self.update() {
+                Ok(_) => {
+                    for i in 0..256 {
+                        result[i] = 0
+                    }
+                },
+                Err(e) => {
+                    
+                    result[0] = match e {
+                        EngineError::ParsingError(_) => 1,
+                        EngineError::NonExsitSample(_) => 2,
+                        EngineError::NonExistReference(_) => 3,
+                    };
+                    let error = match e {
+                        EngineError::ParsingError(v) => {
+                            format!("{:?}", v)
+                        },
+                        EngineError::NonExsitSample(v) => {
+                            format!("cannot use this non-exist samples {}", v)
+                        }
+                        EngineError::NonExistReference(v) => {
+                            format!("cannot use this non-exist reference {}", v)
+                        }
+                    };
+                    let s = error.as_bytes();
+                    for i in 2..256 {
+                        if i - 2 < s.len() {
+                            result[i] = s[i-2]
+                        } else {
+                            result[i] = 0
+                        }
+                        
+                    }
+                }
+            }
+        }            
+        // }
         self.context.processor.process(&mut self.context.graph, self.context.destination);
         // println!("result {:?}", &self.context.graph[self.context.destination].buffers);
-        &self.context.graph[self.context.destination].buffers
+        self.clock += N;
+        (&self.context.graph[self.context.destination].buffers, result)
     }
+
     pub fn set_bpm(&mut self, bpm:f32) {
         self.bpm = bpm;
         self.context.send_msg_to_all(Message::SetBPM(bpm));

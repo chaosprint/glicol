@@ -4,6 +4,7 @@ use glicol::Engine;
 
 fn main() {
     let mut engine = Engine::<8>::new();
+    engine.livecoding = false;
     // engine.update(r#"o: constsig 42 >> mul 0.3"#);
     // engine.next_block();
     // engine.update(r#"o: constsig 42 >> mul ~mod; ~mod: constsig 0.9"#);
@@ -46,9 +47,9 @@ fn main() {
     // engine.update(r#"o: saw 12"#).unwrap();
     // println!(" engine.next_block() {:?}", engine.next_block());
 
-    engine.update(r#"~a: constsig 10; ~b: constsig 20 >> mul 0.0; o: ~a >> add ~b"#).unwrap();
-    println!(" engine.next_block() {:?}", engine.next_block());
-    engine.update(r#"~a: constsig 10; ~b: constsig 20 >> mul 0.5; o: ~a >> add ~b"#).unwrap();
-    println!(" engine.next_block() {:?}", engine.next_block());
+    engine.update_with_code(r#"a: constsig 10"#);
+    println!(" engine.next_block() {:?}", engine.next_block().unwrap());
+    engine.update_with_code(r#"a: constsig 2"#);
+    println!(" engine.next_block() {:?}", engine.next_block().unwrap());
 
 }
