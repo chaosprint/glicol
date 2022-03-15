@@ -383,7 +383,7 @@ for example:
 %caddSampleFiles("some_name", "wav_sample_url")
 %cadd your own samples. for example:
 // in browser console
-addSampleFiles("bd", "https://cdn.jsdelivr.net/gh/chaosprint/glicol@0.8.10/js/assets/BD0000.WAV")
+addSampleFiles("bd", "https://cdn.jsdelivr.net/gh/chaosprint/glicol@0.9.0/js/assets/808bd.wav")
 // in glicol
 o: seq 60 >> sp \\bd
 
@@ -393,7 +393,7 @@ keep the second augument empty to load local samples. if you load multiple sampl
 %cshowAllSamples()
 %cshow current loaded samples.
 
-%cgetRandSample(optionalFilter)
+%cgetRandSample("optionalFilter")
 %cget a random sample name from current loaded samples.
 e.g. if the filter is '0', it will only return a sample whose name contains '0'.
 
@@ -408,7 +408,7 @@ e.g. if the filter is '0', it will only return a sample whose name contains '0'.
 "color:green; font-weight:bold", "",
 "color:green; font-weight:bold", "", 
 "color:green; font-weight:bold", "", 
-"color:green; font-weight:bold", ""); return window.emoj
+); return window.emoj
 }
   
 window.showAllNodes = () => {
