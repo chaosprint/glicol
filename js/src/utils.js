@@ -113,7 +113,7 @@ window.addSampleFolder = async () => {
                               samplePath[folder] = 0
                             }
                             const name = folder.toLowerCase() + "_" + String(samplePath[folder])
-                            log("name", name)
+                            log("loading sample: ", name)
                             window.sampleBuffers[name] = buffer
                             var sample;
                             if (buffer.numberOfChannels === 1) {
@@ -149,7 +149,7 @@ window.loadSamples = async () => {
     .then(response => response.json())
     .then(data => {
       // log(Object.keys(data))
-      Object.keys(data).forEach(async name=>{
+      Object.keys(data).filter(name=>name!=="2json.js").forEach(async name=>{
         let myRequest = new Request(source.replace("src/", "")+`assets/${name}.wav`);
         await fetch(myRequest).then(response => response.arrayBuffer())
         .then(arrayBuffer => {
@@ -174,9 +174,10 @@ window.loadSamples = async () => {
                   name: encoder.encode("\\"+ name.replace("-","_")),
                   sr: buffer.sampleRate
                 })
-            }, function(e){ log("Error with decoding audio data" + e.err); })
+            }, function(e){ log("Error with decoding audio data" + e.err + name); })
         });
       })
+      // log(window.showAllSamples())
     })
     // window.actx.suspend()
     // ['bd0000', 'clav', "pandrum", "panfx", "cb"]
@@ -267,7 +268,9 @@ window.getRandSample = (filter) => {
   } else {
     array = Object.keys(window.sampleBuffers)
   }
-  return array[Math.floor(Math.random() * array.length)]
+  let result = array[Math.floor(Math.random() * array.length)]
+  log(result)
+  return result
 }
 
 window.ampVisualColor = '#3b82f6';

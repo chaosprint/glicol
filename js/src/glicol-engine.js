@@ -232,7 +232,7 @@ class GlicolEngine extends AudioWorkletProcessor {
                 })
                 this.port.postMessage({type: 'ready'})
             } else if (e.data.type === "loadsample") {
-              console.log("data: ", e.data)
+              // console.log("data: ", e.data)
               let channels = e.data.channels;
               let length = e.data.sample.length;
               let sr = e.data.sr;

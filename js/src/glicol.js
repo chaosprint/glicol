@@ -2,7 +2,7 @@
 // in local testing, comment the version out!
 
 
-// window.version = "v0.8.13"
+window.version = "v0.9.0"
 
 
 window.source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
@@ -292,7 +292,7 @@ window.encoder = new TextEncoder('utf-8');
 window.run = async (code) =>{
   // const regexp = /\{([^{}]|(\?R))*\}/g
   // a working JS mix
-  const regexp = /(?<=\{\{)[^}]*(?=\}\})/g   // this is working but not for nested
+  const regexp = /(?<=##)[^#]*(?=#)/g   // this is working but not for nested
   let match;
   let toreplace = [];
   while ((match = regexp.exec(code)) !== null) {
@@ -303,9 +303,9 @@ window.run = async (code) =>{
     Function(`'use strict'; return ()=>{${str}}`)()() : 
     Function(`'use strict'; return ()=>(${str})`)()()
     if (typeof result !== "undefined") {
-      code = code.replace(`{{${str}}}`, result)
+      code = code.replace(`##${str}#`, result)
     } else {
-      code = code.replace(`{{${str}}}`, "")
+      code = code.replace(`##${str}#`, "")
     }
   })
   window.code = code
