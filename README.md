@@ -8,18 +8,12 @@
 GLICOL (an acronym for "graph-oriented live coding language") is a computer music language and an audio DSP library written in Rust.
 
 ## Why Glicol?
-Glicol is mainly contributing to these two domains:
-
-1. rethink language style and interaction in collaborative live coding
-2. as an audio lib for quick DSP prototyping
-
-### Language style and interaction
-
+Top 5 features:
+### 1. Graph-oriented syntax
 As its name suggests, Glicol opts a graph-oriented syntax, rather than OOP or FP.
 The consideration is from balancing the simplicity and readability.
-Thus, the programming in Glicol is all about:
-1. remembering the input and output of each node
-2. connect them
+Thus, all you need to know is the connection and the io range.
+You can view each node as synth module that you can literally hear/see.
 
 ```
 // an amplitude modulation example
@@ -27,8 +21,9 @@ o: sin 440 >> mul ~mod
 
 ~mod: sin 0.5 >> mul 0.3 >> add 0.5
 ```
-
-For interaction, Glicol choose a WYSIWYG (what-you-see-is-what-you-get) paradigm. Under the hood, Glicol has implemented LCS algorithm to dynamically update the graph in real-time. Together with code preprocessing, Glicol provides smooth transition for oscillators and the `mul` node.
+### 2. What you see is what you get
+For interaction, Glicol choose a WYSIWYG (what-you-see-is-what-you-get) paradigm. Under the hood, Glicol has implemented LCS algorithm to dynamically update the graph in real-time.
+### 3. Zero-installation
 
 You can learn Glicol, find music example and create decentralised collaboration on its web interface:
 
@@ -38,10 +33,10 @@ The web interface has the following features:
 1. run Glicol engine at near-native speed, thanks to WebAssembly
 2. garbage-collection-free real-time audio in browsers thanks to AudioWorklet, SharedArrayBuffer
 3. error handling and command in browser console: e.g. load your own samples
-4. mix JS code with Glicol easily: `o: sin {{42*10+20}}`
+4. mix JS code with Glicol easily: `o: sin ##42*10+20#`
 5. create visuals with Hydra
 
-### DSP
+### 4. Rust audio
 
 Glicol can be used:
 
@@ -61,9 +56,43 @@ run(`o: sin 440`)
 
 See the [README.md](./js/README.md) in `js` folder for details.
 
-For VST plugins development, see the [README.md](./rs/README.md) file in the `rs` folder for details.
+For Rust audio, see the [README.md](./rs/README.md) file in the `rs` folder for details.
 
-## Features and milestones
+### 5. One more thing
+You can use `script` to write meta node, which is like the `gen~` in Max/MSP.
+
+```
+// a sawtooth osc chained with a onepole filter
+a: script `
+	f = 220.;
+	output.pad(128, 0.0);
+	if phase == 0 {
+		p = 0.0;
+	}
+	for i in 0..128 {
+		output[i] = p * 2. - 1.;
+		p += f / sr;
+	};
+	if p > 1.0 { p -= 1.0 };
+	output
+` >> script `
+	r = 1./2000.;
+	if phase == 0.0 {
+		z = 0.0
+	}
+	output.pad(128, 0.0);
+	b = (-2.0 * PI() * r).exp();
+	a = 1.0 - b;
+	for i in 0..128 {
+		y = input[i] * a + b * z;
+		output[i] = y;
+		z = y;
+	};
+	output
+`
+```
+
+## Milestones
 
 - [x] `0.1.0` hello world from `dasp_graph` and `pest.rs`, pass code from js to wasm, and lazy evaluation
 - [x] `0.2.0` pass samples from js to wasm, support error handling, bpm control in console
@@ -89,12 +118,12 @@ main: script `
     output
 `
 ```
-- [ ] `0.9.0` better docs/tutorials, music examples and bug fix
-- [ ] detailed and robust error handling; may swtich to `nom` parser
+- [x] `0.9.0` robust error handling; redesigned architecture. see the release note
+- [ ] better docs/tutorials, music examples and bug fix
 - [ ] midi support? better communication between wasm and js
 - [ ] better extension node, vst, web audio development protocol 
 
-> Note that Glicol is still highly experimental, so it can be highly risky for live performances. The API may also change before version 1.0.0.
+> Note that Glicol is still highly experimental, so it can be risky for live performances. The API may also change before version 1.0.0.
 
 Please let me know in [issues](https://github.com/chaosprint/glicol/issues) or [discussions](https://github.com/chaosprint/glicol/discussions):
 - your thoughts on the experience of glicol
