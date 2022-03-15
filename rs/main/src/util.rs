@@ -25,7 +25,7 @@ pub fn makenode<const N: usize>(
     name: &str,
     paras: &mut Vec<GlicolPara<'static>>,
     // pos: (usize, usize),
-    samples_dict: &std::collections::HashMap<&'static str, (&'static[f32], usize)>,
+    samples_dict: &std::collections::HashMap<&'static str, (&'static[f32], usize, usize)>,
     sr: usize,
     bpm: f32,
     seed: usize
@@ -37,7 +37,7 @@ pub fn makenode<const N: usize>(
                     if !samples_dict.contains_key(s) {
                         return Err(EngineError::NonExsitSample(s.to_owned()))
                     }
-                    (Sampler::new(samples_dict[s]).to_boxed_nodedata(2), vec![])
+                    (Sampler::new(samples_dict[s], sr).to_boxed_nodedata(2), vec![])
                 }
                 _ => unimplemented!()
             }

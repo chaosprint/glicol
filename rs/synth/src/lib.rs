@@ -38,7 +38,7 @@ pub enum Message {
     SetToNumber(u8, f32),
     SetToNumberList(u8, Vec<f32>),
     SetToSymbol(u8, &'static str),
-    SetToSamples(u8, (&'static [f32], usize)),
+    SetToSamples(u8, (&'static [f32], usize, usize)),
     SetToSeq(u8, Vec::<(f32, GlicolPara<'static>)>),
     SetRefOrder(HashMap<&'static str, usize>),
     SetBPM(f32),

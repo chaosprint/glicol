@@ -3,21 +3,23 @@ use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, HashMap, impl
 #[derive(Debug, Clone)]
 pub struct Sampler {
     playback: Vec<(usize, f32)>,
-    pub sample: (&'static[f32], usize),
+    pub sample: (&'static[f32], usize, usize),
     len: usize,
     endindex: usize,
     clock: usize,
+    sr: usize,
     input_order: Vec<usize>
 }
 
 impl Sampler {
-    pub fn new(sample: (&'static[f32], usize)) -> Self {
+    pub fn new(sample: (&'static[f32], usize, usize), sr: usize) -> Self {
         Self {
             playback: vec![],
             sample,
-            len: sample.0.len()/sample.1,
+            len: sample.0.len()/sample.1, // total_length/channels
             endindex:  sample.0.len()-1,
             clock: 0,
+            sr,
             input_order: vec![]
         }
     }
@@ -34,7 +36,9 @@ impl<const N: usize> Node<N> for Sampler {
                 let input_buf = &mut main_input.buffers();
                 for i in 0..N {
                     if input_buf[0][i] > 0.0 {
-                        let dur = self.len as f32 / input_buf[0][i] as f32;
+                        // assert!( self.sample.2 == 44100);
+                        // assert!( self.sample.2 == 44100);
+                        let dur = self.len as f32 / input_buf[0][i] as f32 / ( self.sample.2 as f32 / self.sr as f32 );
                         self.playback.push((self.clock, dur));
                     }
                     for (begin, dur) in &self.playback {

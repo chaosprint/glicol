@@ -23,7 +23,7 @@ pub struct Engine<'a, const N: usize> {
     node_index_to_remove: Vec<NodeIndex>, // stored in order not to touch the graph if err
     node_update_list: Vec<(&'a str, usize, Vec<GlicolPara<'a>>)>,
     pub refpairlist: Vec<(Vec<&'a str>, &'a str, usize)>,
-    pub samples_dict: HashMap<&'a str, (&'a [f32], usize)>,
+    pub samples_dict: HashMap<&'a str, (&'a [f32], usize, usize)>,
     bpm: f32,
     sr: usize,
     track_amp: f32,
@@ -60,8 +60,8 @@ impl<const N: usize> Engine<'static, N> {
         }
     }
 
-    pub fn add_sample(&mut self, name:&'static str, sample: &'static [f32], channels: usize ) {
-        self.samples_dict.insert(name, (sample, channels));
+    pub fn add_sample(&mut self, name:&'static str, sample: &'static [f32], channels: usize, sr: usize ) {
+        self.samples_dict.insert(name, (sample, channels, sr));
     }
 
     pub fn update_with_code(&mut self, code: &'static str) {
