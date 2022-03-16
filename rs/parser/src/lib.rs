@@ -248,24 +248,3 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
     }
     Ok(ast)
 }
-// macro_rules! get_paras {
-//     ($rule: expr) => {
-//         {
-//             println!("node {:?}", node.as_str()); //"sin 440"
-//             let paras = node.into_inner().next().unwrap();
-//             println!("paras {:?}", paras.as_str());//"440"                                        
-//             chain_node_names.push($rule);
-//             match paras.as_rule() {
-//                 Rule::number => {
-//                     chain_paras.push(vec![GlicolPara::Number(paras.as_str().parse::<f32>().unwrap())]);
-//                 },
-//                 Rule::reference => {
-//                     chain_paras.push(vec![GlicolPara::Reference(paras.as_str())]);
-//                 },
-//                 _ => {}
-//             }
-//         }
-//     };
-// }
-
-// pub(crate) use get_paras;

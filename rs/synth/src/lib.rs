@@ -7,7 +7,7 @@ pub use graph::*;
 
 mod node;
 pub use node::{Input, Node};
-pub use node::*;
+pub use node::*; // TODO: Do not expose every struct here
 
 mod buffer;
 pub use buffer::Buffer;
