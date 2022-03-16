@@ -32,6 +32,8 @@ fn main() {
 }
 ```
 
+See [./synth](./synth) folder for more details.
+
 ## Try it out
 
 First you should have Rust compiler installed. Make sure you can call `cargo` in your terminal.

@@ -33,7 +33,9 @@ o: speed 2.0 >> seq 60 _~a _ 60__60
 ```
 
 ### 2. What you see is what you get
+
 For interaction, Glicol choose a WYSIWYG (what-you-see-is-what-you-get) paradigm. Under the hood, Glicol has implemented LCS algorithm to dynamically update the graph in real-time.
+
 ### 3. Zero-installation
 
 You can learn Glicol, find music example and create decentralised collaboration on its web interface:
@@ -41,38 +43,38 @@ You can learn Glicol, find music example and create decentralised collaboration 
 https://glicol.org
 
 The web interface has the following features:
-1. run Glicol engine at near-native speed, thanks to WebAssembly
-2. garbage-collection-free real-time audio in browsers thanks to AudioWorklet, SharedArrayBuffer
-3. error handling and command in browser console: e.g. load your own samples
-4. mix JS code with Glicol easily: `o: sin ##42*10+20#`
-5. create visuals with Hydra
+- run Glicol engine at near-native speed, thanks to WebAssembly
+- garbage-collection-free real-time audio in browsers thanks to AudioWorklet, SharedArrayBuffer
+- error handling and command in browser console: e.g. load your own samples
+- mix JS code with Glicol easily: `o: sin ##42*10+20#`
+- create visuals with Hydra
 
 ### 4. Rust audio
 
 Glicol has its own audio library `glicol_synth` and can be used:
 
-1. as Web Audio API, Tone.js alternative
-2. for developing VST plugins in Rust (has POC, but still WIP)
-3. to program on Bela board (has POC, but still WIP)
+- as Web Audio API, Tone.js alternative
+- for developing VST plugins in Rust (has POC, but still WIP)
+- to program on Bela board (has POC, but still WIP)
 
 The `js` folder contains the Glicol distribution for the web platform. The usage is very easy. Just include this into your `index.html`:
 ```
-<script src="https://cdn.jsdelivr.net/gh/chaosprint/glicol@latest/js/src/glicol.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/chaosprint/glicol@v0.9.2/js/src/glicol.js"></script>
 ```
 Then you can write on your website:
 ```
 run(`o: sin 440`)
 ```
 
-See the [README.md](./js/README.md) in `js` folder for details.
+See the [./js](./js) folder for details of web audio.
 
-For Rust audio, see the [README.md](./rs/README.md) file in the `rs` folder for details.
+For Rust audio, see the [./rs](./rs) folder in the `rs` folder for details.
 
 ### 5. One more thing
 You can use `meta` to write meta node, which is like the `gen~` in Max/MSP.
 
 ```
-// a sawtooth osc chained with a onepole filter
+// sawtooth osc >> onepole filter
 a: meta `
 	f = 220.;
 	output.pad(128, 0.0);
@@ -128,7 +130,7 @@ main: script `
     output
 `
 ```
-- [x] `0.9.0` robust error handling; redesigned architecture. see the release note
+- [x] `0.9.0` redesigned architecture; see the release note
 - [ ] better docs/tutorials, music examples and bug fix
 - [ ] midi support? better communication between wasm and js
 - [ ] better extension node, vst, web audio development protocol 
