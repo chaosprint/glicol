@@ -7,7 +7,20 @@ pub use graph::*;
 
 mod node;
 pub use node::{Input, Node};
-pub use node::*; // TODO: Do not expose every struct here
+pub use node::{
+    oscillator, 
+    filter, 
+    effect, 
+    envelope, 
+    operator, 
+    sampling, 
+    sequencer, 
+    signal,
+    delay,
+    dynamic,
+    compound,
+};
+// pub use node::*; // TODO: Do not expose every struct here
 
 mod buffer;
 pub use buffer::Buffer;
@@ -16,7 +29,7 @@ pub use buffer::Buffer;
 pub use node::{BoxedNode, BoxedNodeSend};
 
 #[cfg(feature = "node-sum")]
-pub use node::{Sum};
+pub use node::{Sum, Sum2};
 
 #[cfg(feature = "node-pass")]
 pub use node::{Pass};
