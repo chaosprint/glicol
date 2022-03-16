@@ -171,6 +171,26 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                         ]);
                                         // println!("chain_paras, {:?}", chain_paras);
                                     },
+                                    Rule::rhpf => {
+                                        println!("node {:?}", node.as_str());
+                                        let mut iter = node.into_inner();
+                                        let p1 = iter.next().unwrap();
+                                        let p2 = iter.next().unwrap();
+                                        chain_node_names.push("rhpf");
+                                        chain_paras.push(vec![
+                                            match p1.as_rule() {
+                                                Rule::number => 
+                                                    GlicolPara::Number(p1.as_str().parse::<f32>().unwrap())
+                                                ,
+                                                Rule::reference => 
+                                                    GlicolPara::Reference(p1.as_str())
+                                                ,
+                                                _ => unimplemented!()
+                                            },
+                                            GlicolPara::Number(p2.as_str().parse::<f32>().unwrap())
+                                        ]);
+                                        // println!("chain_paras, {:?}", chain_paras);
+                                    },
                                     Rule::apfmsgain => {
                                         println!("node {:?}", node.as_str());
                                         let mut iter = node.into_inner();

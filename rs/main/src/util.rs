@@ -1,6 +1,6 @@
 use glicol_synth::{
     oscillator::{SinOsc, SquOsc, TriOsc, SawOsc},
-    filter::{ResonantLowPassFilter, OnePole, AllPassFilterGain},
+    filter::{ResonantLowPassFilter, ResonantHighPassFilter, OnePole, AllPassFilterGain},
     signal::{ConstSig, Impulse, Noise},
     operator::{Mul, Add},
     sampling::Sampler,
@@ -52,6 +52,27 @@ pub fn makenode<const N: usize>(
         },
         "lpf" => {
             let data = ResonantLowPassFilter::new().cutoff(
+                match paras[0] {
+                    GlicolPara::Number(v) => v,
+                    GlicolPara::Reference(_) => 100.0,
+                    _ => unimplemented!()
+                }
+            ).q(
+                match paras[1] {
+                    GlicolPara::Number(v) => v,
+                    _ => unimplemented!()
+                }
+            ).to_boxed_nodedata(1);
+
+            let mut reflist = vec![];
+            match paras[0] {
+                GlicolPara::Reference(s) => reflist.push(s),
+                _ => {}
+            };
+            (data, reflist)
+        },
+        "rhpf" => {
+            let data = ResonantHighPassFilter::new().cutoff(
                 match paras[0] {
                     GlicolPara::Number(v) => v,
                     GlicolPara::Reference(_) => 100.0,
