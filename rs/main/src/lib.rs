@@ -321,7 +321,7 @@ impl<const N: usize> Engine<'static, N> {
                             );
                             let mut reflist = vec![];
                             let mut count = 0;
-                            let mut order = glicol_synth::HashMap::new();
+                            let mut order = hashbrown::HashMap::new();
                             for event in events {
                                 match event.1 {
                                     GlicolPara::Reference(s) => { // reflist: ["~a", "~b", "~a"]
@@ -415,7 +415,8 @@ impl<const N: usize> Engine<'static, N> {
         // if self.livecoding {
         let mut result = [0; 256];
         let one_bar = (240.0 / self.bpm * self.sr as f32) as usize;
-        if self.need_update && (self.clock + N) % one_bar <= N {
+        let time_to_update = (self.clock + N) % one_bar <= N;
+        if self.need_update && (!self.livecoding || time_to_update) {
             self.need_update = false;
             match self.update() {
                 Ok(_) => {

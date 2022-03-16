@@ -273,6 +273,8 @@ window.getRandSample = (filter) => {
   return result
 }
 
+window.rnds = window.getRandSample
+
 window.ampVisualColor = '#3b82f6';
 // window.visualizerBackground = "rgba(255, 255, 255, 0.5)"
 window.visualizerBackground = "white"
@@ -393,7 +395,7 @@ keep the second augument empty to load local samples. if you load multiple sampl
 %cshowAllSamples()
 %cshow current loaded samples.
 
-%cgetRandSample("optionalFilter")
+%cgetRandSample("optionalFilter") or rnds("optionalFilter")
 %cget a random sample name from current loaded samples.
 e.g. if the filter is '0', it will only return a sample whose name contains '0'.
 

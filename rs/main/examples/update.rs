@@ -47,9 +47,9 @@ fn main() {
     // engine.update(r#"o: saw 12"#).unwrap();
     // println!(" engine.next_block() {:?}", engine.next_block());
 
-    engine.update_with_code(r#"a: constsig 10"#);
-    println!(" engine.next_block() {:?}", engine.next_block());
-    engine.update_with_code(r#"a: constsig 2"#);
-    println!(" engine.next_block() {:?}", engine.next_block());
+    engine.update_with_code(r#"a: constsig 10 >> lpf 300 0.1"#);
+    println!(" engine.next_block() 0 {:?}", engine.next_block().0);
+    engine.update_with_code(r#"a: constsig 10 >> lpf ~m 0.1; ~m: constsig 0.5"#);
+    println!(" engine.next_block() 1 {:?}", engine.next_block().0);
 
 }

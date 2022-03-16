@@ -1,6 +1,6 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, HashMap, Message, impl_to_boxed_nodedata};
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
 use dasp_signal::{self as signal, Signal};
-
+use hashbrown::HashMap;
 
 pub struct Choose {
     sig: Box<dyn Signal<Frame=f64> + Send>,
@@ -39,6 +39,9 @@ impl<const N: usize> Node<N> for Choose {
             },
             Message::IndexOrder(pos, index) => {
                 self.input_order.insert(pos, index)
+            },
+            Message::ResetOrder => {
+                self.input_order.clear();
             },
             _ => {}
         }

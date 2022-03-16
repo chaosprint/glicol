@@ -34,8 +34,9 @@ pub use node::{Sum, Sum2};
 #[cfg(feature = "node-pass")]
 pub use node::{Pass};
 
-pub use hashbrown::HashMap;
-pub use arrayvec::ArrayVec;
+use hashbrown::HashMap;
+// pub use hashbrown::HashMap;
+// pub use arrayvec::ArrayVec;
 
 #[macro_export]
 macro_rules! impl_to_boxed_nodedata {

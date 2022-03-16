@@ -1,8 +1,5 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, HashMap, 
-    impl_to_boxed_nodedata,
-    // impl_send_msg
-};
-
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
+use hashbrown::HashMap;
 #[derive(Debug, Clone)]
 pub struct ConstSig { val: f32, input_order: Vec<usize> }
 

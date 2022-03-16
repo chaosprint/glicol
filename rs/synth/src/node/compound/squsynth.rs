@@ -2,8 +2,8 @@
 // ~trigger: ~input;
 // ~pitch: ~trigger >> mul 261.626;
 // ~env: ~trigger >> envperc #attack #decay;
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, HashMap};
-
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message};
+use hashbrown::HashMap;
 use crate::{
     Pass,
     AudioContext,

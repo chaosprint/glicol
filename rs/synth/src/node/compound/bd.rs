@@ -6,8 +6,8 @@
 
 // ~ep: imp 1 >> envperc 0.01 0.1;
 
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, HashMap};
-
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message};
+use hashbrown::HashMap;
 use crate::{
     Pass,
     AudioContext,

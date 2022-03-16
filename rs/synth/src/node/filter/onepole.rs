@@ -1,5 +1,5 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, HashMap, Message, impl_to_boxed_nodedata};
-
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
+use hashbrown::HashMap;
 #[derive(Debug, Clone)]
 pub struct OnePole {
     pub a: f32,
@@ -61,6 +61,9 @@ impl<const N: usize> Node<N> for OnePole {
             },
             Message::IndexOrder(pos, index) => {
                 self.input_order.insert(pos, index)
+            },
+            Message::ResetOrder => {
+                self.input_order.clear();
             },
             _ => {}
         }

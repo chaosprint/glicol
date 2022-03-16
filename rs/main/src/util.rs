@@ -14,7 +14,7 @@ use glicol_synth::{
     Sum2,
 };
 
-use glicol_synth::{NodeData, BoxedNodeSend, GlicolPara, HashMap}; //, Processor, Buffer, Input, Node
+use glicol_synth::{NodeData, BoxedNodeSend, GlicolPara}; //, Processor, Buffer, Input, Node
 use glicol_macros::get_one_para_from_number_or_ref;
 use crate::EngineError;
 
@@ -341,7 +341,7 @@ pub fn makenode<const N: usize>(
                 GlicolPara::Sequence(s) => s,
                 _ => unimplemented!(),
             };
-            let mut order = HashMap::new();
+            let mut order = hashbrown::HashMap::new();
             let mut count = 0;
             for event in events {
                 match event.1 {

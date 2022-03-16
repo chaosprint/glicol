@@ -1,8 +1,8 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, HashMap, AudioContext,
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, AudioContext,
     oscillator::{SinOsc}, filter::{ OnePole, AllPassFilterGain}, effect::Balance,
     operator::{Mul, Add}, delay::{DelayN, DelayMs}, node::Pass
 };
-
+use hashbrown::HashMap;
 use petgraph::graph::NodeIndex;
 
 pub struct Plate<const N: usize> { 
@@ -184,6 +184,9 @@ impl<const N:usize> Node<N> for Plate<N> {
             },
             Message::IndexOrder(pos, index) => {
                 self.input_order.insert(pos, index)
+            },
+            Message::ResetOrder => {
+                self.input_order.clear();
             },
             _ => {}
         }

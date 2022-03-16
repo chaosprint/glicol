@@ -68,7 +68,7 @@ run(`o: sin 440`)
 
 See the [./js](./js) folder for details of web audio.
 
-For Rust audio, see the [./rs](./rs) folder in the `rs` folder for details.
+For Rust audio, see the [./rs](./rs) folder for details.
 
 ### 5. One more thing
 You can use `meta` to write meta node, which is like the `gen~` in Max/MSP.

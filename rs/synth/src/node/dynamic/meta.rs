@@ -1,6 +1,5 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, HashMap, 
-    // impl_to_boxed_nodedata,
-};
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message};
+use hashbrown::HashMap;
 use rhai::{Engine, Array, Scope, Dynamic, OptimizationLevel}; //EvalAltResult
 
 pub struct Meta<const N: usize> {
@@ -137,6 +136,9 @@ impl<const N:usize> Node<N> for Meta<N> {
             },
             Message::IndexOrder(pos, index) => {
                 self.input_order.insert(pos, index)
+            },
+            Message::ResetOrder => {
+                self.input_order.clear();
             },
             _ => {}
         }

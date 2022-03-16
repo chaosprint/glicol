@@ -1,8 +1,8 @@
 // output: noiz 42 >> mul ~env >> hpf 15000 1.0 >> mul 0.8;
 // ~env: ~trigger >> envperc 0.001 #decay;
 // ~trigger: ~input;
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, HashMap};
-
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message};
+use hashbrown::HashMap;
 use crate::{
     Pass,
     AudioContext,

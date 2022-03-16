@@ -1,5 +1,5 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, HashMap, impl_to_boxed_nodedata};
-
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
+use hashbrown::HashMap;
 #[derive(Debug, Clone)]
 pub struct ResonantHighPassFilter {
     cutoff: f32,
@@ -111,6 +111,10 @@ impl<const N: usize> Node<N> for ResonantHighPassFilter {
             },
             Message::IndexOrder(pos, index) => {
                 self.input_order.insert(pos, index)
+            },
+        
+            Message::ResetOrder => {
+                self.input_order.clear();
             },
             _ => {}
         }

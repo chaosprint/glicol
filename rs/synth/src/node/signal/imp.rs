@@ -1,4 +1,5 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, HashMap, Message, impl_to_boxed_nodedata};
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
+use hashbrown::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct Impulse {

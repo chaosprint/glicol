@@ -13,5 +13,5 @@ glicol_synth = { path = "../synth" }
 lcs-diff = "*"
 pest = "*"
 glicol_macros = { path = "../macros" }
-
+hashbrown = "*"
 # cargo build --target wasm32-unknown-unknown --release

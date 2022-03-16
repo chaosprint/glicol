@@ -6,16 +6,16 @@ pub use crate::{
     BoxedNodeSend,
     Processor,
     Message,
-    HashMap,
     Sum2,
     Pass
 };
-
+use hashbrown::HashMap;
 use petgraph::{
     graph::NodeIndex,
     prelude::EdgeIndex
 };
 
+/// The builder to build `AudioContext`
 pub struct AudioContextBuilder<const N: usize> {
     sr: usize,
     channels: usize,
@@ -71,6 +71,7 @@ impl<const N: usize> AudioContextBuilder<N> {
     }
 }
 
+/// Another option for building `AudioContext`
 pub struct AudioContextConfig {
     pub sr: usize,
     pub channels: usize,
@@ -103,6 +104,7 @@ pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
 pub type GlicolGraph<const N: usize> = petgraph::stable_graph::StableGraph<GlicolNodeData<N>, ()>;
 pub type GlicolProcessor<const N: usize> = Processor<GlicolGraph<N>, N>;
 
+/// The audio context that holds a destination and the graph connection
 pub struct AudioContext<const N: usize> {
     pub input: NodeIndex,
     pub destination: NodeIndex,

@@ -1,5 +1,5 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, HashMap, impl_to_boxed_nodedata};
-
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
+use hashbrown::HashMap;
 #[derive(Debug, Clone)]
 pub struct ResonantLowPassFilter {
     cutoff: f32,
@@ -46,7 +46,7 @@ impl ResonantLowPassFilter {
 
 impl<const N: usize> Node<N> for ResonantLowPassFilter {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
-        // println!("\n\ninputs[1] \n\n {:?}\n\n", inputs[1].buffers());
+        println!("inputs {:?} self.input_order {:?}", inputs, self.input_order);
         match inputs.len() {
             1 => {
                 let main_input = inputs.values_mut().next().unwrap();
@@ -109,10 +109,15 @@ impl<const N: usize> Node<N> for ResonantLowPassFilter {
                 }
             },
             Message::Index(i) => {
+                println!("got index without order {}", i);
                 self.input_order.push(i)
             },
             Message::IndexOrder(pos, index) => {
+                println!("got index order {}", index);
                 self.input_order.insert(pos, index)
+            },
+            Message::ResetOrder => {
+                self.input_order.clear();
             },
             _ => {}
         }

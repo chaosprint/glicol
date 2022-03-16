@@ -1,5 +1,5 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata, HashMap};
-
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
+use hashbrown::HashMap;
 #[derive(Debug, Clone)]
 pub struct Mul { val: f32, input_order: Vec<usize> }
 

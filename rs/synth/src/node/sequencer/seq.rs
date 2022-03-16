@@ -1,4 +1,5 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata, HashMap, GlicolPara};
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata, GlicolPara};
+use hashbrown::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct Sequencer {

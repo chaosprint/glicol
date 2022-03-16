@@ -4,8 +4,8 @@
 // ~snpitch: ~sntriggee >> envperc 0.001 0.1 >> mul 60 >> add 60;
 // ~sntriggee: ~input;
 
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, HashMap};
-
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message};
+use hashbrown::HashMap;
 use crate::{
     Pass,
     AudioContext,

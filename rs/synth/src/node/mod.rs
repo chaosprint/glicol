@@ -25,6 +25,7 @@ pub trait Node<const N: usize> {
     fn send_msg(&mut self, info: crate::Message);
 }
 
+/// An important part of the `Node` trait; each `Input` contains the relevant node id as `usize`
 pub struct Input<const N: usize> {
     buffers_ptr: *const Buffer<N>,
     buffers_len: usize,

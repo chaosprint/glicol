@@ -1,11 +1,11 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, HashMap, ArrayVec, impl_to_boxed_nodedata};
-
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
+use hashbrown::HashMap;
 #[derive(Debug, Clone)]
-pub struct Add { val: f32, input_order: ArrayVec<usize, 64> }
+pub struct Add { val: f32, input_order: Vec::<usize> }
 
 impl Add {
     pub fn new(val: f32) -> Self {
-        Self { val, input_order: ArrayVec::<usize, 64>::new() }
+        Self { val, input_order: Vec::<usize>::new() }
     }
     impl_to_boxed_nodedata!();
     // pub fn to_boxed_nodedata<const N: usize>(self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
@@ -82,6 +82,9 @@ impl<const N:usize> Node<N> for Add {
             },
             Message::IndexOrder(pos, index) => {
                 self.input_order.insert(pos, index)
+            },
+            Message::ResetOrder => {
+                self.input_order.clear();
             },
             _ => {}
         }

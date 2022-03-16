@@ -1,7 +1,6 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, HashMap, 
-    impl_to_boxed_nodedata,
-    // impl_send_msg
-};
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
+use hashbrown::HashMap;
+
 use dasp_signal::{self as signal, Signal};
 
 pub struct Noise { 
