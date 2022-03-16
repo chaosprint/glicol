@@ -28,4 +28,4 @@ many features and contents are added:
 - add a higher level audiocontext for easier APIs
 - many useful audio nodes from oscillators, filters, etc.
 
-See the [.\examples](.\examples) folder for the basic usage.
+See the [./examples](./examples) folder for the basic usage.

@@ -22,7 +22,7 @@ npm run dev
 Just include this into your `index.html`:
 
 ```
-<script src="https://cdn.jsdelivr.net/gh/chaosprint/glicol@latest/js/src/glicol.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/chaosprint/glicol@v0.9.2/js/src/glicol.js"></script>
 ```
 
 The `run()` function is bind to the window.
@@ -35,6 +35,8 @@ Call it for the first time will run the code:
 Glicol engine knows you are updating the code if you call the func again.
 
 Call `stop()` function will restart the engine.
+
+> Note that you need to have `cross-origin isolation` enabled on the web server to use Glicol. For vite dev server, you can use my plugin [here](https://github.com/chaosprint/vite-plugin-cross-origin-isolation). For deployment on Netlify or Firebase, check their docs for editing the header files.
 
 ## License
 
