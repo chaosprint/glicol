@@ -5,7 +5,7 @@ var source = "https://github.com/chaosprint/Dirt-Samples"
 fs.readdir(folder, (_err, files) => {
     // info["selectedFromDirtSamples"] = files.filter(x=>x!=='.DS_Store')
     files.forEach(file => {
-        if (file !== '.DS_Store') {
+        if (file !== '.DS_Store' && file !== "2json.js") {
           info[file.replace(".wav", "")] = source
         }
     });

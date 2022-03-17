@@ -243,11 +243,27 @@ impl<const N: usize> Engine<'static, N> {
         println!("ref check {:?}", self.refpairlist);
 
         for refpair in &self.refpairlist {
+
             for refname in &refpair.0 {
                 println!("ref check {} {}", self.new_ast.contains_key(refname), refname);
-                if !self.new_ast.contains_key(refname) {
-                    return Err(EngineError::NonExistReference(refname))
+                if refname.contains("..") {
+                    println!("look for {}", &refname.replace("..", ""));
+                    let mut count = 0;
+                    for key in self.index_info.keys() {
+                        if (*key).starts_with(&refname.replace("..", "")) {
+                            count += 1;
+                        }
+                    }
+                    if count == 0 {
+                        return Err(EngineError::NonExistReference(refname))
+                    }
+                } else {
+                    if !self.new_ast.contains_key(refname) {
+                        return Err(EngineError::NonExistReference(refname))
+                    }
                 }
+                
+                
             }
         }
         Ok(())
@@ -374,11 +390,21 @@ impl<const N: usize> Engine<'static, N> {
         self.context.graph.clear_edges();
         println!("self.index_info in handle_connection{:?}", self.index_info);
         println!("self.refpairlist in handle_connection {:?}", self.refpairlist);
+
         for refpairs in &self.refpairlist {
             let index = self.index_info[refpairs.1][refpairs.2];
             self.context.graph[index].node.send_msg(Message::ResetOrder);
             for refname in &refpairs.0 {
-                self.context.connect(*self.index_info[refname].last().unwrap(), index);
+                if refname.contains("..") {
+                    println!("look for {}", &refname.replace("..", ""));
+                    for (key, value) in self.index_info.iter() {
+                        if (*key).starts_with(&refname.replace("..", "")) {
+                            self.context.connect(*value.last().unwrap(), index);
+                        }
+                    }
+                } else {
+                    self.context.connect(*self.index_info[refname].last().unwrap(), index);
+                }
             }
         }
         for (key, chain) in &self.index_info {
