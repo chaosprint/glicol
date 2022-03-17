@@ -62,6 +62,20 @@
         "output": "filtered signal",
         "example": "o: saw 440.0 >> lpf 100.0 1.0"
     },
+    "hpf": {
+        "description": "resonate high pass filter:\ncut off the low frequency part based on cutoff_freq",
+        "parameters": [{"cutoff_freq": "Modulable(100.0)"}, {"q_value": "NonModulable(1.0)"}],
+        "input": "a signal to be filtered",
+        "output": "filtered signal",
+        "example": "o: saw 440.0 >> hpf 1000.0 1.0"
+    },
+    "envperc": {
+        "description": "an percussive shape envelope",
+        "parameters": [{"attack": "NonModulable(0.01)"}, {"decay": "NonModulable(0.1)"}],
+        "input": "any non-zero value will trigger the envelope. the value will determine the scale of the envelope.",
+        "output": "the envelope shape in time.",
+        "example": "o: sin 100 >> mul ~env; ~env: imp 1.0 >> envperc 0.01 0.1;"
+    },
     "seq": {
         "description": "unlimited number of midi notes seperated by spaces.\nunderscore means rest.\ncompound note consists of underscrores and midi notes.\none bar will first divided based on spaces.\nthen each compound note will further be divided equally.",
         "parameters": [{"seq": "Seq"}],
@@ -69,19 +83,33 @@
         "output": "relative pitch converted by the midi notes (60=>1.0; 72=>2.0; 48=>0.5).\nthis pitch float will only come once based on the timing in pattern.\nthe rest of the float stream will be zeroes.",
         "example": "o: speed 1.0 >> seq 72 _72 _48 60__60 >> sawsynth 0.001 0.05 \n>> lpf 300.0 1.0"
     },
+    "choose": {
+        "description": "choose a number from the provided sequence.",
+        "parameters": [{"seq": "Seq"}],
+        "input": "no input",
+        "output": "one number one block",
+        "example": ""
+    },
     "sp": {
-        "description": "unlimited number of midi notes seperated by spaces.\nunderscore means rest.\ncompound note consists of underscrores and midi notes.\none bar will first divided based on spaces.\nthen each compound note will further be divided equally.",
-        "parameters": [{"sampleName": "NonModulable(\"\")"}],
+        "description": "playback the sample.",
+        "parameters": [{"sampleName": "Symbol"}],
         "input": "any none zero value will trigger the sample playback.\nfor eaxample, 1.0 triggers default pitch, 0.5 octave lower.",
         "output": "the sample playback audio streams.",
         "example": "load_samples_first_in_console: speed 1.0 >> seq 72 _60 _ _55_60 >> sp \\808bd_0"
     },
-    "speed": {}, 
+    "speed": {
+        "description": "use before the seq to control the seq speed.",
+        "parameters": [{"speed": "NonModulable(1.0)"}],
+        "input": "no input",
+        "output": "the speed at the first place of the block; the rest of the block will be zeros",
+        "example": ""
+    },
     "linrange": {},
-    "delay": {},
+    "delayms": {},
     "delayn": {},
     "allpass": {},
     "apf": {},
+    "apfmsgain": {},
     "mono_sum": {},
     "buf": {},
     "pha": {},

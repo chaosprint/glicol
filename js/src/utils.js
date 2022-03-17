@@ -418,11 +418,11 @@ let obj = {
     oscillator: ["sin", "squ", "saw", "tri"],
     sequencing: ["seq", "choose"],
     sampling: ["sp", "buf(wip)"],
-    signal: ["const_sig", "imp", "noise"], //, "pha"
+    signal: ["constsig", "imp", "noise"], //, "pha"
     operator: ["mul", "add"],
     envelope: ["envperc", "shape(wip)"],
     filter: ["lpf", "hpf", "onepole", "apfgain"], //"allpass", , "apfdecay", "comb"
-    effect: ["pan", "balance(wip)"],
+    effect: ["pan(wip)", "balance"],
     dynamic: ["meta"],
     extension: ["plate", "bd", "sn", "hh", "sawsynth", "squsynth", "trisynth"],
 }
