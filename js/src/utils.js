@@ -196,7 +196,7 @@ window.addSampleFiles = async (name, url) => {
                 (function(file) {
                     var reader = new FileReader();
                     reader.onload = async function(e) {
-                        let name = file.name.toLowerCase().replace(".wav", "").replace(".mp3", "").replace("-","_").replace(" ","_")
+                        let name = file.name.toLowerCase().replace(".wav", "").replace(".mp3", "").replace("-","_").replace(" ","_").replace("#","_sharp_")
                         await window.actx.decodeAudioData(e.target.result, buffer => {
                             window.sampleBuffers[name] = buffer
                             var sample;
@@ -258,8 +258,9 @@ window.addSampleFiles = async (name, url) => {
         window.actx.resume()
     }
 }
-window.showAllSamples = () => Object.keys(window.sampleBuffers)
+window.showAllSamples = () => {window.table(Object.keys(window.sampleBuffers)); return window.emoj}
 
+window.allSamples = () => Object.keys(window.sampleBuffers)
 
 window.getRandSample = (filter) => {
   var array
@@ -413,7 +414,7 @@ e.g. if the filter is '0', it will only return a sample whose name contains '0'.
 ); return window.emoj
 }
   
-window.showAllNodes = () => {
+window.allNodes = () => {
 let obj = {
     oscillator: ["sin", "squ", "saw", "tri"],
     sequencing: ["seq", "choose"],
@@ -428,6 +429,7 @@ let obj = {
 }
 return obj
 }
+window.showAllNodes = () => {table(window.allNodes()) ; return window.emoj}
 
 window.stop = async () => {
   window.isGlicolRunning = false
