@@ -113,7 +113,7 @@ impl<const N: usize> Engine<'static, N> {
                             if old_chain_para[old_i] != new_chain_para[new_i] {
                                 self.node_update_list.push(
                                     (key, // which chain
-                                    old_i, // where in chain
+                                    new_i, // where in chain
                                     new_chain_para[new_i].clone() // new paras
                                 ))
                             } else {
@@ -329,7 +329,7 @@ impl<const N: usize> Engine<'static, N> {
                                 Message::SetToSymbol(i as u8, *s))
                         },
                         GlicolPara::Sequence(events) => {
-
+                            println!("found seq in update, process it {:?}", events);
                             // todo: an issue is that when you revert it, these messages cannot be undone
                             self.context.graph[
                             chain[position_in_chain]].node.send_msg(

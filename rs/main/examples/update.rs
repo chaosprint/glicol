@@ -46,10 +46,14 @@ fn main() {
     // println!(" engine.next_block() {:?}", engine.next_block());
     // engine.update(r#"o: saw 12"#).unwrap();
     // println!(" engine.next_block() {:?}", engine.next_block());
-
-    engine.update_with_code(r#"a: constsig 10 >> lpf 300 0.1"#);
+    
+    // engine.update_with_code(r#"a: constsig 10 >> lpf 300 0.1"#);
+    // println!(" engine.next_block() 0 {:?}", engine.next_block().0);
+    // engine.update_with_code(r#"a: constsig 10 >> lpf ~m 0.1; ~m: constsig 0.5"#);
+    // println!(" engine.next_block() 1 {:?}", engine.next_block().0);
+    engine.add_sample(r#"\test"#, &[0.9, 0.8, 0.7, 0.6, 0.5], 1, 44100);
+    engine.update_with_code(r#"a: seq 60 >> sp \test"#);
     println!(" engine.next_block() 0 {:?}", engine.next_block().0);
-    engine.update_with_code(r#"a: constsig 10 >> lpf ~m 0.1; ~m: constsig 0.5"#);
+    engine.update_with_code(r#"a: speed 4.0 >> seq ~b >> sp \test; ~b: choose 59 72 0"#);
     println!(" engine.next_block() 1 {:?}", engine.next_block().0);
-
 }
