@@ -307,7 +307,7 @@ window.d = () => {
 window.visualColorLeft = '#51A3A3' //#FE5E41';
 // window.visualizerBackground = "rgba(255, 255, 255, 0.5)"
 window.visualizerBackground = "white"
-window.visualColorRight = '#FE5E41' //'#FE5E41' //'#75485E' //#D8F1A0'
+window.visualColorRight = '#fc684e' //'#FE5E41' //'#75485E' //#D8F1A0'
 
 window.visualizeTimeDomainData = ({canvas, analyserL}) => {
   let ctx = canvas.getContext("2d");
@@ -334,10 +334,11 @@ window.visualizeTimeDomainData = ({canvas, analyserL}) => {
       // Put your drawing code here
       analyserL.getByteTimeDomainData(dataArray);
       ctx.fillStyle = window.visualizerBackground;
+      ctx.beginPath();
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.lineWidth = 1;
       ctx.strokeStyle = window.visualColorLeft;
-      ctx.beginPath();
+      
       let sliceWidth = canvas.width * 1.0 / bufferLength;
       let x = 0;
       for(let i = 0; i < bufferLength; i++) {
@@ -352,7 +353,7 @@ window.visualizeTimeDomainData = ({canvas, analyserL}) => {
       }
       ctx.lineTo(canvas.width, canvas.height/2);
       ctx.stroke();
-
+      ctx.closePath();
       analyserR.getByteTimeDomainData(dataArray);
       // ctx.fillStyle = window.visualizerBackground;
       // ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -373,7 +374,7 @@ window.visualizeTimeDomainData = ({canvas, analyserL}) => {
       }
       ctx.lineTo(canvas.width, canvas.height/2);
       ctx.stroke();
-      // 
+      ctx.closePath();
     };
   }
   drawL();
@@ -402,15 +403,17 @@ window.visualizeFrequencyData = ({canvas, analyserL}) => {
         // Put your drawing code here
         analyserL.getByteFrequencyData(dataArray);
         ctx.fillStyle = window.visualizerBackground;
+        ctx.beginPath();
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         const barWidth = (canvas.width / bufferLength) * 2.5;
+        
         for(let i = 0; i < bufferLength; i++) {
           let fractionalVolume = dataArray[i]/255
           let barHeight = fractionalVolume*canvas.height;
           ctx.fillStyle = window.visualColorLeft;
           ctx.fillRect(
             (barWidth + 1)*i,
-            canvas.height / 2,
+            canvas.height / 2,  
             barWidth,
             -barHeight/2
           );
@@ -430,6 +433,7 @@ window.visualizeFrequencyData = ({canvas, analyserL}) => {
             barHeight/2
           );
         }
+        ctx.closePath();
     };
   }
   draw();
