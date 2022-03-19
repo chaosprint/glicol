@@ -288,6 +288,9 @@ window.s = (first, second) => {
   } else if (typeof first === "string" && typeof second === "undefined") {
     array = Object.keys(window.sampleBuffers).filter(x=>x.includes(first))
     index = Math.floor(Math.random() * array.length)
+  } else if (typeof first === "string" && typeof second === "string") {
+    array = Object.keys(window.sampleBuffers).filter(x=>x.includes(first)).filter(x=>x.includes(second))
+    index = Math.floor(Math.random() * array.length)
   } else {
     index = Math.floor(Math.random() * array.length)
   }
@@ -301,14 +304,14 @@ window.d = () => {
   return window.emoj
 }
 
-window.ampVisualColor = '#3b82f6';
+window.visualColorLeft = '#51A3A3' //#FE5E41';
 // window.visualizerBackground = "rgba(255, 255, 255, 0.5)"
 window.visualizerBackground = "white"
-window.freqVisualColor = '#f472b6'
+window.visualColorRight = '#FE5E41' //'#FE5E41' //'#75485E' //#D8F1A0'
 
-window.visualizeTimeDomainData = ({canvas, analyser}) => {
+window.visualizeTimeDomainData = ({canvas, analyserL}) => {
   let ctx = canvas.getContext("2d");
-  let bufferLength = analyser.fftSize;
+  let bufferLength = analyserL.fftSize;
   let dataArray = new Uint8Array(bufferLength);
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -316,9 +319,9 @@ window.visualizeTimeDomainData = ({canvas, analyser}) => {
   var then = Date.now();
   var now, elapsed;
 
-  function draw() {
+  function drawL() {
 
-    requestAnimationFrame(draw);
+    requestAnimationFrame(drawL);
 
     now = Date.now();
     elapsed = now - then;
@@ -329,46 +332,57 @@ window.visualizeTimeDomainData = ({canvas, analyser}) => {
       then = now - (elapsed % fpsInterval);
 
       // Put your drawing code here
-      analyser.getByteTimeDomainData(dataArray);
-
+      analyserL.getByteTimeDomainData(dataArray);
       ctx.fillStyle = window.visualizerBackground;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
       ctx.lineWidth = 1;
-      ctx.strokeStyle = window.ampVisualColor;
-  
+      ctx.strokeStyle = window.visualColorLeft;
       ctx.beginPath();
-  
       let sliceWidth = canvas.width * 1.0 / bufferLength;
       let x = 0;
-  
       for(let i = 0; i < bufferLength; i++) {
-   
         let v = dataArray[i] / 128.0;
-        
         let y = canvas.height - v * canvas.height/2;
-  
         if(i === 0) {
           ctx.moveTo(x, y);
         } else {
           ctx.lineTo(x, y);
         }
-  
         x += sliceWidth;
       }
-  
+      ctx.lineTo(canvas.width, canvas.height/2);
+      ctx.stroke();
+
+      analyserR.getByteTimeDomainData(dataArray);
+      // ctx.fillStyle = window.visualizerBackground;
+      // ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = window.visualColorRight;
+      ctx.beginPath();
+      sliceWidth = canvas.width * 1.0 / bufferLength;
+      x = 0;
+      for(let i = 0; i < bufferLength; i++) {
+        let v = dataArray[i] / 128.0;
+        let y = canvas.height - v * canvas.height/2;
+        if(i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+        x += sliceWidth;
+      }
       ctx.lineTo(canvas.width, canvas.height/2);
       ctx.stroke();
       // 
     };
   }
-  draw();
+  drawL();
 }
 
-window.visualizeFrequencyData = ({canvas, analyser}) => {
+window.visualizeFrequencyData = ({canvas, analyserL}) => {
   let ctx = canvas.getContext("2d");
 
-  let bufferLength = analyser.frequencyBinCount;
+  let bufferLength = analyserL.frequencyBinCount;
   let dataArray = new Uint8Array(bufferLength);
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -386,23 +400,34 @@ window.visualizeFrequencyData = ({canvas, analyser}) => {
         // specified fpsInterval not being a multiple of RAF's interval (16.7ms)
         then = now - (elapsed % fpsInterval);
         // Put your drawing code here
-        analyser.getByteFrequencyData(dataArray);
+        analyserL.getByteFrequencyData(dataArray);
         ctx.fillStyle = window.visualizerBackground;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
         const barWidth = (canvas.width / bufferLength) * 2.5;
-    
         for(let i = 0; i < bufferLength; i++) {
           let fractionalVolume = dataArray[i]/255
           let barHeight = fractionalVolume*canvas.height;
-    
-          // ctx.fillStyle = 'rgb(' + Math.round(fractionalVolume*155 + 100) + ',20,20)';
-          ctx.fillStyle = window.freqVisualColor;
+          ctx.fillStyle = window.visualColorLeft;
           ctx.fillRect(
             (barWidth + 1)*i,
-            canvas.height-barHeight,
+            canvas.height / 2,
             barWidth,
-            barHeight
+            -barHeight/2
+          );
+        }
+        analyserR.getByteFrequencyData(dataArray);
+        // ctx.fillStyle = window.visualizerBackground;
+        // ctx.fillRect(0, 0, canvas.width, canvas.height);
+        //  barWidth = (canvas.width / bufferLength) * 2.5;
+        for(let i = 0; i < bufferLength; i++) {
+          let fractionalVolume = dataArray[i]/255
+          let barHeight = fractionalVolume*canvas.height;
+          ctx.fillStyle = window.visualColorRight;
+          ctx.fillRect(
+            (barWidth + 1)*i,
+            canvas.height/2,
+            barWidth,
+            barHeight/2
           );
         }
     };

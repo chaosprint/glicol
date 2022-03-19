@@ -226,7 +226,6 @@ window.loadModule = async () => {
   window.actx = new window.AudioContext({
     // sampleRate: 44100
   })
-  window.analyser = window.actx.createAnalyser();
   await URLFromFiles([source+'glicol-engine.js']).then((e) => {
     window.actx.audioWorklet.addModule(e).then(() => {
       let sab = exports.RingBuffer.getStorageForCapacity(2048, Uint8Array);
@@ -246,8 +245,17 @@ window.loadModule = async () => {
         })
       })
       window.actx.destination.channelInterpretation = "discrete";
-      window.node.connect(analyser)
-      window.analyser.connect(window.actx.destination)
+      window.splitter = window.actx.createChannelSplitter(2);
+      window.analyserL = window.actx.createAnalyser();
+      window.analyserR = window.actx.createAnalyser();
+      window.merger =  window.actx.createChannelMerger(2);
+
+      window.node.connect(window.splitter)
+      window.splitter.connect(window.analyserL, 0);
+      window.splitter.connect(window.analyserR, 1);
+      window.analyserL.connect(window.merger, 0, 0)
+      window.analyserR.connect(window.merger, 0, 1)
+      window.merger.connect(window.actx.destination)
       window.decoder = new TextDecoder('utf-8');
       window.node.port.onmessage = async e => {
         if (e.data.type === 'ready') {
@@ -314,9 +322,9 @@ window.run = async (code) =>{
     window.paramWriter.enqueue(window.encoder.encode(code))
   }
   if ( document.getElementById("visualizer")) {
-    window.visualizeTimeDomainData({canvas: document.getElementById("visualizer"), analyser: window.analyser});
+    window.visualizeTimeDomainData({canvas: document.getElementById("visualizer"), analyserL: window.analyserL, analyserR: window.analyserR});
   }
   if ( document.getElementById("freqVisualizer")) {
-    window.visualizeFrequencyData({canvas: document.getElementById("freqVisualizer"), analyser: window.analyser});
+    window.visualizeFrequencyData({canvas: document.getElementById("freqVisualizer"), analyserL: window.analyserL, analyserR: window.analyserR});
   }
 }
