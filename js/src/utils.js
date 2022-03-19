@@ -97,7 +97,7 @@ window.addSampleFolder = async () => {
             await (async function(file) {
                 var reader = new FileReader();
                 reader.onload = async function(e) {
-                    log("file type", file.type)
+                    // log("file type", file.type)
                     if (file.type.includes("audio")) {
                         await window.actx.decodeAudioData(e.target.result, buffer => {
                             // if (buffer.numberOfChannels === 1) {
@@ -105,8 +105,8 @@ window.addSampleFolder = async () => {
                             const path = file.webkitRelativePath.split("/")
                             const reversed = path.reverse()
                             const filename = reversed[0]
-                            const folder = reversed[1]
-                            // log("path reversed", reversed)
+                            const folder = reversed[1].replace(".wav", "").replace(".mp3", "").replaceAll("-","_").replaceAll(" ","_").replaceAll("#","_sharp_")
+                            // log("folder", folder)
                             if (folder in samplePath) {
                               samplePath[folder] += 1
                             } else {
@@ -196,7 +196,7 @@ window.addSampleFiles = async (name, url) => {
                 (function(file) {
                     var reader = new FileReader();
                     reader.onload = async function(e) {
-                        let name = file.name.toLowerCase().replace(".wav", "").replace(".mp3", "").replace("-","_").replace(" ","_").replace("#","_sharp_")
+                        let name = file.name.toLowerCase().replace(".wav", "").replace(".mp3", "").replaceAll("-","_").replaceAll(" ","_").replaceAll("#","_sharp_")
                         await window.actx.decodeAudioData(e.target.result, buffer => {
                             window.sampleBuffers[name] = buffer
                             var sample;
@@ -209,6 +209,7 @@ window.addSampleFiles = async (name, url) => {
                             } else {
                               throw(Error("Only support mono or stereo samples."))
                             }
+                            log("loading sample: ", name)
                             window.node.port.postMessage({
                               type: "loadsample",
                               sample: sample,
@@ -276,6 +277,30 @@ window.getRandSample = (filter) => {
 
 window.rnds = window.getRandSample
 
+window.s = (first, second) => {
+  var array = Object.keys(window.sampleBuffers);
+  var index;
+  // log(number, array.length, number % array.length)
+  if (typeof first === "number" && typeof second === "undefined") {
+    index = first % array.length
+  } else if (typeof second === "number" && typeof first === "number" ) {
+    index = (Math.round((Math.random() * (second - first))) + first) % array.length;
+  } else if (typeof first === "string" && typeof second === "undefined") {
+    array = Object.keys(window.sampleBuffers).filter(x=>x.includes(first))
+    index = Math.floor(Math.random() * array.length)
+  } else {
+    index = Math.floor(Math.random() * array.length)
+  }
+  log(array[index])
+  return array[index]
+}
+
+window.d = () => {
+  showAllNodes()
+  showAllSamples()
+  return window.emoj
+}
+
 window.ampVisualColor = '#3b82f6';
 // window.visualizerBackground = "rgba(255, 255, 255, 0.5)"
 window.visualizerBackground = "white"
@@ -287,43 +312,56 @@ window.visualizeTimeDomainData = ({canvas, analyser}) => {
   let dataArray = new Uint8Array(bufferLength);
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const fpsInterval = 1000 / 60;
+  var then = Date.now();
+  var now, elapsed;
 
   function draw() {
 
     requestAnimationFrame(draw);
 
-    analyser.getByteTimeDomainData(dataArray);
+    now = Date.now();
+    elapsed = now - then;
+    if (elapsed > fpsInterval) {
 
-    ctx.fillStyle = window.visualizerBackground;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Get ready for next frame by setting then=now, but also adjust for your
+      // specified fpsInterval not being a multiple of RAF's interval (16.7ms)
+      then = now - (elapsed % fpsInterval);
 
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = window.ampVisualColor;
+      // Put your drawing code here
+      analyser.getByteTimeDomainData(dataArray);
 
-    ctx.beginPath();
-
-    let sliceWidth = canvas.width * 1.0 / bufferLength;
-    let x = 0;
-
-    for(let i = 0; i < bufferLength; i++) {
- 
-      let v = dataArray[i] / 128.0;
-      
-      let y = canvas.height - v * canvas.height/2;
-
-      if(i === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
+      ctx.fillStyle = window.visualizerBackground;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = window.ampVisualColor;
+  
+      ctx.beginPath();
+  
+      let sliceWidth = canvas.width * 1.0 / bufferLength;
+      let x = 0;
+  
+      for(let i = 0; i < bufferLength; i++) {
+   
+        let v = dataArray[i] / 128.0;
+        
+        let y = canvas.height - v * canvas.height/2;
+  
+        if(i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+  
+        x += sliceWidth;
       }
-
-      x += sliceWidth;
-    }
-
-    ctx.lineTo(canvas.width, canvas.height/2);
-    ctx.stroke();
-  };
-
+  
+      ctx.lineTo(canvas.width, canvas.height/2);
+      ctx.stroke();
+      // 
+    };
+  }
   draw();
 }
 
@@ -335,31 +373,40 @@ window.visualizeFrequencyData = ({canvas, analyser}) => {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  const fpsInterval = 1000 / 60;
+  var then = Date.now();
+  var now, elapsed;
+
   function draw() {
     requestAnimationFrame(draw);
-
-    analyser.getByteFrequencyData(dataArray);
-
-    ctx.fillStyle = window.visualizerBackground;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    const barWidth = (canvas.width / bufferLength) * 2.5;
-
-    for(let i = 0; i < bufferLength; i++) {
-    	let fractionalVolume = dataArray[i]/255
-      let barHeight = fractionalVolume*canvas.height;
-
-      // ctx.fillStyle = 'rgb(' + Math.round(fractionalVolume*155 + 100) + ',20,20)';
-      ctx.fillStyle = window.freqVisualColor;
-      ctx.fillRect(
-      	(barWidth + 1)*i,
-        canvas.height-barHeight,
-        barWidth,
-        barHeight
-       );
-    }
-  };
-
+    now = Date.now();
+    elapsed = now - then;
+    if (elapsed > fpsInterval) {
+        // Get ready for next frame by setting then=now, but also adjust for your
+        // specified fpsInterval not being a multiple of RAF's interval (16.7ms)
+        then = now - (elapsed % fpsInterval);
+        // Put your drawing code here
+        analyser.getByteFrequencyData(dataArray);
+        ctx.fillStyle = window.visualizerBackground;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+        const barWidth = (canvas.width / bufferLength) * 2.5;
+    
+        for(let i = 0; i < bufferLength; i++) {
+          let fractionalVolume = dataArray[i]/255
+          let barHeight = fractionalVolume*canvas.height;
+    
+          // ctx.fillStyle = 'rgb(' + Math.round(fractionalVolume*155 + 100) + ',20,20)';
+          ctx.fillStyle = window.freqVisualColor;
+          ctx.fillRect(
+            (barWidth + 1)*i,
+            canvas.height-barHeight,
+            barWidth,
+            barHeight
+          );
+        }
+    };
+  }
   draw();
 }
 
