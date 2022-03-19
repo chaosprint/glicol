@@ -2,11 +2,11 @@
 // in local testing, comment the version out!
 
 
-window.version = "v0.9.10"
+window.version = "v0.9.11"
 
 
 window.source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
-fetch(source+'utils.js').then(res=>res.text()).then( text =>
+fetch(source+`utils.js`).then(res=>res.text()).then( text => // ${window.version ? ".min": ""}
   eval(text)
 )
 window.loadDocs = async () => {
@@ -226,7 +226,7 @@ window.loadModule = async () => {
   window.actx = new window.AudioContext({
     // sampleRate: 44100
   })
-  await URLFromFiles([source+'glicol-engine.js']).then((e) => {
+  await URLFromFiles([source+`glicol-engine.js`]).then((e) => { //${window.version ? ".min": ""}
     window.actx.audioWorklet.addModule(e).then(() => {
       let sab = exports.RingBuffer.getStorageForCapacity(2048, Uint8Array);
       let rb = new exports.RingBuffer(sab, Uint8Array);

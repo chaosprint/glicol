@@ -120,7 +120,7 @@ impl<const N: usize> Node<N> for Sampler {
                         self.sample = sample;
                         self.len = sample.0.len()/sample.1;
                         self.endindex = sample.0.len()-1;
-                        self.playback.clear();
+                        // self.playback.clear();
                     },
                     _ => {}
                 }

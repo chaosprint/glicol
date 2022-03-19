@@ -334,44 +334,54 @@ window.visualizeTimeDomainData = ({canvas, analyserL}) => {
       // Put your drawing code here
       analyserL.getByteTimeDomainData(dataArray);
       ctx.fillStyle = window.visualizerBackground;
-      ctx.beginPath();
+     
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.lineWidth = 1;
       ctx.strokeStyle = window.visualColorLeft;
-      
       let sliceWidth = canvas.width * 1.0 / bufferLength;
       let x = 0;
+      ctx.beginPath();
       for(let i = 0; i < bufferLength; i++) {
         let v = dataArray[i] / 128.0;
         let y = canvas.height - v * canvas.height/2;
+        
         if(i === 0) {
           ctx.moveTo(x, y);
         } else {
           ctx.lineTo(x, y);
         }
         x += sliceWidth;
+        // ctx.closePath();
       }
+      // ctx.beginPath();
+      ctx.moveTo(canvas.width, canvas.height/2);
       ctx.lineTo(canvas.width, canvas.height/2);
       ctx.stroke();
       ctx.closePath();
       analyserR.getByteTimeDomainData(dataArray);
       // ctx.fillStyle = window.visualizerBackground;
       // ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.lineWidth = 1;
+      // ctx.lineWidth = 1;
       ctx.strokeStyle = window.visualColorRight;
-      ctx.beginPath();
-      sliceWidth = canvas.width * 1.0 / bufferLength;
+      // sliceWidth = canvas.width * 1.0 / bufferLength;
       x = 0;
+      ctx.beginPath();
       for(let i = 0; i < bufferLength; i++) {
+        
         let v = dataArray[i] / 128.0;
         let y = canvas.height - v * canvas.height/2;
+                
         if(i === 0) {
           ctx.moveTo(x, y);
         } else {
           ctx.lineTo(x, y);
         }
         x += sliceWidth;
+        // ctx.stroke();
+        // ctx.closePath();
       }
+      // ctx.beginPath();
+      ctx.moveTo(canvas.width, canvas.height/2);
       ctx.lineTo(canvas.width, canvas.height/2);
       ctx.stroke();
       ctx.closePath();
@@ -403,7 +413,7 @@ window.visualizeFrequencyData = ({canvas, analyserL}) => {
         // Put your drawing code here
         analyserL.getByteFrequencyData(dataArray);
         ctx.fillStyle = window.visualizerBackground;
-        ctx.beginPath();
+        
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         const barWidth = (canvas.width / bufferLength) * 2.5;
         
@@ -411,12 +421,14 @@ window.visualizeFrequencyData = ({canvas, analyserL}) => {
           let fractionalVolume = dataArray[i]/255
           let barHeight = fractionalVolume*canvas.height;
           ctx.fillStyle = window.visualColorLeft;
+          ctx.beginPath();
           ctx.fillRect(
             (barWidth + 1)*i,
             canvas.height / 2,  
             barWidth,
             -barHeight/2
           );
+          ctx.closePath();
         }
         analyserR.getByteFrequencyData(dataArray);
         // ctx.fillStyle = window.visualizerBackground;
@@ -426,14 +438,16 @@ window.visualizeFrequencyData = ({canvas, analyserL}) => {
           let fractionalVolume = dataArray[i]/255
           let barHeight = fractionalVolume*canvas.height;
           ctx.fillStyle = window.visualColorRight;
+          ctx.beginPath();
           ctx.fillRect(
             (barWidth + 1)*i,
             canvas.height/2,
             barWidth,
             barHeight/2
           );
+          ctx.closePath();
         }
-        ctx.closePath();
+        
     };
   }
   draw();
