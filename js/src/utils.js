@@ -49,7 +49,7 @@ window.table = function consoleWithNoSource(...params) {
 setTimeout(console.table.bind(console, ...params));
 }
 
-window.clear = function consoleClear() {
+window.clearConsole = function consoleClear() {
 setTimeout(console.clear.bind());
 }
 
@@ -523,7 +523,7 @@ window.showAllNodes = () => {table(window.allNodes()) ; return window.emoj}
 
 window.stop = async () => {
   window.isGlicolRunning = false
-  window.clear()
+  window.clearConsole()
   await window.actx.close();
   await window.loadModule();
   window.displayInfo();
