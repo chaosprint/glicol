@@ -37,11 +37,11 @@ impl<const N: usize> Node<N> for Sampler {
                 let input_buf = &mut main_input.buffers();
                 for i in 0..N {
                     if input_buf[0][i] > 0.0 {
-                        // assert!( self.sample.2 == 44100);
-                        // assert!( self.sample.2 == 44100);
                         let dur = self.len as f32 / input_buf[0][i] as f32 / ( self.sample.2 as f32 / self.sr as f32 );
                         self.playback.push((self.clock, dur));
                     }
+                    let mut count = 0;
+                    let mut to_remove = vec![];
                     for (begin, dur) in &self.playback {
                         let pos = (self.clock - begin) as f32 / dur;
                         if pos <= 1.0 {
@@ -93,9 +93,19 @@ impl<const N: usize> Node<N> for Sampler {
                                 },
                                 _ => {return ()}
                             }
-                            
+                        } else {
+                            // panic!();
+                            to_remove.push(count)
                         }
+                        count += 1;
                     }
+                    for c in to_remove.iter().rev() {
+                        self.playback.remove(*c);
+                    }
+                    // if self.playback.len() > 10 {
+                    //     panic!("too much playback")
+                    // }
+                    
                     self.clock += 1;
                 }
             }

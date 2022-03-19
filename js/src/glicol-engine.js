@@ -220,6 +220,12 @@ class GlicolEngine extends AudioWorkletProcessor {
                       this._resultPtr,
                       256
                     )
+                    this._resultPtr = this._wasm.exports.alloc_uint8array(256);
+                    this._result = new Uint8Array(
+                      this._wasm.exports.memory.buffer,
+                      this._resultPtr,
+                      256
+                    )
                     this._outPtr = this._wasm.exports.alloc(this._size)
                     this._outBuf = new Float32Array(
                       this._wasm.exports.memory.buffer,
@@ -308,7 +314,7 @@ class GlicolEngine extends AudioWorkletProcessor {
             this._inBuf.set(inputs[0][0])
         }
 
-        this._resultPtr = this._wasm.exports.alloc_uint8array(256);
+        
 
         this._wasm.exports.process(
           this._inPtr, this._outPtr, this._size, this._resultPtr)

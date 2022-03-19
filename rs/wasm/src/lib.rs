@@ -34,7 +34,7 @@ pub extern "C" fn process(in_ptr: *mut f32, out_ptr: *mut f32, size: usize, resu
     let result:&mut [u8] = unsafe { from_raw_parts_mut(result_ptr, 256) };
     let (engine_out, console) = engine.next_block();
     let out_buf: &mut [f32] = unsafe { std::slice::from_raw_parts_mut(out_ptr, size) };
-    for i in 0..128{
+    for i in 0..128 {
         out_buf[i] = engine_out[0][i] as f32;
         out_buf[i+128] = engine_out[1][i] as f32;       
     };
