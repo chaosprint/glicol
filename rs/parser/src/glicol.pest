@@ -5,7 +5,7 @@ chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE* ~ node
 
 node = ${ (mix|seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noise|onepole|
 sp|constsig|lpf|rhpf|onepole|imp|delayn|delayms|envperc|apfmsgain|plate|sendpass|
-get|bd|sn|hh|meta|sawsynth|squsynth|trisynth) }
+get|bd|sn|hh|meta|sawsynth|squsynth|trisynth|balance) }
 
 meta = ${ ("meta"|"script") ~ WHITESPACE+ ~ code}
 code = ${ "`" ~ inner ~ "`" }
@@ -15,6 +15,7 @@ char = {
     | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
     | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }
+balance = ${ "balance" ~ WHITESPACE+ ~ reference ~ WHITESPACE+ ~ reference}
 get = ${ ("get" ~ WHITESPACE+)? ~ !(node_name) ~ reference}
 sendpass = ${ "sendpass" ~ WHITESPACE+ ~ reference ~ (WHITESPACE+ ~ reference)*}
 plate = ${"plate" ~ WHITESPACE+ ~ !(node_name | reference) ~ number}

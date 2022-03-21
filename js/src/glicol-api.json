@@ -153,6 +153,13 @@
         "output": "wet signal with the reverb effect",
         "example": "out: seq 60 _60 _60 _60 >> sp \\sid >> plate 0.1"
     },
+    "blance": {
+        "description": "get two mono signal and put it into left and right of a stereo signal",
+        "parameters": [{"l": "Reference"}, {"r": "Reference"}],
+        "input": "two mono signals as left and right",
+        "output": "the mixed signal",
+        "example": "~left: squ 100 >> mul 0.1; ~right: noiz 42 >> mul 0.1; balance ~left ~right"
+    },
     "linrange": {},
     "delayms": {},
     "delayn": {},

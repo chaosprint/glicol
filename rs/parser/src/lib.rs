@@ -171,6 +171,19 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                         ]);
                                         // println!("chain_paras, {:?}", chain_paras);
                                     },
+
+                                    Rule::balance => {
+                                        println!("node {:?}", node.as_str());
+                                        let mut iter = node.into_inner();
+                                        let p1 = iter.next().unwrap();
+                                        let p2 = iter.next().unwrap();
+                                        chain_node_names.push("balance");
+                                        chain_paras.push(vec![
+                                            GlicolPara::Reference(p1.as_str()),
+                                            GlicolPara::Reference(p2.as_str()),
+                                        ]);
+                                        // println!("chain_paras, {:?}", chain_paras);
+                                    },
                                     Rule::rhpf => {
                                         println!("node {:?}", node.as_str());
                                         let mut iter = node.into_inner();

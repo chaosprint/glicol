@@ -7,7 +7,7 @@ use glicol_synth::{
     delay::{DelayN, DelayMs},
     sequencer::{Sequencer, Choose, Speed},
     envelope::EnvPerc,
-    effect::{Plate},
+    effect::{Plate, Balance},
     compound::{Bd, Hh, Sn, SawSynth, SquSynth, TriSynth},
     dynamic::Meta,
     Pass,
@@ -69,6 +69,17 @@ pub fn makenode<const N: usize>(
                 GlicolPara::Reference(s) => reflist.push(s),
                 _ => {}
             };
+            (data, reflist)
+        },
+        "balance" => {
+            let data = Balance::new().to_boxed_nodedata(2);
+            let reflist = vec![match paras[0] {
+                GlicolPara::Reference(s) => s,
+                _ => {""}
+            }, match paras[1] {
+                GlicolPara::Reference(s) => s,
+                _ => {""}
+            }];
             (data, reflist)
         },
         "rhpf" => {
