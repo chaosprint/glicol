@@ -153,7 +153,7 @@
         "output": "wet signal with the reverb effect",
         "example": "out: seq 60 _60 _60 _60 >> sp \\sid >> plate 0.1"
     },
-    "blance": {
+    "balance": {
         "description": "get two mono signal and put it into left and right of a stereo signal",
         "parameters": [{"l": "Reference"}, {"r": "Reference"}],
         "input": "two mono signals as left and right",

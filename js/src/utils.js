@@ -533,11 +533,12 @@ window.art = window.version ? window.artsource + "\n\n" + window.version : windo
 window.displayInfo = () => {
   log("%c"+window.art, "color: gray") //#3E999F
   log(
-  `
-  type %ch()%c in console to see some useful commands.
-  
-  %cpanic?%c don't panic. %cissue it here: %chttps://github.com/chaosprint/glicol/issues/new
-  `,
+`
+type %ch()%c in console to see some useful commands.
+
+%cpanic?%c don't panic. %cissue it here:\n%chttps://github.com/chaosprint/glicol/issues/new
+
+`,
   "font-weight: bold; color: green",
   "",
   "font-weight: bold; color: red",
