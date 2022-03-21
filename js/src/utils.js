@@ -309,32 +309,31 @@ window.visualColorLeft = '#51A3A3' //#FE5E41';
 window.visualizerBackground = "white"
 window.visualColorRight = '#fc684e' //'#FE5E41' //'#75485E' //#D8F1A0'
 
-window.visualizeTimeDomainData = ({canvas, analyserL}) => {
+window.visualizeTimeDomainData = ({canvas, analyserL, analyserR}) => {
   let ctx = canvas.getContext("2d");
   let bufferLength = analyserL.fftSize;
   let dataArray = new Uint8Array(bufferLength);
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const fpsInterval = 1000 / 60;
-  var then = Date.now();
-  var now, elapsed;
+  // const fpsInterval = 1000 / 60;
+  // var then = Date.now();
+  // var now, elapsed;
 
   function drawL() {
 
     requestAnimationFrame(drawL);
 
-    now = Date.now();
-    elapsed = now - then;
-    if (elapsed > fpsInterval) {
+    // now = Date.now();
+    // elapsed = now - then;
+    // if (elapsed > fpsInterval) {
 
       // Get ready for next frame by setting then=now, but also adjust for your
       // specified fpsInterval not being a multiple of RAF's interval (16.7ms)
-      then = now - (elapsed % fpsInterval);
+      // then = now - (elapsed % fpsInterval);
 
       // Put your drawing code here
       analyserL.getByteTimeDomainData(dataArray);
       ctx.fillStyle = window.visualizerBackground;
-     
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.lineWidth = 1;
       ctx.strokeStyle = window.visualColorLeft;
@@ -351,8 +350,9 @@ window.visualizeTimeDomainData = ({canvas, analyserL}) => {
           ctx.lineTo(x, y);
         }
         x += sliceWidth;
-        // ctx.closePath();
+        
       }
+      // ctx.closePath();
       // ctx.beginPath();
       ctx.moveTo(canvas.width, canvas.height/2);
       ctx.lineTo(canvas.width, canvas.height/2);
@@ -377,80 +377,57 @@ window.visualizeTimeDomainData = ({canvas, analyserL}) => {
           ctx.lineTo(x, y);
         }
         x += sliceWidth;
-        // ctx.stroke();
-        // ctx.closePath();
       }
+      // ctx.closePath();
       // ctx.beginPath();
       ctx.moveTo(canvas.width, canvas.height/2);
       ctx.lineTo(canvas.width, canvas.height/2);
       ctx.stroke();
       ctx.closePath();
-    };
+    // };
   }
   drawL();
 }
 
-window.visualizeFrequencyData = ({canvas, analyserL}) => {
+window.visualizeFrequencyData = ({canvas, analyserL, analyserR}) => {
   let ctx = canvas.getContext("2d");
-
   let bufferLength = analyserL.frequencyBinCount;
   let dataArray = new Uint8Array(bufferLength);
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  const fpsInterval = 1000 / 60;
-  var then = Date.now();
-  var now, elapsed;
-
-  function draw() {
-    requestAnimationFrame(draw);
-    now = Date.now();
-    elapsed = now - then;
-    if (elapsed > fpsInterval) {
-        // Get ready for next frame by setting then=now, but also adjust for your
-        // specified fpsInterval not being a multiple of RAF's interval (16.7ms)
-        then = now - (elapsed % fpsInterval);
-        // Put your drawing code here
+  function drawFreq() {
+    requestAnimationFrame(drawFreq);
         analyserL.getByteFrequencyData(dataArray);
+        ctx.beginPath();
         ctx.fillStyle = window.visualizerBackground;
-        
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         const barWidth = (canvas.width / bufferLength) * 2.5;
-        
+        ctx.fillStyle = window.visualColorLeft;
         for(let i = 0; i < bufferLength; i++) {
           let fractionalVolume = dataArray[i]/255
           let barHeight = fractionalVolume*canvas.height;
-          ctx.fillStyle = window.visualColorLeft;
-          ctx.beginPath();
           ctx.fillRect(
             (barWidth + 1)*i,
             canvas.height / 2,  
             barWidth,
             -barHeight/2
           );
-          ctx.closePath();
         }
+        ctx.closePath();
+        ctx.beginPath();
         analyserR.getByteFrequencyData(dataArray);
-        // ctx.fillStyle = window.visualizerBackground;
-        // ctx.fillRect(0, 0, canvas.width, canvas.height);
-        //  barWidth = (canvas.width / bufferLength) * 2.5;
+        ctx.fillStyle = window.visualColorRight;
         for(let i = 0; i < bufferLength; i++) {
           let fractionalVolume = dataArray[i]/255
           let barHeight = fractionalVolume*canvas.height;
-          ctx.fillStyle = window.visualColorRight;
-          ctx.beginPath();
           ctx.fillRect(
             (barWidth + 1)*i,
             canvas.height/2,
             barWidth,
             barHeight/2
           );
-          ctx.closePath();
         }
-        
-    };
+        ctx.closePath();
   }
-  draw();
+  drawFreq();
 }
 
 window.sampleBuffers = {}
@@ -527,6 +504,20 @@ window.stop = async () => {
   await window.actx.close();
   await window.loadModule();
   window.displayInfo();
+  if ( document.getElementById("visualizer")) {
+    const canvas = document.getElementById("visualizer")
+    const context = canvas.getContext('2d')
+    context.fillStyle = window.visualizerBackground;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    // window.visualizeTimeDomainData({canvas: document.getElementById("visualizer"), analyserL: window.analyserL, analyserR: window.analyserR});
+  }
+  if ( document.getElementById("freqVisualizer")) {
+    const canvas = document.getElementById("visualizer")
+    const context = canvas.getContext('2d')
+    context.fillStyle = window.visualizerBackground;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    // window.visualizeFrequencyData({canvas: document.getElementById("freqVisualizer"), analyserL: window.analyserL, analyserR: window.analyserR});
+  }
 }
 
 window.artsource = `
