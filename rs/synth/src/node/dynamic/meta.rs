@@ -23,9 +23,15 @@ impl<const N: usize> Meta<N> {
         .push("x0", 0.0 as f32)
         .push("x1", 0.0 as f32)
         .push("x2", 0.0 as f32)
+        .push("x3", 0.0 as f32)
         .push("y0", 0.0 as f32)
         .push("y1", 0.0 as f32)
         .push("y2", 0.0 as f32)
+        .push("y3", 0.0 as f32)
+        .push("z0", 0.0 as f32)
+        .push("z1", 0.0 as f32)
+        .push("z2", 0.0 as f32)
+        .push("z3", 0.0 as f32)
         .push("a", 0.0 as f32)
         .push("b", 0.0 as f32)
         .push("c", 0.0 as f32)
@@ -52,6 +58,8 @@ impl<const N: usize> Meta<N> {
         .push("x", 0.0 as f32)
         .push("y", 0.0 as f32)
         .push("z", 0.0 as f32)
+        .push("freq", 0.0 as f32)
+        .push("freq2", 0.0 as f32)
         .push("output", output);
 
         let mut engine = Engine::new();
@@ -111,6 +119,9 @@ impl<const N:usize> Node<N> for Meta<N> {
             },
             Err(e) => {
                 println!("eval error {:?}, try to use backup code", e);
+                if &self.backup == &"" {
+                    return ()
+                }
                 self.engine.eval_with_scope::<Array>(&mut self.scope, &self.backup.replace("`", "")).unwrap()
             }
         };
