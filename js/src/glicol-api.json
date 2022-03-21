@@ -104,6 +104,55 @@
         "output": "the speed at the first place of the block; the rest of the block will be zeros",
         "example": ""
     },
+    "bd": {
+        "description": "synthesized kick drum. only decay is tweakable for simplicity.",
+        "parameters": [{"decay": "NonModulable(0.3)"}],
+        "input": "value larger than 0 will triggers the envelope and determines the amp",
+        "output": "the kick drum sound",
+        "example": "out: seq 60 60 60 60 >> bd 0.3"
+    },
+    "sn": {
+        "description": "synthesized snare drum. only decay is tweakable for simplicity.",
+        "parameters": [{"decay": "NonModulable(0.3)"}],
+        "input": "value larger than 0 will triggers the envelope and determines the amp",
+        "output": "the snare drum sound",
+        "example": "a: seq 60 _ 60 _ >> bd 0.1; b: seq _ 60 _ 60 >> sn 0.1 >> mul 0.5"
+    },
+    "hh": {
+        "description": "synthesized hi hat. only decay is tweakable for simplicity.",
+        "parameters": [{"decay": "NonModulable(0.3)"}],
+        "input": "value larger than 0 will triggers the envelope and determines the amp",
+        "output": "the hi hat sound",
+        "example": "c: speed 8.0 >> seq 60 >> hh 0.03"
+    },
+    "sawsynth": {
+        "description": "a minimal synth based on sawtooth wave.",
+        "parameters": [{"attack": "NonModulable(0.01)", "decay": "NonModulable(0.1)"}],
+        "input": "value larger than 0 will triggers the envelope and determines the pitch (1.0: middle C, 2.0 octave higher)",
+        "output": "the synth signal; range determined by the envelope",
+        "example": "out: seq 33 _33 _33 _33 >> sawsynth 0.01 0.1"
+    },
+    "squsynth": {
+        "description": "a minimal synth based on square wave.",
+        "parameters": [{"attack": "NonModulable(0.01)", "decay": "NonModulable(0.1)"}],
+        "input": "value larger than 0 will triggers the envelope and determines the pitch (1.0: middle C, 2.0 octave higher)",
+        "output": "the synth signal; range determined by the envelope",
+        "example": "out: seq 33 _33 _33 _33 >> squsynth 0.01 0.1"
+    },
+    "trisynth": {
+        "description": "a minimal synth based on triangle wave.",
+        "parameters": [{"attack": "NonModulable(0.01)", "decay": "NonModulable(0.1)"}],
+        "input": "value larger than 0 will triggers the envelope and determines the pitch (1.0: middle C, 2.0 octave higher)",
+        "output": "the synth signal; range determined by the envelope",
+        "example": "out: seq 33 _33 _33 _33 >> trisynth 0.01 0.1"
+    },
+    "plate": {
+        "description": "a fixed Dattorro plate reverb.",
+        "parameters": [{"mix": "NonModulable(0.1)"}],
+        "input": "dry signal",
+        "output": "wet signal with the reverb effect",
+        "example": "out: seq 60 _60 _60 _60 >> sp \\sid >> plate 0.1"
+    },
     "linrange": {},
     "delayms": {},
     "delayn": {},
