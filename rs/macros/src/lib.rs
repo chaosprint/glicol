@@ -52,6 +52,26 @@ pub fn get_one_para_from_number_or_ref(item: TokenStream) -> TokenStream {
         {
             match paras[0] {
                 GlicolPara::Number(v) => {
+                    (#name::new(v).to_boxed_nodedata(1), vec![])
+                },
+                GlicolPara::Reference(s) => {
+                    (#name::new(0.0).to_boxed_nodedata(1), vec![s])
+                },
+                _ => {
+                    unimplemented!();
+                }
+            }
+        }
+    };
+    gen.into()
+}
+#[proc_macro]
+pub fn get_one_para_from_number_or_ref2(item: TokenStream) -> TokenStream {
+    let name = proc_macro2::TokenStream::from(item);
+    let gen = quote! {
+        {
+            match paras[0] {
+                GlicolPara::Number(v) => {
                     (#name::new(v).to_boxed_nodedata(2), vec![])
                 },
                 GlicolPara::Reference(s) => {
@@ -64,6 +84,5 @@ pub fn get_one_para_from_number_or_ref(item: TokenStream) -> TokenStream {
         }
     };
     gen.into()
-    
 }
 

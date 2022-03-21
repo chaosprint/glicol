@@ -15,7 +15,10 @@ use glicol_synth::{
 };
 
 use glicol_synth::{NodeData, BoxedNodeSend, GlicolPara}; //, Processor, Buffer, Input, Node
-use glicol_macros::get_one_para_from_number_or_ref;
+use glicol_macros::{
+    get_one_para_from_number_or_ref,
+    get_one_para_from_number_or_ref2
+};
 use crate::EngineError;
 
 pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
@@ -294,9 +297,9 @@ pub fn makenode<const N: usize>(
             }
         },
         // todo: give sr to them
-        "bd" => get_one_para_from_number_or_ref!(Bd),
-        "hh" => get_one_para_from_number_or_ref!(Hh),
-        "sn" => get_one_para_from_number_or_ref!(Sn),
+        "bd" => get_one_para_from_number_or_ref2!(Bd),
+        "hh" => get_one_para_from_number_or_ref2!(Hh),
+        "sn" => get_one_para_from_number_or_ref2!(Sn),
         "sawsynth" => {
             let data = SawSynth::new(
                 match paras[0] {

@@ -160,12 +160,36 @@
         "output": "the mixed signal",
         "example": "~left: squ 100 >> mul 0.1; ~right: noiz 42 >> mul 0.1; balance ~left ~right"
     },
-    "linrange": {},
-    "delayms": {},
-    "delayn": {},
+    "delayms": {
+        "description": "delay the input signal by some millisecond",
+        "parameters": [{"delay_time_ms": "Modualable(0.1)"}],
+        "input": "the signal to be delayed",
+        "output": "delayed signal",
+        "example": "a: imp 1\nb: imp 1 >> delayms ~mod >> mul 0.6\n~mod: sin 0.2 >> mul 100 >> add 150"
+    },
+    "delayn": {
+        "description": "delay the input signal by certain samples",
+        "parameters": [{"delay_samples": "NonModualable(1)"}],
+        "input": "the signal to be delayed",
+        "output": "delayed signal",
+        "example": "a: imp 1\nb: imp 1 >> delayn 4000 >> mul 0.6"
+    },
     "allpass": {},
     "apf": {},
-    "apfmsgain": {},
+    "apfgain": {
+        "description": "an allpass filter with delay in millisecond and feedback gain control",
+        "parameters": [{"delay_time_ms": "Modualable(0.1)"}, {"gain": "NonModualable(0.9)"}],
+        "input": "the signal to be filtered",
+        "output": "filtered signal",
+        "example": ""
+    },
+    "apfmsgain": {
+        "description": "an allpass filter with delay in millisecond and feedback gain control",
+        "parameters": [{"delay_time_ms": "Modualable(0.1)"}, {"gain": "NonModualable(0.9)"}],
+        "input": "the signal to be filtered",
+        "output": "filtered signal",
+        "example": ""
+    },
     "mono_sum": {},
     "buf": {},
     "pha": {},
@@ -173,5 +197,11 @@
     "pan": {},
     "comb" : {},
     "mix": {},
-    "onepole": {}
+    "onepole": {
+        "description": "an one pole low pass filter",
+        "parameters": [{"filter_ratio": "Modualble(0.1)"}],
+        "input": "the signal to be filtered",
+        "output": "filtered signal",
+        "example": "o: saw 100 >> onepole 0.01"
+    }
 }
