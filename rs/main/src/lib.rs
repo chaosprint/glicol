@@ -459,7 +459,50 @@ impl<const N: usize> Engine<'static, N> {
                     };
                     let error = match e {
                         EngineError::ParsingError(v) => {
-                            format!("{:?}", v)
+                            // println!("catch error in parser; in location: {:?}; line_col: {:?}", v.location, v.line_col);
+                            // pest::error::LineColLocation::Pos
+                            let location = match v.location {
+                                pest::error::InputLocation::Pos(u) => u,
+                                _ => unimplemented!()
+                            };
+                            let (line, col) =  match v.line_col {
+                                pest::error::LineColLocation::Pos(u) => u,
+                                _ => unimplemented!()
+                            };
+                            let (positives, negatives) = match &v.variant {
+                                pest::error::ErrorVariant::ParsingError{ positives, negatives } => {
+                                    (positives, negatives)
+                                    // if positives.len() != 0 {
+                                    //     print!("\n\nexpecting ");
+                                    //     for possible in positives { print!("{:?} ", possible) }
+                                    //     print!("\n\n");
+                                    // }
+                                    // if negatives.len() != 0 {
+                                    //     print!("\n\nunexpected element: ");
+                                    //     for possible in negatives { print!("{:?} ", possible) }
+                                    //     print!("\n\n");
+                                    // }
+                                },
+                                _ => {panic!("unknonw parsing error")}
+                            };
+                            // let linecode = v.line;
+                            // println!("{:?}", v);
+                            let res = format!("pos[{:?}], line[{:?}], col[{:?}], positives{:?}, negatives{:?}",
+                             location, line, col, positives, negatives);
+                            // println!("{}", res);
+                            res
+                            // match v.variant {
+                            //     pest::error::ErrorVariant::ParsingError { positives, negatives} => {
+                            //         println!("print expecting {:?} find {:?}", positives, negatives);
+                            //         // format!("format expecting {:?} find {:?}", positives, negatives);
+                            //         format!("format")
+                            //         // return (positives, negatives)              
+                            //     },
+                            //     _ => {
+                            //         unimplemented!();
+                            //     }
+                            // }
+                            
                         },
                         EngineError::NonExsitSample(v) => {
                             format!("cannot use this non-exist samples {}", v)

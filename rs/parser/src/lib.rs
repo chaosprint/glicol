@@ -23,22 +23,22 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
     let mut block = match GlicolParser::parse(Rule::block, code) {
         Ok(v) => v,
         Err(e) => {
-            println!("in location: {:?}; line_col: {:?}", e.location, e.line_col);
-            match &e.variant {
-                ErrorVariant::ParsingError{ positives, negatives } => { 
-                    if positives.len() != 0 {
-                        print!("\n\nexpecting ");
-                        for possible in positives { print!("{:?} ", possible) }
-                        print!("\n\n");
-                    }
-                    if negatives.len() != 0 {
-                        print!("\n\nunexpected element: ");
-                        for possible in negatives { print!("{:?} ", possible) }
-                        print!("\n\n");
-                    }
-                },
-                _ => {panic!("unknonw parsing error")}
-            }
+            // println!("catch error in parser; in location: {:?}; line_col: {:?}", e.location, e.line_col);
+            // match &e.variant {
+            //     ErrorVariant::ParsingError{ positives, negatives } => { 
+            //         if positives.len() != 0 {
+            //             print!("\n\nexpecting ");
+            //             for possible in positives { print!("{:?} ", possible) }
+            //             print!("\n\n");
+            //         }
+            //         if negatives.len() != 0 {
+            //             print!("\n\nunexpected element: ");
+            //             for possible in negatives { print!("{:?} ", possible) }
+            //             print!("\n\n");
+            //         }
+            //     },
+            //     _ => {panic!("unknonw parsing error")}
+            // }
             return Err(e)
         }
     };

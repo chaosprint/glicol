@@ -2,7 +2,7 @@
 // in local testing, comment the version out!
 
 
-window.version = "v0.9.14"
+window.version = "v0.9.15"
 
 
 window.source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
@@ -286,8 +286,34 @@ window.loadModule = async () => {
             await window.loadSamples()
           }
         } else if (e.data.type === 'e') {
-          log(decoder.decode(e.data.info.slice(2).filter(v => v !== 0.0)))
-        }      
+          if (e.data.info[0] === 1) {
+            // log("parsing error.")
+            let info = decoder.decode(e.data.info.slice(2).filter(v => v !== 0.0));
+            // log(info)         
+            const posRegex = /(?<=pos\[)[^\]]+?(?=\])/g // /(?<=pos\[])[^\]]*(?=\])/g 
+            const lineRegex = /(?<=line\[)[^\]]+?(?=\])/g
+            const colRegex = /(?<=col\[)[^\]]+?(?=\])/g
+            const positivesRegex = /(?<=positives\[)[^\]]+?(?=\])/g
+            const negativesRegex = /(?<=negatives\[)[^\]]+?(?=\])/g
+            let pos = info.match(posRegex) ? parseInt(info.match(posRegex)[0]) : 0
+            let line = info.match(lineRegex) ? parseInt(info.match(lineRegex)[0]) : 0
+            let col = info.match(colRegex) ? parseInt(info.match(colRegex)[0]) : 0
+            // log(info.match(positivesRegex))
+            let positives = info.match(positivesRegex) ? info.match(positivesRegex)[0].replace("EOI", "END OF INPUT").split(",").join(" ||") : ""
+            let negatives = info.match(negativesRegex) ? info.match(negativesRegex)[0].split(",").join(" or") : ""
+            // log(pos, line, col, positives, negatives)
+            log(window.code.split("\n")[line-1]);
+            let positiveResult = positives.length > 0?
+            "expecting "+positives:""
+            log(
+              `${"_".repeat(col-1 >=0?col-1:0)}%c^^^ ${positiveResult}${negatives.length > 0?"unexpected"+negatives:""}`,
+                "font-weight: bold; background: #f472b6; color:white");
+            // log()
+          } else {
+            log(`%c${decoder.decode(e.data.info.slice(2).filter(v => v !== 0.0))}`,
+            "font-weight: bold; background: #f472b6; color:white")
+          }
+        }
       }
     })
   })

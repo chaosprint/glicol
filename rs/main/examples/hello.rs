@@ -1,11 +1,12 @@
-use glicol::Engine; use glicol::{EngineError, get_error_info};
+use glicol::Engine; 
+// use glicol::{EngineError, get_error_info};
 
 // use glicol::GlicolNodeInfo;
 // use std::collections::HashMap;
 
 fn main() {
     let mut engine = Engine::<8>::new();
-    engine.update_with_code(r#"~a: constsig 4 >>"#);
+    engine.update_with_code(r#"a: sin"#);
     // match engine.update("o: imp 100 >> mul ~mod
     // ~mo: sin 1 >> mul 0.5 >> add 0.5") {
     //     Ok(_) => {},
