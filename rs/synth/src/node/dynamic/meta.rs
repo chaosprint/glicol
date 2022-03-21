@@ -20,38 +20,38 @@ impl<const N: usize> Meta<N> {
         let output = Vec::<Dynamic>::with_capacity(N);
 
         scope.push("phase", phase as f32)
-        .push("x0", 0.0)
-        .push("x1", 0.0)
-        .push("x2", 0.0)
-        .push("y0", 0.0)
-        .push("y1", 0.0)
-        .push("y2", 0.0)
-        .push("a", 0.0)
-        .push("b", 0.0)
-        .push("c", 0.0)
-        .push("d", 0.0)
-        .push("e", 0.0)
-        .push("f", 0.0)
-        .push("g", 0.0)
-        .push("h", 0.0)
-        .push("i", 0.0)
-        .push("j", 0.0)
-        .push("k", 0.0)
-        .push("l", 0.0)
-        .push("m", 0.0)
-        .push("n", 0.0)
-        .push("o", 0.0)
-        .push("p", 0.0)
-        .push("q", 0.0)
-        .push("r", 0.0)
-        .push("s", 0.0)
-        .push("t", 0.0)
-        .push("u", 0.0)
-        .push("v", 0.0)
-        .push("w", 0.0)
-        .push("x", 0.0)
-        .push("y", 0.0)
-        .push("z", 0.0)
+        .push("x0", 0.0 as f32)
+        .push("x1", 0.0 as f32)
+        .push("x2", 0.0 as f32)
+        .push("y0", 0.0 as f32)
+        .push("y1", 0.0 as f32)
+        .push("y2", 0.0 as f32)
+        .push("a", 0.0 as f32)
+        .push("b", 0.0 as f32)
+        .push("c", 0.0 as f32)
+        .push("d", 0.0 as f32)
+        .push("e", 0.0 as f32)
+        .push("f", 0.0 as f32)
+        .push("g", 0.0 as f32)
+        .push("h", 0.0 as f32)
+        .push("i", 0.0 as f32)
+        .push("j", 0.0 as f32)
+        .push("k", 0.0 as f32)
+        .push("l", 0.0 as f32)
+        .push("m", 0.0 as f32)
+        .push("n", 0.0 as f32)
+        .push("o", 0.0 as f32)
+        .push("p", 0.0 as f32)
+        .push("q", 0.0 as f32)
+        .push("r", 0.0 as f32)
+        .push("s", 0.0 as f32)
+        .push("t", 0.0 as f32)
+        .push("u", 0.0 as f32)
+        .push("v", 0.0 as f32)
+        .push("w", 0.0 as f32)
+        .push("x", 0.0 as f32)
+        .push("y", 0.0 as f32)
+        .push("z", 0.0 as f32)
         .push("output", output);
 
         let mut engine = Engine::new();
@@ -90,7 +90,6 @@ impl<const N:usize> Node<N> for Meta<N> {
                 arr.push(Dynamic::from_float(inputs[&self.input_order[0]].buffers()[0][i]));
             }
             self.scope.set_or_push("input", arr);
-            
         }
         let result = match self.engine.eval_with_scope::<Array>(&mut self.scope, &self.code.replace("`", "")) {
             Ok(v) => {
@@ -110,7 +109,8 @@ impl<const N:usize> Node<N> for Meta<N> {
                     self.engine.eval_with_scope::<Array>(&mut self.scope, &self.backup.replace("`", "")).unwrap()
                 }
             },
-            _ => {
+            Err(e) => {
+                println!("eval error {:?}, try to use backup code", e);
                 self.engine.eval_with_scope::<Array>(&mut self.scope, &self.backup.replace("`", "")).unwrap()
             }
         };

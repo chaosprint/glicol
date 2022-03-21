@@ -5,8 +5,35 @@ use glicol::Engine;
 // use std::collections::HashMap;
 
 fn main() {
-    let mut engine = Engine::<8>::new();
-    engine.update_with_code(r#"a: sin"#);
+    let mut engine = Engine::<128>::new();
+    engine.update_with_code(r#"// a sawtooth osc chained with a onepole filter
+    // the first meta is to write a saw manually
+    out: meta `
+        f = 220.;
+        output.pad(128, 0.0);
+        for i in 0..128 {
+            output[i] = p * 2. - 1.;
+            p += f / sr;
+        };
+        if p > 1.0 { p -= 1.0 };
+        output
+    ` >> meta `
+        r = 1./2000.;
+        if phase == 0.0 {
+            z = 0.0
+        }
+        output.pad(128, 0.0);
+        b = (-2.0 * PI() * r).exp();
+        a = 1.0 - b;
+        for i in 0..128 {
+            y = input[i] * a + b * z;
+            output[i] = y;
+            z = y;
+        };
+        output
+    `
+    // if the script has an input, you can use the "input" variable
+    // the "input" is a 128-size array in web audio"#);
     // match engine.update("o: imp 100 >> mul ~mod
     // ~mo: sin 1 >> mul 0.5 >> add 0.5") {
     //     Ok(_) => {},

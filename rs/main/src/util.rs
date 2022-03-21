@@ -45,7 +45,7 @@ pub fn makenode<const N: usize>(
         "meta" => {
             match paras[0] {
                 GlicolPara::Symbol(s) => {
-                    (Meta::new().sr(sr).code(s).to_boxed_nodedata(2), vec![])
+                    (Meta::new().sr(sr).code(s).to_boxed_nodedata(1), vec![])
                 },
                 _ => unimplemented!()
             }

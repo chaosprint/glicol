@@ -2,7 +2,7 @@
 // in local testing, comment the version out!
 
 
-window.version = "v0.9.15"
+// window.version = "v0.9.15"
 
 
 window.source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
