@@ -2,7 +2,7 @@
 // in local testing, comment the version out!
 
 
-window.version = "v0.9.16"
+window.version = "v0.9.17"
 
 
 window.source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
@@ -302,7 +302,12 @@ window.loadModule = async () => {
             let positives = info.match(positivesRegex) ? info.match(positivesRegex)[0].replace("EOI", "END OF INPUT").split(",").join(" ||") : ""
             let negatives = info.match(negativesRegex) ? info.match(negativesRegex)[0].split(",").join(" or") : ""
             // log(pos, line, col, positives, negatives)
-            log(window.code.split("\n")[line-1]);
+            log(`%cError at line ${line}`, "background: #3b82f6; color:white; font-weight: bold")
+            
+            let errline = window.code.split("\n")[line-1];
+            let styleErrLine = errline.slice(0, col-1) + "%c %c" + errline.slice(col-1);
+            log(styleErrLine, "font-weight: bold; background: #f472b6; color:white", "");
+
             let positiveResult = positives.length > 0?
             "expecting "+positives:""
             log(
@@ -312,6 +317,7 @@ window.loadModule = async () => {
           } else {
             log(`%c${decoder.decode(e.data.info.slice(2).filter(v => v !== 0.0))}`,
             "font-weight: bold; background: #f472b6; color:white")
+            // background: #3b82f6; color:white; font-weight: bold
           }
         }
       }
