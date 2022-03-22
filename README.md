@@ -24,7 +24,7 @@ In [NIME community](https://nime.org/), it is known as:
 
 This is Glicol's philosophy to approach these goals:
 
-- design a language from the instrument perspective
+- design the language from a new instrument design perspective
 
 - embrace the spirit of the internet for a better experience
 
@@ -34,7 +34,7 @@ Reflected in the implementation:
 
 - Glicol can be used in browsers with zero-installation
 
-The basic idea (graph-oriented) of Glicol is to connect different nodes like synth modules. 
+The basic idea (graph-oriented) of Glicol is to connect different nodes like synth modules.
 
 Two ways for connecting: `>>` and `~reference`:
 ```
@@ -69,17 +69,17 @@ Just leave the introduction of `Object` and `Function` later when we mix JavaScr
 
 For the audio engine, instead of mapping it to existing audio lib like `SuperCollider`, I decide to do it the hard way:
 
-- Write the parser in Rust
+- write the parser in Rust
 
-- Write the audio engine in Rust that works seamlessly with the AST processing
+- write the audio engine in Rust that works seamlessly with the AST processing
 
-- Port it to browsers using `WebAssembly`, `AudioWorklet` and `SharedArrayBuffer`
+- port it to browsers using `WebAssembly`, `AudioWorklet` and `SharedArrayBuffer`
 
-The by-product is that we now have an Rust audio lib called `glicol_synth`.
+The by-product is that we now have an Rust audio lib called `glicol_synth`:
 
 It can run on `Web`, `Desktop`, `DAW`, `Bela board`, etc.
 
-One more thing:
+And one more thing.
 
 To write everything from low-level also opens the door for `meta` node.
 
@@ -99,19 +99,19 @@ o: meta `
 
 ### In browsers
 Some features can be highlighted with the web app:
-- Garbage-collection-free real-time audio in web browsers
+- garbage-collection-free real-time audio in web browsers
 
-- Quick reference in consoles with `alt-d`
+- quick reference in consoles with `alt-d`
 
-- The web app automatically loads samples; you can also drag and drop local samples in the browser editor
+- the web app automatically loads samples; you can also drag and drop local samples in the browser editor
 
-- Robust error handling: error reported in console, musique non-stop!
+- robust error handling: error reported in console, musique non-stop!
 
-- Mix JavaSritp code to create visuals with Hydra synth made by @ojack
+- mix JavaSritp code to create visuals with Hydra synth made by @ojack
 
-- What you see is what you get: no need to select anything, just change the code and update, Glicol engine will use `LCS` algorithm to handle adding, updating and removing
+- what you see is what you get: no need to select anything, just change the code and update, Glicol engine will use `LCS` algorithm to handle adding, updating and removing
 
-- Decentralised collaboration using `yjs` and a unique `be-ready` mechanism
+- decentralised collaboration using `yjs` and a unique `be-ready` mechanism
 
 ### As a web audio library
 
@@ -172,8 +172,9 @@ See [rs](https://github.com/chaosprint/glicol/blob/main/rs) folder for details.
 - [x] `0.8.0` embed `Rhai` in glicol 🎉
 - [x] `0.9.0` redesigned architecture; see the release note
 - [ ] better music expressions, more variation for `seq` nodes
-- [ ] midi support? used in vst?
-- [ ] examples for web audio, vst, bela, etc.
+- [ ] exploring new forms of musical interactions
+<!-- - [ ] midi support? used in vst? -->
+<!-- - [ ] examples for web audio, vst, bela, etc. -->
 
 > Note that Glicol is still highly experimental, so it can be risky for live performances. 
 > The API may also change before version 1.0.0.
