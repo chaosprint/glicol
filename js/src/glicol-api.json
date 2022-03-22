@@ -196,7 +196,20 @@
     "state": {},
     "pan": {},
     "comb" : {},
-    "mix": {},
+    "mix": {
+        "description": "mix all the input signal as is",
+        "parameters": [{"ref_list": "RefList"}],
+        "input": "a sequence of references as inputs;\nbetter to use .. for ref loose match",
+        "output": "mixed signal",
+        "example": "~t1: sin 440;\n~t2: sin 330;\n~d1: sin 550;\nout: mix ~t.. ~d.. >> mul 0.3"
+    },
+    "meta": {
+        "description": "create a meta node for sample-level control",
+        "parameters": [{"rhai_script": "Code"}],
+        "input": "optional, can be any signal but only 1 channel will be used",
+        "output": "customised output; should pad at least 128 numbers for output",
+        "example": "o: sin 100 >> meta `output = input.map(|x|x*0.1);output`\n// more on https://glicol.org/tour#meta1"
+    },
     "onepole": {
         "description": "an one pole low pass filter",
         "parameters": [{"filter_ratio": "Modualble(0.1)"}],
