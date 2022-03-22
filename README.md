@@ -1,110 +1,163 @@
 <div align="center">
   <br />
   <p>
-    <a href="https://glicol.org"><img src="./logo.png" width="200" /></a>
+    <a href="https://glicol.org"><img src="https://github.com/chaosprint/glicol/raw/main/logo.png" width="200" /></a>
   </p>
 </div>
 
-GLICOL (an acronym for "graph-oriented live coding language") is a computer music language and an audio DSP library written in Rust.
-
-## Why Glicol?
-Top 5 features:
-### 1. Graph-oriented syntax
-As its name suggests, Glicol opts a graph-oriented syntax, rather than OOP or FP.
-The consideration is from balancing the simplicity and readability.
-Thus, all you need to know is the connection and the io range.
-You can view each node as synth module that you can literally hear/see.
-
-```
-// amplitude modulation example
-a: sin 440 >> mul ~mod // lazy evaluation
-~mod: sin 0.2 >> mul 0.5 >> add 0.5 // ~mod is a ref
-// names with ~ will be not sent to dac
-```
-
-```
-// sequencer pattern
-// first divide one bar with space
-// then further divide each part
-// _ means rest
-o: speed 2.0 >> seq 60 _~a _ 60__60
->> sp \blip
-~a: choose 60 60 0 0 72 72 // quantity alters probability
-```
-
-### 2. What you see is what you get
-
-For interaction, Glicol choose a WYSIWYG (what-you-see-is-what-you-get) paradigm. Under the hood, Glicol has implemented LCS algorithm to dynamically update the graph in real-time.
-
-### 3. Zero-installation
-
-You can learn Glicol, find music example and create decentralised collaboration on its web interface:
+Glicol (an acronym for "graph-oriented live coding language") is a computer music language and an audio DSP library written in Rust. The easiest to try Glicol is by visiting:
 
 https://glicol.org
 
-The web interface has the following features:
-- run Glicol engine at near-native speed, thanks to WebAssembly
-- garbage-collection-free real-time audio in browsers thanks to AudioWorklet, SharedArrayBuffer
-- error handling and command in browser console: e.g. load your own samples
-- mix JS code with Glicol easily: `o: sin ##42*10+20#`
-- create visuals with Hydra
+There you can find guides, demos, docs, and apps for collaboration.
 
-### 4. Rust audio
+## Why Glicol
 
-Glicol has its own audio library `glicol_synth` and can be used:
+The motivation of Glicol is:
 
-- as Web Audio API, Tone.js alternative
-- for developing VST plugins in Rust (has POC, but still WIP)
-- to program on Bela board (has POC, but still WIP)
+- to help people with zero knowledge of coding and music production to get started with live coding
 
-The `js` folder contains the Glicol distribution for the web platform. The usage is very easy. Just include this into your `index.html`:
+- to offer experienced music coders a tool for quick prototyping and hacking
+
+In [NIME community](https://nime.org/), it is known as: 
+> low entry fee and high ceilings
+
+This is Glicol's philosophy to approach these goals:
+
+- design a language from the instrument perspective
+
+- embrace the spirit of the internet for a better experience
+
+Reflected in the implementation:
+
+- Glicol adopts a graph-oriented paradigm
+
+- Glicol can be used in browsers with zero-installation
+
+The basic idea (graph-oriented) of Glicol is to connect different nodes like synth modules. 
+
+Two ways for connecting: `>>` and `~reference`:
 ```
-<script src="https://cdn.jsdelivr.net/gh/chaosprint/glicol@v0.9.2/js/src/glicol.js"></script>
+// amplitude modulation and lazy evaluation example
+// chain with ~ is a ref chain and will not be sent to the DAC
+
+o: sin 440 >> mul ~amp
+~amp: sin 1.0 >> mul 0.3 >> add 0.5
 ```
+<!-- Sometimes, constraints make it easier to learn and use. -->
+
+It also applies to sequencer and sampler:
+```
+// sequencer pattern
+// first divide one bar with space
+// then further divide each part based on midi number and rest(_)
+
+o: speed 2.0 >> seq 60 _~a _ 48__67
+>> sp \blip
+
+// quantity alters probability
+~a: choose 60 60 0 0 72 72
+```
+
+As mentioned above, you can try these examples on:
+
+https://glicol.org
+
+When Glicol is used in education, we can let students see and hear each node, even including 'envelope'.
+
+Just leave the introduction of `Object` and `Function` later when we mix JavaScript with Glicol.
+
+For the audio engine, instead of mapping it to existing audio lib like `SuperCollider`, I decide to do it the hard way:
+
+- Write the parser in Rust
+
+- Write the audio engine in Rust that works seamlessly with the AST processing
+
+- Port it to browsers using `WebAssembly`, `AudioWorklet` and `SharedArrayBuffer`
+
+The by-product is that we now have an Rust audio lib called `glicol_synth`.
+
+It can run on `Web`, `Desktop`, `DAW`, `Bela board`, etc.
+
+One more thing:
+
+To write everything from low-level also opens the door for `meta` node.
+
+Now I can explain to students, the `hello world` tone can also be written in this way:
+```
+o: meta `
+    output.pad(128, 0.0);
+    for i in 0..128 {
+        output[i] = sin(2*PI()*phase) ;
+        phase += 440.0 / sr;
+    };
+    while phase > 1.0 { phase -= 1.0 };
+    output
+`
+```
+## Use Glicol
+
+### In browsers
+Some features can be highlighted with the web app:
+- Garbage-collection-free real-time audio in web browsers
+
+- Quick reference in consoles with `alt-d`
+
+- The web app automatically loads samples; you can also drag and drop local samples in the browser editor
+
+- Robust error handling: error reported in console, musique non-stop!
+
+- Mix JavaSritp code to create visuals with Hydra synth made by @ojack
+
+- What you see is what you get: no need to select anything, just change the code and update, Glicol engine will use `LCS` algorithm to handle adding, updating and removing
+
+- Decentralised collaboration using `yjs` and a unique `be-ready` mechanism
+
+### As a web audio library
+
+The `js` folder contains the Glicol distribution for the web platform. 
+
+The usage is very easy. Just include this into your index.html:
+```
+<script src="https://cdn.jsdelivr.net/gh/chaosprint/glicol@v0.9.18/js/src/glicol.js"></script>
+```
+
 Then you can write on your website:
 ```
 run(`o: sin 440`)
 ```
 
-See the [./js](./js) folder for details of web audio.
+Apparently, such a protocol can be helpful for apps like a drum machine.
 
-For Rust audio, see the [./rs](./rs) folder for details.
+> Note that you should enable `cross-origin-isolation` for your server.
 
-### 5. One more thing
-You can use `meta` to write meta node, which is like the `gen~` in Max/MSP.
+See [js](https://github.com/chaosprint/glicol/blob/main/js) folder for details.
 
+### As a Rust audio library
+
+Glicol synth is still under development, mainly on the docs, and will be published to [crates.io](https://crates.io/) soon.
+
+For now, you can fork and download this repo.
+
+A glimpse of the syntax of `glicol_synth`:
 ```
-// sawtooth osc >> onepole filter
-a: meta `
-	f = 220.;
-	output.pad(128, 0.0);
-	if phase == 0 {
-		p = 0.0;
-	}
-	for i in 0..128 {
-		output[i] = p * 2. - 1.;
-		p += f / sr;
-	};
-	if p > 1.0 { p -= 1.0 };
-	output
-` >> meta `
-	r = 1./2000.;
-	if phase == 0.0 {
-		z = 0.0
-	}
-	output.pad(128, 0.0);
-	b = (-2.0 * PI() * r).exp();
-	a = 1.0 - b;
-	for i in 0..128 {
-		y = input[i] * a + b * z;
-		output[i] = y;
-		z = y;
-	};
-	output
-`
-```
+use glicol_synth::{AudioContextBuilder, signal::ConstSig, Message};
 
-## Milestones
+fn main() {
+    let mut context = AudioContextBuilder::<64>::new()
+    .sr(44100).channels(1).build();
+
+    let node_a = context.add_mono_node(ConstSig::new(42.));
+    context.connect(node_a, context.destination);
+    println!("first block {:?}", context.next_block());
+
+    context.send_msg(node_a, Message::SetToNumber(0, 100.) );
+    println!("second block, after msg {:?}", context.next_block());
+}
+```
+See [rs](https://github.com/chaosprint/glicol/blob/main/rs) folder for details.
+
+## Roadmap
 
 - [x] `0.1.0` hello world from `dasp_graph` and `pest.rs`, pass code from js to wasm, and lazy evaluation
 - [x] `0.2.0` pass samples from js to wasm, support error handling, bpm control in console
@@ -117,25 +170,13 @@ a: meta `
     - `glicol-js` = `glicol-main` + `glicol-wasm`
 - [x] `0.7.0` support mixing js with glicol in `glicol-js` using Regex; add visualisation
 - [x] `0.8.0` embed `Rhai` in glicol 🎉
-```
-main: script `
-    output.clear();
-    for i in 0..128 {
-        output.push(sin(2.0*PI()*phase / (44100.0 / 55.0 )));
-        phase += 1.0;
-    };
-    output
-` >> script `
-    output = input.map(|i|i*0.1);
-    output
-`
-```
 - [x] `0.9.0` redesigned architecture; see the release note
-- [ ] better docs/tutorials, music examples and bug fix
-- [ ] midi support? better communication between wasm and js
-- [ ] better extension node, vst, web audio development protocol 
+- [ ] better music expressions, more variation for `seq` nodes
+- [ ] midi support? used in vst?
+- [ ] examples for web audio, vst, bela, etc.
 
-> Note that Glicol is still highly experimental, so it can be risky for live performances. The API may also change before version 1.0.0.
+> Note that Glicol is still highly experimental, so it can be risky for live performances. 
+> The API may also change before version 1.0.0.
 
 Please let me know in [issues](https://github.com/chaosprint/glicol/issues) or [discussions](https://github.com/chaosprint/glicol/discussions):
 - your thoughts on the experience of glicol
