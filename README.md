@@ -5,16 +5,18 @@
   </p>
 </div>
 
-Glicol (an acronym for "graph-oriented live coding language") is a computer music language and an audio DSP library written in Rust. The easiest way to try Glicol:
-
-https://glicol.org
-
-There you can find guides, demos, docs, and apps for collaboration.
+Glicol (an acronym for "graph-oriented live coding language") is a computer music language and an audio DSP library written in Rust.
 
 Glicol can be used for:
 - live coding performance
 - education of electronic music, DSP and coding
 - audio/music development as a JavaScript or Rust audio library, running on Web, Desktop, DAW, Bela, etc.
+
+The easiest way to try Glicol:
+
+https://glicol.org
+
+There you can find guides, demos, docs, and apps for collaboration.
 
 ## Why Glicol
 
@@ -84,7 +86,7 @@ For the audio engine, instead of mapping it to existing audio lib like `SuperCol
 
 - port it to browsers using `WebAssembly`, `AudioWorklet` and `SharedArrayBuffer`
 
-The main reason is to explore performant audio in browsers and pave the way for decentralised live coding collaboration.
+The main reason is to explore performant audio in browsers for easy access and live coding collaboration.
 
 The reward is that we now have an Rust audio lib called `glicol_synth`:
 
