@@ -5,11 +5,16 @@
   </p>
 </div>
 
-Glicol (an acronym for "graph-oriented live coding language") is a computer music language and an audio DSP library written in Rust. The easiest to try Glicol is by visiting:
+Glicol (an acronym for "graph-oriented live coding language") is a computer music language and an audio DSP library written in Rust. The easiest way to try Glicol:
 
 https://glicol.org
 
 There you can find guides, demos, docs, and apps for collaboration.
+
+Glicol can be used for:
+- live coding performance
+- education of electronic music, DSP and coding
+- audio/music development as a JavaScript or Rust audio library, running on Web, Desktop, DAW, Bela, etc.
 
 ## Why Glicol
 
@@ -34,7 +39,9 @@ Reflected in the implementation:
 
 - Glicol can be used in browsers with zero-installation
 
-The basic idea (graph-oriented) of Glicol is to connect different nodes like synth modules.
+### Graph-oriented
+
+The basic idea of Glicol is to connect different nodes like synth modules.
 
 Two ways for connecting: `>>` and `~reference`:
 ```
@@ -67,6 +74,8 @@ When Glicol is used in education, we can let students see and hear each node, ev
 
 Just leave the introduction of `Object` and `Function` later when we mix JavaScript with Glicol.
 
+### Zero-installation
+
 For the audio engine, instead of mapping it to existing audio lib like `SuperCollider`, I decide to do it the hard way:
 
 - write the parser in Rust
@@ -75,9 +84,11 @@ For the audio engine, instead of mapping it to existing audio lib like `SuperCol
 
 - port it to browsers using `WebAssembly`, `AudioWorklet` and `SharedArrayBuffer`
 
-The by-product is that we now have an Rust audio lib called `glicol_synth`:
+The main reason is to explore performant audio in browsers and pave the way for decentralised live coding collaboration.
 
-It can run on `Web`, `Desktop`, `DAW`, `Bela board`, etc.
+The reward is that we now have an Rust audio lib called `glicol_synth`:
+
+It can run on Web, Desktop, DAW, Bela board, etc.
 
 And one more thing.
 
@@ -129,7 +140,7 @@ run(`o: sin 440`)
 
 Apparently, such a protocol can be helpful for apps like a drum machine.
 
-> Note that you should enable `cross-origin-isolation` for your server.
+> Note that you should enable `cross-origin-isolation` on your server.
 
 See [js](https://github.com/chaosprint/glicol/blob/main/js) folder for details.
 
