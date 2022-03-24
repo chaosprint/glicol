@@ -304,6 +304,18 @@ window.d = () => {
   return window.emoj
 }
 
+window.r = Math.random
+
+window.v = () => {
+  if (window.hydra) {
+    func = [`.diff(o0)`, `.scale(r())`, `.rotate(r()*90)`, `.color(r(), r(), r())`]
+    .sort(() => Math.random() - 0.5).join("")
+    let toRun = `osc(r(), r(), r())${func}.out()`;
+    log(toRun)
+    eval(toRun)
+  }
+}
+
 window.visualColorLeft = '#51A3A3' //#FE5E41';
 // window.visualizerBackground = "rgba(255, 255, 255, 0.5)"
 window.visualizerBackground = "white"
