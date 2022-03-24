@@ -308,12 +308,17 @@ window.r = Math.random
 
 window.v = () => {
   if (window.hydra) {
-    func = [`.diff(o0)`, `.scale(r())`, `.rotate(r()*90)`, `.color(r(), r(), r())`]
+      func = [`.diff(o0)`, 
+      `.scale(${r().toFixed(2)})`, 
+      `.rotate(${Math.round(r()*90)})`, 
+      `.color(${r().toFixed(2)}, ${r().toFixed(2)}, ${r().toFixed(2)})`
+    ]
     .sort(() => Math.random() - 0.5).join("")
-    let toRun = `osc(r(), r(), r())${func}.out()`;
+    let toRun = `osc(${r().toFixed(2)}, ${r().toFixed(2)}, ${r().toFixed(2)})${func}.out()`;
     log(toRun)
     eval(toRun)
   }
+  // return toRun
 }
 
 window.visualColorLeft = '#51A3A3' //#FE5E41';
