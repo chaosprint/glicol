@@ -95,3 +95,9 @@ pub extern "C" fn set_seed(seed: f32) {
     let mut engine = ENGINE.lock().unwrap();
     engine.set_seed(seed as usize);
 }
+
+#[no_mangle]
+pub extern "C" fn reset() {
+    let mut engine = ENGINE.lock().unwrap();
+    engine.reset();
+}
