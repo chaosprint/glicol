@@ -77,6 +77,28 @@ impl<const N: usize> Engine<'static, N> {
         Ok(())
     }
 
+    pub fn reset(&mut self) {
+        self.context.reset();
+        self.ast.clear();
+        self.new_ast.clear();
+        self.code = "";
+        self.index_info.clear();
+        self.index_info_backup.clear();
+        self.temp_node_index.clear();
+        self.node_add_list.clear();
+        self.node_remove_list.clear();
+        self.node_index_to_remove.clear();
+        self.node_update_list.clear();
+        self.refpairlist.clear();
+        self.samples_dict.clear();
+        self.bpm = 120.;
+        self.track_amp = 1.0;
+        self.seed = 42;
+        self.clock = 0;
+        self.livecoding = true;
+        self.need_update = false;
+    }
+
     // prepare the NodeData but do not do anything to the graph connection
     // get: add info, which chain, where, add what node
     // modify info

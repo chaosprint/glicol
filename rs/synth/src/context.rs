@@ -61,7 +61,7 @@ impl<const N: usize> AudioContextBuilder<N> {
 
     pub fn build(self) -> AudioContext<N> {
         AudioContext::new(
-            AudioContextConfig{
+            AudioContextConfig {
                 sr: self.sr,
                 channels: self.channels,
                 max_nodes: self.max_nodes,
@@ -110,7 +110,8 @@ pub struct AudioContext<const N: usize> {
     pub destination: NodeIndex,
     pub tags: HashMap<&'static str, NodeIndex>,
     pub graph: GlicolGraph<N>,
-    pub processor: GlicolProcessor<N>
+    pub processor: GlicolProcessor<N>,
+    config: AudioContextConfig
 }
 
 impl<const N: usize> AudioContext<N> {
@@ -124,7 +125,15 @@ impl<const N: usize> AudioContext<N> {
             input,
             tags: HashMap::new(),
             processor: GlicolProcessor::<N>::with_capacity(config.max_nodes),
+            config,
         }
+    }
+
+    pub fn reset(&mut self) {
+        // self.graph.clear_edges();
+        self.graph.clear();
+        self.destination = self.graph.add_node( NodeData::multi_chan_node(self.config.channels, BoxedNodeSend::<N>::new(Sum2) ) );
+        self.input =  self.graph.add_node( NodeData::multi_chan_node(self.config.channels, BoxedNodeSend::<N>::new(Pass) ) );
     }
 
     /// an alternative to new() specify the estimated max node and edge numbers
