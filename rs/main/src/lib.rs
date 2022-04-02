@@ -4,7 +4,7 @@ pub mod util; use util::makenode;
 pub mod error; pub use error::{EngineError, get_error_info};
 use hashbrown::HashMap;
 use petgraph::{graph::NodeIndex};
-use glicol_parser::{get_ast, GlicolAst}; 
+use glicol_parser::{get_ast}; 
 use glicol_synth::{AudioContext, AudioContextConfig, NodeData, BoxedNodeSend, Buffer, Message, GlicolPara};
 use lcs_diff::{diff, DiffResult};
 
@@ -13,8 +13,8 @@ pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
 pub struct Engine<const N: usize> {
     pub context: AudioContext<N>,
     code: String,
-    ast: GlicolAst,
-    new_ast: GlicolAst,
+    ast: HashMap<String, (Vec<String>, Vec<Vec<GlicolPara>>)>,
+    new_ast: HashMap<String, (Vec<String>, Vec<Vec<GlicolPara>>)>,
     pub index_info: HashMap<String, Vec<NodeIndex>>,
     pub index_info_backup: HashMap<String, Vec<NodeIndex>>,
     temp_node_index: Vec<NodeIndex>, // created in the adding process, will be deleted if err

@@ -10,8 +10,8 @@ petgraph = { version = "0.6",  features = ["stable_graph"] }
 # dasp_graph = { path = "../dasp_graph" }
 glicol_parser = { path = "../parser" }
 glicol_synth = { path = "../synth" }
-lcs-diff = "*"
-pest = "*"
+lcs-diff = "0.1.1"
+pest = "2.1.3"
 glicol_macros = { path = "../macros" }
-hashbrown = "*"
+hashbrown = "0.12"
 # cargo build --target wasm32-unknown-unknown --release
