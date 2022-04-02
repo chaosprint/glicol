@@ -23,7 +23,7 @@ pub extern "C" fn alloc_uint8array(length: usize) -> *mut u8 {
 }
 
 lazy_static! {
-    static ref ENGINE:Mutex<Engine<'static, 128>> = Mutex::new(Engine::<128>::new());
+    static ref ENGINE:Mutex<Engine<128>> = Mutex::new(Engine::<128>::new());
 }
 
 #[no_mangle]
