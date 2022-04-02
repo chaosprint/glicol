@@ -80,7 +80,7 @@ impl<const N: usize> Engine<N> {
         self.context.reset();
         self.ast.clear();
         self.new_ast.clear();
-        self.code = "";
+        self.code = "".to_owned();
         self.index_info.clear();
         self.index_info_backup.clear();
         self.temp_node_index.clear();
