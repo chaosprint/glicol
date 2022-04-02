@@ -3,7 +3,7 @@ use pest::error::Error;
 use pest_derive::*;
 // use pest::iterators::Pair;
 // use pest::error::ErrorVariant;
-use std::collections::HashMap;
+use hashbrown::HashMap;
 
 use glicol_macros::{one_para_number_or_ref, two_numbers};
 use glicol_synth::GlicolPara;
@@ -19,30 +19,16 @@ pub fn get_num(para: GlicolPara) -> f32 {
     }
 }
 
-pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<Vec<GlicolPara>>)>, Error<Rule>> {
+/// index, (vector of chain name, vector of parameter list)
+pub type GlicolAst = HashMap<String, (Vec<String>, Vec<Vec<GlicolPara>>)>;
+
+pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
     let mut block = match GlicolParser::parse(Rule::block, code) {
         Ok(v) => v,
-        Err(e) => {
-            // println!("catch error in parser; in location: {:?}; line_col: {:?}", e.location, e.line_col);
-            // match &e.variant {
-            //     ErrorVariant::ParsingError{ positives, negatives } => { 
-            //         if positives.len() != 0 {
-            //             print!("\n\nexpecting ");
-            //             for possible in positives { print!("{:?} ", possible) }
-            //             print!("\n\n");
-            //         }
-            //         if negatives.len() != 0 {
-            //             print!("\n\nunexpected element: ");
-            //             for possible in negatives { print!("{:?} ", possible) }
-            //             print!("\n\n");
-            //         }
-            //     },
-            //     _ => {panic!("unknonw parsing error")}
-            // }
-            return Err(e)
-        }
+        Err(e) => { return Err(e) }
     };
-    let lines = block.next().unwrap(); // this can be a comment though, but we call it a line
+    // this can be a comment though, but we call it a line
+    let lines = block.next().unwrap();
     let mut ast = HashMap::new();
     for line in lines.into_inner() {
         match line.as_rule() {
@@ -106,13 +92,12 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                                     },
                                                     Rule::note_ref => {
                                                         println!("ref {:?}", e.as_str());
-                                                        event.push( (time, GlicolPara::Reference(e.as_str()) ));
+                                                        event.push( (time, GlicolPara::Reference(e.as_str().to_owned()) ));
                                                     },
                                                     _=> unimplemented!()
                                                 }
                                             }
                                         }
-                                        // GlicolPara::Sequence()
                                         chain_paras.push(vec![GlicolPara::Sequence(event)]);
                                     },
                                     Rule::choose => {
@@ -124,24 +109,17 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                     },
                                     Rule::mix => {
                                         println!("node {:?}", node.as_str());
-                                        let paras: Vec<_> = node.into_inner().map(|x| GlicolPara::Reference(x.as_str())).collect();
+                                        let paras: Vec<_> = node.into_inner().map(|x| GlicolPara::Reference(x.as_str().to_owned()) ).collect();
                                         println!("paras {:?}", paras);
                                         chain_node_names.push("mix");
                                         chain_paras.push(paras);
                                     },
-                                    // Rule::sendpass => {
-                                    //     println!("node {:?}", node.as_str());
-                                    //     let paras: Vec<_> = node.into_inner().map(|x|x.as_str()).collect();
-                                    //     println!("paras {:?}", paras);
-                                    //     chain_node_names.push("sendpass");
-                                    //     chain_paras.push(vec![GlicolPara::RefList(paras)]);
-                                    // },
                                     Rule::sp => {
                                         println!("node {:?}", node.as_str());
                                         let paras = node.into_inner().next().unwrap();
                                         println!("paras {:?}", paras.as_str());
                                         chain_node_names.push("sp");
-                                        chain_paras.push(vec![GlicolPara::SampleSymbol(paras.as_str())]);
+                                        chain_paras.push(vec![GlicolPara::SampleSymbol(paras.as_str().to_owned())]);
                                     },
                                     Rule::speed => one_para_number_or_ref!("speed"),
                                     Rule::constsig => one_para_number_or_ref!("constsig"),
@@ -163,7 +141,7 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                                     GlicolPara::Number(p1.as_str().parse::<f32>().unwrap())
                                                 ,
                                                 Rule::reference => 
-                                                    GlicolPara::Reference(p1.as_str())
+                                                    GlicolPara::Reference(p1.as_str().to_owned())
                                                 ,
                                                 _ => unimplemented!()
                                             },
@@ -171,7 +149,6 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                         ]);
                                         // println!("chain_paras, {:?}", chain_paras);
                                     },
-
                                     Rule::balance => {
                                         println!("node {:?}", node.as_str());
                                         let mut iter = node.into_inner();
@@ -179,8 +156,8 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                         let p2 = iter.next().unwrap();
                                         chain_node_names.push("balance");
                                         chain_paras.push(vec![
-                                            GlicolPara::Reference(p1.as_str()),
-                                            GlicolPara::Reference(p2.as_str()),
+                                            GlicolPara::Reference(p1.as_str().to_owned()),
+                                            GlicolPara::Reference(p2.as_str().to_owned()),
                                         ]);
                                         // println!("chain_paras, {:?}", chain_paras);
                                     },
@@ -196,7 +173,7 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                                     GlicolPara::Number(p1.as_str().parse::<f32>().unwrap())
                                                 ,
                                                 Rule::reference => 
-                                                    GlicolPara::Reference(p1.as_str())
+                                                    GlicolPara::Reference(p1.as_str().to_owned())
                                                 ,
                                                 _ => unimplemented!()
                                             },
@@ -216,7 +193,7 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                                     GlicolPara::Number(p1.as_str().parse::<f32>().unwrap())
                                                 ,
                                                 Rule::reference => 
-                                                    GlicolPara::Reference(p1.as_str())
+                                                    GlicolPara::Reference(p1.as_str().to_owned())
                                                 ,
                                                 _ => unimplemented!()
                                             },
@@ -244,7 +221,7 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                                         let paras = node.into_inner().next().unwrap();
                                         println!("paras {:?}", paras.as_str());
                                         chain_node_names.push("meta");
-                                        chain_paras.push(vec![GlicolPara::Symbol(paras.as_str())]);
+                                        chain_paras.push(vec![GlicolPara::Symbol(paras.as_str().to_owned())]);
                                     },
                                     _ => unimplemented!()
                                 }
@@ -254,7 +231,13 @@ pub fn get_ast<'a>(code: &'a str) -> Result<HashMap<&'a str, (Vec<&'a str>, Vec<
                         _ => {}
                     }
                 }
-                ast.insert(key, (chain_node_names, chain_paras));
+                ast.insert(
+                    key.to_owned(), 
+                    (
+                        chain_node_names.iter_mut().map(|x|x.to_owned()).collect::<Vec<String>>(), 
+                        chain_paras
+                    )
+                );
             },
             _ => {},
         };

@@ -11,3 +11,4 @@ pest = "*"
 pest_derive = "*"
 glicol_macros = {path = "../macros"}
 glicol_synth = {path = "../synth"}
+hashbrown = "*"

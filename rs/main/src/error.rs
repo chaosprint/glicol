@@ -5,7 +5,7 @@ pub use pest::error::ErrorVariant;
 #[derive(Debug)]
 pub enum EngineError {
     ParsingError( pest::error::Error<glicol_parser::Rule>),
-    NonExistReference(&'static str),
+    NonExistReference(String),
     NonExsitSample(String),
 }
 

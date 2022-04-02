@@ -5,8 +5,8 @@ use rhai::{Engine, Array, Scope, Dynamic, OptimizationLevel}; //EvalAltResult
 pub struct Meta<const N: usize> {
     sr: usize,
     // phase: usize,
-    code: &'static str,
-    backup: &'static str,
+    code: String,
+    backup: String,
     scope: Scope<'static>,
     engine: Engine,
     input_order: Vec<usize>
@@ -69,8 +69,8 @@ impl<const N: usize> Meta<N> {
             sr: 44100,
             engine,
             scope,
-            code: "",
-            backup: "",
+            code: "".to_owned(),
+            backup: "".to_owned(),
             // phase,
             input_order: Vec::new()
         }
@@ -80,7 +80,7 @@ impl<const N: usize> Meta<N> {
         Self {sr, ..self}
     }
 
-    pub fn code(self, code: &'static str) -> Self {
+    pub fn code(self, code: String) -> Self {
         Self {code, ..self}
     }
 
