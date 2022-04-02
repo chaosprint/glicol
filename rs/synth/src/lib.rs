@@ -51,10 +51,10 @@ macro_rules! impl_to_boxed_nodedata {
 pub enum Message {
     SetToNumber(u8, f32),
     SetToNumberList(u8, Vec<f32>),
-    SetToSymbol(u8, &'static str),
+    SetToSymbol(u8, String),
     SetToSamples(u8, (&'static [f32], usize, usize)),
-    SetToSeq(u8, Vec::<(f32, GlicolPara<'static>)>),
-    SetRefOrder(HashMap<&'static str, usize>),
+    SetToSeq(u8, Vec::<(f32, GlicolPara)>),
+    SetRefOrder(HashMap<String, usize>),
     SetBPM(f32),
     SetSampleRate(usize),
     MainInput(petgraph::graph::NodeIndex),
@@ -65,12 +65,12 @@ pub enum Message {
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub enum GlicolPara<'a> {
+pub enum GlicolPara {
     Number(f32),
     NumberList(Vec<f32>),
-    Reference(&'a str),
+    Reference(String),
     // RefList(Vec<&'a str>),
-    SampleSymbol(&'a str), // symbol is for sample only
-    Symbol(&'a str),
-    Sequence(Vec::<(f32, GlicolPara<'a>)>),
+    SampleSymbol(String), // symbol is for sample only
+    Symbol(String),
+    Sequence(Vec::<(f32, GlicolPara)>),
 }

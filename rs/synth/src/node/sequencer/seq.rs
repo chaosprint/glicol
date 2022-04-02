@@ -3,8 +3,8 @@ use hashbrown::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct Sequencer {
-    events: Vec<(f32, GlicolPara<'static>)>,
-    ref_order: HashMap<&'static str, usize>,
+    events: Vec<(f32, GlicolPara)>,
+    ref_order: HashMap<String, usize>,
     speed: f32,
     pub bpm: f32,
     sr: usize,
@@ -14,7 +14,7 @@ pub struct Sequencer {
 }
 
 impl Sequencer {
-    pub fn new(events: Vec<(f32, GlicolPara<'static>)>, ) -> Self {
+    pub fn new(events: Vec<(f32, GlicolPara)>, ) -> Self {
         Self {
             events,
             ref_order: HashMap::new(),
@@ -25,7 +25,7 @@ impl Sequencer {
             step: 0
         }
     }
-    pub fn ref_order(self, ref_order: HashMap<&'static str, usize>) -> Self {
+    pub fn ref_order(self, ref_order: HashMap<String, usize>) -> Self {
         Self {
             ref_order, ..self
         }
@@ -80,8 +80,8 @@ impl< const N: usize> Node<N> for Sequencer {
                     
                     for event in &self.events {
                         if (self.step % (bar_length as usize)) == ((event.0 as f64 * bar_length) as usize) {
-                            let midi = match event.1 {
-                                GlicolPara::Number(value) => value,
+                            let midi = match &event.1 {
+                                GlicolPara::Number(value) => *value,
                                 GlicolPara::Reference(s) => {
                                     let source = &inputs[&self.input_order[self.ref_order[s] + has_speed as usize]]; //panic?
                                     source.buffers()[0][i]

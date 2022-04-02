@@ -1,0 +1,23 @@
+[package]
+name = "glicol_vst"
+version = "0.1.0"
+authors = ["Qichao Lan (chaosprint)"]
+edition = "2018"
+license = "MIT"
+
+[lib]
+name = "glicol_vst"
+crate-type = ["cdylib"]
+
+[dependencies]
+baseview = {git = "https://github.com/RustAudio/baseview", rev = "f6e99e9aa6f5aeb6b721cb05e4d882a51d995909" }
+dirs = "4"
+log = "0.4"
+log-panics = "2"
+raw-window-handle = "0.3"
+simplelog = "0.11"
+vst = "0.2"
+rtrb = "0.2"
+egui-baseview = {git = "https://github.com/BillyDM/egui-baseview", rev = "b7436c02309347e49ffd4491bf31cdef6e759eb7" }
+egui = "0.15"
+glicol = {path = "../main"}

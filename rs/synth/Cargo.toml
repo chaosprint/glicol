@@ -27,13 +27,13 @@ node-sum = ["dasp_slice"]
 [dependencies]
 # glicol_macros = { path = "../macros"}
 petgraph = { version = "0.6",  features = ["stable_graph"] }
-dasp_slice = { version = "0.11", default-features = false, features = ["std"], optional = true }
-dasp_ring_buffer = "*"
-dasp_signal = "*"
+dasp_slice = { version = "0.11.0", default-features = false, features = ["std"], optional = true }
+dasp_ring_buffer = "0.11.0"
+dasp_signal = "0.11.0"
 dasp_interpolate = { version = "*", features = ["linear", "sinc"] }
-hashbrown = "*"
-arrayvec = "*"
-rhai = { version = "*", features = ["sync", "f32_float", "only_i32"] }
+hashbrown = "0.12"
+arrayvec = "0.7.2"
+rhai = { version = "1.6.0", features = ["sync", "f32_float", "only_i32"] }
 
 [dev-dependencies]
 gnuplot = "*"

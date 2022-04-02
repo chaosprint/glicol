@@ -17,7 +17,7 @@ pub fn one_para_number_or_ref(item: TokenStream) -> TokenStream {
                     chain_paras.push(vec![GlicolPara::Number(paras.as_str().parse::<f32>().unwrap())]);
                 },
                 Rule::reference => {
-                    chain_paras.push(vec![GlicolPara::Reference(paras.as_str())]);
+                    chain_paras.push(vec![GlicolPara::Reference(paras.as_str().to_owned())]);
                 },
                 _ => {}
             }
@@ -50,12 +50,12 @@ pub fn get_one_para_from_number_or_ref(item: TokenStream) -> TokenStream {
     let name = proc_macro2::TokenStream::from(item);
     let gen = quote! {
         {
-            match paras[0] {
+            match &paras[0] {
                 GlicolPara::Number(v) => {
-                    (#name::new(v).to_boxed_nodedata(1), vec![])
+                    (#name::new(*v).to_boxed_nodedata(1), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (#name::new(0.0).to_boxed_nodedata(1), vec![s])
+                    (#name::new(0.0).to_boxed_nodedata(1), vec![s.to_owned()])
                 },
                 _ => {
                     unimplemented!();
@@ -70,12 +70,12 @@ pub fn get_one_para_from_number_or_ref2(item: TokenStream) -> TokenStream {
     let name = proc_macro2::TokenStream::from(item);
     let gen = quote! {
         {
-            match paras[0] {
+            match &paras[0] {
                 GlicolPara::Number(v) => {
-                    (#name::new(v).to_boxed_nodedata(2), vec![])
+                    (#name::new(*v).to_boxed_nodedata(2), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (#name::new(0.0).to_boxed_nodedata(2), vec![s])
+                    (#name::new(0.0).to_boxed_nodedata(2), vec![s.to_owned()])
                 },
                 _ => {
                     unimplemented!();

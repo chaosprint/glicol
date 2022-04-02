@@ -2,7 +2,7 @@
 
 pub mod util; use util::makenode;
 pub mod error; pub use error::{EngineError, get_error_info};
-use std::collections::HashMap;
+use hashbrown::HashMap;
 use petgraph::{graph::NodeIndex};
 use glicol_parser::{get_ast}; 
 use glicol_synth::{AudioContext, AudioContextConfig, NodeData, BoxedNodeSend, Buffer, Message, GlicolPara};
@@ -10,20 +10,20 @@ use lcs_diff::{diff, DiffResult};
 
 pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
 
-pub struct Engine<'a, const N: usize> {
+pub struct Engine<const N: usize> {
     pub context: AudioContext<N>,
-    code: &'static str,
-    ast: HashMap<&'a str, (Vec<&'a str>, Vec<Vec<GlicolPara<'a>>>)>,
-    new_ast: HashMap<&'a str, (Vec<&'a str>, Vec<Vec<GlicolPara<'a>>>)>,
-    pub index_info: HashMap<&'a str, Vec<NodeIndex>>,
-    pub index_info_backup: HashMap<&'a str, Vec<NodeIndex>>,
+    code: String,
+    ast: HashMap<String, (Vec<String>, Vec<Vec<GlicolPara>>)>,
+    new_ast: HashMap<String, (Vec<String>, Vec<Vec<GlicolPara>>)>,
+    pub index_info: HashMap<String, Vec<NodeIndex>>,
+    pub index_info_backup: HashMap<String, Vec<NodeIndex>>,
     temp_node_index: Vec<NodeIndex>, // created in the adding process, will be deleted if err
-    node_add_list: Vec<(&'a str, usize, GlicolNodeData<N>)>,
-    node_remove_list: Vec<(&'a str, usize)>,
+    node_add_list: Vec<(String, usize, GlicolNodeData<N>)>,
+    node_remove_list: Vec<(String, usize)>,
     node_index_to_remove: Vec<NodeIndex>, // stored in order not to touch the graph if err
-    node_update_list: Vec<(&'a str, usize, Vec<GlicolPara<'a>>)>,
-    pub refpairlist: Vec<(Vec<&'a str>, &'a str, usize)>,
-    pub samples_dict: HashMap<&'a str, (&'a [f32], usize, usize)>,
+    node_update_list: Vec<(String, usize, Vec<GlicolPara>)>,
+    pub refpairlist: Vec<(Vec<String>, String, usize)>,
+    pub samples_dict: HashMap<String, (&'static [f32], usize, usize)>,
     bpm: f32,
     sr: usize,
     track_amp: f32,
@@ -33,14 +33,14 @@ pub struct Engine<'a, const N: usize> {
     need_update: bool,
 }
 
-impl<const N: usize> Engine<'static, N> {
+impl<const N: usize> Engine<N> {
     pub fn new() -> Self {
         let context = AudioContext::<N>::new(AudioContextConfig::default());
         Self {
             context,
             ast: HashMap::new(),
             new_ast: HashMap::new(),
-            code: "",
+            code: "".to_owned(),
             index_info: HashMap::new(),
             index_info_backup: HashMap::new(),
             temp_node_index: vec![],
@@ -60,18 +60,17 @@ impl<const N: usize> Engine<'static, N> {
         }
     }
 
-    pub fn add_sample(&mut self, name:&'static str, sample: &'static [f32], channels: usize, sr: usize ) {
-        self.samples_dict.insert(name, (sample, channels, sr));
+    pub fn add_sample(&mut self, name:&str, sample: &'static [f32], channels: usize, sr: usize ) {
+        self.samples_dict.insert(name.to_owned(), (sample, channels, sr));
     }
 
-    pub fn update_with_code(&mut self, code: &'static str) {
-        self.code = code;
+    pub fn update_with_code(&mut self, code: &str) {
+        self.code = code.to_owned();
         self.need_update = true;
         // self.samples_dict.insert(r#"\test"#, (&[0.42, 0.0], 2));
     }
 
     pub fn update(&mut self) -> Result<(), EngineError>  {
-        // self.code = code;
         self.parse()?;
         self.make_graph()?;
         Ok(())
@@ -134,7 +133,7 @@ impl<const N: usize> Engine<'static, N> {
                             println!("common node new para {:?}", new_chain_para[new_i]);
                             if old_chain_para[old_i] != new_chain_para[new_i] {
                                 self.node_update_list.push(
-                                    (key, // which chain
+                                    ((*key).clone(), // which chain
                                     new_i, // where in chain
                                     new_chain_para[new_i].clone() // new paras
                                 ))
@@ -150,13 +149,13 @@ impl<const N: usize> Engine<'static, N> {
                                 for para in &new_chain_para[new_i] {
                                     match para {
                                         GlicolPara::Reference(v) => {
-                                            reflist.push(*v);
+                                            reflist.push(v.to_string());
                                         },
                                         GlicolPara::Sequence(seqs) => {
                                             for seq in seqs {
-                                                match seq.1 {
+                                                match &seq.1 {
                                                     GlicolPara::Reference(v) => {
-                                                        reflist.push(v);
+                                                        reflist.push(v.to_owned());
                                                     },
                                                     _ => {}
                                                 }
@@ -166,13 +165,13 @@ impl<const N: usize> Engine<'static, N> {
                                     }
                                 }
                                 if !reflist.is_empty() {
-                                    self.refpairlist.push((reflist, key, new_i));
+                                    self.refpairlist.push((reflist, (*key).clone(), new_i));
                                 }
                             }
                         },
                         DiffResult::Removed(v) => {
                             let old_i = v.old_index.unwrap();
-                            self.node_remove_list.push((key, old_i));
+                            self.node_remove_list.push(((*key).clone(), old_i));
                             println!("Removed {:?}", v)
                         },
                         DiffResult::Added(v) => {
@@ -182,7 +181,7 @@ impl<const N: usize> Engine<'static, N> {
                             let nodename = v.data;
                             let mut paras = &mut new_chain_para[new_i];
                             let (nodedata, reflist) = makenode(
-                                nodename, 
+                                &nodename, 
                                 &mut paras,
                                 &self.samples_dict, 
                                 self.sr,
@@ -190,17 +189,17 @@ impl<const N: usize> Engine<'static, N> {
                                 self.seed                    
                             )?;
                             if !reflist.is_empty() {
-                                self.refpairlist.push((reflist, key, insert_i));
+                                self.refpairlist.push((reflist, (*key).clone(), insert_i));
                             }
                            
-                            self.node_add_list.push((key, insert_i, nodedata));                            
+                            self.node_add_list.push(((*key).clone(), insert_i, nodedata));                            
                         },
                     }
                 }
                 // println!("diff {:?}", diff(old_chain, new_chain));
             } else {
                 for i in 0..node_info_tuple.0.len() {
-                    let name = node_info_tuple.0[i];
+                    let name = &node_info_tuple.0[i];
                     let mut paras = node_info_tuple.1[i].clone();
                     let (nodedata, reflist)  = makenode(
                         name, 
@@ -211,10 +210,10 @@ impl<const N: usize> Engine<'static, N> {
                         self.seed
                     )?;
                     if !reflist.is_empty() {
-                        self.refpairlist.push((reflist, key, i));
+                        self.refpairlist.push((reflist, (*key).clone(), i));
                     }         
                     println!("self.node_add_list {:?} {}", key, i);
-                    self.node_add_list.push((key, i, nodedata));
+                    self.node_add_list.push(((*key).clone(), i, nodedata));
                 };
             }
         }
@@ -265,23 +264,22 @@ impl<const N: usize> Engine<'static, N> {
         println!("ref check {:?}", self.refpairlist);
 
         for refpair in &self.refpairlist {
-
             for refname in &refpair.0 {
                 println!("ref check {} {}", self.new_ast.contains_key(refname), refname);
                 if refname.contains("..") {
                     println!("look for {}", &refname.replace("..", ""));
                     let mut count = 0;
                     for key in self.index_info.keys() {
-                        if (*key).starts_with(&refname.replace("..", "")) {
+                        if ((*key).clone()).starts_with(&refname.replace("..", "")) {
                             count += 1;
                         }
                     }
                     if count == 0 {
-                        return Err(EngineError::NonExistReference(refname))
+                        return Err(EngineError::NonExistReference(refname.to_owned()))
                     }
                 } else {
                     if !self.new_ast.contains_key(refname) {
-                        return Err(EngineError::NonExistReference(refname))
+                        return Err(EngineError::NonExistReference(refname.to_owned()))
                     }
                 }
                 
@@ -308,12 +306,12 @@ impl<const N: usize> Engine<'static, N> {
     pub fn handle_node_add(&mut self) {
         while !self.node_add_list.is_empty() {
             let (key, position_in_chain, nodedata) = self.node_add_list.remove(0); // for insertion, this is better
-            if !self.index_info.contains_key(key) {
-                self.index_info.insert(key, vec![]);
+            if !self.index_info.contains_key(&key) {
+                self.index_info.insert(key.clone(), vec![]);
             };
             let nodeindex = self.context.graph.add_node(nodedata); // TODO: save these id, if there is an error, remove these node
             self.temp_node_index.push(nodeindex);
-            if let Some(chain) = self.index_info.get_mut(key) { // TODO: backup the index_info
+            if let Some(chain) = self.index_info.get_mut(&key) { // TODO: backup the index_info
                 chain.insert(position_in_chain, nodeindex);
             }
         }
@@ -323,7 +321,7 @@ impl<const N: usize> Engine<'static, N> {
         while !self.node_update_list.is_empty() {
             let (key, position_in_chain, paras) = self.node_update_list.pop().unwrap(); // ok as is it not empty
             println!("handle update {:?} {:?}", key, position_in_chain);
-            if let Some(chain) = self.index_info.get_mut(key) {
+            if let Some(chain) = self.index_info.get_mut(&key) {
 
                 // TODO: reset order here, if ref is wrong, cannot be reverted
                 // self.context.graph[
@@ -334,21 +332,21 @@ impl<const N: usize> Engine<'static, N> {
                             chain[position_in_chain]].node.send_msg(
                                 Message::SetToNumber(i as u8, *v)),
                         GlicolPara::Reference(s) => {
-                            self.refpairlist.push((vec![s], key, position_in_chain));
+                            self.refpairlist.push((vec![s.to_string()], key.clone(), position_in_chain));
                         },
                         GlicolPara::SampleSymbol(s) => {
-                            if !self.samples_dict.contains_key(*s) {
-                                return Err(EngineError::NonExsitSample((*s).to_owned()))
+                            if !self.samples_dict.contains_key(&*s as &str) {
+                                return Err(EngineError::NonExsitSample((s.to_string()).to_owned()))
                             }
                             self.context.graph[
                             chain[position_in_chain]].node.send_msg(
-                                Message::SetToSamples(i as u8, self.samples_dict[*s]))
+                                Message::SetToSamples(i as u8, self.samples_dict[s]))
                         },
                         GlicolPara::Symbol(s) => {
                             
                             self.context.graph[
                             chain[position_in_chain]].node.send_msg(
-                                Message::SetToSymbol(i as u8, *s))
+                                Message::SetToSymbol(i as u8, s.to_string()))
                         },
                         GlicolPara::Sequence(events) => {
                             println!("found seq in update, process it {:?}", events);
@@ -361,18 +359,18 @@ impl<const N: usize> Engine<'static, N> {
                             let mut count = 0;
                             let mut order = hashbrown::HashMap::new();
                             for event in events {
-                                match event.1 {
+                                match &event.1 {
                                     GlicolPara::Reference(s) => { // reflist: ["~a", "~b", "~a"]
-                                        if !reflist.contains(&s) {
-                                            reflist.push(&s);
-                                            order.insert(s, count);
+                                        if !reflist.contains(s) {
+                                            reflist.push(s.clone());
+                                            order.insert(s.clone(), count);
                                             count += 1;
                                         }
                                     },
                                     _ => {}
                                 }
                             };
-                            self.refpairlist.push((reflist, key, position_in_chain));
+                            self.refpairlist.push((reflist, key.clone(), position_in_chain));
                             self.context.graph[
                             chain[position_in_chain]].node.send_msg(
                                 Message::SetRefOrder(order)
@@ -398,7 +396,7 @@ impl<const N: usize> Engine<'static, N> {
             let (key, position_in_chain) = self.node_remove_list.pop().unwrap();
 
             // println!("self.index_info {:?}", self.index_info);
-            if let Some(chain) = self.index_info.get_mut(key) { // touch the index is fine, as we have a backup
+            if let Some(chain) = self.index_info.get_mut(&key) { // touch the index is fine, as we have a backup
                 // println!("chain {:?} position_in_chain {:?}", chain, position_in_chain);
                 let node_index = chain[position_in_chain];
                 // self.context.graph.remove_node(node_index);
@@ -414,13 +412,13 @@ impl<const N: usize> Engine<'static, N> {
         println!("self.refpairlist in handle_connection {:?}", self.refpairlist);
 
         for refpairs in &self.refpairlist {
-            let index = self.index_info[refpairs.1][refpairs.2];
+            let index = self.index_info[&refpairs.1][refpairs.2];
             self.context.graph[index].node.send_msg(Message::ResetOrder);
             for refname in &refpairs.0 {
                 if refname.contains("..") {
                     println!("look for {}", &refname.replace("..", ""));
                     for (key, value) in self.index_info.iter() {
-                        if (*key).starts_with(&refname.replace("..", "")) {
+                        if ((*key).clone()).starts_with(&refname.replace("..", "")) {
                             self.context.connect(*value.last().unwrap(), index);
                         }
                     }
