@@ -46,7 +46,7 @@ impl Sequencer {
 
 impl< const N: usize> Node<N> for Sequencer {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
-        println!("seq inputs info {:?} ; self.input_order {:?}", inputs, self.input_order);
+        // println!("seq inputs info {:?} ; self.input_order {:?}", inputs, self.input_order);
         match inputs.len() {
             0 => {
                 let bar_length = 240.0 / self.bpm as f64 * self.sr as f64 / self.speed as f64;

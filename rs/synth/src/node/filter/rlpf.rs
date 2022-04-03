@@ -46,7 +46,7 @@ impl ResonantLowPassFilter {
 
 impl<const N: usize> Node<N> for ResonantLowPassFilter {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
-        println!("inputs {:?} self.input_order {:?}", inputs, self.input_order);
+        // println!("inputs {:?} self.input_order {:?}", inputs, self.input_order);
         match inputs.len() {
             1 => {
                 let main_input = inputs.values_mut().next().unwrap();
