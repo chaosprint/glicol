@@ -184,6 +184,8 @@ See [rs](https://github.com/chaosprint/glicol/blob/main/rs) folder for details.
 - [x] `0.7.0` support mixing js with glicol in `glicol-js` using Regex; add visualisation
 - [x] `0.8.0` embed `Rhai` in glicol 🎉
 - [x] `0.9.0` redesigned architecture; see the release note
+- [x] `0.10.0` run as a VST plugin
+- [x] `0.11.0` run on Bela
 - [ ] better music expressions, more variation for `seq` nodes
 - [ ] exploring new forms of musical interactions
 <!-- - [ ] midi support? used in vst? -->
