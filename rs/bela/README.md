@@ -3,7 +3,9 @@
 This crate helps Glicol engine to run on [Bela board](https://bela.io).
 
 It is based on:
+
 https://github.com/andrewcsmith/bela-rs
+
 https://github.com/padenot/bela-sys
 
 Thus, this version only works for OSX and Linux.
@@ -11,12 +13,21 @@ Thus, this version only works for OSX and Linux.
 
 ## Setup
 
-Install the right tool chain for the Beaglebone black:
+### Step 1
 
 ```sh
 rustup target add armv7-unknown-linux-gnueabihf
 rustup toolchain install stable-armv7-unknown-linux-gnueabihf
 ```
+> For non-Rust programmers, you should have [Rust](https://www.rust-lang.org/) installed on your computer!
+
+### Step 2
+
+`git clone` this whole repo, not just this folder.
+
+I suggest you fork it first in case you wanna contribute.
+
+### Step 3
 
 With a bela board plugged in and accessible at `http://bela.local`, run:
 
