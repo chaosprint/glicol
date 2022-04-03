@@ -1,0 +1,12 @@
+[package]
+name = "bela"
+version = "0.1.0"
+edition = "2015"
+
+[dependencies]
+libc = "0.2"
+nix = "0.10"
+glicol = { path = "../main" }
+
+[dependencies.bela-sys]
+git = "https://github.com/padenot/bela-sys"

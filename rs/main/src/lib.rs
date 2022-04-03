@@ -65,9 +65,10 @@ impl<const N: usize> Engine<N> {
     }
 
     pub fn update_with_code(&mut self, code: &str) {
-        self.code = code.to_owned();
-        self.need_update = true;
-        // self.samples_dict.insert(r#"\test"#, (&[0.42, 0.0], 2));
+        if code != &self.code {
+            self.code = code.to_owned();
+            self.need_update = true;
+        }
     }
 
     pub fn update(&mut self) -> Result<(), EngineError>  {
