@@ -410,7 +410,7 @@ code`;
     code = eval(toeval)
   } else {
     if (code.includes("#")) {
-      alert("Safari does not support mix JS as it fails to support basic Regex.")
+      alert("Safari does not support mix JS with ### as it fails to support some basic Regex. Please try some other demos/tutorials.")
     }
   }
 
