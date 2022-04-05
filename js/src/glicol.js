@@ -1,7 +1,7 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
 
-window.version = "v0.11.2"
+window.version = "v0.11.3"
 
 window.source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 fetch(source+`utils.js`).then(res=>res.text()).then( text => // ${window.version ? ".min": ""}
@@ -416,9 +416,16 @@ code`;
 
   window.code = code
   try { window.actx.resume() } catch (e) {console.log(e)}
-  if (window.paramWriter.available_write()) {
-    window.paramWriter.enqueue(window.encoder.encode(code))
+  if (!name.includes("Safari")) {
+    if (window.paramWriter.available_write()) {
+      window.paramWriter.enqueue(window.encoder.encode(code))
+    }
+  } else {
+    window.node.port.postMessage({
+      type: "run", value: window.encoder.encode(code)
+    })
   }
+
   if ( document.getElementById("visualizer")) {
     window.visualizeTimeDomainData({canvas: document.getElementById("visualizer"), analyserL: window.analyserL, analyserR: window.analyserR});
   }

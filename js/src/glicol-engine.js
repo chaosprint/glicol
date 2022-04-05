@@ -272,6 +272,13 @@ class GlicolEngine extends AudioWorkletProcessor {
                 this._resultPtr,
                 256
               )
+            } else if (e.data.type === "run") {
+              let code = e.data.value
+              let size = code.byteLength
+              let codeUint8ArrayPtr = this._wasm.exports.alloc_uint8array(size);
+              let codeUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, codeUint8ArrayPtr, size);
+              codeUint8Array.set(code.slice(0, size));
+              this._wasm.exports.update(codeUint8ArrayPtr, size)
             } else if (e.data.type === "bpm") {
                 this._wasm.exports.set_bpm(e.data.value);
             } else if (e.data.type === "amp") {
@@ -313,8 +320,6 @@ class GlicolEngine extends AudioWorkletProcessor {
             )
             this._inBuf.set(inputs[0][0])
         }
-
-        
 
         this._wasm.exports.process(
           this._inPtr, this._outPtr, this._size, this._resultPtr)
