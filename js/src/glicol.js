@@ -1,7 +1,7 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
 
-window.version = "v0.11.0"
+window.version = "v0.11.1"
 
 window.source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 fetch(source+`utils.js`).then(res=>res.text()).then( text => // ${window.version ? ".min": ""}
@@ -218,6 +218,51 @@ exports.TextParameterReader = TextParameterReader;
 exports.TextParameterWriter = TextParameterWriter;
 exports.RingBuffer = RingBuffer;
 
+const detectOs = () => {
+  var userAgent = window.navigator.userAgent,
+    platform = window.navigator.platform,
+    macosPlatforms = ['Macintosh', 'MacIntel', 'MacPPC', 'Mac68K'],
+    windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE'],
+    iosPlatforms = ['iPhone', 'iPad', 'iPod'],
+    os = null;
+  if (macosPlatforms.indexOf(platform) !== -1) {
+    os = 'Mac OS';
+  } else if (iosPlatforms.indexOf(platform) !== -1) {
+    os = 'iOS';
+  } else if (windowsPlatforms.indexOf(platform) !== -1) {
+    os = 'Windows';
+  } else if (/Android/.test(userAgent)) {
+    os = 'Android';
+  } else if (!os && /Linux/.test(platform)) {
+    os = 'Linux';
+  }
+  return os;
+}
+const detectBrowser = () => {
+  const { userAgent } = navigator
+  // alert(userAgent)
+  // alert(detectOs());
+  let name = "";
+  let version = "0.0";
+  if (userAgent.includes('Firefox/')) {
+    // Firefox
+    name = detectOs() === "Android" ? "Firefox for Android": "Firefox"
+    version =  userAgent.split("Firefox/")[1]
+  // } else if (userAgent.includes('Edg/')) {
+    // name = "Edge"
+  } else if (userAgent.includes('Chrome/')) {
+    name = detectOs() === "Android" ? "Chrome for Android": "Chrome"
+    version = userAgent.split("Chrome/")[1].split(" ")[0].split(".")[0]
+  } else if (userAgent.includes('Safari/') && userAgent.includes('Version/') ) {
+    name = detectOs() === "iOS" ? "Safari on iOS": "Safari"
+    version = userAgent.split("Version/")[1].split(" ")[0]
+  }
+  return {
+    name: name,
+    version: parseFloat(version)
+  }
+}
+
 window.loadModule = async () => {
 
   window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -287,30 +332,16 @@ window.loadModule = async () => {
           if (e.data.info[0] === 1) {
             // log("parsing error.")
             let info = decoder.decode(e.data.info.slice(2).filter(v => v !== 0.0));
-            // log(info)         
-            const posRegex = /(?<=pos\[)[^\]]+?(?=\])/g // /(?<=pos\[])[^\]]*(?=\])/g 
-            const lineRegex = /(?<=line\[)[^\]]+?(?=\])/g
-            const colRegex = /(?<=col\[)[^\]]+?(?=\])/g
-            const positivesRegex = /(?<=positives\[)[^\]]+?(?=\])/g
-            const negativesRegex = /(?<=negatives\[)[^\]]+?(?=\])/g
-            let pos = info.match(posRegex) ? parseInt(info.match(posRegex)[0]) : 0
-            let line = info.match(lineRegex) ? parseInt(info.match(lineRegex)[0]) : 0
-            let col = info.match(colRegex) ? parseInt(info.match(colRegex)[0]) : 0
-            // log(info.match(positivesRegex))
-            let positives = info.match(positivesRegex) ? info.match(positivesRegex)[0].replace("EOI", "END OF INPUT").split(",").join(" ||") : ""
-            let negatives = info.match(negativesRegex) ? info.match(negativesRegex)[0].split(",").join(" or") : ""
-            // log(pos, line, col, positives, negatives)
-            log(`%cError at line ${line}`, "background: #3b82f6; color:white; font-weight: bold")
-            
-            let errline = window.code.split("\n")[line-1];
-            let styleErrLine = errline.slice(0, col-1) + "%c %c" + errline.slice(col-1);
-            log(styleErrLine, "font-weight: bold; background: #f472b6; color:white", "");
+            // log(info)
+            if (name.includes("Safari")) {
+              alert(`Error: ${info}`)
+            } else {
+              
+              await fetch(source+`error.js`).then(res=>res.text()).then( text => // ${window.version ? ".min": ""}
+                eval(text)
+              )
+            }
 
-            let positiveResult = positives.length > 0?
-            "expecting "+positives:""
-            log(
-              `${"_".repeat(col-1 >=0?col-1:0)}%c^^^ ${positiveResult}${negatives.length > 0?"unexpected"+negatives:""}`,
-                "font-weight: bold; background: #f472b6; color:white");
             // log()
           } else {
             log(`%c${decoder.decode(e.data.info.slice(2).filter(v => v !== 0.0))}`,
@@ -327,25 +358,22 @@ window.code = `o: seq 60 >> sp \\cb`
 window.isGlicolRunning = false
 window.encoder = new TextEncoder('utf-8');
 
+var {name, _} = detectBrowser();
+
 window.run = async (code) =>{
   // const regexp = /\{([^{}]|(\?R))*\}/g
   // a working JS mix
-  const regexp = /(?<=##)[^#]*(?=#)/g   // this is working but not for nested
-  let match;
-  let toreplace = [];
-  while ((match = regexp.exec(code)) !== null) {
-    toreplace.push(match[0])
-  }
-  toreplace.map((str)=>{
-    let result = str.includes('\n') || str.includes(';') ?
-    Function(`'use strict'; return ()=>{${str}}`)()() : 
-    Function(`'use strict'; return ()=>(${str})`)()()
-    if (typeof result !== "undefined") {
-      code = code.replace(`##${str}#`, result)
-    } else {
-      code = code.replace(`##${str}#`, "")
+  
+  if (!name.includes("Safari")) {
+    await fetch(source+`regex.js`).then(res=>res.text()).then( text => // ${window.version ? ".min": ""}
+      code = eval(text)
+    )
+  } else {
+    if (code.includes("#")) {
+      alert("Safari does not support mix JS as it fails to support basic Regex.")
     }
-  })
+  }
+
   window.code = code
   try { window.actx.resume() } catch (e) {console.log(e)}
   if (window.paramWriter.available_write()) {
