@@ -60,6 +60,37 @@ impl<const N: usize> Engine<N> {
         }
     }
 
+    #[cfg(feature="bela")]
+    pub fn make_adc_node(&mut self, chan:usize) {
+        for _ in 0..chan {
+            // let index = self.graph.add_node(
+            //     NodeData::new1( BoxedNodeSend::new( Adc {} ) )
+            // );
+
+            // self.adc_nodes.push(index);
+            // let source = self.graph.add_node( 
+            //     NodeData::new1( BoxedNodeSend::new( AdcSource {} ) )
+            // );
+
+            // self.adc_source_nodes.push(source);
+            // self.graph.add_edge(source, index, ());
+        }
+    }
+
+    #[cfg(feature="bela")]
+    pub fn set_adc_node_buffer(&mut self, buf: &[f32], chan: usize,
+        frame: usize, _interleave: bool) {
+        // , _chan: u8, _frame: u16, _interleave: bool
+        // for c in 0..chan {
+        //     for f in 0..frame {
+        //         self.graph[
+        //             self.adc_source_nodes[c]
+        //         ].buffers[0][f] = buf[c*frame+f];
+        //     }
+        // }
+    }
+
+    #[cfg(feature="use-samples")]
     pub fn add_sample(&mut self, name:&str, sample: &'static [f32], channels: usize, sr: usize ) {
         self.samples_dict.insert(name.to_owned(), (sample, channels, sr));
     }
