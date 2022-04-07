@@ -45,6 +45,8 @@ Reflected in the implementation:
 
 The basic idea of Glicol is to connect different nodes like synth modules.
 
+All you need to know is the audio input/output behaviour of each node.
+
 Two ways for connecting: `>>` and `~reference`:
 ```
 // amplitude modulation and lazy evaluation example
@@ -72,9 +74,18 @@ As mentioned above, you can try these examples on:
 
 https://glicol.org
 
+If you want, you can even hear how a `seq` node work:
+```
+o: speed 2.0 >> seq 60 _72 _ 48__67 >> mul 0.5
+```
+
+This is actually analogous to how hardware module pass signals.
+
+It is very easy to remember and to get started.
+
 When Glicol is used in education, we can let students see and hear each node, even including 'envelope'.
 
-Just leave the introduction of `Object` and `Function` later when we mix JavaScript with Glicol.
+Just leave the introduction of data types, `Object` or `Function` later when we mix JavaScript with Glicol.
 
 ### Zero-installation
 
@@ -120,7 +131,7 @@ Some features can be highlighted with the web app:
 
 - robust error handling: error reported in console, musique non-stop!
 
-- mix JavaSritp code to create visuals with Hydra synth made by @ojack
+- mix JavaScript code to create visuals with Hydra synth made by @ojack
 
 - what you see is what you get: no need to select anything, just change the code and update, Glicol engine will use `LCS` algorithm to handle adding, updating and removing
 
