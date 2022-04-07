@@ -35,7 +35,7 @@ impl<const N: usize> Sn<N> {
         let mul = context.add_stereo_node( Mul::new(55.));
         let add = context.add_stereo_node( Add::new(60.));
 
-        let sin = context.add_stereo_node( SinOsc::new() );
+        let sin = context.add_mono_node( SinOsc::new() );
         let mix = context.add_stereo_node( Add::new(0.) );
         let filter = context.add_stereo_node( Add::new(0.) );
         let amp = context.add_stereo_node( Mul::new(0.) );

@@ -40,8 +40,8 @@ impl<const N:usize> Node<N> for Add {
                 }
             },
             2 => {
-                let ref_input = &inputs[&self.input_order[0]];
-                let main_input = &inputs[&self.input_order[1]];
+                let ref_input = &inputs[&self.input_order[1]];
+                let main_input = &inputs[&self.input_order[0]];
                 match main_input.buffers().len() {
                     1 => {
                         for i in 0..N {
