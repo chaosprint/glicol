@@ -123,6 +123,7 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                     },
                                     Rule::speed => one_para_number_or_ref!("speed"),
                                     Rule::constsig => one_para_number_or_ref!("constsig"),
+                                    Rule::adc => one_para_number_or_ref!("adc"),
                                     Rule::bd => one_para_number_or_ref!("bd"),
                                     Rule::sn => one_para_number_or_ref!("sn"),
                                     Rule::hh => one_para_number_or_ref!("hh"),

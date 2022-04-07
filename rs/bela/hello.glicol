@@ -1,1 +1,2 @@
-o: saw 220 >> mul 0.1
+o: saw ~mod;
+~mod: ~adc3 >> mul 110 >> add 220

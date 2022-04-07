@@ -6,7 +6,7 @@ use bela::*;
 use std::env;
 use std::fs;
 
-const BLOCK_SIZE: usize = 16;
+const BLOCK_SIZE: usize = 256;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -16,7 +16,7 @@ fn main() {
             "o: sin 440".to_owned()
         }
         2 => {
-            "o: sin 440".to_owned()
+            args[1].to_owned()
         },
         3 => {
             let filename = &args[2];
@@ -27,22 +27,12 @@ fn main() {
         _ => unimplemented!()
     };
     run(code).unwrap();
-    
-    // run(String::from(
-
-    //     "&a: adc 2
-        
-    //     &m: adc 1 >> mul 900 >> add 1000
-                
-    //     ~a: sin &m >> mul &a"
-
-    // )).unwrap();
 }
 
 fn run(code: String) -> Result<(), error::Error> {
     let mut setup = |context: &mut Context, engine: &mut Engine<BLOCK_SIZE>| -> Result<(), error::Error> {
         
-        // engine.make_adc_node(context.analog_in_channels());
+        engine.make_adc_node(context.analog_in_channels());
         // engine.parse();
         println!("adc frames {}", context.analog_frames());
         println!("adc chan {}", context.analog_in_channels());
@@ -57,7 +47,7 @@ fn run(code: String) -> Result<(), error::Error> {
     };
 
     let mut render = |context: &mut Context, engine: &mut Engine<BLOCK_SIZE>| {
-        // engine.set_adc_node_buffer(&context.analog_in(), 8, BLOCK_SIZE, false);
+        engine.set_adc_node_buffer(&context.analog_in(), 8, BLOCK_SIZE, false);
         let buf = engine.next_block().0;
         for i in 0..BLOCK_SIZE {
             (*context.audio_out())[i] = buf[0][i];
@@ -69,7 +59,9 @@ fn run(code: String) -> Result<(), error::Error> {
     let user_data = AppData::new(engine, &mut render, Some(&mut setup), Some(&mut cleanup));
     let mut bela_app = Bela::new(user_data);
     let mut settings = InitSettings::default();
+    // http://docs.bela.io/structBelaInitSettings.html
     settings.set_period_size(BLOCK_SIZE);
+    // settings.set_num_analog_in_channels(4);
     settings.set_uniform_sample_rate(true);
     settings.set_interleave(false);
     bela_app.run(&mut settings)

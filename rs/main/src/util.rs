@@ -41,6 +41,15 @@ pub fn makenode<const N: usize>(
 ) -> Result<(GlicolNodeData<N>, Vec<String>), EngineError> {
     let (nodedata, reflist) = match name {
 
+        #[cfg(feature="bela")]
+        "adc" => {
+            let port = match &paras[0] {
+                GlicolPara::Number(v) => *v as usize,
+                _ => unimplemented!()
+            };
+            (NodeData::new1( BoxedNodeSend::new(Pass{}) ), vec![format!("~adc{}", port+1)])
+        },
+
         #[cfg(feature="use-samples")]
         "sp" => {
             match &paras[0] {
