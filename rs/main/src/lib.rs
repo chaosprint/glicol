@@ -5,7 +5,7 @@ pub mod error; pub use error::{EngineError, get_error_info};
 use hashbrown::HashMap;
 use petgraph::{graph::NodeIndex};
 use glicol_parser::{get_ast}; 
-use glicol_synth::{AudioContext, AudioContextConfig, NodeData, BoxedNodeSend, Buffer, Message, GlicolPara};
+use glicol_synth::{AudioContext, AudioContextConfig, NodeData, BoxedNodeSend, Buffer, Message, GlicolPara, Pass};
 use lcs_diff::{diff, DiffResult};
 
 pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
@@ -60,6 +60,42 @@ impl<const N: usize> Engine<N> {
         }
     }
 
+    // for bela adc, in the utils.rs, the adc will become a pass node
+    // the pass node connect to ~adc1 for example as reference
+    // then all we need to do is to create these reference in the engine
+
+    #[cfg(feature="bela")]
+    pub fn make_adc_node(&mut self, chan:usize) {
+        for i in 0..chan {
+            // create a node
+            let index = self.context.add_mono_node(Pass{});
+
+            // create a default track from adc1 ~ adc$chan
+            self.index_info.insert(format!("~adc{}", i+1), vec![index]);
+
+            // self.adc_nodes.push(index);
+            // let source = self.graph.add_node( 
+            //     NodeData::new1( BoxedNodeSend::new( AdcSource {} ) )
+            // );
+            // self.adc_source_nodes.push(source);
+            // self.graph.add_edge(source, index, ());
+        }
+    }
+
+    #[cfg(feature="bela")]
+    pub fn set_adc_node_buffer(&mut self, buf: &[f32], chan: usize,
+        frame: usize, _interleave: bool) {
+        
+        for c in 0..chan {
+            self.context.graph[
+                self.index_info[
+                    &format!("~adc{}",c+1)
+                ][0]
+            ].buffers[0].copy_from_slice(&buf[c*frame..(c+1)*frame]);
+        }
+    }
+
+    #[cfg(feature="use-samples")]
     pub fn add_sample(&mut self, name:&str, sample: &'static [f32], channels: usize, sr: usize ) {
         self.samples_dict.insert(name.to_owned(), (sample, channels, sr));
     }
@@ -279,7 +315,7 @@ impl<const N: usize> Engine<N> {
                         return Err(EngineError::NonExistReference(refname.to_owned()))
                     }
                 } else {
-                    if !self.new_ast.contains_key(refname) {
+                    if !self.new_ast.contains_key(refname) && !self.index_info.contains_key(refname) {
                         return Err(EngineError::NonExistReference(refname.to_owned()))
                     }
                 }

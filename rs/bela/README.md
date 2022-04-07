@@ -58,14 +58,30 @@ This will:
 
 > If you see that linker cannot be found in building, try to run the command in `linker.sh` manually in terminal. Then call the `build.sh` again.
 
-Then, on the bela board
+Then, on the bela board, there are three ways to get sound:
+
+### Usage 1: no param, thus a hello tone
 ```sh
 ./glicol
 ```
 
+### Usage 2: Input glicol code
+This will play a sawtooth osc whose freq is modulated by adc3:
+```sh
+./glicol "o: saw ~mod; ~mod: ~adc3 >> mul 110 >> add 220"
+```
+
+### Usage 3: Read a .glicol file
+The content of `hello.glicol` is identical to the second manual input.
+```sh
+./glicol -- hello.glicol
+```
+
+> These are just POC, and will be changed soon.
+
 ## TODO
 
-- [ ] Support ADC
-- [ ] Provide `glicol_synth` example
-- [ ] Provide high level wrapper for Glicol engine
+- [x] Support ADC
+- [ ] More params for `./glicol` command such as num_analog_in 
+- [ ] Live coding?
 - [ ] Optimise file size

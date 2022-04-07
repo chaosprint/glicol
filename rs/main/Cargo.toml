@@ -9,6 +9,7 @@ edition = "2021"
 default = []
 use-samples = []
 use-meta = []
+bela = []
 
 [dependencies]
 petgraph = { version = "0.6",  features = ["stable_graph"] }

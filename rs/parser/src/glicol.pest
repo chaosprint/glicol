@@ -5,8 +5,9 @@ chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE* ~ node
 
 node = ${ (mix|seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noise|onepole|
 sp|constsig|lpf|rhpf|onepole|imp|delayn|delayms|envperc|apfmsgain|plate|sendpass|
-get|bd|sn|hh|meta|sawsynth|squsynth|trisynth|balance) }
+get|bd|sn|hh|meta|sawsynth|squsynth|trisynth|balance|adc) }
 
+adc = ${"adc" ~ WHITESPACE+ ~ !node_name ~ (number ) }
 meta = ${ ("meta"|"script") ~ WHITESPACE+ ~ code}
 code = ${ "`" ~ inner ~ "`" }
 inner = @{ char* }
