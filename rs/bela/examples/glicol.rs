@@ -3,10 +3,31 @@ use glicol::Engine;
 extern crate bela;
 use bela::*;
 
+use std::env;
+use std::fs;
+
 const BLOCK_SIZE: usize = 16;
 
 fn main() {
-    run("a: sin 440".to_owned()).unwrap();
+    let args: Vec<String> = env::args().collect();
+    println!("{:?}", args);
+    let code: String = match args.len() {
+        1 => {
+            "o: sin 440".to_owned()
+        }
+        2 => {
+            "o: sin 440".to_owned()
+        },
+        3 => {
+            let filename = &args[2];
+            let contents = fs::read_to_string(filename)
+            .expect("Something went wrong reading the file");
+            contents
+        },
+        _ => unimplemented!()
+    };
+    run(code).unwrap();
+    
     // run(String::from(
 
     //     "&a: adc 2
