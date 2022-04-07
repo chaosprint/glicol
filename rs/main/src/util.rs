@@ -3,16 +3,20 @@ use glicol_synth::{
     filter::{ResonantLowPassFilter, ResonantHighPassFilter, OnePole, AllPassFilterGain},
     signal::{ConstSig, Impulse, Noise},
     operator::{Mul, Add},
-    sampling::Sampler,
     delay::{DelayN, DelayMs},
     sequencer::{Sequencer, Choose, Speed},
     envelope::EnvPerc,
     effect::{Plate, Balance},
     compound::{Bd, Hh, Sn, SawSynth, SquSynth, TriSynth},
-    dynamic::Meta,
     Pass,
     Sum2,
 };
+
+#[cfg(feature = "use-meta")]
+use glicol_synth::dynamic::Meta;
+
+#[cfg(feature = "use-samples")]
+use glicol_synth::sampling::Sampler;
 
 use hashbrown::HashMap;
 use glicol_synth::{NodeData, BoxedNodeSend, GlicolPara}; //, Processor, Buffer, Input, Node
@@ -25,6 +29,7 @@ use crate::EngineError;
 pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
 // pub type NodeResult<const N: usize> = Result<(GlicolNodeData<N>, Vec<String>), GlicolError>;
 
+#[allow(unused_variables, unused_mut)]
 pub fn makenode<const N: usize>(
     name: &str,
     paras: &mut Vec<GlicolPara>,
@@ -35,6 +40,8 @@ pub fn makenode<const N: usize>(
     seed: usize
 ) -> Result<(GlicolNodeData<N>, Vec<String>), EngineError> {
     let (nodedata, reflist) = match name {
+
+        #[cfg(feature="use-samples")]
         "sp" => {
             match &paras[0] {
                 GlicolPara::SampleSymbol(s) => {
@@ -46,6 +53,8 @@ pub fn makenode<const N: usize>(
                 _ => unimplemented!()
             }
         },
+
+        #[cfg(feature="use-meta")]
         "meta" => {
             match &paras[0] {
                 GlicolPara::Symbol(s) => {

@@ -11,4 +11,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 lazy_static = "1.2.0"
-glicol = { path = "../main" }
+glicol = { path = "../main", features = ["use-samples", "use-meta"] }

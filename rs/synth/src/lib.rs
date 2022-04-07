@@ -13,17 +13,21 @@ pub use node::{
     effect, 
     envelope, 
     operator, 
-    sampling, 
     sequencer, 
     signal,
     delay,
-    dynamic,
     compound,
 };
 // pub use node::*; // TODO: Do not expose every struct here
 
 mod buffer;
 pub use buffer::Buffer;
+
+#[cfg(feature = "node-sampling")]
+pub use node::{sampling};
+
+#[cfg(feature = "node-dynamic")]
+pub use node::{dynamic};
 
 #[cfg(feature = "node-boxed")]
 pub use node::{BoxedNode, BoxedNodeSend};
