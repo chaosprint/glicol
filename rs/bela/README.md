@@ -6,7 +6,7 @@ This crate helps Glicol engine to run on [Bela board](https://bela.io).
 
 ### Step 1
 
-On your PC, plug in Bela and make sure you can visit `http://bela.local` in your browser.
+Connect Bela to your computer and make sure you can visit `http://bela.local` in your browser.
 
 ### Step 2
 
