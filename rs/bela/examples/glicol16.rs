@@ -6,7 +6,7 @@ use bela::*;
 use std::env;
 use std::fs;
 
-const BLOCK_SIZE: usize = 128;
+const BLOCK_SIZE: usize = 16;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
