@@ -10,7 +10,7 @@ On your PC, plug in Bela and make sure you can visit `http://bela.local` in your
 
 ### Step 2
 
-Then on your PC terminal:
+Then on your terminal:
 
 ```wget https://github.com/chaosprint/glicol/releases/download/v0.11.10/glicol```
 
@@ -22,7 +22,7 @@ Then:
 
 ### Step 3
 
-In your PC terminal: 
+In your terminal: 
 
 ```ssh root@bela.local```
 
@@ -91,18 +91,18 @@ This will:
 
 Then, on the bela board, there are three ways to get sound:
 
-### Usage 1: no param, thus a hello tone
+### Case 1: no param, thus a hello tone
 ```sh
 ./glicol
 ```
 
-### Usage 2: Input glicol code
+### Case 2: input glicol code
 This will play a sawtooth osc whose freq is modulated by adc3:
 ```sh
 ./glicol "o: saw ~mod; ~mod: ~adc3 >> mul 110 >> add 220"
 ```
 
-### Usage 3: Read a .glicol file
+### Case 3: read a .glicol file
 The content of `hello.glicol` is identical to the second manual input.
 ```sh
 ./glicol -- hello.glicol
