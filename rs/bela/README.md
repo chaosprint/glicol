@@ -2,7 +2,7 @@
 
 This crate helps Glicol engine to run on [Bela board](https://bela.io).
 
-## Usage
+## Quick start
 
 ### Step 1
 
@@ -42,9 +42,9 @@ https://github.com/padenot/bela-sys
 Thus, this version only works for OSX and Linux.
 > I have only tested on M1 Mac.
 
-## Setup
+### Setup
 
-### Step 1
+#### Preparation for Rust
 
 ```sh
 rustup target add armv7-unknown-linux-gnueabihf
@@ -52,13 +52,13 @@ rustup toolchain install stable-armv7-unknown-linux-gnueabihf
 ```
 > For non-Rust programmers, you should have [Rust](https://www.rust-lang.org/) installed on your computer!
 
-### Step 2
+#### Git clone
 
 `git clone` this whole repo, not just this folder.
 
 I suggest you fork it first in case you wanna contribute.
 
-### Step 3
+#### Run the script
 
 With a bela board plugged in and accessible at `http://bela.local`, run:
 
@@ -75,7 +75,7 @@ files once.
 
 > You can change the `setup.sh` file mannualy when there is any missing files in this process. This may be due to some updates on the Bela dependancies.
 
-## Testing
+### Testing
 
 ```sh
 ./build.sh
@@ -91,18 +91,18 @@ This will:
 
 Then, on the bela board, there are three ways to get sound:
 
-### Case 1: no param, thus a hello tone
+#### Case 1: no param, thus a hello tone
 ```sh
 ./glicol
 ```
 
-### Case 2: input glicol code
+#### Case 2: input glicol code
 This will play a sawtooth osc whose freq is modulated by adc3:
 ```sh
 ./glicol "o: saw ~mod; ~mod: ~adc3 >> mul 110 >> add 220"
 ```
 
-### Case 3: read a .glicol file
+#### Case 3: read a .glicol file
 The content of `hello.glicol` is identical to the second manual input.
 ```sh
 ./glicol -- hello.glicol
