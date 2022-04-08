@@ -2,6 +2,37 @@
 
 This crate helps Glicol engine to run on [Bela board](https://bela.io).
 
+## Usage
+
+### Step 1
+
+On your PC, plug in Bela and make sure you can visit `http://bela.local` in your browser.
+
+### Step 2
+
+Then on your PC terminal:
+
+```wget https://github.com/chaosprint/glicol/releases/download/v0.11.10/glicol```
+
+> If you use Mac, you need to `brew install wget` first.
+
+Then:
+
+```scp glicol root@bela.local:~```
+
+### Step 3
+
+In your PC terminal: 
+
+```ssh root@bela.local```
+
+Then:
+
+```./glicol "o: saw ~mod; ~mod: ~adc3 >> mul 110 >> add 220"```
+
+
+## Build from source
+
 It is based on:
 
 https://github.com/andrewcsmith/bela-rs
