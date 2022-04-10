@@ -35,14 +35,17 @@ pub struct Engine<const N: usize> {
 
 impl<const N: usize> Engine<N> {
     pub fn new() -> Self {
-        let context = AudioContext::<N>::new(AudioContextConfig::default());
+        let mut context = AudioContext::<N>::new(AudioContextConfig::default());
+        let index = context.add_stereo_node( Pass {});
+        let mut index_info = HashMap::new();
+        index_info.insert(format!("~input"), vec![index]);
         Self {
             context,
             ast: HashMap::new(),
             new_ast: HashMap::new(),
             code: "".to_owned(),
-            index_info: HashMap::new(),
-            index_info_backup: HashMap::new(),
+            index_info: index_info.clone(),
+            index_info_backup: index_info.clone(),
             temp_node_index: vec![],
             node_add_list: vec![],
             node_remove_list: vec![],
@@ -494,7 +497,18 @@ impl<const N: usize> Engine<N> {
 
     }
 
-    pub fn next_block(&mut self) -> (&[Buffer<N>], [u8; 256]) {  //  -> &Vec<Buffer<N>> 
+    pub fn next_block(&mut self, buf: Vec<&[f32]>) -> (&[Buffer<N>], [u8; 256]) {  //  -> &Vec<Buffer<N>> 
+
+        self.context.graph[
+            self.index_info[
+                &format!("~input")
+            ][0]
+        ].buffers[0].copy_from_slice(buf[0]);
+        self.context.graph[
+            self.index_info[
+                &format!("~input")
+            ][0]
+        ].buffers[1].copy_from_slice(buf[1]);
         // if self.livecoding {
         let mut result = [0; 256];
         let one_bar = (240.0 / self.bpm * self.sr as f32) as usize;

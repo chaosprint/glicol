@@ -20,4 +20,10 @@ vst = "0.2"
 rtrb = "0.2"
 egui-baseview = {git = "https://github.com/BillyDM/egui-baseview", rev = "b7436c02309347e49ffd4491bf31cdef6e759eb7" }
 egui = "0.15"
-glicol = {path = "../main"}
+glicol = {path = "../main", features = ["use-meta"]}
+
+[profile.release]
+opt-level = 'z'     # Optimize for size.
+lto = true          # Enable Link Time Optimization
+codegen-units = 1   # Reduce number of codegen units to increase optimizations.
+panic = 'abort'     # Abort on panic

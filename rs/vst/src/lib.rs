@@ -20,8 +20,8 @@ use std::boxed::Box;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, AtomicBool, AtomicPtr, Ordering};
 
-const WINDOW_WIDTH: usize = 400;
-const WINDOW_HEIGHT: usize = 600;
+const WINDOW_WIDTH: usize = 600;
+const WINDOW_HEIGHT: usize = 800;
 
 struct GlicolVSTPluginEditor {
     params: Arc<GlicolParams>,
@@ -69,7 +69,7 @@ impl Editor for GlicolVSTPluginEditor {
             render_settings: RenderSettings::default(),
         };
 
-        let mut code: String = "o: sin 440".to_owned();
+        let mut code: String = "o: ~input;\n\n// o: sin 440;".to_owned();
         let window_handle = EguiWindow::open_parented(
             &VstParent(parent),
             settings,
@@ -94,7 +94,7 @@ impl Editor for GlicolVSTPluginEditor {
                     // };
                     ui.add(
                         egui::TextEdit::multiline(&mut code).code_editor()
-                        .desired_rows(30)
+                        .desired_rows(50)
                         .lock_focus(true)
                         .desired_width(f32::INFINITY)
                     );
@@ -150,9 +150,11 @@ impl Default for GlicolParams {
 impl Default for GlicolVSTPlugin {
     fn default() -> Self {
         let params = Arc::new(GlicolParams::default());
+        let mut engine = Engine::<128>::new();
+        engine.update_with_code("o: ~input;");
         Self {
             params: params.clone(),
-            engine:  Engine::<128>::new(),
+            engine: engine,
             editor: Some(GlicolVSTPluginEditor {
                 params: params.clone(),
                 window_handle: None,
@@ -214,27 +216,43 @@ impl Plugin for GlicolVSTPlugin {
             self.params.has_update.store(false, Ordering::Release);
         }
 
-        let samples: usize = buffer.samples();
-        let (_, mut outputs) = buffer.split();
-        let output_count = outputs.len();
-        let process_times = samples / 128;
+        let block_size: usize = buffer.samples();
 
-        let mut out = vec![0.0; samples];
-        let mut index = 0;
-        for _ in 0..process_times {
-            let o = self.engine.next_block().0[0].clone();
-            for i in 0..128 {
-                out[index] = o[i];
-                index += 1;
+        let (input, mut outputs) = buffer.split();
+        let output_channels = outputs.len();
+        let process_times = block_size / 128;
+
+        // let mut out = vec![0.0; block_size];
+        // let mut index = 0;
+
+        for b in 0..process_times {
+            let inp = vec![
+                &input.get(0)[b*128..(b+1)*128], 
+                &input.get(1)[b*128..(b+1)*128]
+            ];
+
+            let engine_out = self.engine.next_block(inp).0;
+            // [0].clone();
+
+            // for i in 0..128 {
+            //     out[index] = o[i];
+            //     index += 1;
+            // }
+
+            for chan_idx in 0..output_channels {
+                let buff = outputs.get_mut(chan_idx);
+                for n in 0..128 {
+                    buff[b*128+n] = engine_out[chan_idx][n];
+                }
             }
         }
 
-        for sample_idx in 0..samples {
-            for buf_idx in 0..output_count {
-                let buff = outputs.get_mut(buf_idx);
-                buff[sample_idx] = out[sample_idx];
-            }
-        }
+        // for sample_idx in 0..block_size {
+        //     for buf_idx in 0..output_channels {
+        //         let buff = outputs.get_mut(buf_idx);
+        //         buff[sample_idx] = out[sample_idx];
+        //     }
+        // }
     }
 
     fn get_parameter_object(&mut self) -> Arc<dyn PluginParameters> {
