@@ -69,7 +69,7 @@ impl Editor for GlicolVSTPluginEditor {
             render_settings: RenderSettings::default(),
         };
 
-        let mut code: String = "o: ~input;\n\n// o: sin 440;".to_owned();
+        let mut code: String = "o: ~input >> mul 0.1;\n\n// o: sin 440;".to_owned();
         let window_handle = EguiWindow::open_parented(
             &VstParent(parent),
             settings,
@@ -151,7 +151,7 @@ impl Default for GlicolVSTPlugin {
     fn default() -> Self {
         let params = Arc::new(GlicolParams::default());
         let mut engine = Engine::<128>::new();
-        engine.update_with_code("o: ~input;");
+        engine.update_with_code("o: ~input >> mul 0.1;");
         Self {
             params: params.clone(),
             engine: engine,

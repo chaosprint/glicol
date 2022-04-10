@@ -18,6 +18,8 @@ https://glicol.org
 
 There you can find guides, demos, docs, and apps for collaboration.
 
+You can also watch some video demos on [this YouTube playlist](https://youtube.com/playlist?list=PLT4REhRBWaOOrLQxCg5Uw97gEpN-woo1c).
+
 ## Why Glicol
 
 The motivation of Glicol is:
