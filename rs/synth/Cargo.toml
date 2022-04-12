@@ -25,7 +25,7 @@ use-meta = ["node-dynamic"]
 node-boxed = []
 node-pass = []
 node-sampling = []
-node-dynamic = []
+node-dynamic = ["rhai"]
 node-sum = ["dasp_slice"]
 
 [dependencies]
@@ -37,7 +37,7 @@ dasp_signal = "0.11.0"
 dasp_interpolate = { version = "*", features = ["linear", "sinc"] }
 hashbrown = "0.12"
 arrayvec = "0.7.2"
-rhai = { version = "1.6.0", features = ["sync", "f32_float", "only_i32"] }
+rhai = { version = "1.6.0", features = ["sync", "f32_float", "only_i32"], optional = true  }
 
 [dev-dependencies]
 gnuplot = "*"
