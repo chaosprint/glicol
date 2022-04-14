@@ -10,7 +10,8 @@ Glicol (an acronym for "graph-oriented live coding language") is a computer musi
 Glicol can be used for:
 - live coding performance
 - education of electronic music, DSP and coding
-- audio/music development as a JavaScript or Rust audio library, running on Web, Desktop, DAW, Bela, etc.
+- audio/music app development in browsers, [either CDN or NPM](https://github.com/chaosprint/glicol/tree/main/js)
+- Rust audio library, running on Web, Desktop, [DAW](https://github.com/chaosprint/glicol/tree/main/rs/vst), [Bela](https://github.com/chaosprint/glicol/tree/main/rs/bela), etc.
 
 The easiest way to try Glicol:
 
@@ -145,7 +146,7 @@ The `js` folder contains the Glicol distribution for the web platform.
 
 The usage is very easy. Just include this into your index.html:
 ```
-<script src="https://cdn.jsdelivr.net/gh/chaosprint/glicol@v0.9.18/js/src/glicol.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/chaosprint/glicol@latest/js/src/glicol.js"></script>
 ```
 
 Then you can write on your website:
@@ -199,6 +200,7 @@ See [rs](https://github.com/chaosprint/glicol/blob/main/rs) folder for details.
 - [x] `0.9.0` redesigned architecture; see the release note
 - [x] `0.10.0` run as a VST plugin
 - [x] `0.11.0` run on Bela
+- [x] `0.12.0` distribute as a `npm` package
 - [ ] better music expressions, more variation for `seq` nodes
 - [ ] exploring new forms of musical interactions
 <!-- - [ ] midi support? used in vst? -->

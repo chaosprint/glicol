@@ -1,0 +1,29 @@
+{
+  "name": "glicol",
+  "version": "0.2.7",
+  "description": "An easy-to-use audio engine for browser-based music apps.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chaosprint/glicol.git"
+  },
+  "keywords": [
+    "audio",
+    "music",
+    "live",
+    "coding",
+    "synth",
+    "sound",
+    "tone",
+    "glicol"
+  ],
+  "author": "chaosprint (Qichao Lan)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chaosprint/glicol/issues"
+  },
+  "homepage": "https://github.com/chaosprint/glicol#readme"
+}

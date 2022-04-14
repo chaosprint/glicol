@@ -63,6 +63,36 @@ impl<const N: usize> Engine<N> {
         }
     }
 
+    pub fn send_msg(&mut self, msg: &str) {
+        let commands: String = msg.chars().filter(|c| !c.is_whitespace()).collect::<_>();
+        for command in commands.split(";") {
+            if command == "" {
+                continue
+            } else {
+                let list = command.split(",").collect::<Vec<_>>();
+                let chain_name = list[0];
+                let chain_pos = match list[1].parse::<usize>() {
+                    Ok(v) => v,
+                    Err(_) => unimplemented!()
+                };
+                let param_pos = match list[2].parse::<u8>() {
+                    Ok(v) => v,
+                    Err(_) => unimplemented!()
+                };
+                let param = match list[3].parse::<f32>(){
+                    Ok(v) => v,
+                    Err(_) => unimplemented!()
+                };
+    
+                if self.index_info.contains_key(chain_name) {
+                    self.context.graph[
+                        self.index_info[chain_name][chain_pos]
+                    ].node.send_msg(Message::SetToNumber(param_pos, param))
+                }
+            }
+        }
+    }
+
     // for bela adc, in the utils.rs, the adc will become a pass node
     // the pass node connect to ~adc1 for example as reference
     // then all we need to do is to create these reference in the engine
@@ -498,17 +528,21 @@ impl<const N: usize> Engine<N> {
     }
 
     pub fn next_block(&mut self, buf: Vec<&[f32]>) -> (&[Buffer<N>], [u8; 256]) {  //  -> &Vec<Buffer<N>> 
+        if buf.len() > 0 {
+            self.context.graph[
+                self.index_info[
+                    &format!("~input")
+                ][0]
+            ].buffers[0].copy_from_slice(buf[0]);
+        }
 
-        self.context.graph[
-            self.index_info[
-                &format!("~input")
-            ][0]
-        ].buffers[0].copy_from_slice(buf[0]);
-        self.context.graph[
-            self.index_info[
-                &format!("~input")
-            ][0]
-        ].buffers[1].copy_from_slice(buf[1]);
+        if buf.len() > 1 {
+            self.context.graph[
+                self.index_info[
+                    &format!("~input")
+                ][0]
+            ].buffers[1].copy_from_slice(buf[1]);
+        }
         // if self.livecoding {
         let mut result = [0; 256];
         let one_bar = (240.0 / self.bpm * self.sr as f32) as usize;
