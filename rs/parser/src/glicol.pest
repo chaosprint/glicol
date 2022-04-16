@@ -5,8 +5,9 @@ chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE* ~ node
 
 node = ${ (mix|seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noise|onepole|
 sp|constsig|lpf|rhpf|onepole|imp|delayn|delayms|envperc|apfmsgain|plate|sendpass|
-get|bd|sn|hh|meta|sawsynth|squsynth|trisynth|balance|adc) }
+get|bd|sn|hh|meta|sawsynth|squsynth|trisynth|balance|adc|pattern_synth) }
 
+pattern_synth = ${("p_synth"|"pattern_synth") ~ WHITESPACE+ ~ code ~ WHITESPACE+ ~ !node_name ~ number }
 adc = ${"adc" ~ WHITESPACE+ ~ !node_name ~ (number ) }
 meta = ${ ("meta"|"script") ~ WHITESPACE+ ~ code}
 code = ${ "`" ~ inner ~ "`" }
@@ -65,7 +66,7 @@ rest = ${ "_" }
 integer = ${ (ASCII_DIGIT)+ ~ !"." }
 WHITESPACE = _{" "|","|"|"|"\t"}
 
-node_name = ${"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|
+node_name = ${"p_synth"|"pattern_synth"|"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|
 "linrange"|"apfdecay"|"delayn"|"delaymod"|
 "sin"|"squ"|"imp"|"envperc"|"sampler"|"noiz"|"lpf"|"plate"|"onepole"|
 "hpf"|"pha"|"buf"|"state"|"freeverb"|"pan"|"delay"|"apfgain"|"comb"|"mix"|"monosum"|

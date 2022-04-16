@@ -224,6 +224,19 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                         chain_node_names.push("meta");
                                         chain_paras.push(vec![GlicolPara::Symbol(paras.as_str().to_owned())]);
                                     },
+                                    Rule::pattern_synth => {
+                                        chain_node_names.push("pattern_synth");
+                                        println!("node {:?}", node.as_str());
+                                        let mut iter = node.into_inner();
+                                        let mut paras = vec![];
+                                        let p1 = iter.next().unwrap();
+                                        paras.push(GlicolPara::Number(p1.as_str().parse::<f32>().unwrap()));
+                                        if iter.next().is_some() {
+                                            let p2 = iter.next().unwrap();
+                                            paras.push(GlicolPara::Symbol(p2.as_str().to_owned()))
+                                        }
+                                        chain_paras.push(paras)
+                                    },
                                     _ => unimplemented!()
                                 }
                             }

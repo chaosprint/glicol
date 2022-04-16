@@ -19,6 +19,8 @@ pub mod envelope; pub use envelope::*;
 pub mod effect; pub use effect::*;
 pub mod compound; pub use compound::*;
 
+pub mod synth; pub use synth::*;
+
 
 #[cfg(feature = "use-samples")]
 pub mod sampling;
