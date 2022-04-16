@@ -60,6 +60,7 @@ impl PatternSynth {
 impl< const N: usize> Node<N> for PatternSynth {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         // println!("seq inputs info {:?} ; self.input_order {:?}", inputs, self.input_order);
+        // println!("events{:?}", self.events);
         let attack_n = (self.att * self.sr as f32) as usize;
         let decay_n = (self.dec * self.sr as f32) as usize;
         match inputs.len() {
@@ -107,7 +108,7 @@ impl< const N: usize> Node<N> for PatternSynth {
                                 self.phase_list[synth_index] -= 1.
                             }
                             // println!("amp {} out {} step {}", amp, out, self.step);
-                            output[0][i] += amp * out;
+                            output[0][i] += amp * out * 0.1;
                             // println!("output[{}] {}",i, output[0][i]);
                         } else {
                             // remove this from start_step_list and output_list
@@ -134,14 +135,26 @@ impl< const N: usize> Node<N> for PatternSynth {
             // Message::SetBPM(bpm) => {
             //     self.bpm = bpm
             // },
-            // Message::SetToSeq(pos, events) => {
-            //     match pos {
-            //         0 => {
-            //             self.events = events
-            //         },
-            //         _ => {}
-            //     }
-            // },
+            Message::SetToSymbol(pos, s) => {
+                // panic!();
+                match pos {
+                    0 => {
+                        self.events.clear();
+                        let pattern = s.replace("`", "");
+                        for event in pattern.split(",") {
+                            // println!("event {:?}", event);
+                            let result: Vec<f32> = event.split(" ")
+                            .filter(|x|!x.is_empty())
+                            .map(|x|{
+                                x.replace(" ", "").parse::<f32>().unwrap()
+                            }).collect();
+                            // println!("result {:?}", result);
+                            self.events.push((result[0], result[1]));
+                        }
+                    },
+                    _ => {}
+                }
+            },
             Message::SetRefOrder(ref_order) => {
                 self.ref_order = ref_order;
             },

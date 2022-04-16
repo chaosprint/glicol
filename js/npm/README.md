@@ -1,6 +1,6 @@
 ## What's this?
 
-This is a light-weight, garbage-collection free, real-time audio library for browsers. It's written in Rust and ported to JS via WebAssembly and runs in AudioWorklet. The communication is realised with SharedArrayBuffer.
+This is a light-weight, garbage-collection free, memory-safe and easy-to-use audio library for browsers. It's written in Rust and ported to JS via WebAssembly and runs in AudioWorklet. The communication is realised with SharedArrayBuffer.
 
 > Note that you need to have `cross-origin isolation` enabled on the web server (both the dev server and the one you deploy your web app) to use this package. For `vite` dev server, you can use my plugin [here](https://github.com/chaosprint/vite-plugin-cross-origin-isolation). For deployment on `Netlify` or `Firebase`, check their docs for editing the header files. If you use a customised server, you have to figure it out yourself.
 
@@ -49,3 +49,8 @@ There are many todos for this package. Please let me know your thoughts and sugg
 https://github.com/chaosprint/glicol
 
 `Issues` or `Discussion` are both fine.
+
+## Dev note (not for users)
+```
+pnpm link --dir /usr/local/lib/ glicol
+```
