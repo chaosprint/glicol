@@ -8,6 +8,7 @@ use glicol_synth::{
     envelope::EnvPerc,
     effect::{Plate, Balance},
     compound::{Bd, Hh, Sn, SawSynth, SquSynth, TriSynth},
+    synth::{PatternSynth},
     Pass,
     Sum2,
 };
@@ -40,6 +41,26 @@ pub fn makenode<const N: usize>(
     seed: usize
 ) -> Result<(GlicolNodeData<N>, Vec<String>), EngineError> {
     let (nodedata, reflist) = match name {
+        "pattern_synth" => {
+            match &paras[0] {
+                GlicolPara::Symbol(s) => {
+                    let pattern = s.replace("`", "");
+                    let mut events = vec![];
+                    for event in pattern.split(",") {
+                        println!("event {:?}", event);
+                        let result: Vec<f32> = event.split(" ")
+                        .filter(|x|!x.is_empty())
+                        .map(|x|{
+                            x.replace(" ", "").parse::<f32>().unwrap()
+                        }).collect();
+                        println!("result {:?}", result);
+                        events.push((result[0], result[1]));
+                    }
+                    (PatternSynth::new(events).sr(sr).to_boxed_nodedata(1), vec![])
+                },
+                _ => unimplemented!()
+            }
+        },
 
         #[cfg(feature="bela")]
         "adc" => {

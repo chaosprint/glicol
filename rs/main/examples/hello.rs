@@ -58,7 +58,7 @@ fn main() {
     // for e in engine.context.graph.edges(engine.context.destination) {
     //     println!("destinations {:?}", e);
     // }
-    println!("next block {:?}", engine.next_block());
+    println!("next block {:?}", engine.next_block(vec![]));
     // engine.send_msg("o", 0, (0, "1."));
     // engine.next_block();
 }

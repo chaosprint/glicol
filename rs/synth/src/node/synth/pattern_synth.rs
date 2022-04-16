@@ -7,7 +7,7 @@ pub struct PatternSynth {
     phase_list: Vec<f32>,
     att: f32,
     dec: f32,
-    events: Vec<(f32, f32)>,
+    events: Vec<(f32, f32)>, // event.0 is frac, event.1 is midi
     ref_order: HashMap<String, usize>,
     period_in_cycle: f32, // in cycles, can be 1.2121 for example
     cycle_dur: f32, // time
@@ -67,12 +67,14 @@ impl< const N: usize> Node<N> for PatternSynth {
                 let bar_length = self.cycle_dur * self.period_in_cycle * self.sr as f32;
                 for i in 0..N {
                     output[0][i] = 0.0;
+
                     for event in &self.events {
-                        if (self.step % (bar_length as usize)) == ((event.0 * self.cycle_dur) as usize) {
+                        if (self.step % (bar_length as usize)) == ((event.0 * self.cycle_dur * self.sr as f32) as usize) {
                             let midi = event.1;
-                            let freq = 2f32.powf((midi-69.)/12.)* 440.;
+                            let freq = 2f32.powf((midi as f32-69.)/12.)* 440.;
 
                             // need to push current step to the playback list
+                            // println!("{}{}", event.0 * self.cycle_dur);
                             self.synth_list.push((self.step, freq));
                             self.phase_list.push(0.0);
                         }
@@ -80,7 +82,7 @@ impl< const N: usize> Node<N> for PatternSynth {
 
                     let mut to_remove = vec![];
 
-                    for (i, synth_info) in self.synth_list.iter().enumerate() {
+                    for (synth_index, synth_info) in self.synth_list.iter().enumerate() {
                         let dur = (self.att + self.dec) * self.sr as f32;
 
                         if self.step - synth_info.0 <= dur as usize {
@@ -90,24 +92,26 @@ impl< const N: usize> Node<N> for PatternSynth {
                                 if attack_n == 0 {
                                     amp = 0.0;
                                 } else {
-                                    amp = pos as f32 / self.att as f32;
+                                    amp = pos as f32 / (self.att * self.sr as f32);
                                 }
                             } else if pos > attack_n {
                                 if decay_n == 0 {
                                     amp = 0.0;
                                 } else {
-                                    amp = (dur as usize - pos) as f32 / self.dec as f32;
+                                    amp = (dur as usize - pos) as f32 / (self.dec * self.sr as f32);
                                 }
                             }
-                            let out = self.phase_list[i] * 2. - 1.;
-                            self.phase_list[i] += synth_info.1 / self.sr as f32;
-                            if self.phase_list[i] > 1. {
-                                self.phase_list[i] -= 1.
+                            let out = self.phase_list[synth_index] * 2. - 1.;
+                            self.phase_list[synth_index] += synth_info.1 / self.sr as f32;
+                            if self.phase_list[synth_index] > 1. {
+                                self.phase_list[synth_index] -= 1.
                             }
+                            // println!("amp {} out {} step {}", amp, out, self.step);
                             output[0][i] += amp * out;
+                            // println!("output[{}] {}",i, output[0][i]);
                         } else {
                             // remove this from start_step_list and output_list
-                            to_remove.push(i)
+                            to_remove.push(synth_index)
                         }
                     }
                     for c in to_remove.iter().rev() {
@@ -115,7 +119,9 @@ impl< const N: usize> Node<N> for PatternSynth {
                         self.phase_list.remove(*c);
                     }
                     self.step += 1;
+                    // println!("output, {}", output[0][i]);
                 }
+                // println!("self.synth_list {:?} step, {:?}", self.synth_list, self.step);
             },
             _ => {
                 // nothing input
