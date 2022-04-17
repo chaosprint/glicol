@@ -42,6 +42,23 @@ Multiple message in one String is also possible.
 glicol.send_msg(`o, 0, 0, 110; o, 1, 0, 500; o, 1, 1, 0.8`);
 ```
 
+## Usage - JS style
+
+You can also write the graph in this way:
+
+```js
+glicol.play({
+    "o": sin(440).mul("~am~")
+    "~am": sin(0.2).mul(0.3).add(0.5)
+})
+```
+
+And send message as before:
+
+```js
+glicol.send_msg(`o, 0, 0, 110`)
+```
+
 ## Feedback
 
 There are many todos for this package. Please let me know your thoughts and suggestions here:
@@ -52,5 +69,5 @@ https://github.com/chaosprint/glicol
 
 ## Dev note (not for users)
 ```
-pnpm link --dir /usr/local/lib/ glicol
+sudo pnpm link --dir /usr/local/lib/ glicol
 ```

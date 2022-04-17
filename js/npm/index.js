@@ -1,10 +1,11 @@
 import text from './glicol-engine'
 import wasm from "./glicol_wasm.wasm"
+// import {sin, } from './nodechain'
 import {TextParameterReader, TextParameterWriter, RingBuffer} from './ringbuf'
-import { sequence, State, TimeSpan } from '@strudel.cycles/core';
+// import { sequence, State, TimeSpan } from '@strudel.cycles/core';
 
 class Engine {
-    constructor() {
+    constructor(isLiveCoding) {
         (async () => {
             // this.sr = 44100;
             this.encoder = new TextEncoder('utf-8');
@@ -29,6 +30,7 @@ class Engine {
                   codeQueue: sab,
                   paramQueue: sab2
                 },
+                isLiveCoding: isLiveCoding === true ? true: false
             })
             this.node.connect(this.audioContext.destination)
             // wasm({env:{now:Date.now}}).then(res=>window._wasm=res);
@@ -64,11 +66,32 @@ class Engine {
       }
     }
 
+    set_bpm(bpm) {
+      this.node.port.postMessage({
+        type: "bpm", value: bpm
+    })
+    }
+
+    live_coding_mode(yes_or_no) {
+      this.node.port.postMessage({
+        type: "livecoding", value: yes_or_no
+      })
+    }
+
     reset() {
       // this.node
     }
+
+    play(obj) {
+      let code = ``;
+      for (let key in obj) {
+        code += key + ": ";
+        code += obj[key].code + ";\n\n"
+      }
+      console.log(code)
+      this.run(code)
+    }
 }
 
-// class
-
 export default Engine
+export * from './nodechain'

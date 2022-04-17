@@ -205,6 +205,7 @@ class GlicolEngine extends AudioWorkletProcessor {
         this._codeArray = new Uint8Array(2048);
         this._paramArray = new Uint8Array(2048);
         const { codeQueue, paramQueue } = options.processorOptions;
+        const isLiveCoding = options.isLiveCoding;
 
         this._code_reader = new TextParameterReader(new RingBuffer(codeQueue, Uint8Array));
         this._param_reader = new TextParameterReader(new RingBuffer(paramQueue, Uint8Array));
@@ -219,7 +220,7 @@ class GlicolEngine extends AudioWorkletProcessor {
                   // console.log(obj)
                     this._wasm = obj.instance
                     this._size = 256
-                    this._wasm.exports.live_coding_mode(false);
+                    this._wasm.exports.live_coding_mode(isLiveCoding);
                     this._resultPtr = this._wasm.exports.alloc_uint8array(256);
                     this._result = new Uint8Array(
                       this._wasm.exports.memory.buffer,
@@ -287,6 +288,8 @@ class GlicolEngine extends AudioWorkletProcessor {
               this._wasm.exports.update(codeUint8ArrayPtr, size)
             } else if (e.data.type === "bpm") {
                 this._wasm.exports.set_bpm(e.data.value);
+            } else if (e.data.type === "livecoding") {
+              this._wasm.exports.live_coding_mode(e.data.value);
             } else if (e.data.type === "amp") {
                 this._wasm.exports.set_track_amp(e.data.value);
             // } else if (e.data.type === "sab") {
