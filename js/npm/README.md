@@ -48,7 +48,7 @@ You can also write the graph in this way:
 
 ```js
 glicol.play({
-    "o": sin(440).mul("~am~")
+    "o": sin(440).mul("~am")
     "~am": sin(0.2).mul(0.3).add(0.5)
 })
 ```
