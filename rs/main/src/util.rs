@@ -8,7 +8,7 @@ use glicol_synth::{
     envelope::EnvPerc,
     effect::{Plate, Balance},
     compound::{Bd, Hh, Sn, SawSynth, SquSynth, TriSynth},
-    synth::{PatternSynth},
+    synth::{PatternSynth, MsgSynth},
     Pass,
     Sum2,
 };
@@ -41,6 +41,23 @@ pub fn makenode<const N: usize>(
     seed: usize
 ) -> Result<(GlicolNodeData<N>, Vec<String>), EngineError> {
     let (nodedata, reflist) = match name {
+
+        "msgsynth" => {
+            (
+                MsgSynth::new()
+                .sr(sr)
+                .attack(
+                    match &paras[1] {
+                        GlicolPara::Number(v) => *v,
+                        _ => unimplemented!()
+                    }
+                ).decay(
+                    match &paras[2] {
+                        GlicolPara::Number(v) => *v,
+                        _ => unimplemented!()
+                    }
+                ).to_boxed_nodedata(1), vec![])
+        },
         "pattern_synth" => {
             match &paras[0] {
                 GlicolPara::Symbol(s) => {

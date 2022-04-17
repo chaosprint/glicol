@@ -360,6 +360,7 @@ class GlicolEngine extends AudioWorkletProcessor {
         )
         
         if (this._result[0] !== 0) {
+          console.log(this._result.slice(0,256))
           this.port.postMessage({type: 'e', info: this._result.slice(0,256)})
         }
     

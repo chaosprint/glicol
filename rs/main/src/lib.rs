@@ -79,15 +79,24 @@ impl<const N: usize> Engine<N> {
                     Ok(v) => v,
                     Err(_) => unimplemented!()
                 };
-                let param = match list[3].parse::<f32>(){
-                    Ok(v) => v,
-                    Err(_) => unimplemented!()
-                };
+                // let param = match list[3].parse::<f32>(){
+                //     Ok(v) => v,
+                //     Err(_) => unimplemented!()
+                // };
     
                 if self.index_info.contains_key(chain_name) {
-                    self.context.graph[
-                        self.index_info[chain_name][chain_pos]
-                    ].node.send_msg(Message::SetToNumber(param_pos, param))
+                    match list[3].parse::<f32>(){
+                        Ok(v) => {
+                            self.context.graph[
+                                self.index_info[chain_name][chain_pos]
+                            ].node.send_msg(Message::SetToNumber(param_pos, v))
+                        },
+                        Err(_) => {
+                            self.context.graph[
+                                self.index_info[chain_name][chain_pos]
+                            ].node.send_msg(Message::SetToSymbol(param_pos, list[3].to_owned()));
+                        }
+                    };
                 }
             }
         }

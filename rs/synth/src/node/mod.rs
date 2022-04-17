@@ -21,7 +21,6 @@ pub mod compound; pub use compound::*;
 
 pub mod synth; pub use synth::*;
 
-
 #[cfg(feature = "use-samples")]
 pub mod sampling;
 

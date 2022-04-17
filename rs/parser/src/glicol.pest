@@ -5,8 +5,9 @@ chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE* ~ node
 
 node = ${ (mix|seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noise|onepole|
 sp|constsig|lpf|rhpf|onepole|imp|delayn|delayms|envperc|apfmsgain|plate|sendpass|
-get|bd|sn|hh|meta|sawsynth|squsynth|trisynth|balance|adc|pattern_synth) }
+get|bd|sn|hh|meta|sawsynth|squsynth|trisynth|balance|adc|pattern_synth|msgsynth) }
 
+msgsynth = ${("msgsynth"|"msg_synth") ~ (WHITESPACE+ ~ !node_name ~ symbol) ~ (WHITESPACE+ ~ !node_name ~ number) ~ (WHITESPACE+ ~ !node_name ~ number)}
 pattern_synth = ${("psynth"|"p_synth"|"pattern_synth") ~ WHITESPACE+ ~ code ~ (WHITESPACE+ ~ !node_name ~ number)? }
 adc = ${"adc" ~ WHITESPACE+ ~ !node_name ~ (number ) }
 meta = ${ ("meta"|"script") ~ WHITESPACE+ ~ code}
@@ -17,6 +18,7 @@ char = {
     | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
     | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }
+
 balance = ${ "balance" ~ WHITESPACE+ ~ reference ~ WHITESPACE+ ~ reference}
 get = ${ ("get" ~ WHITESPACE+)? ~ !(node_name) ~ reference}
 sendpass = ${ "sendpass" ~ WHITESPACE+ ~ reference ~ (WHITESPACE+ ~ reference)*}
@@ -55,7 +57,16 @@ sp = ${("sp"|"sampler") ~ WHITESPACE+ ~ !( node_name | reference | number ) ~ sy
 // paras = ${  float | symbol | seq | reference}
 number = ${ float | integer}
 float = ${ (("+" | "-")? ~ ASCII_DIGIT+) ~ "." ~ ASCII_DIGIT* ~ (^"e" ~ integer)? }
-symbol = ${ "\\" ~ (ASCII_ALPHANUMERIC | "_")+ }
+symbol = ${ chars | ("\\" ~ (ASCII_ALPHANUMERIC | "_")+)  }
+
+chars = ${ "'" ~ nbase ~ "'" }
+nbase = @{ base* }
+base = {
+    !("'" | "\\") ~ ANY
+    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
+
 compound_notes = @{ compound ~ (WHITESPACE+ ~ compound)*}
 compound = ${ note+ }
 note = ${ integer | rest | note_ref }
@@ -66,7 +77,7 @@ rest = ${ "_" }
 integer = ${ (ASCII_DIGIT)+ ~ !"." }
 WHITESPACE = _{" "|","|"|"|"\t"}
 
-node_name = ${"psynth"|"p_synth"|"pattern_synth"|"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|
+node_name = ${"msgsynth"|"psynth"|"p_synth"|"pattern_synth"|"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|
 "linrange"|"apfdecay"|"delayn"|"delaymod"|
 "sin"|"squ"|"imp"|"envperc"|"sampler"|"noiz"|"lpf"|"plate"|"onepole"|
 "hpf"|"pha"|"buf"|"state"|"freeverb"|"pan"|"delay"|"apfgain"|"comb"|"mix"|"monosum"|
