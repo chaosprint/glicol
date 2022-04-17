@@ -21,7 +21,7 @@ impl MsgSynth {
         Self {
             synth_list: vec![],
             phase_list: vec![],
-            events: vec![(88200, 60.)], // test with (88200, 60.)
+            events: vec![], // test with (88200, 60.)
             att: 0.001,
             dec: 0.1,
             ref_order: HashMap::new(),
@@ -81,8 +81,6 @@ impl< const N: usize> Node<N> for MsgSynth {
         
         let attack_n = (self.att * self.sr as f32) as usize;
         let decay_n = (self.dec * self.sr as f32) as usize;
-
-
         // match inputs.len() {
             // 0 => {
         // let bar_length = self.cycle_dur * self.period_in_cycle * self.sr as f32;
