@@ -17,6 +17,7 @@ pub use node::{
     signal,
     delay,
     compound,
+    synth
 };
 // pub use node::*; // TODO: Do not expose every struct here
 
@@ -37,6 +38,9 @@ pub use node::{Sum, Sum2};
 
 #[cfg(feature = "node-pass")]
 pub use node::{Pass};
+
+// #[cfg(feature = "node-pass")]
+// pub use node::{Pass};
 
 use hashbrown::HashMap;
 // pub use hashbrown::HashMap;
@@ -73,7 +77,6 @@ pub enum GlicolPara {
     Number(f32),
     NumberList(Vec<f32>),
     Reference(String),
-    // RefList(Vec<&'a str>),
     SampleSymbol(String), // symbol is for sample only
     Symbol(String),
     Sequence(Vec::<(f32, GlicolPara)>),
