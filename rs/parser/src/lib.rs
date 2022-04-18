@@ -144,6 +144,39 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                                 Rule::reference => 
                                                     GlicolPara::Reference(p1.as_str().to_owned())
                                                 ,
+                                                Rule::event => {
+                                                    let mut p1i = p1.into_inner();
+                                                    
+                                                    let p: Vec<(GlicolPara, f32)> = p1i.next().unwrap().into_inner()
+                                                    .map(|pair| {
+                                                        let mut it = pair.as_str().split("@");
+                                                        let value = GlicolPara::Number(
+                                                            it.next().unwrap().parse::<f32>().unwrap());
+                                                        let time = it.next().unwrap().parse::<f32>().unwrap();
+                                                        (value, time)
+                                                    }).collect();
+                                                    GlicolPara::Event(p)
+                                                }
+                                                ,
+                                                Rule::pattern => {
+                                                    let mut p1i = p1.into_inner();
+                                                    
+                                                    let p: Vec<(GlicolPara, f32)> = p1i.next().unwrap().into_inner()
+                                                    .map(|pair| {
+                                                        let mut it = pair.as_str().split("@");
+                                                        let value = GlicolPara::Number(
+                                                            it.next().unwrap().parse::<f32>().unwrap());
+                                                        let time = it.next().unwrap().parse::<f32>().unwrap();
+                                                        (value, time)
+                                                    }).collect();
+                                                    // println!("{:?}", p1i.next().unwrap());
+                                                    let span = match p1i.next() {
+                                                        Some(r) => r.as_str().parse::<f32>().unwrap(),
+                                                        None => 1.0
+                                                    };
+                                                    GlicolPara::Pattern(p, span)
+                                                }
+                                                ,
                                                 _ => unimplemented!()
                                             },
                                             GlicolPara::Number(p2.as_str().parse::<f32>().unwrap())

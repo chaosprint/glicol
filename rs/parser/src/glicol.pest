@@ -31,7 +31,7 @@ seq = ${ "seq" ~ WHITESPACE+ ~ compound_notes }
 choose = ${ "choose" ~ WHITESPACE+ ~ integer ~ (WHITESPACE+ ~ integer)*}
 mix = ${ "mix" ~ WHITESPACE+ ~ reference ~ (WHITESPACE+ ~ reference)*}
 apfmsgain = ${ ("apfgain" | "apfmsgain") ~ WHITESPACE+ ~ !node_name ~ (number | reference) ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
-lpf = ${"lpf" ~ WHITESPACE+ ~ !node_name ~ (number | reference | pattern) ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
+lpf = ${"lpf" ~ WHITESPACE+ ~ !node_name ~ (number | reference | pattern | event ) ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
 rhpf = ${("rhpf"|"hpf") ~ WHITESPACE+ ~ !node_name ~ (number | reference) ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
 mul = ${"mul" ~ WHITESPACE+ ~ !node_name ~ (number | reference ) }
 imp = ${"imp" ~ WHITESPACE+ ~ !node_name ~ (number ) }
@@ -56,26 +56,14 @@ noise = ${("noiz"|"noise") ~ WHITESPACE+ ~ number}
 sp = ${("sp"|"sampler") ~ WHITESPACE+ ~ !( node_name | reference | number ) ~ symbol }
 // paras = ${  float | symbol | seq | reference}
 
-
-pattern = ${ "`" ~ pattern_body ~ "`" ~ "(" ~ number? ~ ")"}
-pattern_body = @{ pattern_elem* }
-pattern_elem = {
-    !("`" | "\\") ~ ANY
-    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
-    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
-}
+event = ${ "\"" ~ pattern_event_body ~ "\""}
+pattern = ${ "\"" ~ pattern_event_body ~ "\"" ~ "(" ~ number? ~ ")"}
+pattern_event_body = ${ WHITESPACE* ~value_time ~ (WHITESPACE+ ~ value_time)* }
+value_time = ${(number|symbol) ~ "@" ~ (number)}
 
 number = ${ float | integer}
 float = ${ (("+" | "-")? ~ ASCII_DIGIT+) ~ "." ~ ASCII_DIGIT* ~ (^"e" ~ integer)? }
-symbol = ${ chars | ("\\" ~ (ASCII_ALPHANUMERIC | "_")+)  }
-
-chars = ${ "'" ~ nbase ~ "'" }
-nbase = @{ base* }
-base = {
-    !("'" | "\\") ~ ANY
-    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
-    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
-}
+symbol = ${ ("'"~ (ASCII_ALPHANUMERIC | "_" | "-")+ ~ "'") | ("\\" ~ (ASCII_ALPHANUMERIC | "_"|"-")+)  }
 
 compound_notes = @{ compound ~ (WHITESPACE+ ~ compound)*}
 compound = ${ note+ }
@@ -87,7 +75,8 @@ rest = ${ "_" }
 integer = ${ (ASCII_DIGIT)+ ~ !"." }
 WHITESPACE = _{" "|","|"|"|"\t"}
 
-node_name = ${"msgsynth"|"psynth"|"p_synth"|"pattern_synth"|"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|
+node_name = ${"synth"|"msgsynth"|"psynth"|"p_synth"|"pattern_synth"|
+"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|
 "linrange"|"apfdecay"|"delayn"|"delaymod"|
 "sin"|"squ"|"imp"|"envperc"|"sampler"|"noiz"|"lpf"|"plate"|"onepole"|
 "hpf"|"pha"|"buf"|"state"|"freeverb"|"pan"|"delay"|"apfgain"|"comb"|"mix"|"monosum"|
