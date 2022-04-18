@@ -1,6 +1,8 @@
-export default `
+// export default `
 // https://github.com/padenot/ringbuf.js
 // customised for Glicol
+
+export default function worklet() {
 // TextParameter has a varied length
 class TextParameterWriter {
   // From a RingBuffer, build an object that can enqueue a parameter change in
@@ -195,7 +197,6 @@ class RingBuffer {
     }
   }
 }
-
 class GlicolEngine extends AudioWorkletProcessor {
     static get parameterDescriptors() {
         return []
@@ -371,4 +372,29 @@ class GlicolEngine extends AudioWorkletProcessor {
 }
 
 registerProcessor('glicol-engine', GlicolEngine)
-`
+}
+// https://gist.github.com/littledan/f7c1d1abf0e51ad4b526a8eadb2da43b
+// register processor in AudioWorkletGlobalScope
+// function registerProcessor(name, processorCtor) {
+//   return `${processorCtor};\nregisterProcessor('${name}', ${processorCtor.name});`;
+// }
+
+// const worklet = (URL.createObjectURL(
+//   new Blob(
+//     [
+//       registerProcessor(
+//         'glicol-engine',
+//         GlicolEngine
+//       ),
+//     ],
+//     { type: 'text/javascript' }
+//   )
+// ));
+
+// export {worklet}
+
+// export default whateverWorker.a.b
+
+
+// registerProcessor('glicol-engine', GlicolEngine)
+// `
