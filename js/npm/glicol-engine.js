@@ -2,7 +2,7 @@
 // https://github.com/padenot/ringbuf.js
 // customised for Glicol
 
-export default function worklet() {
+export default () => {
 // TextParameter has a varied length
 class TextParameterWriter {
   // From a RingBuffer, build an object that can enqueue a parameter change in
