@@ -1,19 +1,18 @@
 import worklet from './glicol-engine'
-import wasm from "./glicol_wasm.wasm"
+import wasm from './glicol_wasm.wasm'
 import {TextParameterReader, TextParameterWriter, RingBuffer} from './ringbuf'
 
-// console.log(worklet)
-// var workletText = String(worklet).replace("function worklet()", "") //.slice(0, -1)
+let text = `( ${String(worklet)} )(${TextParameterReader}, ${RingBuffer})`;
+// console.log(text)
 
 class Engine {
     constructor(isLiveCoding) {
         (async () => {
-            // this.sr = 44100;
             this.encoder = new TextEncoder('utf-8');
             this.audioContext = new AudioContext()
             this.audioContext.suspend()
 
-            const blob = new Blob(["("+String(worklet)+")()"], { type: "application/javascript" });
+            const blob = new Blob([text], { type: "application/javascript" });
             const module = URL.createObjectURL(blob);
             await this.audioContext.audioWorklet.addModule(module)
 

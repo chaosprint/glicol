@@ -3,8 +3,9 @@
 // customised for Glicol by Qichao Lan (chaosprint)
 // license: MPL-2.0 License
 
+
 // TextParameter has a varied length
-class TextParameterWriter {
+export class TextParameterWriter {
     // From a RingBuffer, build an object that can enqueue a parameter change in
     // the queue.
     constructor(ringbuf) {
@@ -24,7 +25,11 @@ class TextParameterWriter {
     }
 }
 
-class TextParameterReader {
+// }
+
+// export function TextParameterReaderDef() {
+
+export class TextParameterReader {
     constructor(ringbuf) {
     if (ringbuf.type() != "Uint8Array") {
         throw "This class requires a ring buffer of Uint8Array";
@@ -44,12 +49,17 @@ class TextParameterReader {
     }
 }
 
+// }
+
+// export function RingBufferDef() {
+
+
 // A Single Producer - Single Consumer thread-safe wait-free ring buffer.
 //
 // The producer and the consumer can be separate thread, but cannot change role,
 // except with external synchronization.
 
-class RingBuffer {
+export class RingBuffer {
     static getStorageForCapacity(capacity, type) {
     if (!type.BYTES_PER_ELEMENT) {
         throw "Pass in a ArrayBuffer subclass";
@@ -176,5 +186,5 @@ class RingBuffer {
     }
     }
 }
-
-export {TextParameterReader, TextParameterWriter, RingBuffer}
+// }
+// export {TextParameterReader, TextParameterWriter, RingBuffer}
