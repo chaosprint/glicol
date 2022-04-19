@@ -17,7 +17,7 @@ use glicol_synth::{
 use glicol_synth::dynamic::Meta;
 
 #[cfg(feature = "use-samples")]
-use glicol_synth::sampling::Sampler;
+use glicol_synth::sampling::{Sampler, PSampler};
 
 use hashbrown::HashMap;
 use glicol_synth::{NodeData, BoxedNodeSend, GlicolPara}; //, Processor, Buffer, Input, Node
@@ -41,6 +41,29 @@ pub fn makenode<const N: usize>(
     seed: usize
 ) -> Result<(GlicolNodeData<N>, Vec<String>), EngineError> {
     let (nodedata, reflist) = match name {
+
+        #[cfg(feature = "use-samples")]
+        "psampler" => {
+            let pattern_info = match &paras[0] {
+                GlicolPara::Pattern(pattern, span) => (pattern, span),
+                _ => unimplemented!()
+            };
+            let mut samples_dict_selected = HashMap::new();
+            let pattern: Vec<(String, f32)> = (*pattern_info.0).iter().map(|v| {
+                let value = match &v.0 {
+                    GlicolPara::Number(v) => "".to_owned(),
+                    GlicolPara::Symbol(s) => s.to_string(),
+                    _ => unimplemented!()
+                };
+                let time = v.1;
+                samples_dict_selected.insert(value.clone(), samples_dict[&value]);
+                (value, time)
+            }).collect();
+
+            let span = *pattern_info.1;
+
+            (PSampler::new(samples_dict_selected, sr, bpm, vec![], pattern, span).to_boxed_nodedata(2), vec![])
+        },
 
         "msgsynth" => {
             (

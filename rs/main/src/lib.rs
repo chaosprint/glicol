@@ -459,7 +459,8 @@ impl<const N: usize> Engine<N> {
                             self.context.graph[
                             chain[position_in_chain]].node.send_msg(
                                 Message::SetToNumberList(i as u8, l.clone()))
-                        }
+                        },
+                        _ => {}
                     }
                 }
 
