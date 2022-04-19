@@ -131,19 +131,14 @@ impl<const N: usize> Node<N> for PSampler {
             self.step += 1;
         }
     }
+
     fn send_msg(&mut self, info: Message) {
         match info {
-            // Message::SetToSamples(pos, sample) => {
-            //     match pos {
-            //         0 => {
-            //             self.sample = sample;
-            //             self.len = sample.0.len()/sample.1;
-            //             self.endindex = sample.0.len()-1;
-            //             // self.playback.clear();
-            //         },
-            //         _ => {}
-            //     }
-            // },
+            Message::SetSamplePattern(pattern, span, samples_dict) => {
+                self.pattern = pattern;
+                self.samples_dict = samples_dict;
+                self.period_in_cycle = span                
+            },
             Message::Index(i) => {
                 self.input_order.push(i)
             },

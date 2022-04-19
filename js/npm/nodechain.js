@@ -53,6 +53,20 @@ export function psynth(str, span) {
   }
 }
 
+export function psampler(str) {
+  return new NodeChain(`psampler ${str}`)
+}
+
+export function mix(str) {
+  // var result;
+  // if (typeof str === "Array") {
+  //   result = str.join(" ")
+  // } else if (typeof str === "String") {
+  //   result = str
+  // }
+  return new NodeChain(`mix ${str}`)
+}
+
 export class NodeChain {
   constructor(code) {
     this.code = code

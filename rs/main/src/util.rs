@@ -49,16 +49,37 @@ pub fn makenode<const N: usize>(
                 _ => unimplemented!()
             };
             let mut samples_dict_selected = HashMap::new();
-            let pattern: Vec<(String, f32)> = (*pattern_info.0).iter().map(|v| {
+
+            let mut pattern = vec![];
+
+            for v in (*pattern_info.0).iter() {
                 let value = match &v.0 {
-                    GlicolPara::Number(v) => "".to_owned(),
+                    GlicolPara::Number(_) => "".to_owned(),
                     GlicolPara::Symbol(s) => s.to_string(),
                     _ => unimplemented!()
                 };
                 let time = v.1;
-                samples_dict_selected.insert(value.clone(), samples_dict[&value]);
-                (value, time)
-            }).collect();
+                if !samples_dict.contains_key(&value) {
+                    return Err(EngineError::NonExsitSample(value.clone()))
+                } else {
+                    samples_dict_selected.insert(value.clone(), samples_dict[&value]);
+                }
+                pattern.push((value, time));
+            }
+
+            // let pattern: Vec<(String, f32)> = (*pattern_info.0).iter().map(|v| {
+            //     let value = match &v.0 {
+            //         GlicolPara::Number(v) => "".to_owned(),
+            //         GlicolPara::Symbol(s) => s.to_string(),
+            //         _ => unimplemented!()
+            //     };
+            //     let time = v.1;
+            //     if !self.samples_dict.contains_key(&value) {
+            //         return Err(EngineError::NonExsitSample(value.clone()))
+            //     }
+            //     samples_dict_selected.insert(value.clone(), samples_dict[&value]);
+            //     (value, time)
+            // }).collect();
 
             let span = *pattern_info.1;
 

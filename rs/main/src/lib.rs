@@ -73,11 +73,11 @@ impl<const N: usize> Engine<N> {
                 let chain_name = list[0];
                 let chain_pos = match list[1].parse::<usize>() {
                     Ok(v) => v,
-                    Err(_) => unimplemented!()
+                    Err(_) => 0
                 };
                 let param_pos = match list[2].parse::<u8>() {
                     Ok(v) => v,
-                    Err(_) => unimplemented!()
+                    Err(_) => 0
                 };
                 // let param = match list[3].parse::<f32>(){
                 //     Ok(v) => v,
@@ -460,6 +460,36 @@ impl<const N: usize> Engine<N> {
                             chain[position_in_chain]].node.send_msg(
                                 Message::SetToNumberList(i as u8, l.clone()))
                         },
+                        GlicolPara::Pattern(value_time_list, span) => {
+                            let mut samples_dict_selected = HashMap::new();
+
+                            let mut pattern = vec![];
+
+                            for v in value_time_list.iter() {
+                                let value = match &v.0 {
+                                    GlicolPara::Number(_) => "".to_owned(),
+                                    GlicolPara::Symbol(s) => s.to_string(),
+                                    _ => unimplemented!()
+                                };
+                                let time = v.1;
+                                if !self.samples_dict.contains_key(&value) {
+                                    return Err(EngineError::NonExsitSample(value.clone()))
+                                } else {
+                                    samples_dict_selected.insert(value.clone(), self.samples_dict[&value]);
+                                }
+                                pattern.push((value, time));
+                            }
+
+                            // if !self.samples_dict.contains_key(&value) {
+                            //     return Err(EngineError::NonExsitSample(value.clone()))
+                            // }
+                            
+                            self.context.graph[
+                            chain[position_in_chain]].node.send_msg(
+                                Message::SetSamplePattern(pattern, *span, samples_dict_selected)
+                            )
+                        },
+
                         _ => {}
                     }
                 }
