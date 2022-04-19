@@ -461,33 +461,43 @@ impl<const N: usize> Engine<N> {
                                 Message::SetToNumberList(i as u8, l.clone()))
                         },
                         GlicolPara::Pattern(value_time_list, span) => {
+                            // todo, differ a symbol pattern and number pattern?
                             let mut samples_dict_selected = HashMap::new();
+                            let mut symbol_pattern = vec![];
+                            let mut number_pattern = vec![];
 
-                            let mut pattern = vec![];
-
-                            for v in value_time_list.iter() {
-                                let value = match &v.0 {
-                                    GlicolPara::Number(_) => "".to_owned(),
-                                    GlicolPara::Symbol(s) => s.to_string(),
+                            for value_time in value_time_list.iter() {
+                                let time = value_time.1;
+                                match &value_time.0 {
+                                    GlicolPara::Number(num) => {
+                                        number_pattern.push((*num, time))
+                                    },
+                                    GlicolPara::Symbol(s) => {
+                                        if self.samples_dict.contains_key(s) {
+                                            samples_dict_selected.insert(s.to_owned(), self.samples_dict[s]);
+                                        } else {
+                                            return Err(EngineError::NonExsitSample(s.to_owned()))
+                                        }
+                                        symbol_pattern.push((s.to_string(), time));
+                                    }
                                     _ => unimplemented!()
                                 };
-                                let time = v.1;
-                                if !self.samples_dict.contains_key(&value) {
-                                    return Err(EngineError::NonExsitSample(value.clone()))
-                                } else {
-                                    samples_dict_selected.insert(value.clone(), self.samples_dict[&value]);
-                                }
-                                pattern.push((value, time));
+                                // pattern.push((value, time));
                             }
 
-                            // if !self.samples_dict.contains_key(&value) {
-                            //     return Err(EngineError::NonExsitSample(value.clone()))
-                            // }
-                            
-                            self.context.graph[
-                            chain[position_in_chain]].node.send_msg(
-                                Message::SetSamplePattern(pattern, *span, samples_dict_selected)
-                            )
+                            if symbol_pattern.len() != 0 {
+                                self.context.graph[
+                                    chain[position_in_chain]
+                                ].node.send_msg(
+                                    Message::SetSamplePattern(symbol_pattern, *span, samples_dict_selected)
+                                )
+                            } else {
+                                self.context.graph[
+                                    chain[position_in_chain]
+                                ].node.send_msg(
+                                    Message::SetPattern(number_pattern, *span)
+                                )
+                            }
                         },
 
                         _ => {}

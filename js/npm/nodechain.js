@@ -104,9 +104,9 @@ export class NodeChain {
   }
 
   lpf(cutoff, qvalue) {
-    if ( (!isNaN(cutoff) || isRef(cutoff)) &&  (!isNaN(qvalue))) {
-      this.code += ` >> lpf ${cutoff} ${qvalue}`
-    }
+    // if ( (!isNaN(cutoff) || isRef(cutoff)) &&  (!isNaN(qvalue))) {
+    this.code += ` >> lpf ${cutoff} ${qvalue}`
+    // }
     return this
   }
 

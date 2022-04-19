@@ -65,6 +65,7 @@ impl<const N: usize> Node<N> for PSampler {
                     self.playback.push((self.step, sample_name.to_owned(), dur));
                 }
             }
+            
             let mut count = 0;
             let mut to_remove = vec![];
             for (begin, name, dur) in &self.playback {
@@ -135,6 +136,7 @@ impl<const N: usize> Node<N> for PSampler {
     fn send_msg(&mut self, info: Message) {
         match info {
             Message::SetSamplePattern(pattern, span, samples_dict) => {
+                self.playback.clear();
                 self.pattern = pattern;
                 self.samples_dict = samples_dict;
                 self.period_in_cycle = span                
