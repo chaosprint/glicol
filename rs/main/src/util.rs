@@ -5,7 +5,7 @@ use glicol_synth::{
     operator::{Mul, Add},
     delay::{DelayN, DelayMs},
     sequencer::{Sequencer, Choose, Speed},
-    envelope::EnvPerc,
+    envelope::{EnvPerc, Adsr},
     effect::{Plate, Balance},
     compound::{Bd, Hh, Sn, SawSynth, SquSynth, TriSynth},
     synth::{PatternSynth, MsgSynth},
@@ -231,6 +231,31 @@ pub fn makenode<const N: usize>(
                 }
             ).decay(
                 match &paras[1] {
+                    GlicolPara::Number(v) => *v,
+                    _ => unimplemented!()
+                }
+            ).to_boxed_nodedata(2);
+            let reflist = vec![];
+            (data, reflist)
+        },
+        "adsr" => {
+            let data = Adsr::new().sr(sr).attack(
+                match &paras[0] {
+                    GlicolPara::Number(v) => *v,
+                    _ => unimplemented!()
+                }
+            ).decay(
+                match &paras[1] {
+                    GlicolPara::Number(v) => *v,
+                    _ => unimplemented!()
+                }
+            ).sustain(
+                match &paras[2] {
+                    GlicolPara::Number(v) => *v,
+                    _ => unimplemented!()
+                }
+            ).release(
+                match &paras[3] {
                     GlicolPara::Number(v) => *v,
                     _ => unimplemented!()
                 }

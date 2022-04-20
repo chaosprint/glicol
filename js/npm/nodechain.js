@@ -176,4 +176,19 @@ export class NodeChain {
     // }
     return this
   }
+
+  adsr(a, d, s, r) {
+    // if (!isNaN(str)) {
+    this.code += ` >> adsr ${a} ${d} ${s} ${r}`
+    // }
+    return this
+  }
+
+  envperc(attack, decay) {
+    // if (!isNaN(str)) {
+    this.code += ` >> envperc ${attack} ${decay}`
+    // }
+    return this
+  }
+
 }

@@ -5,7 +5,7 @@ chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE* ~ node
 
 node = ${ (psampler|mix|seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noise|onepole|
 sp|constsig|lpf|rhpf|onepole|imp|delayn|delayms|envperc|apfmsgain|plate|sendpass|
-get|bd|sn|hh|meta|sawsynth|squsynth|trisynth|balance|adc|pattern_synth|msgsynth) }
+get|bd|sn|hh|meta|sawsynth|squsynth|trisynth|balance|adc|pattern_synth|msgsynth|adsr) }
 
 psampler = ${"psampler" ~ WHITESPACE+ ~ (pattern|event)}
 msgsynth = ${("msgsynth"|"msg_synth") ~ (WHITESPACE+ ~ !node_name ~ symbol) ~ (WHITESPACE+ ~ !node_name ~ number) ~ (WHITESPACE+ ~ !node_name ~ number)}
@@ -29,6 +29,7 @@ delayn = ${"delayn" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 delayms = ${"delayms" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 seq = ${ "seq" ~ WHITESPACE+ ~ compound_notes }
 
+adsr = ${"adsr" ~ WHITESPACE+ ~ !node_name ~ (number ) ~ WHITESPACE+ ~ !node_name ~ (number ) ~ WHITESPACE+ ~ !node_name ~ (number ) ~ WHITESPACE+ ~ !node_name ~ (number )  }
 choose = ${ "choose" ~ WHITESPACE+ ~ integer ~ (WHITESPACE+ ~ integer)*}
 mix = ${ "mix" ~ WHITESPACE+ ~ reference ~ (WHITESPACE+ ~ reference)*}
 apfmsgain = ${ ("apfgain" | "apfmsgain") ~ WHITESPACE+ ~ !node_name ~ (number | reference) ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
@@ -76,7 +77,7 @@ rest = ${ "_" }
 integer = ${ (ASCII_DIGIT)+ ~ !"." }
 WHITESPACE = _{" "|","|"|"|"\t"}
 
-node_name = ${"sig"|"psampler"|"synth"|"msgsynth"|"psynth"|"p_synth"|"pattern_synth"|
+node_name = ${"adsr"|"sig"|"psampler"|"synth"|"msgsynth"|"psynth"|"p_synth"|"pattern_synth"|
 "bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|
 "linrange"|"apfdecay"|"delayn"|"delaymod"|
 "sin"|"squ"|"imp"|"envperc"|"sampler"|"noiz"|"lpf"|"plate"|"onepole"|
