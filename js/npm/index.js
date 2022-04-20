@@ -34,11 +34,11 @@ class Engine {
             this.audioContext = audioContext;
             this.audioContext.suspend()
 
-            console.log(text)
+            // console.log(text)
             const blob = new Blob([text], { type: "application/javascript" });
-            console.log(blob)
+            // console.log(blob)
             const module = URL.createObjectURL(blob);
-            console.log(module)
+            // console.log(module)
             await this.audioContext.audioWorklet.addModule(module)
             
             if (isSharedArrayBufferSupported) {

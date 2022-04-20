@@ -48,7 +48,7 @@ saw = ${"saw" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 squ = ${"squ" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 tri = ${"tri" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 pan = ${"pan" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
-constsig = ${"constsig" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+constsig = ${("sig"|"constsig") ~ WHITESPACE+ ~ !node_name ~ ( number | pattern | event ) }
 onepole = ${"onepole" ~ WHITESPACE+ ~ !node_name ~ ( number | reference) }
 
 // single float
@@ -76,7 +76,7 @@ rest = ${ "_" }
 integer = ${ (ASCII_DIGIT)+ ~ !"." }
 WHITESPACE = _{" "|","|"|"|"\t"}
 
-node_name = ${"psampler"|"synth"|"msgsynth"|"psynth"|"p_synth"|"pattern_synth"|
+node_name = ${"sig"|"psampler"|"synth"|"msgsynth"|"psynth"|"p_synth"|"pattern_synth"|
 "bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|
 "linrange"|"apfdecay"|"delayn"|"delaymod"|
 "sin"|"squ"|"imp"|"envperc"|"sampler"|"noiz"|"lpf"|"plate"|"onepole"|

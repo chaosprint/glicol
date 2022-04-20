@@ -383,14 +383,28 @@ pub fn makenode<const N: usize>(
             }
         },
         "constsig" => {
-            match &paras[0] {
+
+            let mut reflist = vec![];
+            let data = match &paras[0] {
                 GlicolPara::Number(v) => {
-                    (ConstSig::new(*v).to_boxed_nodedata(1), vec![])
+                    ConstSig::new(*v).sr(sr).to_boxed_nodedata(1)
                 },
-                _ => {
-                    unimplemented!();
+                GlicolPara::Pattern(events, span) => {
+                    let mut pattern = vec![];
+
+                    for v in events.iter() {
+                        let value = match v.0 {
+                            GlicolPara::Number(num) => num,
+                            _ => 100.0
+                        };
+                        pattern.push((value, v.1));
+                    }
+                    println!("pattern {:?}", pattern);
+                    ConstSig::new(0.0).pattern(pattern).span(*span).bpm(bpm).sr(sr).to_boxed_nodedata(1)
                 }
-            }
+                _ => unimplemented!()
+            };
+            (data, reflist)
         },
         // todo: give sr to them
         "bd" => get_one_para_from_number_or_ref2!(Bd),

@@ -57,6 +57,10 @@ export function psampler(str) {
   return new NodeChain(`psampler ${str}`)
 }
 
+export function sig(param) {
+    return new NodeChain(`constsig ${param}`)
+}
+
 export function mix(str) {
   // var result;
   // if (typeof str === "Array") {
