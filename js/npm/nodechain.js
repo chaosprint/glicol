@@ -53,6 +53,24 @@ export function psynth(str, span) {
   }
 }
 
+export function psampler(str) {
+  return new NodeChain(`psampler ${str}`)
+}
+
+export function sig(param) {
+    return new NodeChain(`constsig ${param}`)
+}
+
+export function mix(str) {
+  // var result;
+  // if (typeof str === "Array") {
+  //   result = str.join(" ")
+  // } else if (typeof str === "String") {
+  //   result = str
+  // }
+  return new NodeChain(`mix ${str}`)
+}
+
 export class NodeChain {
   constructor(code) {
     this.code = code
@@ -90,9 +108,9 @@ export class NodeChain {
   }
 
   lpf(cutoff, qvalue) {
-    if ( (!isNaN(cutoff) || isRef(cutoff)) &&  (!isNaN(qvalue))) {
-      this.code += ` >> lpf ${cutoff} ${qvalue}`
-    }
+    // if ( (!isNaN(cutoff) || isRef(cutoff)) &&  (!isNaN(qvalue))) {
+    this.code += ` >> lpf ${cutoff} ${qvalue}`
+    // }
     return this
   }
 

@@ -122,7 +122,52 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                         chain_paras.push(vec![GlicolPara::SampleSymbol(paras.as_str().to_owned())]);
                                     },
                                     Rule::speed => one_para_number_or_ref!("speed"),
-                                    Rule::constsig => one_para_number_or_ref!("constsig"),
+                                    Rule::constsig => {
+                                        println!("node {:?}", node.as_str()); //"sin 440"
+                                        let paras = node.into_inner().next().unwrap();
+                                        println!("paras {:?}", paras.as_str());//"440"                                        
+                                        chain_node_names.push("constsig");
+                                        match paras.as_rule() {
+                                            Rule::number => {
+                                                chain_paras.push(vec![GlicolPara::Number(paras.as_str().parse::<f32>().unwrap())]);
+                                            },
+                                            Rule::reference => {
+                                                chain_paras.push(vec![GlicolPara::Reference(paras.as_str().to_owned())]);
+                                            },
+                                            Rule::event => {
+                                                let mut p1i = paras.into_inner();
+                                                let p: Vec<(GlicolPara, f32)> = p1i.next().unwrap().into_inner()
+                                                .map(|pair| {
+                                                    let mut it = pair.as_str().split("@");
+                                                    let value = GlicolPara::Number(
+                                                        it.next().unwrap().parse::<f32>().unwrap());
+                                                    let time = it.next().unwrap().parse::<f32>().unwrap();
+                                                    (value, time)
+                                                }).collect();
+                                                chain_paras.push(vec![GlicolPara::Event(p)])
+                                            }
+                                            ,
+                                            Rule::pattern => {
+                                                let mut p1i = paras.into_inner();
+                                                
+                                                let p: Vec<(GlicolPara, f32)> = p1i.next().unwrap().into_inner()
+                                                .map(|pair| {
+                                                    let mut it = pair.as_str().split("@");
+                                                    let value = GlicolPara::Number(
+                                                        it.next().unwrap().parse::<f32>().unwrap());
+                                                    let time = it.next().unwrap().parse::<f32>().unwrap();
+                                                    (value, time)
+                                                }).collect();
+                                                // println!("{:?}", p1i.next().unwrap());
+                                                let span = match p1i.next() {
+                                                    Some(r) => r.as_str().parse::<f32>().unwrap(),
+                                                    None => 1.0
+                                                };
+                                                chain_paras.push(vec![GlicolPara::Pattern(p, span)])
+                                            },
+                                            _ => {}
+                                        }
+                                    }
                                     Rule::adc => one_para_number_or_ref!("adc"),
                                     Rule::bd => one_para_number_or_ref!("bd"),
                                     Rule::sn => one_para_number_or_ref!("sn"),
@@ -144,9 +189,97 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                                 Rule::reference => 
                                                     GlicolPara::Reference(p1.as_str().to_owned())
                                                 ,
+                                                Rule::event => {
+                                                    let mut p1i = p1.into_inner();
+                                                    
+                                                    let p: Vec<(GlicolPara, f32)> = p1i.next().unwrap().into_inner()
+                                                    .map(|pair| {
+                                                        let mut it = pair.as_str().split("@");
+                                                        let value = GlicolPara::Number(
+                                                            it.next().unwrap().parse::<f32>().unwrap());
+                                                        let time = it.next().unwrap().parse::<f32>().unwrap();
+                                                        (value, time)
+                                                    }).collect();
+                                                    GlicolPara::Event(p)
+                                                }
+                                                ,
+                                                Rule::pattern => {
+                                                    let mut p1i = p1.into_inner();
+                                                    
+                                                    let p: Vec<(GlicolPara, f32)> = p1i.next().unwrap().into_inner()
+                                                    .map(|pair| {
+                                                        let mut it = pair.as_str().split("@");
+                                                        let value = GlicolPara::Number(
+                                                            it.next().unwrap().parse::<f32>().unwrap());
+                                                        let time = it.next().unwrap().parse::<f32>().unwrap();
+                                                        (value, time)
+                                                    }).collect();
+                                                    // println!("{:?}", p1i.next().unwrap());
+                                                    let span = match p1i.next() {
+                                                        Some(r) => r.as_str().parse::<f32>().unwrap(),
+                                                        None => 1.0
+                                                    };
+                                                    GlicolPara::Pattern(p, span)
+                                                }
+                                                ,
                                                 _ => unimplemented!()
                                             },
                                             GlicolPara::Number(p2.as_str().parse::<f32>().unwrap())
+                                        ]);
+                                        // println!("chain_paras, {:?}", chain_paras);
+                                    },
+                                    Rule::psampler => {
+                                        println!("node {:?}", node.as_str());
+                                        let mut iter = node.into_inner();
+                                        let p1 = iter.next().unwrap();
+                                        // let p2 = iter.next().unwrap();
+                                        chain_node_names.push("psampler");
+                                        chain_paras.push(vec![
+                                            match p1.as_rule() {
+                                                Rule::number => 
+                                                    GlicolPara::Number(p1.as_str().parse::<f32>().unwrap())
+                                                ,
+                                                Rule::reference => 
+                                                    GlicolPara::Reference(p1.as_str().to_owned())
+                                                ,
+                                                Rule::event => {
+                                                    let mut p1i = p1.into_inner();
+                                                    let p: Vec<(GlicolPara, f32)> = p1i.next().unwrap().into_inner()
+                                                    .map(|pair| {
+                                                        let mut it = pair.as_str().split("@");
+                                                        let value_raw = it.next().unwrap();
+                                                        let value = match value_raw.parse::<f32>() {
+                                                            Ok(v) => GlicolPara::Number(v),
+                                                            Err(_) => GlicolPara::Symbol(value_raw.to_owned())
+                                                        };
+                                                        let time = it.next().unwrap().parse::<f32>().unwrap();
+                                                        (value, time)
+                                                    }).collect();
+                                                    GlicolPara::Event(p)
+                                                }
+                                                ,
+                                                Rule::pattern => {
+                                                    let mut p1i = p1.into_inner();
+                                                    let p: Vec<(GlicolPara, f32)> = p1i.next().unwrap().into_inner()
+                                                    .map(|pair| {
+                                                        let mut it = pair.as_str().split("@");
+                                                        let value_raw = it.next().unwrap();
+                                                        let value = match value_raw.parse::<f32>() {
+                                                            Ok(v) => GlicolPara::Number(v),
+                                                            Err(_) => GlicolPara::Symbol(value_raw.to_owned())
+                                                        };
+                                                        let time = it.next().unwrap().parse::<f32>().unwrap();
+                                                        (value, time)
+                                                    }).collect();
+                                                    let span = match p1i.next() {
+                                                        Some(r) => r.as_str().parse::<f32>().unwrap(),
+                                                        None => 1.0
+                                                    };
+                                                    GlicolPara::Pattern(p, span)
+                                                }
+                                                ,
+                                                _ => unimplemented!()
+                                            },
                                         ]);
                                         // println!("chain_paras, {:?}", chain_paras);
                                     },

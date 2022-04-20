@@ -3,10 +3,11 @@ comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE* ~ !NEWLINE}
 line = ${ reference ~ WHITESPACE* ~ ":" ~ WHITESPACE* ~ chain}
 chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE* ~ node)*  }
 
-node = ${ (mix|seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noise|onepole|
+node = ${ (psampler|mix|seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noise|onepole|
 sp|constsig|lpf|rhpf|onepole|imp|delayn|delayms|envperc|apfmsgain|plate|sendpass|
 get|bd|sn|hh|meta|sawsynth|squsynth|trisynth|balance|adc|pattern_synth|msgsynth) }
 
+psampler = ${"psampler" ~ WHITESPACE+ ~ (pattern|event)}
 msgsynth = ${("msgsynth"|"msg_synth") ~ (WHITESPACE+ ~ !node_name ~ symbol) ~ (WHITESPACE+ ~ !node_name ~ number) ~ (WHITESPACE+ ~ !node_name ~ number)}
 pattern_synth = ${("psynth"|"p_synth"|"pattern_synth") ~ WHITESPACE+ ~ code ~ (WHITESPACE+ ~ !node_name ~ number)? }
 adc = ${"adc" ~ WHITESPACE+ ~ !node_name ~ (number ) }
@@ -31,9 +32,9 @@ seq = ${ "seq" ~ WHITESPACE+ ~ compound_notes }
 choose = ${ "choose" ~ WHITESPACE+ ~ integer ~ (WHITESPACE+ ~ integer)*}
 mix = ${ "mix" ~ WHITESPACE+ ~ reference ~ (WHITESPACE+ ~ reference)*}
 apfmsgain = ${ ("apfgain" | "apfmsgain") ~ WHITESPACE+ ~ !node_name ~ (number | reference) ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
-lpf = ${"lpf" ~ WHITESPACE+ ~ !node_name ~ (number | reference) ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
+lpf = ${"lpf" ~ WHITESPACE+ ~ !node_name ~ (number | reference | pattern | event ) ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
 rhpf = ${("rhpf"|"hpf") ~ WHITESPACE+ ~ !node_name ~ (number | reference) ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
-mul = ${"mul" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+mul = ${"mul" ~ WHITESPACE+ ~ !node_name ~ (number | reference ) }
 imp = ${"imp" ~ WHITESPACE+ ~ !node_name ~ (number ) }
 bd = ${"bd" ~ WHITESPACE+ ~ !node_name ~ (number ) }
 sn = ${"sn" ~ WHITESPACE+ ~ !node_name ~ (number ) }
@@ -47,7 +48,7 @@ saw = ${"saw" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 squ = ${"squ" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 tri = ${"tri" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 pan = ${"pan" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
-constsig = ${"constsig" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+constsig = ${("sig"|"constsig") ~ WHITESPACE+ ~ !node_name ~ ( number | pattern | event ) }
 onepole = ${"onepole" ~ WHITESPACE+ ~ !node_name ~ ( number | reference) }
 
 // single float
@@ -55,17 +56,15 @@ speed = ${"speed" ~ WHITESPACE+ ~ number}
 noise = ${("noiz"|"noise") ~ WHITESPACE+ ~ number}
 sp = ${("sp"|"sampler") ~ WHITESPACE+ ~ !( node_name | reference | number ) ~ symbol }
 // paras = ${  float | symbol | seq | reference}
+
+event = ${ "\"" ~ pattern_event_body ~ "\""}
+pattern = ${ "\"" ~ pattern_event_body ~ "\"" ~ "(" ~ number? ~ ")"}
+pattern_event_body = ${ WHITESPACE* ~value_time ~ (WHITESPACE+ ~ value_time)* }
+value_time = ${(number|symbol) ~ "@" ~ (number)}
+
 number = ${ float | integer}
 float = ${ (("+" | "-")? ~ ASCII_DIGIT+) ~ "." ~ ASCII_DIGIT* ~ (^"e" ~ integer)? }
-symbol = ${ chars | ("\\" ~ (ASCII_ALPHANUMERIC | "_")+)  }
-
-chars = ${ "'" ~ nbase ~ "'" }
-nbase = @{ base* }
-base = {
-    !("'" | "\\") ~ ANY
-    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
-    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
-}
+symbol = ${ ("'"~ (ASCII_ALPHANUMERIC | "_" | "-")+ ~ "'") | ("\\" ~ (ASCII_ALPHANUMERIC | "_"|"-")+)  }
 
 compound_notes = @{ compound ~ (WHITESPACE+ ~ compound)*}
 compound = ${ note+ }
@@ -77,7 +76,8 @@ rest = ${ "_" }
 integer = ${ (ASCII_DIGIT)+ ~ !"." }
 WHITESPACE = _{" "|","|"|"|"\t"}
 
-node_name = ${"msgsynth"|"psynth"|"p_synth"|"pattern_synth"|"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|
+node_name = ${"sig"|"psampler"|"synth"|"msgsynth"|"psynth"|"p_synth"|"pattern_synth"|
+"bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|
 "linrange"|"apfdecay"|"delayn"|"delaymod"|
 "sin"|"squ"|"imp"|"envperc"|"sampler"|"noiz"|"lpf"|"plate"|"onepole"|
 "hpf"|"pha"|"buf"|"state"|"freeverb"|"pan"|"delay"|"apfgain"|"comb"|"mix"|"monosum"|

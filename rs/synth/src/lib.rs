@@ -61,6 +61,8 @@ pub enum Message {
     SetToNumberList(u8, Vec<f32>),
     SetToSymbol(u8, String),
     SetToSamples(u8, (&'static [f32], usize, usize)),
+    SetSamplePattern(Vec<(String, f32)>, f32, HashMap<String, (&'static [f32], usize, usize)>),
+    SetPattern(Vec<(f32, f32)>, f32),
     SetToSeq(u8, Vec::<(f32, GlicolPara)>),
     SetRefOrder(HashMap<String, usize>),
     SetBPM(f32),
@@ -80,4 +82,6 @@ pub enum GlicolPara {
     SampleSymbol(String), // symbol is for sample only
     Symbol(String),
     Sequence(Vec::<(f32, GlicolPara)>),
+    Pattern(Vec::<(GlicolPara, f32)>, f32),
+    Event(Vec::<(GlicolPara, f32)>)
 }

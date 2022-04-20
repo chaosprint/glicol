@@ -17,7 +17,7 @@ use glicol_synth::{
 use glicol_synth::dynamic::Meta;
 
 #[cfg(feature = "use-samples")]
-use glicol_synth::sampling::Sampler;
+use glicol_synth::sampling::{Sampler, PSampler};
 
 use hashbrown::HashMap;
 use glicol_synth::{NodeData, BoxedNodeSend, GlicolPara}; //, Processor, Buffer, Input, Node
@@ -41,6 +41,35 @@ pub fn makenode<const N: usize>(
     seed: usize
 ) -> Result<(GlicolNodeData<N>, Vec<String>), EngineError> {
     let (nodedata, reflist) = match name {
+
+        #[cfg(feature = "use-samples")]
+        "psampler" => {
+            let pattern_info = match &paras[0] {
+                GlicolPara::Pattern(pattern, span) => (pattern, span),
+                _ => unimplemented!()
+            };
+            let mut samples_dict_selected = HashMap::new();
+
+            let mut pattern = vec![];
+
+            for v in (*pattern_info.0).iter() {
+                let value = match &v.0 {
+                    GlicolPara::Number(_) => "".to_owned(),
+                    GlicolPara::Symbol(s) => s.to_string(),
+                    _ => unimplemented!()
+                };
+                let time = v.1;
+                if !samples_dict.contains_key(&value) {
+                    return Err(EngineError::NonExsitSample(value.clone()))
+                } else {
+                    samples_dict_selected.insert(value.clone(), samples_dict[&value]);
+                }
+                pattern.push((value, time));
+            }
+            let span = *pattern_info.1;
+
+            (PSampler::new(samples_dict_selected, sr, bpm, vec![], pattern, span).to_boxed_nodedata(2), vec![])
+        },
 
         "msgsynth" => {
             (
@@ -111,23 +140,33 @@ pub fn makenode<const N: usize>(
             }
         },
         "lpf" => {
-            let data = ResonantLowPassFilter::new().cutoff(
-                match &paras[0] {
-                    GlicolPara::Number(v) => *v,
-                    GlicolPara::Reference(_) => 100.0,
-                    _ => unimplemented!()
-                }
-            ).q(
-                match &paras[1] {
-                    GlicolPara::Number(v) => *v,
-                    _ => unimplemented!()
-                }
-            ).to_boxed_nodedata(1);
-
+            let qvalue = match &paras[1] {
+                GlicolPara::Number(v) => *v,
+                _ => unimplemented!()
+            };
             let mut reflist = vec![];
-            match &paras[0] {
-                GlicolPara::Reference(s) => reflist.push(s.to_owned()),
-                _ => {}
+            let data = match &paras[0] {
+                GlicolPara::Number(v) => {
+                    ResonantLowPassFilter::new().cutoff(*v).q(qvalue).sr(sr).to_boxed_nodedata(1)
+                },
+                GlicolPara::Reference(s) => {
+                    reflist.push(s.to_owned());
+                    ResonantLowPassFilter::new().q(qvalue).sr(sr).to_boxed_nodedata(1)
+                }
+                GlicolPara::Pattern(events, span) => {
+                    let mut pattern = vec![];
+
+                    for v in events.iter() {
+                        let value = match v.0 {
+                            GlicolPara::Number(num) => num,
+                            _ => 100.0
+                        };
+                        pattern.push((value, v.1));
+                    }
+                    println!("pattern {:?}", pattern);
+                    ResonantLowPassFilter::new().q(qvalue).pattern(pattern).span(*span).bpm(bpm).sr(sr).to_boxed_nodedata(1)
+                }
+                _ => unimplemented!()
             };
             (data, reflist)
         },
@@ -344,14 +383,28 @@ pub fn makenode<const N: usize>(
             }
         },
         "constsig" => {
-            match &paras[0] {
+
+            let mut reflist = vec![];
+            let data = match &paras[0] {
                 GlicolPara::Number(v) => {
-                    (ConstSig::new(*v).to_boxed_nodedata(1), vec![])
+                    ConstSig::new(*v).sr(sr).to_boxed_nodedata(1)
                 },
-                _ => {
-                    unimplemented!();
+                GlicolPara::Pattern(events, span) => {
+                    let mut pattern = vec![];
+
+                    for v in events.iter() {
+                        let value = match v.0 {
+                            GlicolPara::Number(num) => num,
+                            _ => 100.0
+                        };
+                        pattern.push((value, v.1));
+                    }
+                    println!("pattern {:?}", pattern);
+                    ConstSig::new(0.0).pattern(pattern).span(*span).bpm(bpm).sr(sr).to_boxed_nodedata(1)
                 }
-            }
+                _ => unimplemented!()
+            };
+            (data, reflist)
         },
         // todo: give sr to them
         "bd" => get_one_para_from_number_or_ref2!(Bd),

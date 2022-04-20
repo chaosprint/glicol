@@ -73,11 +73,11 @@ impl<const N: usize> Engine<N> {
                 let chain_name = list[0];
                 let chain_pos = match list[1].parse::<usize>() {
                     Ok(v) => v,
-                    Err(_) => unimplemented!()
+                    Err(_) => 0
                 };
                 let param_pos = match list[2].parse::<u8>() {
                     Ok(v) => v,
-                    Err(_) => unimplemented!()
+                    Err(_) => 0
                 };
                 // let param = match list[3].parse::<f32>(){
                 //     Ok(v) => v,
@@ -459,7 +459,48 @@ impl<const N: usize> Engine<N> {
                             self.context.graph[
                             chain[position_in_chain]].node.send_msg(
                                 Message::SetToNumberList(i as u8, l.clone()))
-                        }
+                        },
+                        GlicolPara::Pattern(value_time_list, span) => {
+                            // todo, differ a symbol pattern and number pattern?
+                            let mut samples_dict_selected = HashMap::new();
+                            let mut symbol_pattern = vec![];
+                            let mut number_pattern = vec![];
+
+                            for value_time in value_time_list.iter() {
+                                let time = value_time.1;
+                                match &value_time.0 {
+                                    GlicolPara::Number(num) => {
+                                        number_pattern.push((*num, time))
+                                    },
+                                    GlicolPara::Symbol(s) => {
+                                        if self.samples_dict.contains_key(s) {
+                                            samples_dict_selected.insert(s.to_owned(), self.samples_dict[s]);
+                                        } else {
+                                            return Err(EngineError::NonExsitSample(s.to_owned()))
+                                        }
+                                        symbol_pattern.push((s.to_string(), time));
+                                    }
+                                    _ => unimplemented!()
+                                };
+                                // pattern.push((value, time));
+                            }
+
+                            if symbol_pattern.len() != 0 {
+                                self.context.graph[
+                                    chain[position_in_chain]
+                                ].node.send_msg(
+                                    Message::SetSamplePattern(symbol_pattern, *span, samples_dict_selected)
+                                )
+                            } else {
+                                self.context.graph[
+                                    chain[position_in_chain]
+                                ].node.send_msg(
+                                    Message::SetPattern(number_pattern, *span)
+                                )
+                            }
+                        },
+
+                        _ => {}
                     }
                 }
 

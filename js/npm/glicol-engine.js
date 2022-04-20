@@ -1,6 +1,7 @@
 export default (t, r) => {
 const TextParameterReader = t;
 const RingBuffer = r;
+
 class GlicolEngine extends AudioWorkletProcessor {
     static get parameterDescriptors() {
         return []
@@ -9,11 +10,16 @@ class GlicolEngine extends AudioWorkletProcessor {
         super(options)
         this._codeArray = new Uint8Array(2048);
         this._paramArray = new Uint8Array(2048);
-        const { codeQueue, paramQueue } = options.processorOptions;
-        const isLiveCoding = options.isLiveCoding;
-
-        this._code_reader = new TextParameterReader(new RingBuffer(codeQueue, Uint8Array));
-        this._param_reader = new TextParameterReader(new RingBuffer(paramQueue, Uint8Array));
+        const isLiveCoding = options.processorOptions.isLiveCoding;
+        // console.log("options.isLiveCoding", options.processorOptions.isLiveCoding);
+        this.useSAB = options.processorOptions.useSAB;
+        if (this.useSAB)  {
+          // console.log(this.useSAB)
+          this._code_reader = new TextParameterReader(
+            new RingBuffer(options.processorOptions.codeQueue, Uint8Array));
+          this._param_reader = new TextParameterReader(
+            new RingBuffer(options.processorOptions.paramQueue, Uint8Array));
+        }
 
         this.port.onmessage = async e => {
             if (e.data.type === "load") {
@@ -91,16 +97,20 @@ class GlicolEngine extends AudioWorkletProcessor {
               let codeUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, codeUint8ArrayPtr, size);
               codeUint8Array.set(code.slice(0, size));
               this._wasm.exports.update(codeUint8ArrayPtr, size)
+            } else if (e.data.type === "msg") {
+              let msg = e.data.value
+              let size = msg.byteLength
+              let msgUint8ArrayPtr = this._wasm.exports.alloc_uint8array(size);
+              let msgUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, msgUint8ArrayPtr, size);
+              msgUint8Array.set(msg.slice(0, size));
+              this._wasm.exports.send_msg(msgUint8ArrayPtr, size)
+              
             } else if (e.data.type === "bpm") {
                 this._wasm.exports.set_bpm(e.data.value);
             } else if (e.data.type === "livecoding") {
               this._wasm.exports.live_coding_mode(e.data.value);
             } else if (e.data.type === "amp") {
                 this._wasm.exports.set_track_amp(e.data.value);
-            // } else if (e.data.type === "sab") {
-                
-            // } else if (e.data.type === "result") {
-                // this._result_reader = new TextParameterReader(new RingBuffer(e.data.data, Uint8Array));
             } else {
                 throw "unexpected.";
             }
@@ -112,32 +122,22 @@ class GlicolEngine extends AudioWorkletProcessor {
             return true
         }
 
-        let size = this._code_reader.dequeue(this._codeArray)
-
-        if (size) {
-            let codeUint8ArrayPtr = this._wasm.exports.alloc_uint8array(size);
-            // console.log("codeUint8ArrayPtr", codeUint8ArrayPtr)
-            let codeUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, codeUint8ArrayPtr, size);
-            // console.log(this._codeArray.slice(0, size))
-            codeUint8Array.set(this._codeArray.slice(0, size), "this._codeArray.slice(0, size)");
-            this._wasm.exports.update(codeUint8ArrayPtr, size)
+        if (this.useSAB) {
+          let size = this._code_reader.dequeue(this._codeArray)
+          if (size) {
+              let codeUint8ArrayPtr = this._wasm.exports.alloc_uint8array(size);
+              let codeUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, codeUint8ArrayPtr, size);
+              codeUint8Array.set(this._codeArray.slice(0, size), "this._codeArray.slice(0, size)");
+              this._wasm.exports.update(codeUint8ArrayPtr, size)
+          }
+          let size2 = this._param_reader.dequeue(this._paramArray)
+          if (size2) {
+              let paramUint8ArrayPtr = this._wasm.exports.alloc_uint8array(size2);
+              let paramUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, paramUint8ArrayPtr, size2);
+              paramUint8Array.set(this._paramArray.slice(0, size2));
+              this._wasm.exports.send_msg(paramUint8ArrayPtr, size2)
+          }
         }
-
-        let size2 = this._param_reader.dequeue(this._paramArray)
-        if (size2) {
-            let paramUint8ArrayPtr = this._wasm.exports.alloc_uint8array(size2);
-            // console.log("paramUint8ArrayPtr", paramUint8ArrayPtr)
-            let paramUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, paramUint8ArrayPtr, size2);
-            // console.log(this._paramArray.slice(0, size2), "this._paramArray.slice(0, size2)")
-            paramUint8Array.set(this._paramArray.slice(0, size2));
-            // console.log("paramUint8Array",paramUint8Array)
-            this._wasm.exports.send_msg(paramUint8ArrayPtr, size2)
-        }
-
-        //   if (midiSize) {
-        //     let codeUint8ArrayPtr = this._wasm.exports.alloc_uint8array(size);
-        //     let codeUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, codeUint8ArrayPtr, size);
-        //     codeUint8Array.set(this._codeArray.slice(0, size));
 
         if (inputs[0][0]) { // TODO: support stereo or multi-chan
             this._inPtr = this._wasm.exports.alloc(128)
@@ -165,7 +165,7 @@ class GlicolEngine extends AudioWorkletProcessor {
         )
         
         if (this._result[0] !== 0) {
-          console.log(this._result.slice(0,256))
+          // console.log(this._result.slice(0,256))
           this.port.postMessage({type: 'e', info: this._result.slice(0,256)})
         }
     
@@ -177,28 +177,3 @@ class GlicolEngine extends AudioWorkletProcessor {
 
 registerProcessor('glicol-engine', GlicolEngine)
 }
-// https://gist.github.com/littledan/f7c1d1abf0e51ad4b526a8eadb2da43b
-// register processor in AudioWorkletGlobalScope
-// function registerProcessor(name, processorCtor) {
-//   return `${processorCtor};\nregisterProcessor('${name}', ${processorCtor.name});`;
-// }
-
-// const worklet = (URL.createObjectURL(
-//   new Blob(
-//     [
-//       registerProcessor(
-//         'glicol-engine',
-//         GlicolEngine
-//       ),
-//     ],
-//     { type: 'text/javascript' }
-//   )
-// ));
-
-// export {worklet}
-
-// export default whateverWorker.a.b
-
-
-// registerProcessor('glicol-engine', GlicolEngine)
-// `
