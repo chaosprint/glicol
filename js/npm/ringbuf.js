@@ -61,11 +61,11 @@ export class TextParameterReader {
 
 export class RingBuffer {
     static getStorageForCapacity(capacity, type) {
-    if (!type.BYTES_PER_ELEMENT) {
-        throw "Pass in a ArrayBuffer subclass";
-    }
-    var bytes = 8 + (capacity + 1) * type.BYTES_PER_ELEMENT;
-    return new SharedArrayBuffer(bytes);
+        if (!type.BYTES_PER_ELEMENT) {
+            throw "Pass in a ArrayBuffer subclass";
+        }
+        var bytes = 8 + (capacity + 1) * type.BYTES_PER_ELEMENT;
+        return new SharedArrayBuffer(bytes);
     }
     constructor(sab, type) {
     if (!ArrayBuffer.__proto__.isPrototypeOf(type) &&

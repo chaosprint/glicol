@@ -1,8 +1,8 @@
 ## What's this?
 
-This is a light-weight, garbage-collection free, memory-safe and easy-to-use audio library for browsers. It's written in Rust and ported to JS via WebAssembly and runs in AudioWorklet. The communication is realised with SharedArrayBuffer.
+This is a light-weight, garbage-collection free, memory-safe and easy-to-use audio library for browsers. It's written in Rust and ported to JS via WebAssembly and runs in AudioWorklet. The communication is realised with SharedArrayBuffer*.
 
-> Note that you need to have `cross-origin isolation` enabled on the web server (both the dev server and the one you deploy your web app) to use this package. For `vite` dev server, you can use my plugin [here](https://github.com/chaosprint/vite-plugin-cross-origin-isolation). For deployment on `Netlify` or `Firebase`, check their docs for editing the header files. If you use a customised server, you have to figure it out yourself.
+> *Without SAB, you can still use Glicol. However, to get the best audio performance, you need to have `cross-origin isolation` enabled on the web server (both the dev server and the one you deploy your web app) to use this package. For `vite` dev server, you can use my plugin [here](https://github.com/chaosprint/vite-plugin-cross-origin-isolation). For deployment on `Netlify` or `Firebase`, check their docs for editing the header files. If you use a customised server, you have to figure it out yourself.
 
 ## Why `glicol.js`?
 
@@ -23,26 +23,18 @@ Glicol audio engine has been proved to be working in live coding music performan
 
 https://youtu.be/atoTujbQdwI
 
-Rust is also famous for its error handling. `glicol.js` has taken advantage of that and offers a robust error handling mechanism.
-
-> WIP: the error report is coming soon.
+Rust is also famous for its error handling. `glicol.js` has taken advantage of that and offers a robust error handling mechanism. The principle is "Musique Non-Stop", i.e. when there is an error, it will be reported in the console while the music will continue as before.
 
 ### Easy to use
 
-With the top-level audio performance in the browser, Glicol is yet easy to use. The balance between minimalism and readability/ergonomics is consistent in the API designing.
-
-> As this is not a stable version yet, the APIs may significantly change in the future. If you wish to test or use it in a project, please contact me.
-
-## Usage
-
-After you `npm i glicol`, you can just write:
+With the top-level audio performance in the browser, Glicol is yet easy to use. The balance between minimalism and readability/ergonomics is consistent in the API designing. After you `npm i glicol`, you can just write:
 
 ```js
 import Glicol from "glicol"
 const glicol = new Glicol()
 ```
 
-You can also write the graph in this way:
+Then write the graph in this way:
 
 ```js
 glicol.play({
@@ -51,7 +43,9 @@ glicol.play({
 })
 ```
 
-Simple as that. No need to create a node, and then connect it everywhere.
+Simple as that.
+
+No need to create a node, and then connect it everywhere.
 
 Note that there are two `chains` here, one is called `o` and the other is `~am`.
 
@@ -77,14 +71,13 @@ The engine will analyse the difference and only update those nodes modified. :)
 Yet a lighter way to do it is to write:
 
 ```js
-glicol.send_msg(`o, 0, 0, 110`)
+// chain "o", node_index 0, param 0, set to 110
+glicol.sendMsg(`o, 0, 0, 110`)
 ```
 
-This will send message to set:
-- chain: `o`
-- node_index: 0,
-- para_index: 0,
-- set_to_number: 110
+## API reference (coming soon...)
+
+> As this is not a stable version yet, the APIs may significantly change in the future. If you wish to test or use it in a project, please contact me.
 
 ## Alternative usage - Glicol DSL
 
@@ -109,8 +102,8 @@ glicol.run(`o: saw 50 >> lpf 300.0 1.0`)
 Another way is to send message to the engine:
 
 ```js
-// track "o", node_index 0, param 0, set to 110
-glicol.send_msg(`o, 0, 0, 110`);
+// chain "o", node_index 0, param 0, set to 110
+glicol.sendMsg(`o, 0, 0, 110`);
 ```
 
 You can use it with GUI, see this example:
@@ -120,7 +113,25 @@ https://glicol-npm.netlify.app
 Multiple message in one String is also possible.
 
 ```js
-glicol.send_msg(`o, 0, 0, 110; o, 1, 0, 500; o, 1, 1, 0.8`);
+glicol.sendMsg(`o, 0, 0, 110; o, 1, 0, 500; o, 1, 1, 0.8`);
+```
+
+## Extension
+
+You can provide an `audioContext` to glicol and use the output of glicol to another node from that `audioContext`:
+
+```js
+import Glicol from 'glicol'
+
+const myAudioContext = new AudioContext()
+const gainNode = myAudioContext.createGain();
+gainNode.gain.value = 0.1
+gainNode.connect(myAudioContext.destination)
+
+const glicol = new Glicol({
+    audioContext: myAudioContext,
+    connectTo: gainNode
+})
 ```
 
 ## Feedback
