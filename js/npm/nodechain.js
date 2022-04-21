@@ -184,6 +184,13 @@ export class NodeChain {
     return this
   }
 
+  sp(sampleName) {
+    // if (!isNaN(str)) {
+    this.code += ` >> sp \\${sampleName}`
+    // }
+    return this
+  }
+
   envperc(attack, decay) {
     // if (!isNaN(str)) {
     this.code += ` >> envperc ${attack} ${decay}`

@@ -21,6 +21,7 @@ class Engine {
     constructor({
       audioContext = new AudioContext(),
       isLiveCoding = false,
+      loadSamples = false,
       connectTo,
       onLoaded = () => {}
     }={}) {
@@ -98,7 +99,9 @@ class Engine {
                     })
                   }
                 } else {
-                  await this.loadSamples()
+                  if (loadSamples) {
+                    await this.loadSamples()
+                  }
                 }
                 onLoaded()
               } else if (e.data.type === 'e') {

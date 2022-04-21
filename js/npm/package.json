@@ -1,7 +1,7 @@
 {
   "name": "glicol",
-  "version": "0.3.1",
-  "description": "An light-weight, garbage-collection-free, and easy-to-use audio engine for browser-based music apps.",
+  "version": "0.3.4",
+  "description": "An light-weight, audio-thread-GC-free, memory-safe, and easy-to-use audio engine for browser-based music apps.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
