@@ -1,6 +1,6 @@
 ## What's this?
 
-See: https://glicol-npm.netlify.app/
+See: https://glicol.js.org
 
 ## Feedback
 
