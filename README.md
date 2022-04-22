@@ -7,11 +7,15 @@
 
 Glicol (an acronym for "graph-oriented live coding language") is a computer music language with both its language and audio engine written in [Rust programming language](https://www.rust-lang.org/), a modern alternative to C/C++.
 
-Glicol can be used for:
+<!-- Glicol can be used for:
 - live coding performance, either in browsers with your friends or in a VST plugin(experimental)
 - education of electronic music, DSP and coding
 - audio/music app development in browsers, [either CDN or NPM](https://github.com/chaosprint/glicol/tree/main/js)
-- Rust audio library, running on Web, Desktop, [DAW](https://github.com/chaosprint/glicol/tree/main/rs/vst), [Bela](https://github.com/chaosprint/glicol/tree/main/rs/bela), etc.
+- Rust audio library, running on Web, Desktop, [DAW](https://github.com/chaosprint/glicol/tree/main/rs/vst), [Bela](https://github.com/chaosprint/glicol/tree/main/rs/bela), etc. -->
+
+## Get started
+
+### The web app
 
 The easiest way to try Glicol:
 
@@ -19,9 +23,27 @@ https://glicol.org
 
 There you can find guides, demos, docs, and apps for collaboration.
 
+### As an NPM package
+
+https://glicol.js.org
+
+### As a Rust audio library
+
+https://github.com/chaosprint/glicol/tree/main/rs/synth
+
+Also see this Dattorro plate reverb VST plugin written with `glicol_synth`:
+
+https://github.com/chaosprint/dattorro-vst-rs
+
+### Run on Bela board
+
+https://github.com/chaosprint/glicol/tree/main/rs/bela
+
+### Video demos
+
 You can also watch some video demos on [this YouTube playlist](https://youtube.com/playlist?list=PLT4REhRBWaOOrLQxCg5Uw97gEpN-woo1c).
 
-## Why Glicol
+## Philosophy of Glicol
 
 The motivation of Glicol is:
 
@@ -122,67 +144,6 @@ o: meta `
     output
 `
 ```
-## Use Glicol
-
-### In browsers
-Some features can be highlighted with the web app:
-- garbage-collection-free real-time audio in web browsers
-
-- quick reference in consoles with `alt-d`
-
-- the web app automatically loads samples; you can also drag and drop local samples in the browser editor
-
-- robust error handling: error reported in console, musique non-stop!
-
-- mix JavaScript code to create visuals with Hydra synth made by @ojack
-
-- what you see is what you get: no need to select anything, just change the code and update, Glicol engine will use `LCS` algorithm to handle adding, updating and removing
-
-- decentralised collaboration using `yjs` and a unique `be-ready` mechanism
-
-### As a web audio library
-
-The `js` folder contains the Glicol distribution for the web platform. 
-
-The usage is very easy. Just include this into your index.html:
-```
-<script src="https://cdn.jsdelivr.net/gh/chaosprint/glicol@latest/js/src/glicol.js"></script>
-```
-
-Then you can write on your website:
-```
-run(`o: sin 440`)
-```
-
-Apparently, such a protocol can be helpful for apps like a drum machine.
-
-> Note that you should enable `cross-origin-isolation` on your server.
-
-See [js](https://github.com/chaosprint/glicol/blob/main/js) folder for details.
-
-### As a Rust audio library
-
-Glicol synth is still under development, mainly on the docs, and will be published to [crates.io](https://crates.io/) soon.
-
-For now, you can fork and download this repo.
-
-A glimpse of the syntax of `glicol_synth`:
-```
-use glicol_synth::{AudioContextBuilder, signal::ConstSig, Message};
-
-fn main() {
-    let mut context = AudioContextBuilder::<64>::new()
-    .sr(44100).channels(1).build();
-
-    let node_a = context.add_mono_node(ConstSig::new(42.));
-    context.connect(node_a, context.destination);
-    println!("first block {:?}", context.next_block());
-
-    context.send_msg(node_a, Message::SetToNumber(0, 100.) );
-    println!("second block, after msg {:?}", context.next_block());
-}
-```
-See [rs](https://github.com/chaosprint/glicol/blob/main/rs) folder for details.
 
 ## Roadmap
 
