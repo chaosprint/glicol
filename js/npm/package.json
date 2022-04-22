@@ -1,6 +1,6 @@
 {
   "name": "glicol",
-  "version": "0.3.5",
+  "version": "0.3.7",
   "description": "A light-weight, audio-thread-GC-free, memory-safe, and easy-to-use audio engine for browser-based music apps.",
   "main": "index.js",
   "scripts": {
@@ -25,5 +25,5 @@
   "bugs": {
     "url": "https://github.com/chaosprint/glicol/issues"
   },
-  "homepage": "https://github.com/chaosprint/glicol"
+  "homepage": "https://glicol.js.org"
 }

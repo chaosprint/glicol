@@ -223,6 +223,10 @@ class Engine {
       this.run(code)
     }
 
+    stop() {
+      this.run("")
+    }
+
     showAllSamples() {
       console.table(Object.keys(this.sampleBuffers))
       return ``
