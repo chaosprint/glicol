@@ -5,6 +5,13 @@
   </p>
 </div>
 
+<div align="center">
+<img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/chaosprint/glicol">
+<img alt="npm" src="https://img.shields.io/npm/v/glicol">
+<img alt="Discord" src="https://img.shields.io/discord/963514061528662046">
+<img alt="GitHub" src="https://img.shields.io/github/license/chaosprint/glicol">
+</div>
+
 Glicol (an acronym for "graph-oriented live coding language") is a computer music language with both its language and audio engine written in [Rust programming language](https://www.rust-lang.org/), a modern alternative to C/C++.
 
 <!-- Glicol can be used for:
@@ -15,31 +22,47 @@ Glicol (an acronym for "graph-oriented live coding language") is a computer musi
 
 ## Get started
 
-### The web app
-
+### 🚀 The Web App
+ 
 The easiest way to try Glicol:
 
 https://glicol.org
 
-There you can find guides, demos, docs, and apps for collaboration.
+> There you can find guides, demos, docs, and apps for collaboration.
 
-### As an NPM package
+<details>
+  <summary>Features</summary>
+  
+  - garbage-collection-free real-time audio in web browsers
+  - quick reference in consoles with `alt-d`
+  - the web app automatically loads samples; you can also drag and drop local samples in the browser editor
+  - robust error handling: error reported in console, musique non-stop!
+  - mix JavaScript code to create visuals with Hydra synth made by @ojack
+  - what you see is what you get: no need to select anything, just change the code and update, Glicol engine will use `LCS` algorithm to handle adding, updating and removing
+  - decentralised collaboration using `yjs` and a unique `be-ready` mechanism
+</details>
+
+### 🎁 For Audio Dev
+
+#### *As an NPM package*
 
 https://glicol.js.org
 
-### As a Rust audio library
+> There you can find guidance and full project example on StackBlitz
+
+#### *As a Rust audio library*
 
 https://github.com/chaosprint/glicol/tree/main/rs/synth
 
-Also see this Dattorro plate reverb VST plugin written with `glicol_synth`:
+> Also see this Dattorro plate reverb VST plugin written with `glicol_synth`:
 
 https://github.com/chaosprint/dattorro-vst-rs
 
-### Run on Bela board
+#### *Run on Bela board*
 
 https://github.com/chaosprint/glicol/tree/main/rs/bela
 
-### Video demos
+### 👀 Video demos
 
 You can also watch some video demos on [this YouTube playlist](https://youtube.com/playlist?list=PLT4REhRBWaOOrLQxCg5Uw97gEpN-woo1c).
 
