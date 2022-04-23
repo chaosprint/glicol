@@ -6,8 +6,10 @@
 </div>
 
 <div align="center">
-  <a href="https://npmjs.com/glicol" target="_blank"><img alt="npm" src="https://img.shields.io/npm/v/glicol"></a>
+  <a href="https://glicol.org" target="_blank"><img alt="website" src="https://img.shields.io/badge/website-glicol.org-blue"></a>
   <a href="https://discord.gg/JpzgkZBj" target="_blank"><img alt="Discord" src="https://img.shields.io/discord/963514061528662046"></a>
+  <a href="https://npmjs.com/glicol" target="_blank"><img alt="npm" src="https://img.shields.io/npm/v/glicol"></a>
+  <a href="https://glicol.org" target="_blank"><img alt="website" src="https://img.shields.io/badge/npm%20docs-glicol.js.org-yellow"></a>
   <a href="https://github.com/chaosprint/glicol/blob/main/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/chaosprint/glicol"></a>
 </div>
 
