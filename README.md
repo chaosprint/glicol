@@ -62,9 +62,9 @@ https://github.com/chaosprint/dattorro-vst-rs
 
 https://github.com/chaosprint/glicol/tree/main/rs/bela
 
-### 👀 Video demos
+### 👀 Video Demos
 
-You can also watch some video demos on [this YouTube playlist](https://youtube.com/playlist?list=PLT4REhRBWaOOrLQxCg5Uw97gEpN-woo1c).
+> You can also watch some video demos on [this YouTube playlist](https://youtube.com/playlist?list=PLT4REhRBWaOOrLQxCg5Uw97gEpN-woo1c).
 
 ## Philosophy of Glicol
 
