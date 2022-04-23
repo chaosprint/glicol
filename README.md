@@ -6,10 +6,9 @@
 </div>
 
 <div align="center">
-<img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/chaosprint/glicol">
-<img alt="npm" src="https://img.shields.io/npm/v/glicol">
-<img alt="Discord" src="https://img.shields.io/discord/963514061528662046">
-<img alt="GitHub" src="https://img.shields.io/github/license/chaosprint/glicol">
+  <a href="npmjs.com/glicol"><img alt="npm" src="https://img.shields.io/npm/v/glicol"></a>
+  <a href="https://discord.gg/JpzgkZBj"<img alt="Discord" src="https://img.shields.io/discord/963514061528662046"></a>
+  <a href="https://github.com/chaosprint/glicol/blob/main/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/chaosprint/glicol"></a>
 </div>
 
 Glicol (an acronym for "graph-oriented live coding language") is a computer music language with both its language and audio engine written in [Rust programming language](https://www.rust-lang.org/), a modern alternative to C/C++.
