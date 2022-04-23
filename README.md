@@ -33,13 +33,19 @@ https://glicol.org
 <details>
   <summary>Features</summary>
   
-  - garbage-collection-free real-time audio in web browsers
-  - quick reference in consoles with `alt-d`
-  - the web app automatically loads samples; you can also drag and drop local samples in the browser editor
-  - robust error handling: error reported in console, musique non-stop!
-  - mix JavaScript code to create visuals with Hydra synth made by @ojack
-  - what you see is what you get: no need to select anything, just change the code and update, Glicol engine will use `LCS` algorithm to handle adding, updating and removing
-  - decentralised collaboration using `yjs` and a unique `be-ready` mechanism
+  - Near-native, garbage-collection-free and memory-safe real-time audio in web browsers
+  
+  - Quick reference in consoles with `alt-d`
+  
+  - The web app automatically loads samples; you can also drag and drop local samples in the browser editor
+  
+  - Robust error handling: error reported in console, but previous music will continue!
+  
+  - Mix JavaScript code to create visuals with Hydra synth made by @ojack
+  
+  - What you see is what you get, i.e. declarative programmering for both code writing and executing: no need to select anything, just change the code and update, Glicol engine will use `LCS` algorithm to handle adding, updating and removing
+  
+  - Decentralised collaboration using `yjs` and a unique `be-ready` mechanism
 </details>
 
 ### 🎁 For Audio Dev
