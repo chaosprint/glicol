@@ -70,6 +70,9 @@ impl<const N: usize> Engine<N> {
                 continue
             } else {
                 let list = command.split(",").collect::<Vec<_>>();
+                if list.len() < 4 {
+                    continue; // todo: this should be an error
+                }
                 let chain_name = list[0];
                 let chain_pos = match list[1].parse::<usize>() {
                     Ok(v) => v,
@@ -79,13 +82,9 @@ impl<const N: usize> Engine<N> {
                     Ok(v) => v,
                     Err(_) => 0
                 };
-                // let param = match list[3].parse::<f32>(){
-                //     Ok(v) => v,
-                //     Err(_) => unimplemented!()
-                // };
-    
                 if self.index_info.contains_key(chain_name) {
                     match list[3].parse::<f32>(){
+                        // todo: check the name and pos
                         Ok(v) => {
                             self.context.graph[
                                 self.index_info[chain_name][chain_pos]
