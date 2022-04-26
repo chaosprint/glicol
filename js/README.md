@@ -10,24 +10,7 @@ There are two usages: `NPM` or `CDN`.
 
 ## Usage - NPM
 
-### Step 1
-
-Install:
-```
-npm i glicol
-```
-
-Then in your web app:
-```js
-import Glicol from "glicol"
-const glicol = new Glicol()
-glicol.run(`o: saw 50 >> lpf 300.0 1.0`)
-glicol.send_msg(`o, 0, 0, 110; o, 1, 0, 500; o, 1, 1, 0.8`);
-```
-
-You can bind it with the GUI and here's an example:
-
-https://github.com/glicol/glicol-npm-example
+See the [https://glicol.js.org/](https://glicol.js.org/) for detailed introduction.
 
 ## Usage - CDN
 
