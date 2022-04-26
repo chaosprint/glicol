@@ -51,11 +51,11 @@ https://glicol.org
 
 ### 🎁 For Audio Dev
 
-|                 |               What's this?                                |             URL             |
-|-----------------|:---------------------------------------------------------:|:---------------------------:|
-| NPM Docs        | Audio library for your next-level browser-based music app |    https://glicol.js.org    | 
-| Rust Audio Lib  | Write VST like this https://bit.ly/dattorro-vst-rs        | https://bit.ly/glicol_synth |      
-| YouTube Channel | Glicol demo vidoes                                        | https://bit.ly/glicol-ytb   | 
+|                 |               What's this for?                                |
+|-----------------|:---------------------------------------------------------:|
+| [NPM Docs](https://glicol.js.org)       | Audio library for your next-level browser-based music app |
+| [Rust Audio Lib](https://github.com/chaosprint/glicol/tree/main/rs/synth)  | Write VST like [this Dattorro reverb plugin](https://github.com/chaosprint/dattorro-vst-rs)  |   
+| [YouTube Playlist](https://www.youtube.com/playlist?list=PLT4REhRBWaOOrLQxCg5Uw97gEpN-woo1c) | Glicol demo vidoes                                        |
 
 ## Philosophy of Glicol
 
