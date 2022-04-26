@@ -53,7 +53,7 @@ https://glicol.org
 
 |                 |               Description                               |
 |-----------------|:---------------------------------------------------------:|
-| [NPM Package](https://glicol.js.org)       | Safe, performant, light-weight and ergonomic audio lib for web apps |
+| [NPM Docs](https://glicol.js.org)       | Safe, performant, light-weight and ergonomic audio lib for web apps |
 | [Rust Audio Lib](https://github.com/chaosprint/glicol/tree/main/rs/synth)  | Write VST like [this Dattorro reverb plugin](https://github.com/chaosprint/dattorro-vst-rs)  |   
 | [Run on Bela](https://github.com/chaosprint/glicol/tree/main/rs/bela) | Run Glicol DSL on Bela board for quick audio prototyping.  |
 
