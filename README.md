@@ -51,27 +51,11 @@ https://glicol.org
 
 ### 🎁 For Audio Dev
 
-#### *As an NPM package*
-
-https://glicol.js.org
-
-> There you can find guidance and full project example on StackBlitz
-
-#### *As a Rust audio library*
-
-https://github.com/chaosprint/glicol/tree/main/rs/synth
-
-> Also see this Dattorro plate reverb VST plugin written with `glicol_synth`:
-
-https://github.com/chaosprint/dattorro-vst-rs
-
-#### *Run on Bela board*
-
-https://github.com/chaosprint/glicol/tree/main/rs/bela
-
-### 🍿 Video Demos
-
-> You can also watch some video demos on [this YouTube playlist](https://youtube.com/playlist?list=PLT4REhRBWaOOrLQxCg5Uw97gEpN-woo1c).
+|                 |               What's this?                                |             URL             |
+|-----------------|:---------------------------------------------------------:|:---------------------------:|
+| NPM Docs        | Audio library for your next-level browser-based music app |    https://glicol.js.org    | 
+| Rust Audio Lib  | Write VST like this https://bit.ly/dattorro-vst-rs        | https://bit.ly/glicol_synth |      
+| YouTube Channel | Glicol demo vidoes                                        | https://bit.ly/glicol-ytb   | 
 
 ## Philosophy of Glicol
 
