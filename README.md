@@ -53,9 +53,10 @@ https://glicol.org
 
 |                 |               What's this for?                                |
 |-----------------|:---------------------------------------------------------:|
-| [NPM Docs](https://glicol.js.org)       | Audio library for your next-level browser-based music app |
+| [NPM Package](https://glicol.js.org)       | Ergonomic, safe and performant yet light-weight audio lib for browser-based music apps |
 | [Rust Audio Lib](https://github.com/chaosprint/glicol/tree/main/rs/synth)  | Write VST like [this Dattorro reverb plugin](https://github.com/chaosprint/dattorro-vst-rs)  |   
-| [YouTube Playlist](https://www.youtube.com/playlist?list=PLT4REhRBWaOOrLQxCg5Uw97gEpN-woo1c) | Glicol demo vidoes                                        |
+| [Run on Bela](https://github.com/chaosprint/glicol/tree/main/rs/bela) | Run Glicol DSL on Bela board for quick audio prototyping.  |
+| [YouTube Playlist](https://www.youtube.com/playlist?list=PLT4REhRBWaOOrLQxCg5Uw97gEpN-woo1c) | Glicol demo vidoes   |
 
 ## Philosophy of Glicol
 
