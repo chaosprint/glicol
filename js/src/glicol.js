@@ -366,6 +366,7 @@ window.encoder = new TextEncoder('utf-8');
 var {name, _} = detectBrowser();
 
 window.run = async (codeRaw) =>{
+  
   let regex = /(##.*?#)/
   let parse = codeRaw.split(regex).filter(Boolean)
   let code = parse.map(str => {
@@ -397,10 +398,13 @@ window.run = async (codeRaw) =>{
     })
   }
 
-  if ( document.getElementById("visualizer")) {
-    window.visualizeTimeDomainData({canvas: document.getElementById("visualizer"), analyserL: window.analyserL, analyserR: window.analyserR});
-  }
-  if ( document.getElementById("freqVisualizer")) {
-    window.visualizeFrequencyData({canvas: document.getElementById("freqVisualizer"), analyserL: window.analyserL, analyserR: window.analyserR});
+  if (!window.isGlicolRunning) {
+    if ( document.getElementById("visualizer")) {
+      window.visualizeTimeDomainData({canvas: document.getElementById("visualizer"), analyserL: window.analyserL, analyserR: window.analyserR});
+    }
+    if ( document.getElementById("freqVisualizer")) {
+      window.visualizeFrequencyData({canvas: document.getElementById("freqVisualizer"), analyserL: window.analyserL, analyserR: window.analyserR});
+    }
+    window.isGlicolRunning = true   
   }
 }
