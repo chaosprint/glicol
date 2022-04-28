@@ -13,7 +13,7 @@
   <a href="https://github.com/chaosprint/glicol/blob/main/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/chaosprint/glicol"></a>
 </div>
 
-Glicol (an acronym for "graph-oriented live coding language") is a computer music language with both its language and audio engine written in [Rust programming language](https://www.rust-lang.org/), a modern alternative to C/C++.
+Glicol (an acronym for "graph-oriented live coding language") is a computer music language with both its language and audio engine written in [Rust programming language](https://www.rust-lang.org/), a modern alternative to C/C++. Given this low-level nature, Glicol can run on many different platforms such as browsers, VST plugins and Bela board. Glicol's synth-like syntax and powerful audio engine also make it possible to combine high-level synth or sequencer control with low-level sample-accurate audio synthesis, all in real-time.
 
 <!-- Glicol can be used for:
 - live coding performance, either in browsers with your friends or in a VST plugin(experimental)
