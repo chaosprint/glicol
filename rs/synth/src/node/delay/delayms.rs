@@ -6,28 +6,27 @@ use hashbrown::HashMap;
 pub struct DelayMs {
     buf: Fixed,
     sr: usize,
-    input_order: Vec<usize>
-    // delay_n: usize,
+    input_order: Vec<usize>,
+    delay_n: usize,
 }
 
 impl DelayMs {
     pub fn new() -> Self {
-        Self { buf: Fixed::from(vec![0.0]), sr: 44100, input_order: vec![] }
+        Self { buf: Fixed::from(vec![0.0]), delay_n: 1, sr: 44100, input_order: vec![] }
     }
     pub fn delay(self, delay: f32) -> Self {
-        let buf; let delay_n;
-        if delay == 0.0 {
-            let maxdelay = 2.;
-            delay_n = (maxdelay / 1000. * self.sr as f32 ) as usize;
-            buf = Fixed::from(vec![0.0; delay_n]);
+        let buf;
+        let delay_n = (delay / 1000. * self.sr as f32) as usize;
+
+        if delay_n == 0 {
+            buf = Fixed::from(vec![0.0; 1]);
         } else {
-            delay_n = (delay / 1000. * self.sr as f32) as usize;
             buf = Fixed::from(vec![0.0; delay_n]);
         };
-        Self { buf, ..self}
+        Self { buf, delay_n, ..self}
     }
     
-    pub fn sr(self, sr:usize) -> Self {
+    pub fn sr(self, sr: usize) -> Self {
         Self {sr, ..self}
     }
 
@@ -40,9 +39,14 @@ impl<const N: usize> Node<N> for DelayMs {
         match inputs.len() {
             1 => {
                 let main_input = inputs.values_mut().next().unwrap();
-                for i in 0..N {
-                    output[0][i] = self.buf.push(main_input.buffers()[0][i]);
-                    // output[1][i] = self.buf2.push(main_input.buffers()[1][i]);
+                if self.delay_n == 0 {
+                    for i in 0..N {
+                        output[0][i] = main_input.buffers()[0][i];
+                    }
+                } else {
+                    for i in 0..N {
+                        output[0][i] = self.buf.push(main_input.buffers()[0][i]);
+                    }
                 }
             },
             2 => {
@@ -73,9 +77,16 @@ impl<const N: usize> Node<N> for DelayMs {
                 match pos {
                     0 => {
                         let delay_n = (value / 1000. * self.sr as f32) as usize;
+                        self.delay_n = delay_n;
+
+                        if delay_n == 0 {
+                            self.buf = Fixed::from(vec![0.0; 1]);
+                        } else {
+                            self.buf = Fixed::from(vec![0.0; delay_n]);
+                        };
                         // buf = Fixed::from(vec![0.0; delay_n]);
                         // buf2 = Fixed::from(vec![0.0; delay_n]);
-                        self.buf.set_first(delay_n);
+                        // self.buf.set_first(delay_n);
                         // self.buf2.set_first(delay_n);
                     },
                     _ => {}
