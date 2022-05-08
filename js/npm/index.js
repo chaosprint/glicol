@@ -309,6 +309,17 @@ class Engine {
       }
   }
 
+    addSampleFromDataArray(name, sample, numberOfChannels, length, sampleRate) {
+      this.node.port.postMessage({
+        type: "loadsample",
+        sample: sample,
+        channels: numberOfChannels,
+        length: length,
+        name: this.encoder.encode("\\"+ name),
+        sr: sampleRate
+      });
+    }
+
     async loadSamples() {
 
       let source = `https://cdn.jsdelivr.net/gh/chaosprint/glicol@v0.11.9/js/src/`
