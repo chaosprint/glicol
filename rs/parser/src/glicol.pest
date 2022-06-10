@@ -74,7 +74,7 @@ note_ref = ${ "~" ~  ASCII_ALPHA_LOWER }
 reference = ${ ("~"|"_")? ~ ASCII_ALPHA_LOWER+ ~ ("_" | ASCII_ALPHA_LOWER | ASCII_DIGIT )* ~ loose_match? }
 loose_match = ${".."}
 rest = ${ "_" }
-integer = ${ (ASCII_DIGIT)+ ~ !"." }
+integer = ${ ("+" | "-")? ~(ASCII_DIGIT)+ ~ !"." }
 WHITESPACE = _{" "|","|"|"|"\t"}
 
 node_name = ${"adsr"|"sig"|"psampler"|"synth"|"msgsynth"|"psynth"|"p_synth"|"pattern_synth"|

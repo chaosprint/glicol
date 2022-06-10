@@ -1,6 +1,6 @@
 {
   "name": "glicol",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "description": "A light-weight, audio-thread-GC-free, memory-safe, and easy-to-use audio engine for browser-based music apps.",
   "main": "index.js",
   "scripts": {
