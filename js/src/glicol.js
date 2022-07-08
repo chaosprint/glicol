@@ -367,7 +367,7 @@ var {name, _} = detectBrowser();
 
 window.run = async (codeRaw) =>{
   
-  let regex = /(##.*?#)/
+  let regex = /(##.*?#)/s
   let parse = codeRaw.split(regex).filter(Boolean)
   let code = parse.map(str => {
       if (str.includes("#")) {
