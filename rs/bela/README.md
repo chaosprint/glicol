@@ -1,9 +1,9 @@
 # Glicol on Bela
 
-You now design music interaction on [Bela board](https://bela.io) with Glicol syntax:
+You can now design music interaction on [Bela board](https://bela.io) with Glicol syntax:
 
 ```
-// this works the circuit shown below
+// the code works with the circuit shown below
 o: sin 440 >> mul ~adc0
 ```
 
