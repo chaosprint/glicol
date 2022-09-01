@@ -48,7 +48,7 @@ fn run(code: String) -> Result<(), error::Error> {
 
     let mut render = |context: &mut Context, engine: &mut Engine<BLOCK_SIZE>| {
         engine.set_adc_node_buffer(&context.analog_in(), 8, BLOCK_SIZE, false);
-        let buf = engine.next_block().0;
+        let buf = engine.next_block(vec![]).0;
         for i in 0..BLOCK_SIZE {
             (*context.audio_out())[i] = buf[0][i];
             (*context.audio_out())[i + BLOCK_SIZE] = buf[1][i];

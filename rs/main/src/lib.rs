@@ -112,7 +112,7 @@ impl<const N: usize> Engine<N> {
             let index = self.context.add_mono_node(Pass{});
 
             // create a default track from adc1 ~ adc$chan
-            self.index_info.insert(format!("~adc{}", i+1), vec![index]);
+            self.index_info.insert(format!("~adc{}", i), vec![index]);
 
             // self.adc_nodes.push(index);
             // let source = self.graph.add_node( 
@@ -130,7 +130,7 @@ impl<const N: usize> Engine<N> {
         for c in 0..chan {
             self.context.graph[
                 self.index_info[
-                    &format!("~adc{}",c+1)
+                    &format!("~adc{}",c)
                 ][0]
             ].buffers[0].copy_from_slice(&buf[c*frame..(c+1)*frame]);
         }
