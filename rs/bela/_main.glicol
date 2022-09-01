@@ -1,7 +1,5 @@
-~o1: saw ~mod >> mul 0.3;
-~mod: ~adc1 >> mul 110 >> add 220;
-~mod2:~adc1 >> mul 225 >> add 441;
-~o2: saw ~mod2 >> mul 0.2;
-out: mix ~o.. >> lpf 5000.0 5.0;
+out: saw 100 >> lpf ~cutoff 5.0
+
+~cutoff: ~adc0 >> mul 2800 >> add 3000
 
 // o: sin 440 >> mul ~adc0;

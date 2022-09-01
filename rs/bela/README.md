@@ -11,6 +11,10 @@ The potentiometer will control `~adc0` and thus control the amplitude of the sin
 
 ![RotaryPotentiometer_bb](./RotaryPotentiometer_bb.png)
 
+I have also made a video demo for the new workflow: https://youtu.be/XKaSJh3B3go
+
+## Acknowledgement
+
 This crate is based on:
 
 https://github.com/andrewcsmith/bela-rs
