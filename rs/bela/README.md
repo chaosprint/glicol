@@ -1,6 +1,15 @@
 # Glicol on Bela
 
-You now design music interaction on [Bela board](https://bela.io) with Glicol syntax.
+You now design music interaction on [Bela board](https://bela.io) with Glicol syntax:
+
+```
+// this works the circuit shown below
+o: sin 440 >> mul ~adc0
+```
+
+The potentiometer will control `~adc0` and thus control the amplitude of the sine osc.
+
+![RotaryPotentiometer_bb](./RotaryPotentiometer_bb.png)
 
 This crate is based on:
 
