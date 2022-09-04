@@ -32,13 +32,13 @@ petgraph = { version = "0.6",  features = ["stable_graph"] }
 dasp_slice = { version = "0.11.0", default-features = false, features = ["std"], optional = true }
 dasp_ring_buffer = "0.11.0"
 dasp_signal = "0.11.0"
-dasp_interpolate = { version = "*", features = ["linear", "sinc"] }
+dasp_interpolate = { version = "0.11.0", features = ["linear", "sinc"] }
 hashbrown = "0.12"
 arrayvec = "0.7.2"
 rhai = { version = "1.6.0", features = ["sync", "f32_float", "only_i32"], optional = true  }
 
 [dev-dependencies]
-gnuplot = "*"
+gnuplot = "0.0.37"
 petgraph = { version = "0.6",  features = ["stable_graph"] }
-cpal = "*"
-anyhow = "*"
+cpal = "0.14.0"
+anyhow = "1.0.63"
