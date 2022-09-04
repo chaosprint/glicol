@@ -2,7 +2,7 @@ use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed
 use hashbrown::HashMap;
 #[derive(Debug, Clone)]
 pub struct ResonantLowPassFilter {
-    events: Vec<(f32, f32)>,
+    // events: Vec<(f32, f32)>,
     pattern: Vec<(f32, f32)>,
     span: f32,
     bpm: f32,
