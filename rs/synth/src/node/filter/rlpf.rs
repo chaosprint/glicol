@@ -21,7 +21,7 @@ pub struct ResonantLowPassFilter {
 impl ResonantLowPassFilter {
     pub fn new() -> Self {
         Self {
-            events: vec![],
+            // events: vec![],
             pattern: vec![],
             span: 1.,
             bpm: 120.,
