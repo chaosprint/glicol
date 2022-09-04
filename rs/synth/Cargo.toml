@@ -6,14 +6,8 @@ keywords = [
 	"audio",
     "music",
 	"DSP",
-	"graph",
 	"synth",
-    "synthesizer",
-    "oscillator",
-    "filter",
-    "delay",
-    "sampler",
-    "sequencer",
+    "synthesizer"
 ]
 readme = "README.md"
 license-file = "LICENSE"
