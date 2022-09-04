@@ -11,7 +11,7 @@ keywords = [
 ]
 
 license-file = "LICENSE"
-description = "Macros for Glicol engine."
+description = "Parser for Glicol language."
 repository = "https://github.com/chaosprint/glicol.git"
 authors = ["Qichao Lan <chaosprint@gmail.com>"]
 
