@@ -16,6 +16,10 @@ keywords = [
     "sequencer",
 ]
 readme = "README.md"
+license-file = "LICENSE"
+description = "A graph-based music DSP library written in Rust"
+repository = "https://github.com/chaosprint/glicol.git"
+authors = ["Qichao Lan <chaosprint@gmail.com>"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [features]
