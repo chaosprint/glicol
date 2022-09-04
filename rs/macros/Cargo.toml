@@ -1,10 +1,21 @@
 [package]
 name = "glicol_macros"
-version = "0.1.0"
+version = "0.12.8"
 edition = "2021"
+keywords = [
+	"audio",
+    "music",
+	"DSP",
+	"synth",
+    "synthesizer"
+]
+
+license-file = "LICENSE"
+description = "Macros for Glicol engine."
+repository = "https://github.com/chaosprint/glicol.git"
+authors = ["Qichao Lan <chaosprint@gmail.com>"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 
 [lib]
 proc-macro = true
@@ -12,4 +23,4 @@ proc-macro = true
 [dependencies]
 syn = "1.0.86"
 quote = "1.0.15"
-proc-macro2 = "*"
+proc-macro2 = "1.0.43"
