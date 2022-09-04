@@ -38,9 +38,9 @@ impl ResonantLowPassFilter {
         }
     }
 
-    pub fn events(self, events: Vec<(f32, f32)>) -> Self {
-        Self {events, ..self}
-    }
+    // pub fn events(self, events: Vec<(f32, f32)>) -> Self {
+    //     Self {events, ..self}
+    // }
 
     pub fn pattern(self, pattern: Vec<(f32, f32)>) -> Self {
         Self {pattern, ..self}
