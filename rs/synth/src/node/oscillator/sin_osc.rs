@@ -46,7 +46,9 @@ impl<const N: usize> Node<N> for SinOsc {
         match inputs.len() {
             0 => {
                 for i in 0..N {
-                    output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
+                    for j in 0..output.len() {
+                        output[j][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
+                    }
                     self.phase += self.freq / self.sr as f32;
                     if self.phase > 1.0 {
                         self.phase -= 1.0
@@ -54,7 +56,7 @@ impl<const N: usize> Node<N> for SinOsc {
                 }
             },
             1 => {
-                let mod_input =  match self.input_order.len() {
+                let mod_input = match self.input_order.len() {
                     0 => {
                         &mut *inputs.values_mut().next().unwrap()
                     },
@@ -64,7 +66,9 @@ impl<const N: usize> Node<N> for SinOsc {
                 };
                 let mod_buf = mod_input.buffers();
                     for i in 0..N {
-                        output[0][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
+                        for j in 0..output.len() {
+                            output[j][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
+                        }
                         self.phase += mod_buf[0][i] / self.sr as f32;
                         if self.phase > 1.0 {
                             self.phase -= 1.0

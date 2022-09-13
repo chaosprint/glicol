@@ -4,7 +4,7 @@ type Fixed = ring_buffer::Fixed<Vec<f32>>;
 use hashbrown::HashMap;
 #[derive(Debug, Clone)]
 pub struct DelayMs {
-    buf: Fixed,
+    buf: Vec<Fixed>,
     sr: usize,
     input_order: Vec<usize>,
     delay_n: usize,
@@ -12,16 +12,23 @@ pub struct DelayMs {
 
 impl DelayMs {
     pub fn new() -> Self {
-        Self { buf: Fixed::from(vec![0.0]), delay_n: 1, sr: 44100, input_order: vec![] }
+        Self { buf: vec![], delay_n: 1, sr: 44100, input_order: vec![] }
     }
-    pub fn delay(self, delay: f32) -> Self {
-        let buf;
+    
+    pub fn delay(self, delay: f32, chan: u8) -> Self {
+        let mut buf;
         let delay_n = (delay / 1000. * self.sr as f32) as usize;
 
         if delay_n == 0 {
-            buf = Fixed::from(vec![0.0; 1]);
+            buf = vec![];
+            for _ in 0..chan {
+                buf.push(Fixed::from(vec![0.0; 1]))
+            }
         } else {
-            buf = Fixed::from(vec![0.0; delay_n]);
+            buf = vec![];
+            for _ in 0..chan {
+                buf.push(Fixed::from(vec![0.0; delay_n]))
+            }            
         };
         Self { buf, delay_n, ..self}
     }
@@ -37,15 +44,23 @@ impl DelayMs {
 impl<const N: usize> Node<N> for DelayMs {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         match inputs.len() {
-            1 => {
+            1 => { // no modulation
                 let main_input = inputs.values_mut().next().unwrap();
-                if self.delay_n == 0 {
+                if self.delay_n == 0 { // equal to a pass node
                     for i in 0..N {
                         output[0][i] = main_input.buffers()[0][i];
                     }
                 } else {
-                    for i in 0..N {
-                        output[0][i] = self.buf.push(main_input.buffers()[0][i]);
+                    if main_input.buffers().len() == 1 {
+                        for i in 0..N {
+                            output[0][i] = self.buf[0].push(main_input.buffers()[0][i]);
+                        }
+                    } else if main_input.buffers().len() == 2 {
+                        for i in 0..N {
+                            output[0][i] = self.buf[0].push(main_input.buffers()[0][i]);
+                            output[1][i] = self.buf[1].push(main_input.buffers()[1][i]);
+                        }
+                    } else {
                     }
                 }
             },
@@ -57,13 +72,24 @@ impl<const N: usize> Node<N> for DelayMs {
                 for i in 0..N {
                     let mut pos = - mod_buf[0][i] / 1000. * self.sr as f32;
                     while pos < 0. {
-                        pos += self.buf.len() as f32;
+                        pos += self.buf[0].len() as f32;
                     };
                     let pos_int = pos.floor() as usize;
                     let pos_frac = pos.fract();
-                    output[0][i] = self.buf.get(pos_int) * pos_frac + self.buf.get(pos_int+1) * (1.-pos_frac);
+                    if main_input.buffers().len() == 1 {
+                        output[0][i] = self.buf[0].get(pos_int) * pos_frac + self.buf[0].get(pos_int+1) * (1.-pos_frac);
+                        self.buf[0].push(main_input.buffers()[0][i]);
+                    } else if main_input.buffers().len() == 2 {
+                        output[0][i] = self.buf[0].get(pos_int) * pos_frac + self.buf[0].get(pos_int+1) * (1.-pos_frac);
+                        self.buf[0].push(main_input.buffers()[0][i]);
+                        output[1][i] = self.buf[1].get(pos_int) * pos_frac + self.buf[1].get(pos_int+1) * (1.-pos_frac);
+                        self.buf[1].push(main_input.buffers()[1][i]);
+                    } else {
+
+                    }
+
                     // output[1][i] = self.buf2.get(pos_int) * pos_frac + self.buf2.get(pos_int+1) * (1.-pos_frac);
-                    self.buf.push(main_input.buffers()[0][i]);
+                    
                     // self.buf2.push(main_input.buffers()[1][i]);
                 }
             }
@@ -80,14 +106,14 @@ impl<const N: usize> Node<N> for DelayMs {
                         self.delay_n = delay_n;
 
                         if delay_n == 0 {
-                            self.buf = Fixed::from(vec![0.0; 1]);
+                            self.buf = vec![];
                         } else {
-                            self.buf = Fixed::from(vec![0.0; delay_n]);
+                            let chan = self.buf.len();
+                            self.buf = vec![];
+                            for _ in 0..chan {
+                                self.buf.push(Fixed::from(vec![0.0; delay_n]))
+                            }
                         };
-                        // buf = Fixed::from(vec![0.0; delay_n]);
-                        // buf2 = Fixed::from(vec![0.0; delay_n]);
-                        // self.buf.set_first(delay_n);
-                        // self.buf2.set_first(delay_n);
                     },
                     _ => {}
                 }

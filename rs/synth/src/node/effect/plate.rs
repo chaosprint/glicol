@@ -18,7 +18,7 @@ impl<const N: usize> Plate<N> {
         
         let input = context.add_mono_node( Pass{} );
         let wet1 = context.add_mono_node(OnePole::new(0.7));
-        let wet2 = context.add_mono_node(DelayMs::new().delay(50.));
+        let wet2 = context.add_mono_node(DelayMs::new().delay(50., 2));
         let wet3 = context.add_mono_node(AllPassFilterGain::new().delay(4.771).gain(0.75));
         let wet4 = context.add_mono_node(AllPassFilterGain::new().delay(3.595).gain(0.75));
         let wet5 = context.add_mono_node(AllPassFilterGain::new().delay(12.72).gain(0.625));

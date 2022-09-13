@@ -372,10 +372,10 @@ pub fn makenode<const N: usize>(
         "delayms" => {
             match &paras[0] {
                 GlicolPara::Number(v) => {
-                    (DelayMs::new().sr(sr).delay(*v).to_boxed_nodedata(2), vec![])
+                    (DelayMs::new().sr(sr).delay(*v, 2).to_boxed_nodedata(2), vec![])
                 },
                 GlicolPara::Reference(s) => {
-                    (DelayMs::new().sr(sr).delay(2000.).to_boxed_nodedata(2), vec![s.to_string()])
+                    (DelayMs::new().sr(sr).delay(2000., 2).to_boxed_nodedata(2), vec![s.to_string()])
                 },
                 _ => {
                     unimplemented!();
