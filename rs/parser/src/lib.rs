@@ -372,6 +372,22 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                         chain_node_names.push("meta");
                                         chain_paras.push(vec![GlicolPara::Symbol(paras.as_str().to_owned())]);
                                     },
+                                    Rule::arrange => {
+                                        println!("node {:?}", node.as_str());
+                                        let paras: Vec<_> = node.into_inner().map(|x|
+                                            match x.as_rule() {
+                                                Rule::reference => GlicolPara::Reference(x.as_str().to_owned()),
+                                                Rule::number => {
+                                                    // TODO: report error if < 0, or do it in pest
+                                                    GlicolPara::Number( x.as_str().parse::<f32>().unwrap())
+                                                },
+                                                _ => unimplemented!()
+                                            }
+                                        ).collect();
+                                        println!("paras {:?}", paras);
+                                        chain_node_names.push("arrange");
+                                        chain_paras.push(paras);
+                                    },
                                     Rule::msgsynth => {
                                         chain_node_names.push("msgsynth");
                                         println!("node {:?}", node.as_str());

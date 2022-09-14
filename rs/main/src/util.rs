@@ -4,7 +4,7 @@ use glicol_synth::{
     signal::{ConstSig, Impulse, Noise},
     operator::{Mul, Add},
     delay::{DelayN, DelayMs},
-    sequencer::{Sequencer, Choose, Speed},
+    sequencer::{Sequencer, Choose, Speed, Arrange},
     envelope::{EnvPerc, Adsr},
     effect::{Plate, Balance},
     compound::{Bd, Hh, Sn, SawSynth, SquSynth, TriSynth},
@@ -523,6 +523,18 @@ pub fn makenode<const N: usize>(
                 _ => unimplemented!()
             }).collect();
             ( NodeData::new2( BoxedNodeSend::new(Sum2{})), list)
+        },
+        "arrange" => {
+            let mut reflist = vec![];
+            for p in paras.iter() {
+                match p {
+                    GlicolPara::Reference(s) => {
+                        reflist.push((*s).clone());
+                    },
+                    _ => {}
+                }
+            };
+            (Arrange::new(paras.clone()).sr(sr).bpm(bpm).to_boxed_nodedata(2), reflist)
         },
         // "sendpass" => {
         //     let reflist = match &paras[0] {

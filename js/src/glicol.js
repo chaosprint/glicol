@@ -1,7 +1,7 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
 
-window.version = "v0.12.10"
+// window.version = "v0.12.10"
 
 window.source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 fetch(source+`utils.js`).then(res=>res.text()).then( text => // ${window.version ? ".min": ""}
