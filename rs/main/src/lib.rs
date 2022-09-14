@@ -530,9 +530,14 @@ impl<const N: usize> Engine<N> {
         println!("self.index_info in handle_connection{:?}", self.index_info);
         println!("self.refpairlist in handle_connection {:?}", self.refpairlist);
 
+        // 
+        let mut already_reset = vec![];
         for refpairs in &self.refpairlist {
             let index = self.index_info[&refpairs.1][refpairs.2];
-            self.context.graph[index].node.send_msg(Message::ResetOrder);
+            if !already_reset.contains(&index) {
+                self.context.graph[index].node.send_msg(Message::ResetOrder);
+                already_reset.push(index.clone());
+            }
             for refname in &refpairs.0 {
                 if refname.contains("..") {
                     println!("look for {}", &refname.replace("..", ""));

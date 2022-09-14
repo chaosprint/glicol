@@ -52,8 +52,16 @@ fn main() {
     // engine.update_with_code(r#"a: constsig 10 >> lpf ~m 0.1; ~m: constsig 0.5"#);
     // println!(" engine.next_block() 1 {:?}", engine.next_block().0);
     // engine.add_sample(r#"\test"#, &[0.9, 0.8, 0.7, 0.6, 0.5], 1, 44100);
-    engine.update_with_code(r#"o: p_synth `0.0 60` 1"#);
+    engine.update_with_code(r#"
+    ~t1: sig 10
+    ~t2: sig 31
+    ~t3: sig 42
+    o: balance ~t1 ~t2"#);
     println!(" engine.next_block() 0 {:?}", engine.next_block(vec![]).0);
-    engine.update_with_code(r#"o: p_synth `0.0 72` 1"#);
+    engine.update_with_code(r#"
+    ~t1: sig 10
+    ~t2: sig 31
+    ~t3: sig 42
+    o: balance ~t1 ~t3"#);
     println!(" engine.next_block() 1 {:?}", engine.next_block(vec![]).0);
 }
