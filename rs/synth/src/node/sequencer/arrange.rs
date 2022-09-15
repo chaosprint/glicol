@@ -61,24 +61,28 @@ impl< const N: usize> Node<N> for Arrange {
                 };
                 bar_count += bar;
                 if pos < bar_count {
-                    match &self.events[j*2] {
-                        GlicolPara::Reference(s) => {
-                            let source = &inputs[&self.input_order[j]];
-                            output[0][i] = source.buffers()[0][i];
-                        },
-                        _ => return ()
-                    };
-                    continue;
+                    let source = &inputs[&self.input_order[j]];
+                    output[0][i] = source.buffers()[0][i];
+                    // match &self.events[j*2] {
+                    //     GlicolPara::Reference(s) => {
+                    //         let source = &inputs[&self.input_order[j]];
+                    //         output[0][i] = source.buffers()[0][i];
+                    //     },
+                    //     _ => return ()
+                    // };
+                    break;
                 } else {
                     if j == self.events.len()/2 - 1 {
                         self.step = 0;
-                        match &self.events[0] {
-                            GlicolPara::Reference(s) => {
-                                let source = &inputs[&self.input_order[0]];
-                                output[0][i] = source.buffers()[0][i];
-                            },
-                            _ => return ()
-                        };
+                        let source = &inputs[&self.input_order[0]];
+                        output[0][i] = source.buffers()[0][i];
+                        // match &self.events[0] {
+                        //     GlicolPara::Reference(s) => {
+                        //         let source = &inputs[&self.input_order[0]];
+                        //         output[0][i] = source.buffers()[0][i];
+                        //     },
+                        //     _ => return ()
+                        // };
                     }
                 }
             }
@@ -87,6 +91,14 @@ impl< const N: usize> Node<N> for Arrange {
     }
     fn send_msg(&mut self, info: Message) {
         match info {
+            Message::SetToNumber(i, value) => {
+                self.step = 0;
+                // let mut n = i as usize;
+                while i as usize >= self.events.len() {
+                    self.events.push(GlicolPara::Number(0.0));// TODO: don't use this dummy
+                }
+                self.events[i as usize] = GlicolPara::Number(value);
+            },
             Message::Index(i) => {
                 self.input_order.push(i)
             },
