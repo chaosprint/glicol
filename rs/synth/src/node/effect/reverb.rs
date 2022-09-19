@@ -3,12 +3,12 @@ use freeverb::*;
 use hashbrown::HashMap;
 use petgraph::graph::NodeIndex;
 
-pub struct FreeverbNode<const N: usize> {
+pub struct Reverb<const N: usize> {
     fv: freeverb::Freeverb, 
     input_order: Vec<usize>,
 }
 
-impl<const N: usize> FreeverbNode<N> {
+impl<const N: usize> Reverb<N> {
     pub fn new() -> Self {
         let fv = freeverb::Freeverb::new(44100);
         Self {
@@ -27,7 +27,7 @@ impl<const N: usize> FreeverbNode<N> {
     }
 }
 
-impl<const N:usize> Node<N> for FreeverbNode<N> {
+impl<const N:usize> Node<N> for Reverb<N> {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         // output
         for i in 0..N {
@@ -42,6 +42,27 @@ impl<const N:usize> Node<N> for FreeverbNode<N> {
     fn send_msg(&mut self, info: Message) {
         match info {
             Message::SetToNumber(pos, value) => {
+                match pos {
+                    0 => {
+                        self.fv.set_dampening(value as f64)
+                    },
+                    1 => { // set_room_size
+                        self.fv.set_room_size(value as f64)
+                    },
+                    // 2 => {
+                    //     self.fv.set_freeze(value as f64)
+                    // },
+                    2 => {
+                        self.fv.set_width(value as f64)
+                    },
+                    3 => {
+                        self.fv.set_wet(value as f64)
+                    },
+                    4 => {
+                        self.fv.set_dry(value as f64)
+                    },
+                    _ => {}
+                }
             },
             Message::Index(i) => {
                 self.input_order.push(i)
