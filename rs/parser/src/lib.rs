@@ -335,6 +335,26 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                         ]);
                                         // println!("chain_paras, {:?}", chain_paras);
                                     },
+                                    Rule::reverb => {
+                                        println!("node {:?}", node.as_str());
+                                        let mut iter = node.into_inner();
+                                        let p1 = iter.next().unwrap();
+                                        let p2 = iter.next().unwrap();
+                                        let p3 = iter.next().unwrap();
+                                        let p4 = iter.next().unwrap();
+                                        let p5 = iter.next().unwrap();
+                                        // let p6 = iter.next().unwrap();
+                                        chain_node_names.push("reverb");
+                                        chain_paras.push(vec![
+                                            GlicolPara::Number(p1.as_str().parse::<f32>().unwrap()),
+                                            GlicolPara::Number(p2.as_str().parse::<f32>().unwrap()),
+                                            GlicolPara::Number(p3.as_str().parse::<f32>().unwrap()),
+                                            GlicolPara::Number(p4.as_str().parse::<f32>().unwrap()),
+                                            GlicolPara::Number(p5.as_str().parse::<f32>().unwrap()),
+                                            // GlicolPara::Number(p6.as_str().parse::<f32>().unwrap()),
+                                        ]);
+                                        // println!("chain_paras, {:?}", chain_paras);
+                                    },
                                     Rule::envperc => {
                                         println!("node {:?}", node.as_str());
                                         let mut iter = node.into_inner();

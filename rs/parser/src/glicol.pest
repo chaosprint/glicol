@@ -3,7 +3,7 @@ comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE* ~ !NEWLINE}
 line = ${ reference ~ WHITESPACE* ~ ":" ~ WHITESPACE* ~ chain}
 chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE* ~ node)*  }
 
-node = ${ (arrange|psampler|mix|seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noise|onepole|
+node = ${ (reverb|arrange|psampler|mix|seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noise|onepole|
 sp|constsig|lpf|rhpf|onepole|imp|delayn|delayms|envperc|apfmsgain|plate|sendpass|
 get|bd|sn|hh|meta|sawsynth|squsynth|trisynth|balance|adc|pattern_synth|msgsynth|adsr) }
 
@@ -22,7 +22,7 @@ char = {
 
 arrange = ${ "arrange" ~ WHITESPACE+ ~ reference ~ WHITESPACE+ ~ number ~ (WHITESPACE+ ~ reference ~ WHITESPACE+ ~ number)*}
 // arrangement = ${ reference ~ WHITESPACE+ ~ number }
-
+reverb = ${"reverb" ~ WHITESPACE+ ~ !(node_name | reference) ~ number ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
 balance = ${ "balance" ~ WHITESPACE+ ~ reference ~ WHITESPACE+ ~ reference}
 get = ${ ("get" ~ WHITESPACE+)? ~ !(node_name) ~ reference}
 sendpass = ${ "sendpass" ~ WHITESPACE+ ~ reference ~ (WHITESPACE+ ~ reference)*}
@@ -31,7 +31,6 @@ envperc = ${"envperc" ~ WHITESPACE+ ~ !(node_name | reference) ~ number ~ WHITES
 delayn = ${"delayn" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 delayms = ${"delayms" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 seq = ${ "seq" ~ WHITESPACE+ ~ compound_notes }
-
 adsr = ${"adsr" ~ WHITESPACE+ ~ !node_name ~ (number ) ~ WHITESPACE+ ~ !node_name ~ (number ) ~ WHITESPACE+ ~ !node_name ~ (number ) ~ WHITESPACE+ ~ !node_name ~ (number )  }
 choose = ${ "choose" ~ WHITESPACE+ ~ integer ~ (WHITESPACE+ ~ integer)*}
 mix = ${ "mix" ~ WHITESPACE+ ~ reference ~ (WHITESPACE+ ~ reference)*}
@@ -80,7 +79,7 @@ rest = ${ "_" }
 integer = ${ ("+" | "-")? ~(ASCII_DIGIT)+ ~ !"." }
 WHITESPACE = _{" "|","|"|"|"\t"}
 
-node_name = ${"arrange"|"adsr"|"sig"|"psampler"|"synth"|"msgsynth"|"psynth"|"p_synth"|"pattern_synth"|
+node_name = ${"reverb"|"arrange"|"adsr"|"sig"|"psampler"|"synth"|"msgsynth"|"psynth"|"p_synth"|"pattern_synth"|
 "bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|
 "linrange"|"apfdecay"|"delayn"|"delaymod"|
 "sin"|"squ"|"imp"|"envperc"|"sampler"|"noiz"|"lpf"|"plate"|"onepole"|

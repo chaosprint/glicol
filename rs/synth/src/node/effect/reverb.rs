@@ -1,26 +1,25 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, HashMap, AudioContext,
-    oscillator::{SinOsc}, filter::{ OnePole, AllPassFilterGain}, effect::Balance,
-    operator::{Mul, Add}, delay::{DelayN, DelayMs}, node::Pass
-};
-
+use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message};
+use freeverb::*;
+use hashbrown::HashMap;
 use petgraph::graph::NodeIndex;
 
 pub struct Reverb<const N: usize> {
-    context: AudioContext<N>,
-    input_order: Vec<usize>
+    fv: freeverb::Freeverb, 
+    input_order: Vec<usize>,
 }
 
 impl<const N: usize> Reverb<N> {
     pub fn new() -> Self {
-
-        let mut context = crate::AudioContextBuilder::<N>::new().channels(2).build();
-
-        let predelay = context.add_mono_node(DelayN::new(1700));
-        let a = context.add_stereo_node(AllPassFilterGain::new().delay(32.).gain(0.7));
-        
+        let fv = freeverb::Freeverb::new(44100);
         Self {
-            context,
-            input_order: Vec::new()
+            fv: fv,
+            input_order: Vec::new(),
+        }
+    }
+    pub fn sr(self, sr: usize) -> Self {
+        let fv = freeverb::Freeverb::new(sr);
+        Self {
+            fv, ..self
         }
     }
     pub fn to_boxed_nodedata(self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
@@ -30,13 +29,13 @@ impl<const N: usize> Reverb<N> {
 
 impl<const N:usize> Node<N> for Reverb<N> {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
-        let main_input = inputs[&self.input_order[0]].buffers();
-        self.context.graph[self.context.input].buffers[0] = main_input[0].clone();
-        // self.context.graph[self.input].buffers[1] = main_input[1].clone();
-        let cout = self.context.next_block();
+        // output
         for i in 0..N {
-            output[0][i] = cout[0][i];
-            output[1][i] = cout[1][i];
+            // pass test
+            // output[0][i] = inputs[&self.input_order[0]].buffers()[0][i];
+            let out = self.fv.tick((inputs[&self.input_order[0]].buffers()[0][i] as f64, inputs[&self.input_order[0]].buffers()[1][i] as f64));
+            output[0][i] = out.0 as f32;
+            output[1][i] = out.1 as f32;
         }
     }
 
@@ -45,7 +44,22 @@ impl<const N:usize> Node<N> for Reverb<N> {
             Message::SetToNumber(pos, value) => {
                 match pos {
                     0 => {
-                        // self.context.graph[self.context.tags["s"]].node.send_msg(Message::SetToNumber(0, value));
+                        self.fv.set_dampening(value as f64)
+                    },
+                    1 => { // set_room_size
+                        self.fv.set_room_size(value as f64)
+                    },
+                    // 2 => {
+                    //     self.fv.set_freeze(value as f64)
+                    // },
+                    2 => {
+                        self.fv.set_width(value as f64)
+                    },
+                    3 => {
+                        self.fv.set_wet(value as f64)
+                    },
+                    4 => {
+                        self.fv.set_dry(value as f64)
                     },
                     _ => {}
                 }
@@ -55,6 +69,9 @@ impl<const N:usize> Node<N> for Reverb<N> {
             },
             Message::IndexOrder(pos, index) => {
                 self.input_order.insert(pos, index)
+            },
+            Message::ResetOrder => {
+                self.input_order.clear();
             },
             _ => {}
         }
