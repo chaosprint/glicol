@@ -36,6 +36,7 @@ dasp_interpolate = { version = "0.11.0", features = ["linear", "sinc"] }
 hashbrown = "0.12"
 arrayvec = "0.7.2"
 rhai = { version = "1.6.0", features = ["sync", "f32_float", "only_i32"], optional = true  }
+freeverb = { git = "https://github.com/irh/freeverb-rs"}
 
 [dev-dependencies]
 gnuplot = "0.0.37"
