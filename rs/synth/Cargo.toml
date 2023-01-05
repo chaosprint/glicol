@@ -33,13 +33,13 @@ dasp_slice = { version = "0.11.0", default-features = false, features = ["std"],
 dasp_ring_buffer = "0.11.0"
 dasp_signal = "0.11.0"
 dasp_interpolate = { version = "0.11.0", features = ["linear", "sinc"] }
-hashbrown = "0.12"
+hashbrown = "0.13.1"
 arrayvec = "0.7.2"
-rhai = { version = "1.6.0", features = ["sync", "f32_float", "only_i32"], optional = true  }
-freeverb = { git = "https://github.com/irh/freeverb-rs"}
+rhai = { version = "1.12.0", default-features = false, features = ["sync", "f32_float", "only_i32"], optional = true  }
+# freeverb = { git = "https://github.com/irh/freeverb-rs"}
 
 [dev-dependencies]
 gnuplot = "0.0.37"
-petgraph = { version = "0.6",  features = ["stable_graph"] }
+# petgraph = { version = "0.6",  features = ["stable_graph"] }
 cpal = "0.14.0"
 anyhow = "1.0.63"

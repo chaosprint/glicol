@@ -29,7 +29,7 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
     };
     // this can be a comment though, but we call it a line
     let lines = block.next().unwrap();
-    let mut ast = HashMap::new();
+    let mut ast = GlicolAst::new();
     for line in lines.into_inner() {
         match line.as_rule() {
             Rule::line => {

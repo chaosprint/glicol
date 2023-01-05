@@ -85,6 +85,9 @@ impl<const N:usize> Node<N> for ConstSig {
                     _ => {}
                 }
             },
+            Message::SetBPM(bpm) => {
+                self.bpm = bpm
+            },
             Message::Index(i) => {
                 self.input_order.push(i)
             },

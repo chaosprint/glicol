@@ -420,6 +420,9 @@ impl<const N: usize> Engine<N> {
                             chain[position_in_chain]].node.send_msg(
                                 Message::SetToSamples(i as u8, self.samples_dict[s]))
                         },
+                        GlicolPara::Points(p) => self.context.graph[
+                            chain[position_in_chain]].node.send_msg(
+                                Message::SetParam(i as u8, para.clone())),
                         GlicolPara::Symbol(s) => {
                             
                             self.context.graph[

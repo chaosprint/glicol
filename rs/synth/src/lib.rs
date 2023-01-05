@@ -71,7 +71,8 @@ pub enum Message {
     SidechainInput(petgraph::graph::NodeIndex),
     Index(usize),
     IndexOrder(usize, usize),
-    ResetOrder
+    ResetOrder,
+    SetParam(u8, GlicolPara),
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]

@@ -1,12 +1,12 @@
 use glicol_synth::{
     oscillator::{SinOsc, SquOsc, TriOsc, SawOsc},
     filter::{ResonantLowPassFilter, ResonantHighPassFilter, OnePole, AllPassFilterGain},
-    signal::{ConstSig, Impulse, Noise},
+    signal::{ConstSig, Impulse, Noise, Points},
     operator::{Mul, Add},
     delay::{DelayN, DelayMs},
     sequencer::{Sequencer, Choose, Speed, Arrange},
     envelope::{EnvPerc, Adsr},
-    effect::{Plate, Balance, Reverb},
+    effect::{Plate, Balance},
     compound::{Bd, Hh, Sn, SawSynth, SquSynth, TriSynth},
     synth::{PatternSynth, MsgSynth},
     Pass,
@@ -69,6 +69,11 @@ pub fn makenode<const N: usize>(
             let span = *pattern_info.1;
 
             (PSampler::new(samples_dict_selected, sr, bpm, vec![], pattern, span).to_boxed_nodedata(2), vec![])
+        },
+
+        "points" => {
+            let points = paras[0].clone();
+            (Points::new().bpm(bpm).sr(sr).span(1.0).points(points).to_boxed_nodedata(2), vec![])
         },
 
         "msgsynth" => {
@@ -223,11 +228,11 @@ pub fn makenode<const N: usize>(
             };
             (data, reflist)
         },
-        "reverb" => {
-            let data = Reverb::new().sr(sr).to_boxed_nodedata(2);
-            let reflist = vec![];
-            (data, reflist)
-        },
+        // "reverb" => {
+        //     let data = Reverb::new().sr(sr).to_boxed_nodedata(2);
+        //     let reflist = vec![];
+        //     (data, reflist)
+        // },
         "envperc" => {
             let data = EnvPerc::new().sr(sr).attack(
                 match &paras[0] {
