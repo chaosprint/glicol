@@ -83,5 +83,11 @@ pub enum GlicolPara {
     Symbol(String),
     Sequence(Vec::<(f32, GlicolPara)>),
     Pattern(Vec::<(GlicolPara, f32)>, f32),
-    Event(Vec::<(GlicolPara, f32)>)
+    Event(Vec::<(GlicolPara, f32)>),
+    Points(Vec::<(GlicolPara, GlicolPara)>),
+    Time(Vec::<GlicolPara>),
+    Bar(f32),
+    Second(f32),
+    Millisecond(f32),
+
 }
