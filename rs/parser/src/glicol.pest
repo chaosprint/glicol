@@ -5,7 +5,21 @@ chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE* ~ node
 
 node = ${ (reverb|arrange|psampler|mix|seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noise|onepole|
 sp|constsig|lpf|rhpf|onepole|imp|delayn|delayms|envperc|apfmsgain|plate|sendpass|
-get|bd|sn|hh|meta|sawsynth|squsynth|trisynth|balance|adc|pattern_synth|msgsynth|adsr) }
+get|bd|sn|hh|points|meta|sawsynth|squsynth|trisynth|balance|adc|pattern_synth|msgsynth|adsr) }
+
+
+
+
+points = ${ "[" ~ ws*~ point* ~ ws* ~"]" }
+point = ${(time~ws*~"=>"~ws*~number ~ws*) }
+time = ${
+	(bar | number ) ~ (ws*~ sign ~ ws* ~ (ms|second))?
+}
+
+bar = ${ integer ~ ws* ~ "/" ~ ws* ~ integer }
+sign = ${("+"|"-")}
+ms = ${number ~ "_" ~ "ms" }
+second = ${number ~ "_" ~ "s" }
 
 psampler = ${"psampler" ~ WHITESPACE+ ~ (pattern|event)}
 msgsynth = ${("msgsynth"|"msg_synth") ~ (WHITESPACE+ ~ !node_name ~ symbol) ~ (WHITESPACE+ ~ !node_name ~ number) ~ (WHITESPACE+ ~ !node_name ~ number)}
@@ -19,7 +33,6 @@ char = {
     | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
     | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }
-
 arrange = ${ "arrange" ~ WHITESPACE+ ~ reference ~ WHITESPACE+ ~ number ~ (WHITESPACE+ ~ reference ~ WHITESPACE+ ~ number)*}
 // arrangement = ${ reference ~ WHITESPACE+ ~ number }
 reverb = ${"reverb" ~ WHITESPACE+ ~ !(node_name | reference) ~ number ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  ~ WHITESPACE+ ~ !(node_name | reference ) ~ number  }
@@ -51,7 +64,7 @@ saw = ${"saw" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 squ = ${"squ" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 tri = ${"tri" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 pan = ${"pan" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
-constsig = ${("sig"|"constsig") ~ WHITESPACE+ ~ !node_name ~ ( number | pattern | event ) }
+constsig = ${(("sig"|"constsig") ~ WHITESPACE+ ) ~ !node_name ~ ( number | pattern | event ) }
 onepole = ${"onepole" ~ WHITESPACE+ ~ !node_name ~ ( number | reference) }
 
 // single float
@@ -78,6 +91,7 @@ loose_match = ${".."}
 rest = ${ "_" }
 integer = ${ ("+" | "-")? ~(ASCII_DIGIT)+ ~ !"." }
 WHITESPACE = _{" "|","|"|"|"\t"}
+ws = _{" "|","|"|"|"\t"}
 
 node_name = ${"reverb"|"arrange"|"adsr"|"sig"|"psampler"|"synth"|"msgsynth"|"psynth"|"p_synth"|"pattern_synth"|
 "bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|

@@ -49,6 +49,63 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                             for node_pair in chain.into_inner() {
                                 let node = node_pair.into_inner().next().unwrap();
                                 match node.as_rule() {
+                                    Rule::points => {
+                                        // println!("node {:?}", node.as_str()); //"all params"
+                                        chain_node_names.push("points");
+                                        let mut vec = vec![];
+                                        for point in node.into_inner() {
+                                            println!("point {:?} ", point.as_str());  
+                                            let mut point_inner = point.into_inner();
+                                            let time = point_inner.next().unwrap();
+                                            let mut time_inner = time.into_inner();
+                                            let bar = time_inner.next().unwrap();
+
+                                            let mut time_list = match bar.as_rule() {
+                                                Rule::number => 
+                                                    vec![GlicolPara::Bar(bar.as_str().parse::<f32>().unwrap())],
+                                                Rule::bar => {
+                                                    let bar_div: Vec<f32> = bar.as_str().split("/").map(|x|{
+                                                        x.parse::<f32>().unwrap()
+                                                    }).collect();
+                                                    let num = bar_div[0] / bar_div[1];
+                                                    vec![GlicolPara::Bar(num)]
+                                                },
+                                                _ => unimplemented!()
+                                            };
+                                            let sign_rule = time_inner.next();
+                                            if sign_rule.is_some() {
+                                                let mut sign = 1.0;
+                                                if sign_rule.unwrap().as_str() == "-" {
+                                                    sign = -1.0;
+                                                }
+
+                                                let s = time_inner.next().unwrap();
+                                                match s.as_rule() {
+                                                    Rule::second => time_list.push(
+                                                        GlicolPara::Second(
+                                                            sign * s.as_str().replace("_s", "").parse::<f32>().unwrap())
+                                                    ),
+                                                    Rule::ms => time_list.push(
+                                                        GlicolPara::Millisecond(
+                                                            sign * s.as_str().replace("_ms", "").parse::<f32>().unwrap())
+                                                    ),
+                                                    _ => unimplemented!()
+                                                
+                                                };
+
+                                            };
+                                            
+                                            let t = GlicolPara::Time(time_list);
+                                            let value = point_inner.next().unwrap().as_str().parse::<f32>().unwrap();
+                                            println!("value {:?} ", value);
+                                            vec.push((t, GlicolPara::Number(value) ));
+                                        }
+                                        chain_paras.push(vec![GlicolPara::Points(vec)]);
+                                        // ;.next().unwrap();
+                                        // println!("paras {:?}", paras.as_str());  
+                                        
+                                        
+                                    }
                                     Rule::delayn =>  one_para_number_or_ref!("delayn"),
                                     Rule::delayms =>  one_para_number_or_ref!("delayms"),
                                     Rule::imp =>  one_para_number_or_ref!("imp"),
