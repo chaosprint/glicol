@@ -73,11 +73,13 @@ pub enum Message {
     IndexOrder(usize, usize),
     ResetOrder,
     SetParam(u8, GlicolPara),
+    SetToBool(u8, bool)
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum GlicolPara {
     Number(f32),
+    Bool(bool),
     NumberList(Vec<f32>),
     Reference(String),
     SampleSymbol(String), // symbol is for sample only

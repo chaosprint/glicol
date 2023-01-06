@@ -5,12 +5,13 @@ chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE* ~ node
 
 node = ${ (reverb|arrange|psampler|mix|seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noise|onepole|
 sp|constsig|lpf|rhpf|onepole|imp|delayn|delayms|envperc|apfmsgain|plate|sendpass|
-get|bd|sn|hh|points|meta|sawsynth|squsynth|trisynth|balance|adc|pattern_synth|msgsynth|adsr) }
+get|bd|sn|hh|point_node|meta|sawsynth|squsynth|trisynth|balance|adc|pattern_synth|msgsynth|adsr) }
 
+point_node = ${ points ~ws*~(math_expression)? ~ws*~(is_looping)? }
+points = ${ "[" ~ ws*~ point* ~ ws* ~"]"  }
+math_expression = ${  ("/"|"*") ~ ws*~ (number | ("("~bar~")")) }
+is_looping = ${"!"}
 
-
-
-points = ${ "[" ~ ws*~ point* ~ ws* ~"]" }
 point = ${(time~ws*~"=>"~ws*~number ~ws*) }
 time = ${
 	(bar | number ) ~ (ws*~ sign ~ ws* ~ (ms|second))?

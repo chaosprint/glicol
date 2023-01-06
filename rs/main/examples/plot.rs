@@ -4,14 +4,14 @@ use gnuplot::*;
 
 fn main() {
     let mut engine = Engine::<128>::new();
-    engine.update_with_code(r#"o: [0.1=>100, 1/4=> 10.0, 1/3=>50]"#);
+    engine.update_with_code(r#"o: [0.1=>100, 1/4=> 10.0, 1/3=>50]*(1/2).."#);
     
     // plot part
     let mut x = Vec::<i32>::new();
     let mut y = Vec::<f32>::new();
     let mut n = 0;
 
-    for _ in 0..( 441000 / 128) {
+    for _ in 0..( 220500 / 128) {
         let buf = engine.next_block(vec![]);
         for i in 0..128 {
             x.push(n);

@@ -10,6 +10,7 @@ pub struct Points {
     pub sr: usize,
     step: usize,
     index: usize,
+    is_looping: bool,
     input_order: Vec<usize> 
 }
 
@@ -24,12 +25,17 @@ impl Points {
             sr: 44100,
             step: 0,
             index: 0,
+            is_looping: false,
             input_order: vec![]
         }
     }
 
     pub fn span(self, span: f32) -> Self {
         Self {span, ..self}
+    }
+
+    pub fn is_looping(self, is_looping: bool) -> Self {
+        Self {is_looping, ..self}
     }
 
     pub fn bpm(self, bpm: f32) -> Self {
@@ -97,41 +103,69 @@ impl Points {
 
 impl<const N:usize> Node<N> for Points {
     fn process(&mut self, _inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
-    
-        let cycle_dur = 60. / self.bpm * 4.;
-        let bar_dur = (cycle_dur * self.span * self.sr as f32) as usize;
+        // println!("span {}", self.span);
         let list_len = self.point_list.len();
-
         if list_len == 0 {
             return ()
         }
+        let cycle_dur = 60. / self.bpm * 4.;
+        let bar_dur = (cycle_dur * self.span * self.sr as f32) as usize;
+        
+        if !self.is_looping {
+            for i in 0..N {
+                let pos = self.step;
+                let samples = &self.point_list;
+    
+                // WRITTEN BY ChatGPT, instructed and modified by chaosprint
+                let len = samples.len();
+                let mut index = 0;
+                while index < len - 1 && pos > samples[index + 1].0 {
+                    index += 1;
+                }
 
-        for i in 0..N {
-
-            let pos = self.step % bar_dur as usize;
-            let period = bar_dur as usize;
-            let samples = &self.point_list;
-
-            // WRITTEN BY ChatGPT, instructed and modified by chaosprint
-            let len = samples.len();
-            let mut index = 0;
-            while index < len - 1 && pos > samples[index + 1].0 {
-                index += 1;
+                // println!("index {} pos {} samples {:?}", index, pos, samples);
+                if index < len - 1 { // not yet reach the last point
+                    let (prev_pos, prev_val) = samples[index];
+                    let (next_pos, next_val) = samples[index + 1];
+                    let t = (pos as f32  - prev_pos as f32 )  / (next_pos  as f32 - prev_pos as f32 );
+                    output[0][i] = prev_val + t * (next_val - prev_val);
+                    self.step += 1;
+                } else { // reach the last point
+                    // pass the last point stay at the last point
+                    // panic!("self.step {}", self.step);
+                    output[0][i] = samples[len-1].1;
+                    self.step += 1;
+                }
             }
-            let (prev_pos, prev_val) = samples[index];
-            let (next_pos, next_val) = if index == len - 1 {
-                samples[0]
-            } else {
-                samples[index + 1]
-            };
-            let t = if index == len - 1 {
-                (pos as f32 - prev_pos as f32) / (period  as f32 - prev_pos as f32  + next_pos as f32 )
-            } else {
-                (pos as f32  - prev_pos as f32 )  / (next_pos  as f32 - prev_pos as f32 )
-            };
-            output[0][i] = prev_val + t * (next_val - prev_val);
-
-            self.step += 1;
+        } else {
+            
+            for i in 0..N {
+                
+                let pos = self.step % bar_dur as usize;
+                let period = bar_dur as usize;
+                let samples = &self.point_list;
+    
+                // WRITTEN BY ChatGPT, instructed and modified by chaosprint
+                let len = samples.len();
+                let mut index = 0;
+                while index < len - 1 && pos > samples[index + 1].0 {
+                    index += 1;
+                }
+                let (prev_pos, prev_val) = samples[index];
+                let (next_pos, next_val) = if index == len - 1 {
+                    samples[0]
+                } else {
+                    samples[index + 1]
+                };
+                let t = if index == len - 1 {
+                    (pos as f32 - prev_pos as f32) / (period  as f32 - prev_pos as f32  + next_pos as f32 )
+                } else {
+                    (pos as f32  - prev_pos as f32 )  / (next_pos  as f32 - prev_pos as f32 )
+                };
+                output[0][i] = prev_val + t * (next_val - prev_val);
+    
+                self.step += 1;
+            }
         }
     }
     fn send_msg(&mut self, info: Message) {
@@ -141,8 +175,26 @@ impl<const N:usize> Node<N> for Points {
                 match pos {
                     0 => {
                         self.point_list = self.make_point_list(params, self.bpm, self.sr, self.span);
-                        
-                    },
+                        self.step = 0;
+                    }
+                    _ => {}
+                }
+            },
+            Message::SetToNumber(pos, num) => {
+                match pos {
+                    1 => {
+                        self.span = num;
+                        self.step = 0;
+                    }
+                    _ => {}
+                }
+            },
+            Message::SetToBool(pos, b) => {
+                match pos {
+                    2 => {
+                        self.is_looping = b;
+                        self.step = 0;
+                    }
                     _ => {}
                 }
             },

@@ -7,6 +7,7 @@ use hashbrown::HashMap;
 
 use glicol_macros::{one_para_number_or_ref, two_numbers};
 use glicol_synth::GlicolPara;
+extern crate meval;
 
 #[derive(Parser)]
 #[grammar = "glicol.pest"]
@@ -49,11 +50,34 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                             for node_pair in chain.into_inner() {
                                 let node = node_pair.into_inner().next().unwrap();
                                 match node.as_rule() {
-                                    Rule::points => {
+                                    Rule::point_node => {
                                         // println!("node {:?}", node.as_str()); //"all params"
                                         chain_node_names.push("points");
                                         let mut vec = vec![];
-                                        for point in node.into_inner() {
+                                        let mut span = -1.0;
+                                        let mut is_looping = false;
+                                        let mut node_inner = node.into_inner();
+                                        let points = node_inner.next().unwrap(); // it should be valid
+
+                                        if let Some(math_or_loop) = node_inner.next() {
+                                            match math_or_loop.as_rule() {
+                                                Rule::math_expression => {
+                                                    let mut one = "1".to_owned();
+                                                    one.push_str(math_or_loop.as_str());
+                                                    span = meval::eval_str(one).unwrap() as f32;
+                                                    if node_inner.next().is_some() {
+                                                        is_looping = true;
+                                                    };
+                                                },
+                                                Rule::is_looping => {
+                                                    span = 1.0;
+                                                    is_looping = true;
+                                                },
+                                                _ => {}
+                                            }
+                                        }
+
+                                        for point in points.into_inner() {
                                             println!("point {:?} ", point.as_str());  
                                             let mut point_inner = point.into_inner();
                                             let time = point_inner.next().unwrap();
@@ -100,14 +124,12 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                             println!("value {:?} ", value);
                                             vec.push((t, GlicolPara::Number(value) ));
                                         }
-                                        chain_paras.push(vec![GlicolPara::Points(vec)]);
-                                        // ;.next().unwrap();
-                                        // println!("paras {:?}", paras.as_str());  
                                         
+                                        chain_paras.push(vec![GlicolPara::Points(vec), GlicolPara::Number(span), GlicolPara::Bool(is_looping)]);
                                         
                                     }
-                                    Rule::delayn =>  one_para_number_or_ref!("delayn"),
-                                    Rule::delayms =>  one_para_number_or_ref!("delayms"),
+                                    Rule::delayn => one_para_number_or_ref!("delayn"),
+                                    Rule::delayms => one_para_number_or_ref!("delayms"),
                                     Rule::imp =>  one_para_number_or_ref!("imp"),
                                     Rule::tri =>  one_para_number_or_ref!("tri"),
                                     Rule::squ => one_para_number_or_ref!("squ"),

@@ -73,7 +73,15 @@ pub fn makenode<const N: usize>(
 
         "points" => {
             let points = paras[0].clone();
-            (Points::new().bpm(bpm).sr(sr).span(1.0).points(points).to_boxed_nodedata(2), vec![])
+            let span = match &paras[1] {
+                GlicolPara::Number(v) => *v,
+                _ => unimplemented!()
+            };
+            let is_looping = match &paras[2] {
+                GlicolPara::Bool(v) => *v,
+                _ => unimplemented!()
+            };
+            (Points::new().bpm(bpm).sr(sr).span(span).points(points).is_looping(is_looping).to_boxed_nodedata(1), vec![])
         },
 
         "msgsynth" => {

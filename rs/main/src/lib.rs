@@ -423,8 +423,10 @@ impl<const N: usize> Engine<N> {
                         GlicolPara::Points(p) => self.context.graph[
                             chain[position_in_chain]].node.send_msg(
                                 Message::SetParam(i as u8, para.clone())),
+                        GlicolPara::Bool(b) => self.context.graph[
+                            chain[position_in_chain]].node.send_msg(
+                                Message::SetToBool(i as u8, *b)),
                         GlicolPara::Symbol(s) => {
-                            
                             self.context.graph[
                             chain[position_in_chain]].node.send_msg(
                                 Message::SetToSymbol(i as u8, s.to_string()))
