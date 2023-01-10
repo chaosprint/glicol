@@ -16,6 +16,8 @@ use glicol_synth::{
 #[cfg(feature = "use-meta")]
 use glicol_synth::dynamic::Meta;
 
+use glicol_synth::dynamic::{Expr, Eval};
+
 #[cfg(feature = "use-samples")]
 use glicol_synth::sampling::{Sampler, PSampler};
 
@@ -148,6 +150,22 @@ pub fn makenode<const N: usize>(
             match &paras[0] {
                 GlicolPara::Symbol(s) => {
                     (Meta::new().sr(sr).code(s.to_owned()).to_boxed_nodedata(1), vec![])
+                },
+                _ => unimplemented!()
+            }
+        },
+        "expr" => {
+            match &paras[0] {
+                GlicolPara::Symbol(s) => {
+                    (Expr::new().sr(sr).code(s.to_owned()).to_boxed_nodedata(1), vec![])
+                },
+                _ => unimplemented!()
+            }
+        },
+        "eval" => {
+            match &paras[0] {
+                GlicolPara::Symbol(s) => {
+                    (Eval::new().sr(sr).code(s.to_owned()).to_boxed_nodedata(1), vec![])
                 },
                 _ => unimplemented!()
             }

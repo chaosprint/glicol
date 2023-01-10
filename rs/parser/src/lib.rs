@@ -471,6 +471,20 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                         chain_node_names.push("meta");
                                         chain_paras.push(vec![GlicolPara::Symbol(paras.as_str().to_owned())]);
                                     },
+                                    Rule::expr => {
+                                        println!("node {:?}", node.as_str());
+                                        let paras = node.into_inner().next().unwrap();
+                                        println!("paras {:?}", paras.as_str());
+                                        chain_node_names.push("expr");
+                                        chain_paras.push(vec![GlicolPara::Symbol(paras.as_str().replace("`", "").to_owned())]);
+                                    },
+                                    Rule::eval => {
+                                        println!("node {:?}", node.as_str());
+                                        let paras = node.into_inner().next().unwrap();
+                                        println!("paras {:?}", paras.as_str());
+                                        chain_node_names.push("eval");
+                                        chain_paras.push(vec![GlicolPara::Symbol(paras.as_str().replace("`", "").to_owned())]);
+                                    },
                                     Rule::arrange => {
                                         println!("node {:?}", node.as_str());
                                         let paras: Vec<_> = node.into_inner().map(|x|
