@@ -469,7 +469,7 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                         let paras = node.into_inner().next().unwrap();
                                         println!("paras {:?}", paras.as_str());
                                         chain_node_names.push("meta");
-                                        chain_paras.push(vec![GlicolPara::Symbol(paras.as_str().to_owned())]);
+                                        chain_paras.push(vec![GlicolPara::Symbol(paras.as_str().replace("`", "").to_owned())]);
                                     },
                                     Rule::expr => {
                                         println!("node {:?}", node.as_str());
@@ -483,6 +483,10 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                         let paras = node.into_inner().next().unwrap();
                                         println!("paras {:?}", paras.as_str());
                                         chain_node_names.push("eval");
+                                        // we do some checkings here
+                                        // parse first
+                                        // then run later
+
                                         chain_paras.push(vec![GlicolPara::Symbol(paras.as_str().replace("`", "").to_owned())]);
                                     },
                                     Rule::arrange => {

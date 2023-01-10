@@ -64,6 +64,17 @@ impl<const N: usize> Eval<N> {
         Self {compiled, ..self}
     }
 
+    // pub fn add_lines(mut self, lines: Vec<GlicolPara>) -> Self {
+    //     for line in lines {
+    //         match line {
+    //             GlicolPara::Assign => {},
+    //             GlicolPara::Return => {},
+    //             _ => {}
+    //         }
+    //     }
+    //     Self {compiled, ..self}
+    // }
+
     pub fn to_boxed_nodedata(mut self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
         // self.scope.push("sr", self.sr as f32);
         NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new( self ) )

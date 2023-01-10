@@ -26,8 +26,17 @@ psampler = ${"psampler" ~ WHITESPACE+ ~ (pattern|event)}
 msgsynth = ${("msgsynth"|"msg_synth") ~ (WHITESPACE+ ~ !node_name ~ symbol) ~ (WHITESPACE+ ~ !node_name ~ number) ~ (WHITESPACE+ ~ !node_name ~ number)}
 pattern_synth = ${("psynth"|"p_synth"|"pattern_synth") ~ WHITESPACE+ ~ code ~ (WHITESPACE+ ~ !node_name ~ number)? }
 adc = ${"adc" ~ WHITESPACE+ ~ !node_name ~ (number ) }
+
 expr = ${ ("expr") ~ ws+ ~ code}
-eval = ${ ("eval") ~ ws+ ~ code}
+
+eval = ${ ("eval") ~ ws+ ~ eval_content}
+eval_content = ${"`" ~ (ws* ~ assign~ ws*)* ~ final_return ~ "`" }
+final_return = ${ ASCII_ALPHA_LOWER }
+assign = ${ assign_to ~ ws* ~ "=" ~ ws* ~ assign_value ~ ws* ~ ";" }
+assign_to = ${ ASCII_ALPHA_LOWER }
+assign_value = @{ value_char* }
+value_char = { !(";") ~ ANY }
+
 meta = ${ ("meta"|"script") ~ WHITESPACE+ ~ code}
 code = ${ "`" ~ inner ~ "`" }
 inner = @{ char* }
