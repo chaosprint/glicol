@@ -12,10 +12,11 @@ pub struct Eval<const N: usize> {
     phase: usize,
     // code: String,
     // precompiled: evalexpr::Node,
+    var: Vec<String>,
     map: BTreeMap<String, f64>,
-    compiled: fasteval::Instruction,
+    compiled: Vec<fasteval::Instruction>,
     parser: fasteval::Parser,
-    slab: fasteval::Slab,
+    slab: Vec<fasteval::Slab>,
     input_order: Vec<usize>
 }
 
@@ -24,7 +25,7 @@ impl<const N: usize> Eval<N> {
     pub fn new() -> Self {
 
         let parser = fasteval::Parser::new();
-        let mut slab = fasteval::Slab::new();
+        // let mut slab = fasteval::Slab::new();
 
         let mut map : BTreeMap<String, f64> = BTreeMap::new();
         map.insert("x".to_string(), 0.0);
@@ -32,7 +33,7 @@ impl<const N: usize> Eval<N> {
         map.insert("z".to_string(), 0.0);
         map.insert("sr".to_string(), 44100.);
 
-        let compiled = parser.parse("0.0", &mut slab.ps).unwrap().from(&slab.ps).compile(&slab.ps, &mut slab.cs);
+        // let compiled = parser.parse("0.0", &mut slab.ps).unwrap().from(&slab.ps).compile(&slab.ps, &mut slab.cs);
     
         Self {
             sr: 44100,
@@ -40,9 +41,9 @@ impl<const N: usize> Eval<N> {
             phase: 0,
             map,
             parser,
-            // code: "".to_string(),
-            slab,
-            compiled,
+            var: vec![],
+            slab: vec![],
+            compiled: vec![],
             input_order: Vec::new()
         }
     }
@@ -58,22 +59,21 @@ impl<const N: usize> Eval<N> {
     }
 
     pub fn code(mut self, code: String) -> Self {
-        let compiled = self.parser.parse(&code, &mut self.slab.ps).unwrap().from(&self.slab.ps)
-        .compile(&self.slab.ps, &mut self.slab.cs);
-        // let precompiled = build_operator_tree(&code).unwrap();
-        Self {compiled, ..self}
+        let lines = code.split(";");
+        for line in lines {
+            let mut slab = fasteval::Slab::new();
+            let mut assign = line.split(":=");;
+            if line.contains(":=") {
+                self.var.push(assign.next().unwrap().to_string().replace(" ", "").replace("\t", "").replace("\n",""));
+            }
+            let compiled = self.parser.parse(assign.next().unwrap(), &mut slab.ps)
+            .unwrap().from(&slab.ps).compile(&slab.ps, &mut slab.cs);
+            self.slab.push(slab);
+            self.compiled.push(compiled);
+            
+        };
+        Self { ..self }
     }
-
-    // pub fn add_lines(mut self, lines: Vec<GlicolPara>) -> Self {
-    //     for line in lines {
-    //         match line {
-    //             GlicolPara::Assign => {},
-    //             GlicolPara::Return => {},
-    //             _ => {}
-    //         }
-    //     }
-    //     Self {compiled, ..self}
-    // }
 
     pub fn to_boxed_nodedata(mut self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
         // self.scope.push("sr", self.sr as f32);
@@ -92,8 +92,19 @@ impl<const N:usize> Node<N> for Eval<N> {
                 );
             }
             self.map.insert("phase".to_owned(), self.phase as f64);
-            output[0][i] = self.compiled.eval(&self.slab, &mut self.map).unwrap() as f32;
+            // output[0][i] = self.compiled.eval(&self.slab, &mut self.map).unwrap() as f32;
             // output[0][i] = fasteval::ez_eval(&self.code, &mut self.map).unwrap() as f32;
+
+            for (j, ins) in self.compiled.iter().enumerate() {
+                // println!("i is {}", j);
+                if j < self.compiled.len()-1 {
+                    let v = ins.eval(&self.slab[j], &mut self.map).unwrap();
+                    self.map.insert(self.var[j].clone(), v);
+                } else {
+                    let v = ins.eval(&self.slab[j], &mut self.map).unwrap();
+                    output[0][i] = v as f32;
+                }
+            }
             self.phase += 1;
         }
     }
@@ -104,8 +115,25 @@ impl<const N:usize> Node<N> for Eval<N> {
             Message::SetToSymbol(pos, s) => {
                 match pos {
                     0 => {
-                        self.compiled = self.parser.parse(&s, &mut self.slab.ps).unwrap().from(&self.slab.ps)
-                        .compile(&self.slab.ps, &mut self.slab.cs);
+                        let code = s;
+                        let lines = code.split(";");
+                        self.slab.clear();
+                        self.var.clear();
+                        self.compiled.clear();
+                        for line in lines {
+                            let mut slab = fasteval::Slab::new();
+                            let mut assign = line.split(":=");;
+                            if line.contains(":=") {
+                                self.var.push(assign.next().unwrap().to_string().replace(" ", "").replace("\t", "").replace("\n",""));
+                            }
+                            let compiled = self.parser.parse(assign.next().unwrap(), &mut slab.ps)
+                            .unwrap().from(&slab.ps).compile(&slab.ps, &mut slab.cs);
+                            self.slab.push(slab);
+                            self.compiled.push(compiled);
+                        };
+                        // self.code(s);
+                        // self.compiled = self.parser.parse(&s, &mut self.slab.ps).unwrap().from(&self.slab.ps)
+                        // .compile(&self.slab.ps, &mut self.slab.cs);
                         // self.code = s
                         // self.precompiled = build_operator_tree(&s).unwrap()
                     },

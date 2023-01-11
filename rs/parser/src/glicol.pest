@@ -29,13 +29,17 @@ adc = ${"adc" ~ WHITESPACE+ ~ !node_name ~ (number ) }
 
 expr = ${ ("expr") ~ ws+ ~ code}
 
-eval = ${ ("eval") ~ ws+ ~ eval_content}
-eval_content = ${"`" ~ (ws* ~ assign~ ws*)* ~ final_return ~ "`" }
-final_return = ${ ASCII_ALPHA_LOWER }
-assign = ${ assign_to ~ ws* ~ "=" ~ ws* ~ assign_value ~ ws* ~ ";" }
-assign_to = ${ ASCII_ALPHA_LOWER }
+eval = ${ ("eval") ~ ws+ ~ "`" ~ eval_content ~ "`"}
+eval_content = ${
+    (ws* ~ eval_sentence~ ws*)* ~ return
+}
+return = @{ value_char* }
+eval_sentence = ${ assign_to ~ ws* ~ ":=" ~ ws* ~ assign_value ~ ws* ~ ";" }
+assign_to = ${ var }
 assign_value = @{ value_char* }
-value_char = { !(";") ~ ANY }
+value_char = { !(";"|"`") ~ valid_token }
+valid_token = {var|" "|"\n"|"%"|"+"|"-"|"*"|"/"|"^"|"("|")"|"["|"]"|">="|"<="|"=="|"!="|">"|"<"|"true"|"false"|"&"|"."|ASCII_DIGIT }
+var = _{ ASCII_ALPHA_LOWER+ ~ ("_" | ASCII_ALPHA_LOWER | ASCII_DIGIT )* }
 
 meta = ${ ("meta"|"script") ~ WHITESPACE+ ~ code}
 code = ${ "`" ~ inner ~ "`" }
@@ -103,7 +107,7 @@ loose_match = ${".."}
 rest = ${ "_" }
 integer = ${ ("+" | "-")? ~(ASCII_DIGIT)+ ~ !"." }
 WHITESPACE = _{" "|","|"|"|"\t"}
-ws = _{" "|","|"|"|"\t"}
+ws = _{" "|","|"|"|"\t"|"\n"}
 
 node_name = ${"reverb"|"arrange"|"adsr"|"sig"|"psampler"|"synth"|"msgsynth"|"psynth"|"p_synth"|"pattern_synth"|
 "bd"|"sn"|"hh"|"squsynth"|"trisynth"|"seq"|"speed"|"choose"|"mul"|"add"|
