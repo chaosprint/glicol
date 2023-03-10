@@ -204,11 +204,11 @@ impl<const N: usize> Engine<N> {
                             // let common_node_name = v.data;
                             let old_i = v.old_index.unwrap();
                             let new_i = v.new_index.unwrap();
-                            println!("common {:?}", v);
-                            println!("common node: old_index {:?}", old_i);
-                            println!("common node: new_i {:?}", new_i);
-                            println!("common node old para {:?}", old_chain_para[old_i]);
-                            println!("common node new para {:?}", new_chain_para[new_i]);
+                            // println!("common {:?}", v);
+                            // println!("common node: old_index {:?}", old_i);
+                            // println!("common node: new_i {:?}", new_i);
+                            // println!("common node old para {:?}", old_chain_para[old_i]);
+                            // println!("common node new para {:?}", new_chain_para[new_i]);
                             if old_chain_para[old_i] != new_chain_para[new_i] {
                                 self.node_update_list.push(
                                     ((*key).clone(), // which chain
@@ -250,10 +250,10 @@ impl<const N: usize> Engine<N> {
                         DiffResult::Removed(v) => {
                             let old_i = v.old_index.unwrap();
                             self.node_remove_list.push(((*key).clone(), old_i));
-                            println!("Removed {:?}", v)
+                            // println!("Removed {:?}", v)
                         },
                         DiffResult::Added(v) => {
-                            println!("Added {:?}", v);
+                            // println!("Added {:?}", v);
                             let new_i = v.new_index.unwrap();
                             let insert_i = v.new_index.unwrap();
                             let nodename = v.data;
@@ -290,7 +290,7 @@ impl<const N: usize> Engine<N> {
                     if !reflist.is_empty() {
                         self.refpairlist.push((reflist, (*key).clone(), i));
                     }         
-                    println!("self.node_add_list {:?} {}", key, i);
+                    // println!("self.node_add_list {:?} {}", key, i);
                     self.node_add_list.push(((*key).clone(), i, nodedata));
                 };
             }
@@ -310,7 +310,7 @@ impl<const N: usize> Engine<N> {
         
         match self.handle_ref_check() {
             Ok(_) => {
-                println!(" ref check &self.node_index_to_remove {:?}", &self.node_index_to_remove);
+                // println!(" ref check &self.node_index_to_remove {:?}", &self.node_index_to_remove);
                 for id in &self.node_index_to_remove {
                     self.context.graph.remove_node(*id);
                 }
@@ -328,7 +328,7 @@ impl<const N: usize> Engine<N> {
         // remove the added node
         // use the old index
         for id in &self.temp_node_index {
-            println!("graph.remove_node in clean_up {:?}", *id);
+            // println!("graph.remove_node in clean_up {:?}", *id);
             self.context.graph.remove_node(*id);
         }
         self.index_info = self.index_info_backup.clone();
@@ -339,13 +339,13 @@ impl<const N: usize> Engine<N> {
         // ref pair is like (~mod -> a node [e.g key: out, pos_in_chain: 3])
         // ref check should use the new ast hashmap
         // because old ast hashmap has something that may need to be deleted
-        println!("ref check {:?}", self.refpairlist);
+        // println!("ref check {:?}", self.refpairlist);
 
         for refpair in &self.refpairlist {
             for refname in &refpair.0 {
-                println!("ref check {} {}", self.new_ast.contains_key(refname), refname);
+                // println!("ref check {} {}", self.new_ast.contains_key(refname), refname);
                 if refname.contains("..") {
-                    println!("look for {}", &refname.replace("..", ""));
+                    // println!("look for {}", &refname.replace("..", ""));
                     let mut count = 0;
                     for key in self.index_info.keys() {
                         if ((*key).clone()).starts_with(&refname.replace("..", "")) {
@@ -371,7 +371,7 @@ impl<const N: usize> Engine<N> {
         // there are some chains show up in old_ast but not in new ast
         for key in self.ast.keys() {
             if !self.new_ast.contains_key(key) {
-                println!("remove {:?}", key);
+                // println!("remove {:?}", key);
                 for index in &self.index_info[key] {
                     // self.context.graph.remove_node(*index);
                     self.node_index_to_remove.push(*index)
@@ -393,12 +393,12 @@ impl<const N: usize> Engine<N> {
                 chain.insert(position_in_chain, nodeindex);
             }
         }
-        println!("node index map after handle add{:?}", self.index_info);
+        // println!("node index map after handle add{:?}", self.index_info);
     }
     pub fn handle_node_update(&mut self) -> Result<(), EngineError> {
         while !self.node_update_list.is_empty() {
             let (key, position_in_chain, paras) = self.node_update_list.pop().unwrap(); // ok as is it not empty
-            println!("handle update {:?} {:?}", key, position_in_chain);
+            // println!("handle update {:?} {:?}", key, position_in_chain);
             if let Some(chain) = self.index_info.get_mut(&key) {
 
                 // TODO: reset order here, if ref is wrong, cannot be reverted
@@ -432,7 +432,7 @@ impl<const N: usize> Engine<N> {
                                 Message::SetToSymbol(i as u8, s.to_string()))
                         },
                         GlicolPara::Sequence(events) => {
-                            println!("found seq in update, process it {:?}", events);
+                            // println!("found seq in update, process it {:?}", events);
                             // todo: an issue is that when you revert it, these messages cannot be undone
                             self.context.graph[
                             chain[position_in_chain]].node.send_msg(
@@ -532,8 +532,8 @@ impl<const N: usize> Engine<N> {
 
     pub fn handle_connection(&mut self) {
         self.context.graph.clear_edges();
-        println!("self.index_info in handle_connection{:?}", self.index_info);
-        println!("self.refpairlist in handle_connection {:?}", self.refpairlist);
+        // println!("self.index_info in handle_connection{:?}", self.index_info);
+        // println!("self.refpairlist in handle_connection {:?}", self.refpairlist);
 
         // 
         let mut already_reset = vec![];
@@ -545,7 +545,7 @@ impl<const N: usize> Engine<N> {
             }
             for refname in &refpairs.0 {
                 if refname.contains("..") {
-                    println!("look for {}", &refname.replace("..", ""));
+                    // println!("look for {}", &refname.replace("..", ""));
                     for (key, value) in self.index_info.iter() {
                         if ((*key).clone()).starts_with(&refname.replace("..", "")) {
                             self.context.connect(*value.last().unwrap(), index);

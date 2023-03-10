@@ -108,13 +108,13 @@ pub fn makenode<const N: usize>(
                     let pattern = s.replace("`", "");
                     let mut events = vec![];
                     for event in pattern.split(",") {
-                        println!("event {:?}", event);
+                        // println!("event {:?}", event);
                         let result: Vec<f32> = event.split(" ")
                         .filter(|x|!x.is_empty())
                         .map(|x|{
                             x.replace(" ", "").parse::<f32>().unwrap()
                         }).collect();
-                        println!("result {:?}", result);
+                        // println!("result {:?}", result);
                         events.push((result[0], result[1]));
                     }
                     (PatternSynth::new(events).sr(sr).to_boxed_nodedata(1), vec![])
@@ -194,7 +194,7 @@ pub fn makenode<const N: usize>(
                         };
                         pattern.push((value, v.1));
                     }
-                    println!("pattern {:?}", pattern);
+                    // println!("pattern {:?}", pattern);
                     ResonantLowPassFilter::new().q(qvalue).pattern(pattern).span(*span).bpm(bpm).sr(sr).to_boxed_nodedata(1)
                 }
                 _ => unimplemented!()
@@ -460,7 +460,7 @@ pub fn makenode<const N: usize>(
                         };
                         pattern.push((value, v.1));
                     }
-                    println!("pattern {:?}", pattern);
+                    // println!("pattern {:?}", pattern);
                     ConstSig::new(0.0).pattern(pattern).span(*span).bpm(bpm).sr(sr).to_boxed_nodedata(1)
                 }
                 _ => unimplemented!()

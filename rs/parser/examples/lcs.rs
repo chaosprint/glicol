@@ -17,7 +17,7 @@ fn main() {
     let mut block = match GlicolParser::parse(Rule::block, r#"out: sin 440 >> mul 0.1 >> add 0.1; b: seq 60 _60 >> sp \808;"#) {
         Ok(v) => v,
         Err(e) => {
-            println!("in location: {:?}; line_col: {:?}", e.location, e.line_col);
+            // println!("in location: {:?}; line_col: {:?}", e.location, e.line_col);
 
             match e.variant {
                 ErrorVariant::ParsingError{ positives, negatives } => { 

@@ -8,9 +8,9 @@ pub fn one_para_number_or_ref(item: TokenStream) -> TokenStream {
     let name = proc_macro2::TokenStream::from(item);
     let gen = quote! {
         {
-            println!("node {:?}", node.as_str()); //"sin 440"
+            // println!("node {:?}", node.as_str()); //"sin 440"
             let paras = node.into_inner().next().unwrap();
-            println!("paras {:?}", paras.as_str());//"440"                                        
+            // println!("paras {:?}", paras.as_str());//"440"                                        
             chain_node_names.push(#name);
             match paras.as_rule() {
                 Rule::number => {
@@ -31,7 +31,7 @@ pub fn two_numbers(item: TokenStream) -> TokenStream {
     let name = proc_macro2::TokenStream::from(item);
     let gen = quote! {
         {
-            println!("node {:?}", node.as_str());
+            // println!("node {:?}", node.as_str());
             let mut iter = node.into_inner();
             let p1 = iter.next().unwrap();
             let p2 = iter.next().unwrap();
