@@ -26,8 +26,8 @@ bela = []
 [dependencies]
 petgraph = { version = "0.6",  features = ["stable_graph"] }
 # dasp_graph = { path = "../dasp_graph" }
-glicol_parser = { version = "0.13.0" } # , path="../parser"
-glicol_synth = { version = "0.13.0", features = ["use-samples", "use-meta"]} #, path = "../synth" 
+glicol_parser = { version = "0.13.1" } # , path="../parser"
+glicol_synth = { version = "0.13.1", features = ["use-samples", "use-meta"]} #, path = "../synth" 
 lcs-diff = "0.1.1"
 pest = "2.1.3"
 glicol_macros = "0.12.8"
