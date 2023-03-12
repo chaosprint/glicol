@@ -20,7 +20,7 @@ authors = ["Qichao Lan <chaosprint@gmail.com>"]
 [dependencies]
 pest = "2.1.3"
 pest_derive = "2.1.0"
-glicol_macros = { version = "0.13.0"}#, path="../macros"}
-glicol_synth = { version = "0.13.0"}#, path="../synth" }
+glicol_macros = { version = "0.13.1"}#, path="../macros"}
+glicol_synth = { version = "0.13.1"}#, path="../synth" }
 hashbrown = "0.13.1"
 meval = "0.2"
