@@ -155,11 +155,11 @@ impl<const N: usize> Node<N> for ResonantLowPassFilter {
                 }
             },
             Message::Index(i) => {
-                println!("got index without order {}", i);
+                // println!("got index without order {}", i);
                 self.input_order.push(i)
             },
             Message::IndexOrder(pos, index) => {
-                println!("got index order {}", index);
+                // println!("got index order {}", index);
                 self.input_order.insert(pos, index)
             },
             Message::ResetOrder => {
