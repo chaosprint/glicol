@@ -1,9 +1,11 @@
+/// deprecated!
+
 use gnuplot::*;
 use glicol_synth::{ 
     AudioContextBuilder,
     signal::Impulse,
     operator::Mul,
-    effect::FreeverbNode,
+    // effect::FreeverbNode,
 };
 
 fn main () {
@@ -12,9 +14,9 @@ fn main () {
     .sr(44100).channels(2).build();
     let node_a = context.add_mono_node( Impulse::new().freq(0.1) );
     let node_a2 = context.add_stereo_node( Mul::new(0.9) );
-    let node_b = context.add_stereo_node( FreeverbNode::new() );
+    // let node_b = context.add_stereo_node( FreeverbNode::new() );
     // context.connect(node_a, context.destination);
-    context.chain(vec![node_a, node_a2, node_b, context.destination]);
+    context.chain(vec![node_a, node_a2, context.destination]);
 
     // plot part
     let mut x = Vec::<i32>::new();

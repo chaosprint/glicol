@@ -1,6 +1,6 @@
 [package]
 name = "glicol_synth"
-version = "0.12.8"
+version = "0.13.0"
 edition = "2021"
 keywords = [
 	"audio",
@@ -43,5 +43,5 @@ fasteval = "0.2.4"
 [dev-dependencies]
 gnuplot = "0.0.37"
 # petgraph = { version = "0.6",  features = ["stable_graph"] }
-cpal = "0.14.0"
-anyhow = "1.0.63"
+# cpal = "0.14.0"
+# anyhow = "1.0.63"
