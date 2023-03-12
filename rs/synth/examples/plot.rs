@@ -19,7 +19,7 @@ fn main () {
     let mut y = Vec::<f32>::new();
     let mut n = 0;
 
-    for _ in 0..( 44100 / 128) {
+    for _ in 0..( 88000 / 128) {
         let buf = context.next_block();
         for i in 0..128 {
             x.push(n);

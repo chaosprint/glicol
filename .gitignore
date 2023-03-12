@@ -1,6 +1,8 @@
 **/firebaseConfig.js
-
+./.vscode/*
 .DS_Store
+
+.vscode/
 
 rs/bela/arm-bela-linux-gnueabihf/
 rs/bela/__MACOSX/

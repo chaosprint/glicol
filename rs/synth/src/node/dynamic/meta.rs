@@ -1,12 +1,13 @@
 use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message};
 use hashbrown::HashMap;
-use rhai::{Engine, Array, Scope, Dynamic, OptimizationLevel}; //EvalAltResult
+use rhai::{Engine, Array, Scope, Dynamic, OptimizationLevel, AST, ParseError}; //EvalAltResult
 
 pub struct Meta<const N: usize> {
     sr: usize,
     // phase: usize,
     code: String,
     backup: String,
+    ast: AST,
     scope: Scope<'static>,
     engine: Engine,
     input_order: Vec<usize>
@@ -64,6 +65,7 @@ impl<const N: usize> Meta<N> {
 
         let mut engine = Engine::new();
         engine.set_optimization_level(OptimizationLevel::Full);
+        let ast = engine.compile("").unwrap();
 
         Self {
             sr: 44100,
@@ -71,6 +73,7 @@ impl<const N: usize> Meta<N> {
             scope,
             code: "".to_owned(),
             backup: "".to_owned(),
+            ast,
             // phase,
             input_order: Vec::new()
         }
@@ -80,7 +83,11 @@ impl<const N: usize> Meta<N> {
         Self {sr, ..self}
     }
 
-    pub fn code(self, code: String) -> Self {
+    pub fn code(mut self, code: String) -> Self {
+        match self.engine.compile(&code) {
+            Ok(a) => self.ast = a,
+            _ => {}
+        };
         Self {code, ..self}
     }
 
@@ -98,33 +105,10 @@ impl<const N:usize> Node<N> for Meta<N> {
                 arr.push(Dynamic::from_float(inputs[&self.input_order[0]].buffers()[0][i]));
             }
             self.scope.set_or_push("input", arr);
+            // self.engine.optimize_ast();
         }
-        let result = match self.engine.eval_with_scope::<Array>(&mut self.scope, &self.code.replace("`", "")) {
-            Ok(v) => {
-                if v.len() >= N {
-                    let mut ok = true;
-                    for i in 0..N {
-                        if !v[i].as_float().is_ok() {
-                            ok = false;
-                        }
-                    };
-                    if ok {
-                        v
-                    } else {
-                        self.engine.eval_with_scope::<Array>(&mut self.scope, &self.backup.replace("`", "")).unwrap()
-                    }
-                } else {
-                    self.engine.eval_with_scope::<Array>(&mut self.scope, &self.backup.replace("`", "")).unwrap()
-                }
-            },
-            Err(e) => {
-                println!("eval error {:?}, try to use backup code", e);
-                if &self.backup == &"" {
-                    return ()
-                }
-                self.engine.eval_with_scope::<Array>(&mut self.scope, &self.backup.replace("`", "")).unwrap()
-            }
-        };
+        let result = self.engine.eval_ast_with_scope::<Array>(&mut self.scope, &self.ast).unwrap();
+
         for i in 0..N {
             output[0][i] = match result[i].as_float() {
                 Ok(v) => v,
@@ -138,7 +122,12 @@ impl<const N:usize> Node<N> for Meta<N> {
         match info {
             Message::SetToSymbol(pos, s) => {
                 match pos {
-                    0 => {self.code = s},
+                    0 => {
+                        match self.engine.compile(&s) {
+                            Ok(a) => { self.ast = a},
+                            _ => {}
+                        };
+                    },
                     _ => {}
                 }
             },

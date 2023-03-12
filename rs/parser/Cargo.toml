@@ -1,6 +1,6 @@
 [package]
 name = "glicol_parser"
-version = "0.12.8"
+version = "0.13.0"
 edition = "2021"
 keywords = [
 	"audio",
@@ -20,6 +20,7 @@ authors = ["Qichao Lan <chaosprint@gmail.com>"]
 [dependencies]
 pest = "2.1.3"
 pest_derive = "2.1.0"
-glicol_macros = { path="../macros", version = "0.12.8"}
-glicol_synth = { path="../synth", version = "0.12.8"}
-hashbrown = "0.12"
+glicol_macros = { version = "0.13.0"}#, path="../macros"}
+glicol_synth = { version = "0.13.0"}#, path="../synth" }
+hashbrown = "0.13.1"
+meval = "0.2"

@@ -1,12 +1,12 @@
 use glicol_synth::{
     oscillator::{SinOsc, SquOsc, TriOsc, SawOsc},
     filter::{ResonantLowPassFilter, ResonantHighPassFilter, OnePole, AllPassFilterGain},
-    signal::{ConstSig, Impulse, Noise},
+    signal::{ConstSig, Impulse, Noise, Points},
     operator::{Mul, Add},
     delay::{DelayN, DelayMs},
     sequencer::{Sequencer, Choose, Speed, Arrange},
     envelope::{EnvPerc, Adsr},
-    effect::{Plate, Balance, Reverb},
+    effect::{Plate, Balance},
     compound::{Bd, Hh, Sn, SawSynth, SquSynth, TriSynth},
     synth::{PatternSynth, MsgSynth},
     Pass,
@@ -15,6 +15,8 @@ use glicol_synth::{
 
 #[cfg(feature = "use-meta")]
 use glicol_synth::dynamic::Meta;
+
+use glicol_synth::dynamic::{Expr, Eval};
 
 #[cfg(feature = "use-samples")]
 use glicol_synth::sampling::{Sampler, PSampler};
@@ -71,6 +73,19 @@ pub fn makenode<const N: usize>(
             (PSampler::new(samples_dict_selected, sr, bpm, vec![], pattern, span).to_boxed_nodedata(2), vec![])
         },
 
+        "points" => {
+            let points = paras[0].clone();
+            let span = match &paras[1] {
+                GlicolPara::Number(v) => *v,
+                _ => unimplemented!()
+            };
+            let is_looping = match &paras[2] {
+                GlicolPara::Bool(v) => *v,
+                _ => unimplemented!()
+            };
+            (Points::new().bpm(bpm).sr(sr).span(span).points(points).is_looping(is_looping).to_boxed_nodedata(1), vec![])
+        },
+
         "msgsynth" => {
             (
                 MsgSynth::new()
@@ -93,13 +108,13 @@ pub fn makenode<const N: usize>(
                     let pattern = s.replace("`", "");
                     let mut events = vec![];
                     for event in pattern.split(",") {
-                        println!("event {:?}", event);
+                        // println!("event {:?}", event);
                         let result: Vec<f32> = event.split(" ")
                         .filter(|x|!x.is_empty())
                         .map(|x|{
                             x.replace(" ", "").parse::<f32>().unwrap()
                         }).collect();
-                        println!("result {:?}", result);
+                        // println!("result {:?}", result);
                         events.push((result[0], result[1]));
                     }
                     (PatternSynth::new(events).sr(sr).to_boxed_nodedata(1), vec![])
@@ -139,6 +154,22 @@ pub fn makenode<const N: usize>(
                 _ => unimplemented!()
             }
         },
+        "expr" => {
+            match &paras[0] {
+                GlicolPara::Symbol(s) => {
+                    (Expr::new().sr(sr).code(s.to_owned()).to_boxed_nodedata(1), vec![])
+                },
+                _ => unimplemented!()
+            }
+        },
+        "eval" => {
+            match &paras[0] {
+                GlicolPara::Symbol(s) => {
+                    (Eval::new().sr(sr).code(s.to_owned()).to_boxed_nodedata(1), vec![])
+                },
+                _ => unimplemented!()
+            }
+        },
         "lpf" => {
             let qvalue = match &paras[1] {
                 GlicolPara::Number(v) => *v,
@@ -163,7 +194,7 @@ pub fn makenode<const N: usize>(
                         };
                         pattern.push((value, v.1));
                     }
-                    println!("pattern {:?}", pattern);
+                    // println!("pattern {:?}", pattern);
                     ResonantLowPassFilter::new().q(qvalue).pattern(pattern).span(*span).bpm(bpm).sr(sr).to_boxed_nodedata(1)
                 }
                 _ => unimplemented!()
@@ -223,11 +254,11 @@ pub fn makenode<const N: usize>(
             };
             (data, reflist)
         },
-        "reverb" => {
-            let data = Reverb::new().sr(sr).to_boxed_nodedata(2);
-            let reflist = vec![];
-            (data, reflist)
-        },
+        // "reverb" => {
+        //     let data = Reverb::new().sr(sr).to_boxed_nodedata(2);
+        //     let reflist = vec![];
+        //     (data, reflist)
+        // },
         "envperc" => {
             let data = EnvPerc::new().sr(sr).attack(
                 match &paras[0] {
@@ -429,7 +460,7 @@ pub fn makenode<const N: usize>(
                         };
                         pattern.push((value, v.1));
                     }
-                    println!("pattern {:?}", pattern);
+                    // println!("pattern {:?}", pattern);
                     ConstSig::new(0.0).pattern(pattern).span(*span).bpm(bpm).sr(sr).to_boxed_nodedata(1)
                 }
                 _ => unimplemented!()

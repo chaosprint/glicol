@@ -1,6 +1,6 @@
 [package]
 name = "glicol_macros"
-version = "0.12.8"
+version = "0.13.0"
 edition = "2021"
 keywords = [
 	"audio",

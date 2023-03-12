@@ -15,7 +15,7 @@ fn main () {
     let node_a = context.add_mono_node( Impulse::new().freq(1000.0) );
     // let node_b = context.add_stereo_node( Sampler::new((&[1.0, 0.0, 0.0], 1)) );
     // let node_c = context.add_stereo_node( Mul::new(0.5) );
-    let node_b = context.add_mono_node(DelayMs::new().delay(0.0));
+    let node_b = context.add_mono_node(DelayMs::new().delay(0.0, 1));
     let (node_d, node_e, node_f) = (
         context.add_mono_node(SinOsc::new()),
         context.add_mono_node(Mul::new(100.)),
