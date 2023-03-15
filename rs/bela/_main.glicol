@@ -1,5 +1,0 @@
-out: saw 100 >> lpf ~cutoff 5.0
-
-~cutoff: ~adc0 >> mul 2800 >> add 3000
-
-// o: sin 440 >> mul ~adc0;
