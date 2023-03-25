@@ -8,7 +8,9 @@
     "serve": "vite preview"
   },
   "devDependencies": {
-    "vite": "^2.3.0",
-    "vite-plugin-cross-origin-isolation": "^0.1.1"
+    "vite": "^2.3.0"
+  },
+  "dependencies": {
+    "install": "^0.13.0"
   }
 }
