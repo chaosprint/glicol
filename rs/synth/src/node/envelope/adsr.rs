@@ -8,9 +8,12 @@ pub struct Adsr {
     release: f32,
     pos: usize, // the pos since the attack is triggered
     gate: f32,
+    lastx: f32,
+    lasty: f32,
     step: usize, // the clock since the node created
-    is_releasing: bool,
+    state_change_y: f32,
     sr: usize,
+    phase: u8,
     input_order: Vec<usize>,
 }
 
@@ -23,9 +26,12 @@ impl Adsr {
             release: 0.1,
             pos: 0,
             step: 0,
-            is_releasing: false,
+            lastx: 0.,
+            lasty: 0.,
+            state_change_y: 0.0,
             gate: 0.0,
             sr: 44100,
+            phase: 0,
             input_order: vec![],
         }
     }
@@ -52,62 +58,74 @@ impl Adsr {
 }
 
 impl<const N: usize> Node<N> for Adsr {
+    
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         match inputs.len() {
             1 => {
                 let attack_len = (self.attack * self.sr as f32) as usize;
                 let decay_len = (self.decay * self.sr as f32) as usize;
                 let release_len = (self.release * self.sr as f32) as usize;
-                
-                let n_before_sustain = attack_len + decay_len;
-                let buf = &mut inputs[&self.input_order[0]].buffers();
 
+                let buf = &mut inputs[&self.input_order[0]].buffers();
+    
                 for i in 0..N {
 
-                    if buf[0][i] > 0.0 {
-                        // entering the attack decay phase
-                        if self.gate == 0. {
-                            self.pos = 0;
-                            self.gate = buf[0][i];
-                        }
-                        
-                        if self.pos <= attack_len {
-                            if attack_len == 0 {
-                                output[0][i] = 0.0;
+                    if buf[0][i] > 0.0 && self.lastx == 0.0 {
+                        self.gate = 1.;
+                        self.phase = 1; // attack, decay or sustain
+                        self.pos = 0;
+                        self.state_change_y = self.lasty;
+                    } else if buf[0][i] == 0.0 && self.lastx > 0.0 {
+                        self.gate = 0.;
+                        self.phase = 2; // release
+                        self.pos = 0;
+                        self.state_change_y = self.lasty;
+                    }
+
+                    // based on pos and phase, calculate the output
+                    match self.phase {
+                        1 => {
+                            if self.pos <= attack_len { // attack phase
+                                if attack_len == 0 { // special case
+                                    output[0][i] = 0.0;
+                                } else {
+                                    // attack from: lasty -> 1.0
+                                    output[0][i] = self.pos as f32 / attack_len as f32 * (1.0 - self.state_change_y);
+                                }
+                            } else if self.pos > attack_len && self.pos <= attack_len + decay_len {
+                                // decay phase
+                                if decay_len == 0 { // special case
+                                    output[0][i] = self.sustain;
+                                } else {
+                                    output[0][i] = (attack_len + decay_len - self.pos) as f32 / decay_len as f32 * (1. - self.sustain) + self.sustain;
+                                }
                             } else {
-                                output[0][i] = self.pos as f32 / attack_len as f32;
-                            }
-                        } else if self.pos > attack_len && self.pos <= n_before_sustain {
-                            if decay_len == 0 {
                                 output[0][i] = self.sustain;
-                            } else {
-                                output[0][i] = (n_before_sustain - self.pos) as f32 / decay_len as f32 * (1. - self.sustain) + self.sustain;
                             }
-                        } else {
-                            output[0][i] = self.sustain
-                        }
-                    } else {
-                        if self.gate > 0. {
-                            self.pos = 0;
-                        }
-                        if self.is_releasing || self.gate > 0. {
-                            self.gate = 0.;
-                            self.is_releasing = true;
-                            if self.pos == release_len {
+                        },
+                        2 => {
+                            if self.pos >= release_len {
                                 output[0][i] = 0.0;
-                                self.is_releasing = false;
                             } else {
-                                output[0][i] = (release_len - self.pos) as f32 / release_len as f32 * self.sustain;
+                                output[0][i] = (release_len - self.pos) as f32 / release_len as f32 * (self.state_change_y);
                             }
+                        },
+                        _ => {
+                            output[0][i] = 0.0;
                         }
                     };
+                    self.lasty = output[0][i];
+                    if output.len() == 2 {
+                        output[1][i] = output[0][i];
+                    }
+                    self.lastx = buf[0][i];
                     self.step += 1;
                     self.pos += 1;
                 }
             },
             _ => {return ()}
         }
-    }
+    }    
 
     fn send_msg(&mut self, info: Message) {
         match info {
@@ -132,4 +150,11 @@ impl<const N: usize> Node<N> for Adsr {
             _ => {}
         }
     }
+}
+
+enum Phase {
+    Attack,
+    Decay,
+    Sustain,
+    Release
 }

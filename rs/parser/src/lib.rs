@@ -7,7 +7,7 @@ use hashbrown::HashMap;
 
 use glicol_macros::{one_para_number_or_ref, two_numbers};
 use glicol_synth::GlicolPara;
-extern crate meval;
+use fasteval;
 
 #[derive(Parser)]
 #[grammar = "glicol.pest"]
@@ -63,8 +63,9 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                             match math_or_loop.as_rule() {
                                                 Rule::math_expression => {
                                                     let mut one = "1".to_owned();
+                                                    let mut ns = fasteval::EmptyNamespace;
                                                     one.push_str(math_or_loop.as_str());
-                                                    span = meval::eval_str(one).unwrap() as f32;
+                                                    span = fasteval::ez_eval(&one, &mut ns).unwrap() as f32;
                                                     if node_inner.next().is_some() {
                                                         is_looping = true;
                                                     };

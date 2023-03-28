@@ -1,6 +1,6 @@
 [package]
 name = "glicol_synth"
-version = "0.13.1"
+version = "0.13.2"
 edition = "2021"
 keywords = [
 	"audio",
@@ -37,7 +37,7 @@ hashbrown = "0.13.1"
 arrayvec = "0.7.2"
 rhai = { version = "1.12.0", default-features = false, features = ["sync", "f32_float", "only_i32"], optional = true  }
 # freeverb = { git = "https://github.com/irh/freeverb-rs"}
-evalexpr = "8.1.0"
+# evalexpr = "8.1.0"
 fasteval = "0.2.4"
 
 [dev-dependencies]
