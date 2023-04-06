@@ -58,10 +58,9 @@ impl<const N: usize> Node<N> for BandLimitedSawOsc {
                         }
                     };
                     let mod_buf = mod_input.buffers();
-                    self.blep.set_freq(330.0);
                     for i in 0..N {
                         output[0][i] = self.blep.saw();
-                        //self.blep.set_freq(mod_buf[0][i]);
+                        self.blep.set_freq(mod_buf[0][i]);
                         // if mod_buf[0][i] != 0. {
                         //     self.inc = mod_buf[0][i]
                         // };
@@ -79,7 +78,7 @@ impl<const N: usize> Node<N> for BandLimitedSawOsc {
         match info {
             Message::SetToNumber(pos, value) => {
                 match pos {
-                    //0 => {self.blep.set_freq(value)},
+                    0 => {self.freq = value},
                     _ => {}
                 }
             },
