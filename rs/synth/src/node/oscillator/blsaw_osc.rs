@@ -1,24 +1,23 @@
 use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
 use hashbrown::HashMap;
-#[derive(Debug, Clone)]
+use boingboingboing::blep::BLEP;
+// #[derive(Debug, Clone)]
 
 
 pub struct BandLimitedSawOsc {
     pub freq: f32,
-    pub phase: f32,
     pub sr: usize,
-    inc: f32,
     input_order: Vec<usize>,
+    pub blep: BLEP,
 }
 
 impl std::default::Default for BandLimitedSawOsc {
     fn default() -> Self {
         Self {
             freq: 1.0,
-            phase: 0.0,
             sr: 44100,
-            inc: 0.,
-            input_order: vec![]
+            input_order: vec![],
+            blep: boingboingboing::blep(44100)
         }
     }
 }
@@ -29,17 +28,12 @@ impl BandLimitedSawOsc {
     }
     pub fn freq(self, freq: f32) -> Self {
         Self {
-            freq, ..self
+            freq: freq, ..self
         }
     }
     pub fn sr(self, sr: usize) -> Self {
         Self {
-            sr, ..self
-        }
-    }
-    pub fn phase(self, phase: f32) -> Self {
-        Self {
-            phase, ..self
+            blep: boingboingboing::blep(sr), ..self
         }
     }
     impl_to_boxed_nodedata!();
@@ -49,12 +43,9 @@ impl<const N: usize> Node<N> for BandLimitedSawOsc {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         match inputs.len() {
             0 => {
+                self.blep.set_freq(self.freq);
                 for i in 0..N {
-                    output[0][i] = self.phase * 2. - 1.;
-                    self.phase += self.freq / self.sr as f32;
-                    if self.phase > 1. {
-                        self.phase -= 1.
-                    }
+                    output[0][i] = self.blep.saw();
                 }
             },
             1 => {  
@@ -67,15 +58,17 @@ impl<const N: usize> Node<N> for BandLimitedSawOsc {
                         }
                     };
                     let mod_buf = mod_input.buffers();
+                    self.blep.set_freq(330.0);
                     for i in 0..N {
-                        output[0][i] = self.phase * 2. - 1.;
-                        if mod_buf[0][i] != 0. {
-                            self.inc = mod_buf[0][i]
-                        };
-                        self.phase +=  self.inc / self.sr as f32;
-                        if self.phase > 1. {
-                            self.phase -= 1.
-                        }
+                        output[0][i] = self.blep.saw();
+                        //self.blep.set_freq(mod_buf[0][i]);
+                        // if mod_buf[0][i] != 0. {
+                        //     self.inc = mod_buf[0][i]
+                        // };
+                        // self.phase +=  self.inc / self.sr as f32;
+                        // if self.phase > 1. {
+                        //     self.phase -= 1.
+                        // }
                     }
             }
             _ => return ()
@@ -86,7 +79,7 @@ impl<const N: usize> Node<N> for BandLimitedSawOsc {
         match info {
             Message::SetToNumber(pos, value) => {
                 match pos {
-                    0 => {self.freq = value},
+                    //0 => {self.blep.set_freq(value)},
                     _ => {}
                 }
             },
