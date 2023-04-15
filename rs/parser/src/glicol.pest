@@ -5,7 +5,7 @@ chain = ${ node ~ (WHITESPACE* ~ "\n"? ~ WHITESPACE* ~ ">>" ~ WHITESPACE* ~ node
 
 node = ${ (reverb|arrange|psampler|mix|seq|choose|mul|add|sin|saw|squ|tri|pan|speed|noise|onepole|
 sp|constsig|lpf|rhpf|onepole|imp|delayn|delayms|envperc|apfmsgain|plate|sendpass|
-get|bd|sn|hh|expr|eval|point_node|meta|sawsynth|squsynth|trisynth|balance|adc|pattern_synth|msgsynth|adsr|blsaw) }
+get|bd|sn|hh|expr|eval|point_node|meta|sawsynth|squsynth|trisynth|balance|adc|pattern_synth|msgsynth|adsr|blsaw|blsqu) }
 
 point_node = ${ points ~ws*~(math_expression)? ~ws*~(is_looping)? }
 points = ${ "[" ~ ws*~ point* ~ ws* ~"]"  }
@@ -78,6 +78,7 @@ add = ${"add" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 sin = ${"sin" ~ WHITESPACE+ ~ !node_name ~ ( number | reference) }
 saw = ${"saw" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 blsaw = ${"blsaw" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
+blsqu = ${"blsqu" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 squ = ${"squ" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 tri = ${"tri" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 pan = ${"pan" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
@@ -116,4 +117,4 @@ node_name = ${"reverb"|"arrange"|"adsr"|"sig"|"psampler"|"synth"|"msgsynth"|"psy
 "sin"|"squ"|"imp"|"envperc"|"sampler"|"noiz"|"lpf"|"plate"|"onepole"|
 "hpf"|"pha"|"buf"|"state"|"freeverb"|"pan"|"delay"|"apfgain"|"comb"|"mix"|"monosum"|
 "const_sig"|"constsig"|"*"|"sp"|"spd"|"tri"|"noise"|"amplfo"|"balance"|"rlpf"|"rhpf"|"kick"|"ks"|
-"pha"|"shape"|"sawsynth"|"saw"|"script"|"closure"| "r" | "apfmsgain" |"sendpass"|"mix"|"sum"|"meta"|"blsaw"}
+"pha"|"shape"|"sawsynth"|"saw"|"script"|"closure"| "r" | "apfmsgain" |"sendpass"|"mix"|"sum"|"meta"|"blsaw"|"blsqu"}

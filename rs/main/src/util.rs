@@ -1,5 +1,5 @@
 use glicol_synth::{
-    oscillator::{SinOsc, SquOsc, TriOsc, SawOsc, BandLimitedSawOsc},
+    oscillator::{SinOsc, SquOsc, TriOsc, SawOsc, BandLimitedSawOsc, BandLimitedSquareOsc},
     filter::{ResonantLowPassFilter, ResonantHighPassFilter, OnePole, AllPassFilterGain},
     signal::{ConstSig, Impulse, Noise, Points},
     operator::{Mul, Add},
@@ -353,7 +353,19 @@ pub fn makenode<const N: usize>(
                     unimplemented!();
                 }
             }
-            
+        },
+        "blsqu" => {
+            match &paras[0] {
+                GlicolPara::Number(v) => {
+                    (BandLimitedSquareOsc::new().sr(sr).freq(*v).to_boxed_nodedata(1), vec![])
+                },
+                GlicolPara::Reference(s) => {
+                    (BandLimitedSquareOsc::new().sr(sr).freq(0.0).to_boxed_nodedata(1), vec![s.to_owned()])
+                },
+                _ => {
+                    unimplemented!();
+                }
+            }
         },
         "sin" => {
             match &paras[0] {

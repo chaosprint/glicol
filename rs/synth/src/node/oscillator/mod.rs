@@ -7,4 +7,5 @@ mod tri_osc;
 pub use squ_osc::SquOsc;
 mod squ_osc;
 pub use blep::BandLimitedSawOsc;
+pub use blep::BandLimitedSquareOsc;
 mod blep;
