@@ -39,7 +39,7 @@ rhai = { version = "1.12.0", default-features = false, features = ["sync", "f32_
 # freeverb = { git = "https://github.com/irh/freeverb-rs"}
 # evalexpr = "8.1.0"
 fasteval = "0.2.4"
-boingboingboing = "0.1.1"
+boingboingboing = "0.1.2"
 #boingboingboing = { path = "../../../boingboingboing" }
 
 [dev-dependencies]

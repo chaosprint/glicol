@@ -1,8 +1,6 @@
 use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
 use hashbrown::HashMap;
 use boingboingboing::blep::BLEP;
-// #[derive(Debug, Clone)]
-
 
 pub struct BandLimitedSawOsc {
     pub freq: f32,
@@ -48,7 +46,7 @@ impl<const N: usize> Node<N> for BandLimitedSawOsc {
                     output[0][i] = self.blep.saw();
                 }
             },
-            1 => {  
+            1 => {
                     let mod_input =  match self.input_order.len() {
                         0 => {
                             &mut *inputs.values_mut().next().unwrap()
@@ -61,13 +59,6 @@ impl<const N: usize> Node<N> for BandLimitedSawOsc {
                     for i in 0..N {
                         output[0][i] = self.blep.saw();
                         self.blep.set_freq(mod_buf[0][i]);
-                        // if mod_buf[0][i] != 0. {
-                        //     self.inc = mod_buf[0][i]
-                        // };
-                        // self.phase +=  self.inc / self.sr as f32;
-                        // if self.phase > 1. {
-                        //     self.phase -= 1.
-                        // }
                     }
             }
             _ => return ()
