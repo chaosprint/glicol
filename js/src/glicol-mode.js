@@ -1,7 +1,7 @@
 export default {
   // The start state contains the rules that are initially used
   start: [
-    {regex: /(blsqu|blsaw|delayms|true|false|let|const|else|switch|do|loop|until|continue|break|fn|this|return|throw|try|catch|import|export|as|global|print|debug|eval|map|for|while|if|sin|exp|in|expr|seq|squsynth|sawsynth|trisynth|bd|hh|sn|speed|choose|mul|add|linrange|apfdecay|delayn|sin|saw|squ|imp|envperc|sampler|noiz|shape|tri|noise|noiz|rlpf|plate|onepole|rhpf|pha|buf|state|freeverb|pan|delay|apfgain|lpf|hpf|comb|mix|monosum|const_sig|sp|spd|amplfo|balance|meta|script|pad|in)(?![a-z])/,
+    {regex: /(bltri|blsqu|blsaw|delayms|true|false|let|const|else|switch|do|loop|until|continue|break|fn|this|return|throw|try|catch|import|export|as|global|print|debug|eval|map|for|while|if|sin|exp|in|expr|seq|squsynth|sawsynth|trisynth|bd|hh|sn|speed|choose|mul|add|linrange|apfdecay|delayn|sin|saw|squ|imp|envperc|sampler|noiz|shape|tri|noise|noiz|rlpf|plate|onepole|rhpf|pha|buf|state|freeverb|pan|delay|apfgain|lpf|hpf|comb|mix|monosum|const_sig|sp|spd|amplfo|balance|meta|script|pad|in)(?![a-z])/,
      token: "string"},
     // The regex matches the token, the token property contains the type
     // {regex: /~([a-z]+(_)?)+/, token: "variable-3"},

@@ -137,6 +137,7 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                     Rule::saw => one_para_number_or_ref!("saw"),
                                     Rule::blsaw => one_para_number_or_ref!("blsaw"),
                                     Rule::blsqu => one_para_number_or_ref!("blsqu"),
+                                    Rule::bltri => one_para_number_or_ref!("bltri"),
                                     Rule::onepole => one_para_number_or_ref!("onepole"),
                                     Rule::sin => one_para_number_or_ref!("sin"),
                                     Rule::mul => one_para_number_or_ref!("mul"),

@@ -8,4 +8,5 @@ pub use squ_osc::SquOsc;
 mod squ_osc;
 pub use blep::BandLimitedSawOsc;
 pub use blep::BandLimitedSquareOsc;
+pub use blep::BandLimitedTriangleOsc;
 mod blep;
