@@ -1,19 +1,10 @@
 pub use crate::{
     buffer::Buffer,
     node::{Input, Node},
-    NodeData,
-    BoxedNode,
-    BoxedNodeSend,
-    Processor,
-    Message,
-    Sum2,
-    Pass
+    BoxedNode, BoxedNodeSend, Message, NodeData, Pass, Processor, Sum2,
 };
 use hashbrown::HashMap;
-use petgraph::{
-    graph::NodeIndex,
-    prelude::EdgeIndex
-};
+use petgraph::{graph::NodeIndex, prelude::EdgeIndex};
 
 /// The builder to build `AudioContext`
 pub struct AudioContextBuilder<const N: usize> {
@@ -31,43 +22,33 @@ impl<const N: usize> AudioContextBuilder<N> {
             channels: 2,
             // stablegraph: false,
             max_nodes: 1024,
-            max_edges: 1024
+            max_edges: 1024,
         }
     }
 
     pub fn sr(self, sr: usize) -> Self {
-        Self {
-            sr, ..self
-        }
+        Self { sr, ..self }
     }
 
     pub fn channels(self, channels: usize) -> Self {
-        Self {
-            channels, ..self
-        }
+        Self { channels, ..self }
     }
 
     pub fn max_nodes(self, max_nodes: usize) -> Self {
-        Self {
-            max_nodes, ..self
-        }
+        Self { max_nodes, ..self }
     }
 
     pub fn max_edges(self, max_edges: usize) -> Self {
-        Self {
-            max_edges, ..self
-        }
+        Self { max_edges, ..self }
     }
 
     pub fn build(self) -> AudioContext<N> {
-        AudioContext::new(
-            AudioContextConfig {
-                sr: self.sr,
-                channels: self.channels,
-                max_nodes: self.max_nodes,
-                max_edges: self.max_edges,
-            }
-        )
+        AudioContext::new(AudioContextConfig {
+            sr: self.sr,
+            channels: self.channels,
+            max_nodes: self.max_nodes,
+            max_edges: self.max_edges,
+        })
     }
 }
 
@@ -86,7 +67,7 @@ impl std::default::Default for AudioContextConfig {
             sr: 44100,
             channels: 2,
             max_nodes: 1024,
-            max_edges: 1024
+            max_edges: 1024,
         }
     }
 }
@@ -111,14 +92,20 @@ pub struct AudioContext<const N: usize> {
     pub tags: HashMap<&'static str, NodeIndex>,
     pub graph: GlicolGraph<N>,
     pub processor: GlicolProcessor<N>,
-    config: AudioContextConfig
+    config: AudioContextConfig,
 }
 
 impl<const N: usize> AudioContext<N> {
     pub fn new(config: AudioContextConfig) -> Self {
         let mut graph = GlicolGraph::<N>::with_capacity(config.max_nodes, config.max_edges);
-        let destination = graph.add_node( NodeData::multi_chan_node(config.channels, BoxedNodeSend::<N>::new(Sum2) ) );
-        let input = graph.add_node( NodeData::multi_chan_node(config.channels, BoxedNodeSend::<N>::new(Pass) ) );
+        let destination = graph.add_node(NodeData::multi_chan_node(
+            config.channels,
+            BoxedNodeSend::<N>::new(Sum2),
+        ));
+        let input = graph.add_node(NodeData::multi_chan_node(
+            config.channels,
+            BoxedNodeSend::<N>::new(Pass),
+        ));
         Self {
             graph,
             destination,
@@ -132,8 +119,14 @@ impl<const N: usize> AudioContext<N> {
     pub fn reset(&mut self) {
         // self.graph.clear_edges();
         self.graph.clear();
-        self.destination = self.graph.add_node( NodeData::multi_chan_node(self.config.channels, BoxedNodeSend::<N>::new(Sum2) ) );
-        self.input =  self.graph.add_node( NodeData::multi_chan_node(self.config.channels, BoxedNodeSend::<N>::new(Pass) ) );
+        self.destination = self.graph.add_node(NodeData::multi_chan_node(
+            self.config.channels,
+            BoxedNodeSend::<N>::new(Sum2),
+        ));
+        self.input = self.graph.add_node(NodeData::multi_chan_node(
+            self.config.channels,
+            BoxedNodeSend::<N>::new(Pass),
+        ));
     }
 
     /// an alternative to new() specify the estimated max node and edge numbers
@@ -151,67 +144,67 @@ impl<const N: usize> AudioContext<N> {
     // }
 
     pub fn add_mono_node<T>(&mut self, node: T) -> NodeIndex
-    where T: Node<N> + Send + 'static,
+    where
+        T: Node<N> + Send + 'static,
     {
-        let node_index = self.graph.add_node( // channel?
-            NodeData::new1(
-                BoxedNodeSend::<N>::new(
-                    node
-                )
-            )
+        let node_index = self.graph.add_node(
+            // channel?
+            NodeData::new1(BoxedNodeSend::<N>::new(node)),
         );
-        return node_index
+        return node_index;
     }
 
     pub fn add_stereo_node<T>(&mut self, node: T) -> NodeIndex
-    where T: Node<N> + Send + 'static,
+    where
+        T: Node<N> + Send + 'static,
     {
-        let node_index = self.graph.add_node( // channel?
-            NodeData::new2(
-                BoxedNodeSend::<N>::new(
-                    node
-                )
-            )
+        let node_index = self.graph.add_node(
+            // channel?
+            NodeData::new2(BoxedNodeSend::<N>::new(node)),
         );
-        return node_index
+        return node_index;
     }
 
     pub fn add_multi_chan_node<T>(&mut self, chan: usize, node: T) -> NodeIndex
-    where T: Node<N> + Send + 'static,
+    where
+        T: Node<N> + Send + 'static,
     {
-        let node_index = self.graph.add_node( // channel?
-            NodeData::multi_chan_node (chan,
-                BoxedNodeSend::<N>::new(
-                    node
-                )
-            )
+        let node_index = self.graph.add_node(
+            // channel?
+            NodeData::multi_chan_node(chan, BoxedNodeSend::<N>::new(node)),
         );
-        return node_index
+        return node_index;
     }
 
     pub fn connect(&mut self, from: NodeIndex, to: NodeIndex) -> EdgeIndex {
         let edge_index = self.graph.add_edge(from, to, ());
         self.graph[to].node.send_msg(Message::Index(from.index()));
-        return edge_index
+        return edge_index;
     }
 
     pub fn connect_with_order(&mut self, from: NodeIndex, to: NodeIndex, pos: usize) -> EdgeIndex {
         let edge_index = self.graph.add_edge(from, to, ());
-        self.graph[to].node.send_msg(Message::IndexOrder(pos, from.index()));
-        return edge_index
+        self.graph[to]
+            .node
+            .send_msg(Message::IndexOrder(pos, from.index()));
+        return edge_index;
     }
 
     pub fn chain(&mut self, chain: Vec<NodeIndex>) -> Vec<EdgeIndex> {
         let mut v = vec![];
         for pair in chain.windows(2) {
             v.push(self.graph.add_edge(pair[0], pair[1], ()));
-            self.graph[pair[1]].node.send_msg(Message::Index(pair[0].index()));
-        };
+            self.graph[pair[1]]
+                .node
+                .send_msg(Message::Index(pair[0].index()));
+        }
         v
     }
 
-    pub fn chain_boxed(&mut self, chain: Vec<GlicolNodeData<N>>) 
-    -> (Vec<NodeIndex>, Vec<EdgeIndex>) {
+    pub fn chain_boxed(
+        &mut self,
+        chain: Vec<GlicolNodeData<N>>,
+    ) -> (Vec<NodeIndex>, Vec<EdgeIndex>) {
         let mut indexes = vec![];
         let mut v = vec![];
         for node in chain {
@@ -220,22 +213,26 @@ impl<const N: usize> AudioContext<N> {
         }
         for pair in indexes.windows(2) {
             v.push(self.graph.add_edge(pair[0], pair[1], ()));
-            self.graph[pair[1]].node.send_msg(Message::Index(pair[0].index()));
-        };
+            self.graph[pair[1]]
+                .node
+                .send_msg(Message::Index(pair[0].index()));
+        }
         (indexes, v)
     }
 
-    pub fn add_node_chain(&mut self, chain: Vec<NodeData<BoxedNodeSend<N>, N>>) -> (Vec<NodeIndex>, Vec<EdgeIndex>)
-    {
+    pub fn add_node_chain(
+        &mut self,
+        chain: Vec<NodeData<BoxedNodeSend<N>, N>>,
+    ) -> (Vec<NodeIndex>, Vec<EdgeIndex>) {
         let mut v = vec![];
         let mut j = vec![];
         for node in chain {
             let id = self.graph.add_node(node);
             v.push(id);
-        };
+        }
         for pair in v.windows(2) {
             j.push(self.graph.add_edge(pair[0], pair[1], ()));
-        };
+        }
         (v, j)
     }
 

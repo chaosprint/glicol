@@ -26,6 +26,15 @@ node-sampling = []
 node-dynamic = ["rhai"]
 node-sum = ["dasp_slice"]
 
+[[bench]]
+name = "next_block"
+harness = false
+
+
+[[bench]]
+name = "fm"
+harness = false
+
 [dependencies]
 # glicol_macros = { path = "../macros"}
 petgraph = { version = "0.6",  features = ["stable_graph"] }
@@ -42,6 +51,7 @@ fasteval = "0.2.4"
 
 [dev-dependencies]
 gnuplot = "0.0.37"
+criterion = "0.4.0"
 # petgraph = { version = "0.6",  features = ["stable_graph"] }
 # cpal = "0.14.0"
 # anyhow = "1.0.63"
