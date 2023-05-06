@@ -5,7 +5,7 @@ use hashbrown::HashMap;
 pub struct PSampler {
     playback: Vec<(usize, String, f32)>,
     samples_dict: HashMap<String, (&'static [f32], usize, usize)>,
-    events: Vec<(String, f32)>,
+    pub events: Vec<(String, f32)>,
     pattern: Vec<(String, f32)>,
     // len: usize,
     // endindex: usize,

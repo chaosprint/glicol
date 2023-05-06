@@ -1,12 +1,12 @@
 use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message};
 use hashbrown::HashMap;
-use rhai::{Engine, Array, Scope, Dynamic, OptimizationLevel, AST, ParseError}; //EvalAltResult
+use rhai::{Engine, Array, Scope, Dynamic, OptimizationLevel, AST};
 
 pub struct Meta<const N: usize> {
     sr: usize,
     // phase: usize,
-    code: String,
-    backup: String,
+    pub code: String,
+    pub backup: String,
     ast: AST,
     scope: Scope<'static>,
     engine: Engine,

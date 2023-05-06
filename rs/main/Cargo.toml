@@ -24,16 +24,17 @@ use-meta = []
 bela = []
 
 [dependencies]
-petgraph = { version = "0.6",  features = ["stable_graph"] }
+petgraph = { workspace = true }
 # dasp_graph = { path = "../dasp_graph" }
-glicol_parser = { version = "0.13.2" }
-# glicol_parser = { path = "../parser" }
-glicol_synth = { version = "0.13.2", features = ["use-samples", "use-meta"]} 
-# glicol_synth = { path = "../synth", features = ["use-samples", "use-meta"]} 
-glicol_macros = "0.13.2"
-lcs-diff = "0.1.1"
-pest = "2.1.3"
-hashbrown = "0.13.1"
+# glicol_parser = { version = "0.13.2" }
+glicol_parser = { path = "../parser" }
+# glicol_synth = { version = "0.13.2", features = ["use-samples", "use-meta"]} 
+glicol_synth = { path = "../synth", features = ["use-samples", "use-meta"]} 
+# glicol_macros = "0.13.2"
+glicol_macros = { path = "../macros" }
+lcs-diff = { workspace = true }
+pest = { workspace = true }
+hashbrown = { workspace = true }
 # cargo build --target wasm32-unknown-unknown --release
 
 [dev-dependencies]

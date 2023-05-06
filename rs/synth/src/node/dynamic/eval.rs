@@ -7,8 +7,8 @@ use fasteval::Compiler;  // use this trait so we can call compile().
 use fasteval::eval_compiled;
 
 pub struct Eval<const N: usize> {
-    sr: usize,
-    bpm: f32,
+    pub sr: usize,
+    pub bpm: f32,
     phase: usize,
     // code: String,
     // precompiled: evalexpr::Node,
