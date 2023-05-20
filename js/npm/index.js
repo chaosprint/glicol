@@ -1,5 +1,5 @@
 import worklet from './glicol-engine'
-import wasm from './glicol_wasm.wasm'
+import wasm from './glicol_wasm.wasm?init'
 import nosab from './nosab'
 import { detectBrowser } from './detect'
 import {TextParameterReader, TextParameterWriter, RingBuffer} from './ringbuf'
