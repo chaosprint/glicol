@@ -3,7 +3,7 @@ use hashbrown::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct Arrange {
-    current_bar: usize,
+    _current_bar: usize,
     events: Vec<GlicolPara>,
     speed: f32,
     pub bpm: f32,
@@ -23,7 +23,7 @@ impl Arrange {
         //     };
         // };
         Self {
-            current_bar: 0,
+            _current_bar: 0,
             events,
             input_order: Vec::new(),
             speed: 1.0,

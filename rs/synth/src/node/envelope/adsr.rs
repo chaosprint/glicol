@@ -152,9 +152,9 @@ impl<const N: usize> Node<N> for Adsr {
     }
 }
 
-enum Phase {
-    Attack,
-    Decay,
-    Sustain,
-    Release
-}
+// enum Phase {
+//     Attack,
+//     Decay,
+//     Sustain,
+//     Release
+// }

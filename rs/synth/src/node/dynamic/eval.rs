@@ -4,7 +4,7 @@ use hashbrown::HashMap;
 use std::collections::BTreeMap;
 use fasteval::Evaler;  // use this trait so we can call eval().
 use fasteval::Compiler;  // use this trait so we can call compile().
-use fasteval::eval_compiled;
+// use fasteval::eval_compiled;
 
 pub struct Eval<const N: usize> {
     pub sr: usize,
@@ -62,7 +62,7 @@ impl<const N: usize> Eval<N> {
         let lines = code.split(";");
         for line in lines {
             let mut slab = fasteval::Slab::new();
-            let mut assign = line.split(":=");;
+            let mut assign = line.split(":=");
             if line.contains(":=") {
                 self.var.push(assign.next().unwrap().to_string().replace(" ", "").replace("\t", "").replace("\n",""));
             }
@@ -75,7 +75,7 @@ impl<const N: usize> Eval<N> {
         Self { ..self }
     }
 
-    pub fn to_boxed_nodedata(mut self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
+    pub fn to_boxed_nodedata(self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
         // self.scope.push("sr", self.sr as f32);
         NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new( self ) )
     }
@@ -122,7 +122,7 @@ impl<const N:usize> Node<N> for Eval<N> {
                         self.compiled.clear();
                         for line in lines {
                             let mut slab = fasteval::Slab::new();
-                            let mut assign = line.split(":=");;
+                            let mut assign = line.split(":=");
                             if line.contains(":=") {
                                 self.var.push(assign.next().unwrap().to_string().replace(" ", "").replace("\t", "").replace("\n",""));
                             }

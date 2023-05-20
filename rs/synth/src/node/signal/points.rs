@@ -9,7 +9,7 @@ pub struct Points {
     pub bpm: f32,
     pub sr: usize,
     step: usize,
-    index: usize,
+    _index: usize,
     is_looping: bool,
     input_order: Vec<usize> 
 }
@@ -24,7 +24,7 @@ impl Points {
             bpm: 120.,
             sr: 44100,
             step: 0,
-            index: 0,
+            _index: 0,
             is_looping: false,
             input_order: vec![]
         }
