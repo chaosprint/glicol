@@ -40,9 +40,8 @@ pub struct Engine<const N: usize> {
 impl<const N: usize> Engine<N> {
     pub fn new() -> Self {
         let mut context = AudioContext::<N>::new(AudioContextConfig::default());
-        let index = context.add_stereo_node(Pass {});
         let mut index_info = HashMap::new();
-        index_info.insert(format!("~input"), vec![index]);
+        index_info.insert("~input".to_string(), vec![context.add_stereo_node(Pass {})]);
         Self {
             context,
             ast: HashMap::new(),
