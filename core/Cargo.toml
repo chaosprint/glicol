@@ -1,0 +1,27 @@
+[package]
+name = "glicol"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+
+[dependencies]
+
+petgraph = "0.6.3"
+anyhow = "1.0.72"
+hashbrown = "0.14.0"
+smallvec = "1.11.0"
+slotmap = "1.0.6"
+rhai = { version = "1.15.1", default-features = false, features = [
+    "sync",
+    "f32_float",
+    "only_i32",
+] }
+
+[profile.release]
+debug = true
+opt-level = 'z'   # Optimize for size.
+lto = true        # Enable Link Time Optimization
+codegen-units = 1 # Reduce number of codegen units to increase optimizations.
+panic = 'abort'   # Abort on panic
