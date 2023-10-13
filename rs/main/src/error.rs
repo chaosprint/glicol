@@ -4,7 +4,7 @@ pub use pest::error::ErrorVariant;
 
 #[derive(Debug)]
 pub enum EngineError {
-    ParsingError( pest::error::Error<glicol_parser::Rule>),
+    ParsingError(pest::error::Error<glicol_parser::Rule>),
     NonExistReference(String),
     NonExsitSample(String),
 }
@@ -19,11 +19,12 @@ impl std::convert::From<Error<Rule>> for EngineError {
 
 // }
 
-pub fn get_error_info(e: Error<Rule>) -> (Vec<Rule>,Vec<Rule>) {
+pub fn get_error_info(e: Error<Rule>) -> (Vec<Rule>, Vec<Rule>) {
     match e.variant {
-        ErrorVariant::ParsingError { positives, negatives} => {
-            return (positives, negatives)              
-        },
+        ErrorVariant::ParsingError {
+            positives,
+            negatives,
+        } => return (positives, negatives),
         _ => {
             unimplemented!();
         }

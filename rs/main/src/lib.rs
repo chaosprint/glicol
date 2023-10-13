@@ -1,12 +1,16 @@
 // todo: When error, the error info still updates some nodes..
 
-pub mod util; use util::makenode;
-pub mod error; pub use error::{EngineError, get_error_info};
+pub mod util;
+use util::makenode;
+pub mod error;
+pub use error::{get_error_info, EngineError};
+use glicol_parser::get_ast;
+use glicol_synth::{
+    AudioContext, AudioContextConfig, BoxedNodeSend, Buffer, GlicolPara, Message, NodeData, Pass,
+};
 use hashbrown::HashMap;
-use petgraph::{graph::NodeIndex};
-use glicol_parser::{get_ast}; 
-use glicol_synth::{AudioContext, AudioContextConfig, NodeData, BoxedNodeSend, Buffer, Message, GlicolPara, Pass};
 use lcs_diff::{diff, DiffResult};
+use petgraph::graph::NodeIndex;
 
 pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
 
@@ -36,7 +40,7 @@ pub struct Engine<const N: usize> {
 impl<const N: usize> Engine<N> {
     pub fn new() -> Self {
         let mut context = AudioContext::<N>::new(AudioContextConfig::default());
-        let index = context.add_stereo_node( Pass {});
+        let index = context.add_stereo_node(Pass {});
         let mut index_info = HashMap::new();
         index_info.insert(format!("~input"), vec![index]);
         Self {
@@ -67,7 +71,7 @@ impl<const N: usize> Engine<N> {
         let commands: String = msg.chars().filter(|c| !c.is_whitespace()).collect::<_>();
         for command in commands.split(";") {
             if command == "" {
-                continue
+                continue;
             } else {
                 let list = command.split(",").collect::<Vec<_>>();
                 if list.len() < 4 {
@@ -76,24 +80,22 @@ impl<const N: usize> Engine<N> {
                 let chain_name = list[0];
                 let chain_pos = match list[1].parse::<usize>() {
                     Ok(v) => v,
-                    Err(_) => 0
+                    Err(_) => 0,
                 };
                 let param_pos = match list[2].parse::<u8>() {
                     Ok(v) => v,
-                    Err(_) => 0
+                    Err(_) => 0,
                 };
                 if self.index_info.contains_key(chain_name) {
-                    match list[3].parse::<f32>(){
+                    match list[3].parse::<f32>() {
                         // todo: check the name and pos
-                        Ok(v) => {
-                            self.context.graph[
-                                self.index_info[chain_name][chain_pos]
-                            ].node.send_msg(Message::SetToNumber(param_pos, v))
-                        },
+                        Ok(v) => self.context.graph[self.index_info[chain_name][chain_pos]]
+                            .node
+                            .send_msg(Message::SetToNumber(param_pos, v)),
                         Err(_) => {
-                            self.context.graph[
-                                self.index_info[chain_name][chain_pos]
-                            ].node.send_msg(Message::SetToSymbol(param_pos, list[3].to_owned()));
+                            self.context.graph[self.index_info[chain_name][chain_pos]]
+                                .node
+                                .send_msg(Message::SetToSymbol(param_pos, list[3].to_owned()));
                         }
                     };
                 }
@@ -105,17 +107,17 @@ impl<const N: usize> Engine<N> {
     // the pass node connect to ~adc1 for example as reference
     // then all we need to do is to create these reference in the engine
 
-    #[cfg(feature="bela")]
-    pub fn make_adc_node(&mut self, chan:usize) {
+    #[cfg(feature = "bela")]
+    pub fn make_adc_node(&mut self, chan: usize) {
         for i in 0..chan {
             // create a node
-            let index = self.context.add_mono_node(Pass{});
+            let index = self.context.add_mono_node(Pass {});
 
             // create a default track from adc1 ~ adc$chan
             self.index_info.insert(format!("~adc{}", i), vec![index]);
 
             // self.adc_nodes.push(index);
-            // let source = self.graph.add_node( 
+            // let source = self.graph.add_node(
             //     NodeData::new1( BoxedNodeSend::new( AdcSource {} ) )
             // );
             // self.adc_source_nodes.push(source);
@@ -123,22 +125,24 @@ impl<const N: usize> Engine<N> {
         }
     }
 
-    #[cfg(feature="bela")]
-    pub fn set_adc_node_buffer(&mut self, buf: &[f32], chan: usize,
-        frame: usize, _interleave: bool) {
-        
+    #[cfg(feature = "bela")]
+    pub fn set_adc_node_buffer(
+        &mut self,
+        buf: &[f32],
+        chan: usize,
+        frame: usize,
+        _interleave: bool,
+    ) {
         for c in 0..chan {
-            self.context.graph[
-                self.index_info[
-                    &format!("~adc{}",c)
-                ][0]
-            ].buffers[0].copy_from_slice(&buf[c*frame..(c+1)*frame]);
+            self.context.graph[self.index_info[&format!("~adc{}", c)][0]].buffers[0]
+                .copy_from_slice(&buf[c * frame..(c + 1) * frame]);
         }
     }
 
-    #[cfg(feature="use-samples")]
-    pub fn add_sample(&mut self, name:&str, sample: &'static [f32], channels: usize, sr: usize ) {
-        self.samples_dict.insert(name.to_owned(), (sample, channels, sr));
+    #[cfg(feature = "use-samples")]
+    pub fn add_sample(&mut self, name: &str, sample: &'static [f32], channels: usize, sr: usize) {
+        self.samples_dict
+            .insert(name.to_owned(), (sample, channels, sr));
     }
 
     pub fn update_with_code(&mut self, code: &str) {
@@ -148,7 +152,7 @@ impl<const N: usize> Engine<N> {
         }
     }
 
-    pub fn update(&mut self) -> Result<(), EngineError>  {
+    pub fn update(&mut self) -> Result<(), EngineError> {
         self.parse()?;
         self.make_graph()?;
         Ok(())
@@ -201,19 +205,13 @@ impl<const N: usize> Engine<N> {
                 for action in diff(old_chain, new_chain) {
                     match action {
                         DiffResult::Common(v) => {
-                            // let common_node_name = v.data;
                             let old_i = v.old_index.unwrap();
                             let new_i = v.new_index.unwrap();
-                            // println!("common {:?}", v);
-                            // println!("common node: old_index {:?}", old_i);
-                            // println!("common node: new_i {:?}", new_i);
-                            // println!("common node old para {:?}", old_chain_para[old_i]);
-                            // println!("common node new para {:?}", new_chain_para[new_i]);
                             if old_chain_para[old_i] != new_chain_para[new_i] {
-                                self.node_update_list.push(
-                                    ((*key).clone(), // which chain
-                                    new_i, // where in chain
-                                    new_chain_para[new_i].clone() // new paras
+                                self.node_update_list.push((
+                                    (*key).clone(),                // which chain
+                                    new_i,                         // where in chain
+                                    new_chain_para[new_i].clone(), // new paras
                                 ))
                             } else {
                                 // the paras can be the same
@@ -228,96 +226,93 @@ impl<const N: usize> Engine<N> {
                                     match para {
                                         GlicolPara::Reference(v) => {
                                             reflist.push(v.to_string());
-                                        },
+                                        }
                                         GlicolPara::Sequence(seqs) => {
                                             for seq in seqs {
                                                 match &seq.1 {
                                                     GlicolPara::Reference(v) => {
                                                         reflist.push(v.to_owned());
-                                                    },
+                                                    }
                                                     _ => {}
                                                 }
                                             }
-                                        },
-                                        _ => {},
+                                        }
+                                        _ => {}
                                     }
                                 }
                                 if !reflist.is_empty() {
                                     self.refpairlist.push((reflist, (*key).clone(), new_i));
                                 }
                             }
-                        },
+                        }
                         DiffResult::Removed(v) => {
                             let old_i = v.old_index.unwrap();
                             self.node_remove_list.push(((*key).clone(), old_i));
-                            // println!("Removed {:?}", v)
-                        },
+                        }
                         DiffResult::Added(v) => {
-                            // println!("Added {:?}", v);
                             let new_i = v.new_index.unwrap();
                             let insert_i = v.new_index.unwrap();
                             let nodename = v.data;
                             let mut paras = &mut new_chain_para[new_i];
                             let (nodedata, reflist) = makenode(
-                                &nodename, 
+                                &nodename,
                                 &mut paras,
-                                &self.samples_dict, 
+                                &self.samples_dict,
                                 self.sr,
                                 self.bpm,
-                                self.seed                    
+                                self.seed,
                             )?;
                             if !reflist.is_empty() {
                                 self.refpairlist.push((reflist, (*key).clone(), insert_i));
                             }
-                           
-                            self.node_add_list.push(((*key).clone(), insert_i, nodedata));                            
-                        },
+
+                            self.node_add_list
+                                .push(((*key).clone(), insert_i, nodedata));
+                        }
                     }
                 }
-                // println!("diff {:?}", diff(old_chain, new_chain));
             } else {
                 for i in 0..node_info_tuple.0.len() {
                     let name = &node_info_tuple.0[i];
                     let mut paras = node_info_tuple.1[i].clone();
-                    let (nodedata, reflist)  = makenode(
-                        name, 
-                        &mut paras, 
+                    let (nodedata, reflist) = makenode(
+                        name,
+                        &mut paras,
                         &self.samples_dict,
                         self.sr,
                         self.bpm,
-                        self.seed
+                        self.seed,
                     )?;
                     if !reflist.is_empty() {
                         self.refpairlist.push((reflist, (*key).clone(), i));
-                    }         
+                    }
                     // println!("self.node_add_list {:?} {}", key, i);
                     self.node_add_list.push(((*key).clone(), i, nodedata));
-                };
+                }
             }
         }
         Ok(())
     }
 
     pub fn make_graph(&mut self) -> Result<(), EngineError> {
-
         self.handle_remove_chain();
         self.handle_node_remove();
         self.handle_node_add();
         match self.handle_node_update() {
-            Ok(_) => {},
-            Err(e) => self.clean_up(e)?
+            Ok(_) => {}
+            Err(e) => self.clean_up(e)?,
         };
-        
+
         match self.handle_ref_check() {
             Ok(_) => {
                 // println!(" ref check &self.node_index_to_remove {:?}", &self.node_index_to_remove);
                 for id in &self.node_index_to_remove {
                     self.context.graph.remove_node(*id);
                 }
-            },
-            Err(e) => self.clean_up(e)?
+            }
+            Err(e) => self.clean_up(e)?,
         };
-        
+
         self.handle_connection();
         self.ast = self.new_ast.clone();
         self.index_info_backup = self.index_info.clone();
@@ -332,7 +327,7 @@ impl<const N: usize> Engine<N> {
             self.context.graph.remove_node(*id);
         }
         self.index_info = self.index_info_backup.clone();
-        return Err(e)
+        return Err(e);
     }
 
     pub fn handle_ref_check(&self) -> Result<(), EngineError> {
@@ -353,15 +348,14 @@ impl<const N: usize> Engine<N> {
                         }
                     }
                     if count == 0 {
-                        return Err(EngineError::NonExistReference(refname.to_owned()))
+                        return Err(EngineError::NonExistReference(refname.to_owned()));
                     }
                 } else {
-                    if !self.new_ast.contains_key(refname) && !self.index_info.contains_key(refname) {
-                        return Err(EngineError::NonExistReference(refname.to_owned()))
+                    if !self.new_ast.contains_key(refname) && !self.index_info.contains_key(refname)
+                    {
+                        return Err(EngineError::NonExistReference(refname.to_owned()));
                     }
                 }
-                
-                
             }
         }
         Ok(())
@@ -376,7 +370,7 @@ impl<const N: usize> Engine<N> {
                     // self.context.graph.remove_node(*index);
                     self.node_index_to_remove.push(*index)
                 }
-                self.index_info.remove_entry(key);       
+                self.index_info.remove_entry(key);
             }
         }
     }
@@ -389,7 +383,8 @@ impl<const N: usize> Engine<N> {
             };
             let nodeindex = self.context.graph.add_node(nodedata); // TODO: save these id, if there is an error, remove these node
             self.temp_node_index.push(nodeindex);
-            if let Some(chain) = self.index_info.get_mut(&key) { // TODO: backup the index_info
+            if let Some(chain) = self.index_info.get_mut(&key) {
+                // TODO: backup the index_info
                 chain.insert(position_in_chain, nodeindex);
             }
         }
@@ -398,72 +393,73 @@ impl<const N: usize> Engine<N> {
     pub fn handle_node_update(&mut self) -> Result<(), EngineError> {
         while !self.node_update_list.is_empty() {
             let (key, position_in_chain, paras) = self.node_update_list.pop().unwrap(); // ok as is it not empty
-            // println!("handle update {:?} {:?}", key, position_in_chain);
+                                                                                        // println!("handle update {:?} {:?}", key, position_in_chain);
             if let Some(chain) = self.index_info.get_mut(&key) {
-
                 // TODO: reset order here, if ref is wrong, cannot be reverted
                 // self.context.graph[
                 //     chain[position_in_chain]].node.send_msg(Message::ResetOrder);
                 for (i, para) in paras.iter().enumerate() {
                     match para {
-                        GlicolPara::Number(v) => self.context.graph[
-                            chain[position_in_chain]].node.send_msg(
-                                Message::SetToNumber(i as u8, *v)),
+                        GlicolPara::Number(v) => self.context.graph[chain[position_in_chain]]
+                            .node
+                            .send_msg(Message::SetToNumber(i as u8, *v)),
                         GlicolPara::Reference(s) => {
-                            self.refpairlist.push((vec![s.to_string()], key.clone(), position_in_chain));
-                        },
+                            self.refpairlist.push((
+                                vec![s.to_string()],
+                                key.clone(),
+                                position_in_chain,
+                            ));
+                        }
                         GlicolPara::SampleSymbol(s) => {
                             if !self.samples_dict.contains_key(&*s as &str) {
-                                return Err(EngineError::NonExsitSample((s.to_string()).to_owned()))
+                                return Err(EngineError::NonExsitSample(
+                                    (s.to_string()).to_owned(),
+                                ));
                             }
-                            self.context.graph[
-                            chain[position_in_chain]].node.send_msg(
-                                Message::SetToSamples(i as u8, self.samples_dict[s]))
-                        },
-                        GlicolPara::Points(_p) => self.context.graph[
-                            chain[position_in_chain]].node.send_msg(
-                                Message::SetParam(i as u8, para.clone())),
-                        GlicolPara::Bool(b) => self.context.graph[
-                            chain[position_in_chain]].node.send_msg(
-                                Message::SetToBool(i as u8, *b)),
-                        GlicolPara::Symbol(s) => {
-                            self.context.graph[
-                            chain[position_in_chain]].node.send_msg(
-                                Message::SetToSymbol(i as u8, s.to_string()))
-                        },
+                            self.context.graph[chain[position_in_chain]]
+                                .node
+                                .send_msg(Message::SetToSamples(i as u8, self.samples_dict[s]))
+                        }
+                        GlicolPara::Points(_p) => self.context.graph[chain[position_in_chain]]
+                            .node
+                            .send_msg(Message::SetParam(i as u8, para.clone())),
+                        GlicolPara::Bool(b) => self.context.graph[chain[position_in_chain]]
+                            .node
+                            .send_msg(Message::SetToBool(i as u8, *b)),
+                        GlicolPara::Symbol(s) => self.context.graph[chain[position_in_chain]]
+                            .node
+                            .send_msg(Message::SetToSymbol(i as u8, s.to_string())),
                         GlicolPara::Sequence(events) => {
                             // println!("found seq in update, process it {:?}", events);
                             // todo: an issue is that when you revert it, these messages cannot be undone
-                            self.context.graph[
-                            chain[position_in_chain]].node.send_msg(
-                                Message::SetToSeq(i as u8, events.clone())
-                            );
+                            self.context.graph[chain[position_in_chain]]
+                                .node
+                                .send_msg(Message::SetToSeq(i as u8, events.clone()));
                             let mut reflist = vec![];
                             let mut count = 0;
                             let mut order = hashbrown::HashMap::new();
                             for event in events {
                                 match &event.1 {
-                                    GlicolPara::Reference(s) => { // reflist: ["~a", "~b", "~a"]
+                                    GlicolPara::Reference(s) => {
+                                        // reflist: ["~a", "~b", "~a"]
                                         if !reflist.contains(s) {
                                             reflist.push(s.clone());
                                             order.insert(s.clone(), count);
                                             count += 1;
                                         }
-                                    },
+                                    }
                                     _ => {}
                                 }
-                            };
-                            self.refpairlist.push((reflist, key.clone(), position_in_chain));
-                            self.context.graph[
-                            chain[position_in_chain]].node.send_msg(
-                                Message::SetRefOrder(order)
-                            );
-                        },
-                        GlicolPara::NumberList(l) => {
-                            self.context.graph[
-                            chain[position_in_chain]].node.send_msg(
-                                Message::SetToNumberList(i as u8, l.clone()))
-                        },
+                            }
+                            self.refpairlist
+                                .push((reflist, key.clone(), position_in_chain));
+                            self.context.graph[chain[position_in_chain]]
+                                .node
+                                .send_msg(Message::SetRefOrder(order));
+                        }
+                        GlicolPara::NumberList(l) => self.context.graph[chain[position_in_chain]]
+                            .node
+                            .send_msg(Message::SetToNumberList(i as u8, l.clone())),
                         GlicolPara::Pattern(value_time_list, span) => {
                             // todo, differ a symbol pattern and number pattern?
                             let mut samples_dict_selected = HashMap::new();
@@ -473,36 +469,35 @@ impl<const N: usize> Engine<N> {
                             for value_time in value_time_list.iter() {
                                 let time = value_time.1;
                                 match &value_time.0 {
-                                    GlicolPara::Number(num) => {
-                                        number_pattern.push((*num, time))
-                                    },
+                                    GlicolPara::Number(num) => number_pattern.push((*num, time)),
                                     GlicolPara::Symbol(s) => {
                                         if self.samples_dict.contains_key(s) {
-                                            samples_dict_selected.insert(s.to_owned(), self.samples_dict[s]);
+                                            samples_dict_selected
+                                                .insert(s.to_owned(), self.samples_dict[s]);
                                         } else {
-                                            return Err(EngineError::NonExsitSample(s.to_owned()))
+                                            return Err(EngineError::NonExsitSample(s.to_owned()));
                                         }
                                         symbol_pattern.push((s.to_string(), time));
                                     }
-                                    _ => unimplemented!()
+                                    _ => unimplemented!(),
                                 };
                                 // pattern.push((value, time));
                             }
 
                             if symbol_pattern.len() != 0 {
-                                self.context.graph[
-                                    chain[position_in_chain]
-                                ].node.send_msg(
-                                    Message::SetSamplePattern(symbol_pattern, *span, samples_dict_selected)
+                                self.context.graph[chain[position_in_chain]].node.send_msg(
+                                    Message::SetSamplePattern(
+                                        symbol_pattern,
+                                        *span,
+                                        samples_dict_selected,
+                                    ),
                                 )
                             } else {
-                                self.context.graph[
-                                    chain[position_in_chain]
-                                ].node.send_msg(
-                                    Message::SetPattern(number_pattern, *span)
-                                )
+                                self.context.graph[chain[position_in_chain]]
+                                    .node
+                                    .send_msg(Message::SetPattern(number_pattern, *span))
                             }
-                        },
+                        }
 
                         _ => {}
                     }
@@ -515,12 +510,12 @@ impl<const N: usize> Engine<N> {
     }
     pub fn handle_node_remove(&mut self) {
         while !self.node_remove_list.is_empty() {
-
             // need to pop from the back so the pos is right
             let (key, position_in_chain) = self.node_remove_list.pop().unwrap();
 
             // println!("self.index_info {:?}", self.index_info);
-            if let Some(chain) = self.index_info.get_mut(&key) { // touch the index is fine, as we have a backup
+            if let Some(chain) = self.index_info.get_mut(&key) {
+                // touch the index is fine, as we have a backup
                 // println!("chain {:?} position_in_chain {:?}", chain, position_in_chain);
                 let node_index = chain[position_in_chain];
                 // self.context.graph.remove_node(node_index);
@@ -535,7 +530,7 @@ impl<const N: usize> Engine<N> {
         // println!("self.index_info in handle_connection{:?}", self.index_info);
         // println!("self.refpairlist in handle_connection {:?}", self.refpairlist);
 
-        // 
+        //
         let mut already_reset = vec![];
         for refpairs in &self.refpairlist {
             let index = self.index_info[&refpairs.1][refpairs.2];
@@ -552,55 +547,56 @@ impl<const N: usize> Engine<N> {
                         }
                     }
                 } else {
-                    self.context.connect(*self.index_info[refname].last().unwrap(), index);
+                    self.context
+                        .connect(*self.index_info[refname].last().unwrap(), index);
                 }
             }
         }
         for (key, chain) in &self.index_info {
             match chain.len() {
-                0 => {},
+                0 => {}
                 1 => {
                     if !key.contains("~") {
-                        self.context.connect_with_order(chain[0], self.context.destination, 0);
+                        self.context
+                            .connect_with_order(chain[0], self.context.destination, 0);
                     }
-                },
+                }
                 2 => {
                     self.context.connect_with_order(chain[0], chain[1], 0);
                     if !key.contains("~") {
-                        self.context.connect_with_order(chain[1], self.context.destination, 0);
+                        self.context
+                            .connect_with_order(chain[1], self.context.destination, 0);
                     }
-                },
+                }
                 _ => {
                     for i in 0..chain.len() {
                         if i == chain.len() - 1 {
                             if !key.contains("~") {
-                                self.context.connect_with_order(chain[i], self.context.destination, 0);
+                                self.context.connect_with_order(
+                                    chain[i],
+                                    self.context.destination,
+                                    0,
+                                );
                             }
                         } else {
-                            self.context.connect_with_order(chain[i],chain[i+1], 0);
+                            self.context.connect_with_order(chain[i], chain[i + 1], 0);
                         }
                     }
                 }
             }
         }
-
     }
 
-    pub fn next_block(&mut self, buf: Vec<&[f32]>) -> (&[Buffer<N>], [u8; 256]) {  //  -> &Vec<Buffer<N>> 
+    pub fn next_block(&mut self, buf: Vec<&[f32]>) -> (&[Buffer<N>], [u8; 256]) {
+        //  -> &Vec<Buffer<N>>
         if buf.len() > 0 {
-            self.context.graph[
-                self.index_info[
-                    &format!("~input")
-                ][0]
-            ].buffers[0].copy_from_slice(buf[0]);
+            self.context.graph[self.index_info[&format!("~input")][0]].buffers[0]
+                .copy_from_slice(buf[0]);
         }
 
         if buf.len() > 1 {
-            self.context.graph[
-                self.index_info[
-                    &format!("~input")
-                ][0]
-            ].buffers[1].copy_from_slice(buf[1]);
+            self.context.graph[self.index_info[&format!("~input")][0]].buffers[1]
+                .copy_from_slice(buf[1]);
         }
         // if self.livecoding {
         let mut result = [0; 256];
@@ -613,9 +609,8 @@ impl<const N: usize> Engine<N> {
                     for i in 0..256 {
                         result[i] = 0
                     }
-                },
+                }
                 Err(e) => {
-                    
                     result[0] = match e {
                         EngineError::ParsingError(_) => 1,
                         EngineError::NonExsitSample(_) => 2,
@@ -627,14 +622,17 @@ impl<const N: usize> Engine<N> {
                             // pest::error::LineColLocation::Pos
                             let location = match v.location {
                                 pest::error::InputLocation::Pos(u) => u,
-                                _ => unimplemented!()
+                                _ => unimplemented!(),
                             };
-                            let (line, col) =  match v.line_col {
+                            let (line, col) = match v.line_col {
                                 pest::error::LineColLocation::Pos(u) => u,
-                                _ => unimplemented!()
+                                _ => unimplemented!(),
                             };
                             let (positives, negatives) = match &v.variant {
-                                pest::error::ErrorVariant::ParsingError{ positives, negatives } => {
+                                pest::error::ErrorVariant::ParsingError {
+                                    positives,
+                                    negatives,
+                                } => {
                                     (positives, negatives)
                                     // if positives.len() != 0 {
                                     //     print!("\n\nexpecting ");
@@ -646,13 +644,17 @@ impl<const N: usize> Engine<N> {
                                     //     for possible in negatives { print!("{:?} ", possible) }
                                     //     print!("\n\n");
                                     // }
-                                },
-                                _ => {panic!("unknonw parsing error")}
+                                }
+                                _ => {
+                                    panic!("unknonw parsing error")
+                                }
                             };
                             // let linecode = v.line;
                             // println!("{:?}", v);
-                            let res = format!("pos[{:?}], line[{:?}], col[{:?}], positives{:?}, negatives{:?}",
-                             location, line, col, positives, negatives);
+                            let res = format!(
+                                "pos[{:?}], line[{:?}], col[{:?}], positives{:?}, negatives{:?}",
+                                location, line, col, positives, negatives
+                            );
                             // println!("{}", res);
                             res
                             // match v.variant {
@@ -660,14 +662,13 @@ impl<const N: usize> Engine<N> {
                             //         println!("print expecting {:?} find {:?}", positives, negatives);
                             //         // format!("format expecting {:?} find {:?}", positives, negatives);
                             //         format!("format")
-                            //         // return (positives, negatives)              
+                            //         // return (positives, negatives)
                             //     },
                             //     _ => {
                             //         unimplemented!();
                             //     }
                             // }
-                            
-                        },
+                        }
                         EngineError::NonExsitSample(v) => {
                             format!("cannot use this non-exist samples {}", v)
                         }
@@ -678,27 +679,37 @@ impl<const N: usize> Engine<N> {
                     let s = error.as_bytes();
                     for i in 2..256 {
                         if i - 2 < s.len() {
-                            result[i] = s[i-2]
+                            result[i] = s[i - 2]
                         } else {
                             result[i] = 0
                         }
-                        
                     }
                 }
             }
-        }            
+        }
         // }
-        self.context.processor.process(&mut self.context.graph, self.context.destination);
+        self.context
+            .processor
+            .process(&mut self.context.graph, self.context.destination);
         // println!("result {:?}", &self.context.graph[self.context.destination].buffers);
         self.clock += N;
-        (&self.context.graph[self.context.destination].buffers, result)
+        (
+            &self.context.graph[self.context.destination].buffers,
+            result,
+        )
     }
 
-    pub fn set_bpm(&mut self, bpm:f32) {
+    pub fn set_bpm(&mut self, bpm: f32) {
         self.bpm = bpm;
         self.context.send_msg_to_all(Message::SetBPM(bpm));
     }
-    pub fn set_sr(&mut self, sr:usize) {self.sr = sr}
-    pub fn set_seed(&mut self, seed:usize) {self.seed = seed}
-    pub fn set_track_amp(&mut self, amp:f32) {self.track_amp = amp}
+    pub fn set_sr(&mut self, sr: usize) {
+        self.sr = sr
+    }
+    pub fn set_seed(&mut self, seed: usize) {
+        self.seed = seed
+    }
+    pub fn set_track_amp(&mut self, amp: f32) {
+        self.track_amp = amp
+    }
 }

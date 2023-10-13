@@ -1,4 +1,4 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
+use crate::{impl_to_boxed_nodedata, BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
 use hashbrown::HashMap;
 
 #[derive(Debug, Clone)]
@@ -13,7 +13,7 @@ pub struct PSampler {
     period_in_cycle: f32,
     cycle_dur: f32,
     sr: usize,
-    input_order: Vec<usize>
+    input_order: Vec<usize>,
 }
 
 impl PSampler {
@@ -36,7 +36,7 @@ impl PSampler {
             cycle_dur: 60. / bpm * 4.,
             period_in_cycle,
             sr,
-            input_order: vec![]
+            input_order: vec![],
         }
     }
     impl_to_boxed_nodedata!();
@@ -54,18 +54,21 @@ impl<const N: usize> Node<N> for PSampler {
 
         for i in 0..N {
             // if input_buf[0][i] > 0.0 {
-            
+
             for event in &self.pattern {
-                
-                if (self.step % (bar_dur as usize)) == ((event.1 * self.cycle_dur * self.sr as f32) as usize) {
+                if (self.step % (bar_dur as usize))
+                    == ((event.1 * self.cycle_dur * self.sr as f32) as usize)
+                {
                     let pitch = 1.0;
                     let sample_name = &event.0;
                     let sample = self.samples_dict[sample_name];
-                    let dur = (sample.0.len()/sample.1) as f32 / pitch / ( sample.2 as f32 / self.sr as f32 );
+                    let dur = (sample.0.len() / sample.1) as f32
+                        / pitch
+                        / (sample.2 as f32 / self.sr as f32);
                     self.playback.push((self.step, sample_name.to_owned(), dur));
                 }
             }
-            
+
             let mut count = 0;
             let mut to_remove = vec![];
             for (begin, name, dur) in &self.playback {
@@ -76,52 +79,54 @@ impl<const N: usize> Node<N> for PSampler {
                         1 => {
                             output[0][i] += match pos {
                                 x if x == 0.0 => sample.0[0],
-                                x if x == 1.0 => sample.0[sample.0.len()-1],
+                                x if x == 1.0 => sample.0[sample.0.len() - 1],
                                 x if x > 0.0 && x < 1.0 => {
-                                    let pos_index_float = x * ((sample.0.len()-1) as f32);
+                                    let pos_index_float = x * ((sample.0.len() - 1) as f32);
                                     let left = pos_index_float.floor();
                                     let right = pos_index_float.ceil();
                                     let left_portion = pos_index_float - left;
                                     let right_portion = 1. - left_portion;
 
-                                    sample.0[left as usize] * left_portion +
-                                    sample.0[right as usize] * right_portion
-                                },
-                                _ => 0.0
+                                    sample.0[left as usize] * left_portion
+                                        + sample.0[right as usize] * right_portion
+                                }
+                                _ => 0.0,
                             };
                             output[1][i] = output[0][i];
-                        },
+                        }
                         2 => {
                             match pos {
                                 x if x == 0.0 => {
                                     output[0][i] += sample.0[0];
-                                    output[1][i] += sample.0[(sample.0.len()/sample.1)];
-                                },
+                                    output[1][i] += sample.0[sample.0.len() / sample.1];
+                                }
                                 x if x == 1.0 => {
-                                    output[0][i] += sample.0[(sample.0.len()/sample.1)-1];
-                                    output[1][i] += sample.0[sample.0.len()-1];
-                                },
+                                    output[0][i] += sample.0[(sample.0.len() / sample.1) - 1];
+                                    output[1][i] += sample.0[sample.0.len() - 1];
+                                }
                                 x if x > 0.0 && x < 1.0 => {
-                                    let pos_index_float = x * (((sample.0.len()/sample.1)-2) as f32);
+                                    let pos_index_float =
+                                        x * (((sample.0.len() / sample.1) - 2) as f32);
                                     let left = pos_index_float.floor();
                                     let right = pos_index_float.ceil();
                                     let left_portion = pos_index_float - left;
                                     let right_portion = 1. - left_portion;
 
-                                    output[0][i] += sample.0[left as usize] * left_portion +
-                                    sample.0[right as usize] * right_portion;
-                                    
-                                    output[1][i] += sample.0[left as usize + (sample.0.len()/sample.1) + 1] * left_portion
-                                    + sample.0[right as usize + (sample.0.len()/sample.1) + 1] * right_portion
+                                    output[0][i] += sample.0[left as usize] * left_portion
+                                        + sample.0[right as usize] * right_portion;
 
-                                },
+                                    output[1][i] += sample.0
+                                        [left as usize + (sample.0.len() / sample.1) + 1]
+                                        * left_portion
+                                        + sample.0[right as usize + (sample.0.len() / sample.1) + 1]
+                                            * right_portion
+                                }
                                 _ => {}
                             };
-                        },
-                        _ => {return ()}
+                        }
+                        _ => return (),
                     }
                 } else {
-                    // panic!();
                     to_remove.push(count)
                 }
                 count += 1;
@@ -139,17 +144,13 @@ impl<const N: usize> Node<N> for PSampler {
                 self.playback.clear();
                 self.pattern = pattern;
                 self.samples_dict = samples_dict;
-                self.period_in_cycle = span                
-            },
-            Message::Index(i) => {
-                self.input_order.push(i)
-            },
-            Message::IndexOrder(pos, index) => {
-                self.input_order.insert(pos, index)
-            },
+                self.period_in_cycle = span
+            }
+            Message::Index(i) => self.input_order.push(i),
+            Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
             Message::ResetOrder => {
                 self.input_order.clear();
-            },
+            }
             _ => {}
         }
     }
