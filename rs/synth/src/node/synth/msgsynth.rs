@@ -1,4 +1,4 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
+use crate::{impl_to_boxed_nodedata, BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
 use hashbrown::HashMap;
 
 #[derive(Debug, Clone)]
@@ -29,30 +29,22 @@ impl MsgSynth {
             // period_in_cycle: 1.0,
             // cycle_dur: 2.0,
             sr: 44100,
-            step: 0
+            step: 0,
         }
     }
     pub fn ref_order(self, ref_order: HashMap<String, usize>) -> Self {
-        Self {
-            ref_order, ..self
-        }
+        Self { ref_order, ..self }
     }
     pub fn sr(self, sr: usize) -> Self {
-        Self {
-            sr, ..self
-        }
+        Self { sr, ..self }
     }
 
     pub fn attack(self, att: f32) -> Self {
-        Self {
-            att, ..self
-        }
+        Self { att, ..self }
     }
 
     pub fn decay(self, dec: f32) -> Self {
-        Self {
-            dec, ..self
-        }
+        Self { dec, ..self }
     }
 
     // pub fn period_in_cycle(self, period_in_cycle: f32) -> Self {
@@ -70,19 +62,18 @@ impl MsgSynth {
     impl_to_boxed_nodedata!();
 }
 
-impl< const N: usize> Node<N> for MsgSynth {
-
+impl<const N: usize> Node<N> for MsgSynth {
     // the behaviour of this synth is that it only plays a note on msg
     // not from any input
     // different from psynth, the event in this node is linear
 
     fn process(&mut self, _inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         // panic!();
-        
+
         let attack_n = (self.att * self.sr as f32) as usize;
         let decay_n = (self.dec * self.sr as f32) as usize;
         // match inputs.len() {
-            // 0 => {
+        // 0 => {
         // let bar_length = self.cycle_dur * self.period_in_cycle * self.sr as f32;
         for i in 0..N {
             output[0][i] = 0.0;
@@ -90,7 +81,7 @@ impl< const N: usize> Node<N> for MsgSynth {
             for event in &self.events {
                 if self.step == event.0 {
                     let midi = event.1;
-                    let freq = 2f32.powf((midi as f32-69.)/12.)* 440.;
+                    let freq = 2f32.powf((midi as f32 - 69.) / 12.) * 440.;
                     self.synth_list.push((self.step, freq));
                     self.phase_list.push(0.0);
                 }
@@ -137,55 +128,51 @@ impl< const N: usize> Node<N> for MsgSynth {
     }
     fn send_msg(&mut self, info: Message) {
         match info {
-            Message::SetToNumber(pos, v) => {
-                match pos {
-                    1 => {
-                        self.att = v;
-                    },
-                    2 => {
-                        self.dec = v;
-                    },
-                    _ => {}
+            Message::SetToNumber(pos, v) => match pos {
+                1 => {
+                    self.att = v;
                 }
+                2 => {
+                    self.dec = v;
+                }
+                _ => {}
             },
             Message::SetToSymbol(pos, s) => {
                 // panic!();
                 match pos {
                     0 => {
                         // self.type = 0
-                    },
+                    }
                     3 => {
-                        let event_s: String = s.chars().filter(|c| !c.is_whitespace()).collect::<_>();
+                        let event_s: String =
+                            s.chars().filter(|c| !c.is_whitespace()).collect::<_>();
                         // estimate event_s "2.74343=>60"
                         // for event_s.split("=>");
                         if event_s.contains("=>") {
-                            let event: Vec<f32> = event_s.split("=>")
-                            .map(|v|v.parse::<f32>().unwrap()).collect();
+                            let event: Vec<f32> = event_s
+                                .split("=>")
+                                .map(|v| v.parse::<f32>().unwrap())
+                                .collect();
                             if event.len() != 2 {
-                                return ()
+                                return ();
                             } else {
                                 let event_n = (event[0] * self.sr as f32) as usize;
                                 self.events.push((event_n, event[1]));
                             }
                         } else {
-
                         }
-                    },
+                    }
                     _ => {}
                 }
-            },
+            }
             Message::SetRefOrder(ref_order) => {
                 self.ref_order = ref_order;
-            },
-            Message::Index(i) => {
-                self.input_order.push(i)
-            },
-            Message::IndexOrder(pos, index) => {
-                self.input_order.insert(pos, index)
-            },
+            }
+            Message::Index(i) => self.input_order.push(i),
+            Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
             Message::ResetOrder => {
                 self.input_order.clear();
-            },
+            }
             _ => {}
         }
     }

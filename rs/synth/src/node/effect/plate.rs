@@ -1,22 +1,26 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, AudioContext,
-    oscillator::{SinOsc}, filter::{ OnePole, AllPassFilterGain}, effect::Balance,
-    operator::{Mul, Add}, delay::{DelayN, DelayMs}, node::Pass
+use crate::{
+    delay::{DelayMs, DelayN},
+    effect::Balance,
+    filter::{AllPassFilterGain, OnePole},
+    node::Pass,
+    operator::{Add, Mul},
+    oscillator::SinOsc,
+    AudioContext, BoxedNodeSend, Buffer, Input, Message, Node, NodeData,
 };
 use hashbrown::HashMap;
 use petgraph::graph::NodeIndex;
 
-pub struct Plate<const N: usize> { 
+pub struct Plate<const N: usize> {
     input: NodeIndex,
     context: AudioContext<N>,
-    input_order: Vec<usize>
+    input_order: Vec<usize>,
 }
 
 impl<const N: usize> Plate<N> {
     pub fn new(mix: f32) -> Self {
-
         let mut context = crate::AudioContextBuilder::<N>::new().channels(2).build();
-        
-        let input = context.add_mono_node( Pass{} );
+
+        let input = context.add_mono_node(Pass {});
         let wet1 = context.add_mono_node(OnePole::new(0.7));
         let wet2 = context.add_mono_node(DelayMs::new().delay(50., 2));
         let wet3 = context.add_mono_node(AllPassFilterGain::new().delay(4.771).gain(0.75));
@@ -45,7 +49,10 @@ impl<const N: usize> Plate<N> {
         let (ba, _edges) = context.chain_boxed(vec![
             DelayN::new(2000).to_boxed_nodedata(1),
             OnePole::new(0.1).to_boxed_nodedata(1),
-            AllPassFilterGain::new().delay(7.596).gain(0.5).to_boxed_nodedata(1),
+            AllPassFilterGain::new()
+                .delay(7.596)
+                .gain(0.5)
+                .to_boxed_nodedata(1),
         ]);
         context.connect(ac, ba[0]);
 
@@ -62,11 +69,11 @@ impl<const N: usize> Plate<N> {
         let cc1 = context.add_mono_node(DelayN::new(3500));
         let cc2 = context.add_mono_node(Mul::new(0.3));
         context.chain(vec![cb, cc1, cc2]);
-        
+
         let da1 = context.add_mono_node(AllPassFilterGain::new().delay(30.).gain(0.7));
         let da2 = context.add_mono_node(DelayN::new(522));
         context.chain(vec![cc2, da1, da2]);
-        
+
         let db = context.add_mono_node(DelayN::new(2400));
         context.connect(da2, db);
         let dc = context.add_mono_node(DelayN::new(2400));
@@ -88,72 +95,71 @@ impl<const N: usize> Plate<N> {
         let fb1 = context.add_mono_node(DelayN::new(2500));
         let fb2 = context.add_mono_node(Mul::new(0.3));
         context.chain(vec![fb, fb1, fb2, wet7]); // back to feedback
-        
 
         // start to take some signal out
-        let left_subtract = context.add_mono_node(crate::node::Sum{});
-        context.connect(bb,left_subtract);
-        context.connect(db,left_subtract);
-        context.connect(ea2,left_subtract);
-        context.connect(fa2,left_subtract);
+        let left_subtract = context.add_mono_node(crate::node::Sum {});
+        context.connect(bb, left_subtract);
+        context.connect(db, left_subtract);
+        context.connect(ea2, left_subtract);
+        context.connect(fa2, left_subtract);
 
         // turn these signal into -
         let left_subtract2 = context.add_mono_node(Mul::new(-1.0));
-        context.connect(left_subtract,left_subtract2);
-        
-        let left = context.add_mono_node(crate::node::Sum{});
-        context.connect(aa,left);
-        context.connect(ab,left);
-        context.connect(cb,left);
-        context.connect(left_subtract2,left);
+        context.connect(left_subtract, left_subtract2);
+
+        let left = context.add_mono_node(crate::node::Sum {});
+        context.connect(aa, left);
+        context.connect(ab, left);
+        context.connect(cb, left);
+        context.connect(left_subtract2, left);
         let leftwet = context.add_mono_node(Mul::new(mix));
         context.tags.insert("mix1", leftwet);
-        let leftmix = context.add_mono_node(crate::node::Sum{});
-        
+        let leftmix = context.add_mono_node(crate::node::Sum {});
+
         // input dry * (1.-mix)
-        let leftdrymix = context.add_mono_node(Mul::new(1.-mix));
+        let leftdrymix = context.add_mono_node(Mul::new(1. - mix));
         context.tags.insert("mixdiff1", leftdrymix);
         context.chain(vec![input, leftdrymix, leftmix]);
         context.chain(vec![left, leftwet, leftmix]);
-        
-        let right_subtract = context.add_mono_node(crate::node::Sum{});
-        context.connect(eb,right_subtract);
-        context.connect(ab,right_subtract);
-        context.connect(ba[2],right_subtract);
-        context.connect(ca,right_subtract);
-        let right_subtract2 = context.add_mono_node(Mul::new(-1.0));
-        context.connect(right_subtract,right_subtract2);
 
-        let right = context.add_mono_node(crate::node::Sum{});
-        context.connect(da2,right);
-        context.connect(db,right);
-        context.connect(fb,right);
-        context.connect(right_subtract2,right);
+        let right_subtract = context.add_mono_node(crate::node::Sum {});
+        context.connect(eb, right_subtract);
+        context.connect(ab, right_subtract);
+        context.connect(ba[2], right_subtract);
+        context.connect(ca, right_subtract);
+        let right_subtract2 = context.add_mono_node(Mul::new(-1.0));
+        context.connect(right_subtract, right_subtract2);
+
+        let right = context.add_mono_node(crate::node::Sum {});
+        context.connect(da2, right);
+        context.connect(db, right);
+        context.connect(fb, right);
+        context.connect(right_subtract2, right);
         let rightwet = context.add_mono_node(Mul::new(mix));
         context.tags.insert("mix2", rightwet);
-        let rightmix = context.add_mono_node(crate::node::Sum{}); // input dry * (1.-mix)
+        let rightmix = context.add_mono_node(crate::node::Sum {}); // input dry * (1.-mix)
 
-        let rightdry = context.add_mono_node(Mul::new(1.-mix));
+        let rightdry = context.add_mono_node(Mul::new(1. - mix));
         context.tags.insert("mixdiff2", rightdry);
         context.chain(vec![input, rightdry, rightmix]);
-        context.chain(vec![right, rightwet,rightmix]);
-        
+        context.chain(vec![right, rightwet, rightmix]);
+
         let balance = context.add_stereo_node(Balance::new());
-        context.connect(leftmix,balance);
-        context.connect(rightmix,balance);
+        context.connect(leftmix, balance);
+        context.connect(rightmix, balance);
         context.connect(balance, context.destination);
         Self {
             input,
             context,
-            input_order: Vec::new()
+            input_order: Vec::new(),
         }
     }
     pub fn to_boxed_nodedata(self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
-        NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new( self ) )
+        NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new(self))
     }
 }
 
-impl<const N:usize> Node<N> for Plate<N> {
+impl<const N: usize> Node<N> for Plate<N> {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         let main_input = inputs[&self.input_order[0]].buffers();
         self.context.graph[self.input].buffers[0] = main_input[0].clone();
@@ -171,23 +177,27 @@ impl<const N:usize> Node<N> for Plate<N> {
                 match pos {
                     0 => {
                         // self.mix = value;
-                        self.context.graph[self.context.tags["mix1"]].node.send_msg(Message::SetToNumber(0, value));
-                        self.context.graph[self.context.tags["mix2"]].node.send_msg(Message::SetToNumber(0, value));
-                        self.context.graph[self.context.tags["mixdiff1"]].node.send_msg(Message::SetToNumber(0, 1.-value));
-                        self.context.graph[self.context.tags["mixdiff2"]].node.send_msg(Message::SetToNumber(0, 1.-value));
-                    },
+                        self.context.graph[self.context.tags["mix1"]]
+                            .node
+                            .send_msg(Message::SetToNumber(0, value));
+                        self.context.graph[self.context.tags["mix2"]]
+                            .node
+                            .send_msg(Message::SetToNumber(0, value));
+                        self.context.graph[self.context.tags["mixdiff1"]]
+                            .node
+                            .send_msg(Message::SetToNumber(0, 1. - value));
+                        self.context.graph[self.context.tags["mixdiff2"]]
+                            .node
+                            .send_msg(Message::SetToNumber(0, 1. - value));
+                    }
                     _ => {}
                 }
-            },
-            Message::Index(i) => {
-                self.input_order.push(i)
-            },
-            Message::IndexOrder(pos, index) => {
-                self.input_order.insert(pos, index)
-            },
+            }
+            Message::Index(i) => self.input_order.push(i),
+            Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
             Message::ResetOrder => {
                 self.input_order.clear();
-            },
+            }
             _ => {}
         }
     }

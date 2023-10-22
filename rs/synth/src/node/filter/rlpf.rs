@@ -1,4 +1,4 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
+use crate::{impl_to_boxed_nodedata, BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
 use hashbrown::HashMap;
 #[derive(Debug, Clone)]
 pub struct ResonantLowPassFilter {
@@ -34,7 +34,7 @@ impl ResonantLowPassFilter {
             x2: 0.,
             y1: 0.,
             y2: 0.,
-            input_order: vec![]
+            input_order: vec![],
         }
     }
 
@@ -43,27 +43,27 @@ impl ResonantLowPassFilter {
     // }
 
     pub fn pattern(self, pattern: Vec<(f32, f32)>) -> Self {
-        Self {pattern, ..self}
+        Self { pattern, ..self }
     }
 
     pub fn span(self, span: f32) -> Self {
-        Self {span, ..self}
+        Self { span, ..self }
     }
 
     pub fn bpm(self, bpm: f32) -> Self {
-        Self {bpm, ..self}
+        Self { bpm, ..self }
     }
 
     pub fn sr(self, sr: usize) -> Self {
-        Self {sr, ..self}
+        Self { sr, ..self }
     }
 
     pub fn cutoff(self, cutoff: f32) -> Self {
-        Self {cutoff, ..self}
+        Self { cutoff, ..self }
     }
 
     pub fn q(self, q: f32) -> Self {
-        Self {q, ..self}
+        Self { q, ..self }
     }
 
     impl_to_boxed_nodedata!();
@@ -84,7 +84,9 @@ impl<const N: usize> Node<N> for ResonantLowPassFilter {
                 // }
                 for i in 0..N {
                     for event in &self.pattern {
-                        if (self.step % (bar_dur as usize)) == ((event.1 * cycle_dur * self.sr as f32) as usize) {
+                        if (self.step % (bar_dur as usize))
+                            == ((event.1 * cycle_dur * self.sr as f32) as usize)
+                        {
                             self.cutoff = event.0
                         }
                     }
@@ -92,18 +94,19 @@ impl<const N: usize> Node<N> for ResonantLowPassFilter {
                     let main_input = inputs.values_mut().next().unwrap();
                     let theta_c = 2.0 * std::f32::consts::PI * self.cutoff / self.sr as f32;
                     let d = 1.0 / self.q;
-                    let beta = 0.5 * (1.0-d*theta_c.sin()/2.0) / (1.0+d*theta_c.sin()/2.0);
+                    let beta =
+                        0.5 * (1.0 - d * theta_c.sin() / 2.0) / (1.0 + d * theta_c.sin() / 2.0);
                     let gama = (0.5 + beta) * theta_c.cos();
                     let a0 = (0.5 + beta - gama) / 2.0;
                     let a1 = 0.5 + beta - gama;
                     let a2 = (0.5 + beta - gama) / 2.0;
                     let b1 = -2.0 * gama;
                     let b2 = 2.0 * beta;
-                
+
                     let x0 = main_input.buffers()[0][i];
-                    let y = a0 * self.x0 + a1 * self.x1 + a2 * self.x2 
-                    - b1 * self.y1 - b2 * self.y2;
-    
+                    let y =
+                        a0 * self.x0 + a1 * self.x1 + a2 * self.x2 - b1 * self.y1 - b2 * self.y2;
+
                     output[0][i] = y;
                     self.x2 = self.x1;
                     self.x1 = x0;
@@ -111,24 +114,26 @@ impl<const N: usize> Node<N> for ResonantLowPassFilter {
                     self.y1 = y;
                     self.step += 1;
                 }
-            },
+            }
             2 => {
                 let main_input = &inputs[&self.input_order[0]]; // can panic if there is no id
                 let ref_input = &inputs[&self.input_order[1]]; // can panic if there is no id
-                
-                let theta_c = 2.0 * std::f32::consts::PI * ref_input.buffers()[0][0] / self.sr as f32;
+
+                let theta_c =
+                    2.0 * std::f32::consts::PI * ref_input.buffers()[0][0] / self.sr as f32;
                 let d = 1.0 / self.q;
-                let beta = 0.5 * (1.0-d*theta_c.sin()/2.0) / (1.0+d*theta_c.sin()/2.0);
+                let beta = 0.5 * (1.0 - d * theta_c.sin() / 2.0) / (1.0 + d * theta_c.sin() / 2.0);
                 let gama = (0.5 + beta) * theta_c.cos();
                 let a0 = (0.5 + beta - gama) / 2.0;
                 let a1 = 0.5 + beta - gama;
                 let a2 = (0.5 + beta - gama) / 2.0;
                 let b1 = -2.0 * gama;
                 let b2 = 2.0 * beta;
-    
+
                 for i in 0..N {
                     let x0 = main_input.buffers()[0][i];
-                    let y = a0 * self.x0 + a1 * self.x1 + a2 * self.x2 - b1 * self.y1 - b2 * self.y2;
+                    let y =
+                        a0 * self.x0 + a1 * self.x1 + a2 * self.x2 - b1 * self.y1 - b2 * self.y2;
                     output[0][i] = y;
                     self.x2 = self.x1;
                     self.x1 = x0;
@@ -136,8 +141,8 @@ impl<const N: usize> Node<N> for ResonantLowPassFilter {
                     self.y1 = y;
                     self.step += 1;
                 }
-            },
-            _ => {return ()}
+            }
+            _ => return (),
         }
     }
 
@@ -146,25 +151,23 @@ impl<const N: usize> Node<N> for ResonantLowPassFilter {
             Message::SetPattern(p, span) => {
                 self.pattern = p;
                 self.span = span;
-            },
-            Message::SetToNumber(pos, value) => {
-                match pos {
-                    0 => {self.cutoff = value},
-                    1 => {self.q = value},
-                    _ => {}
-                }
+            }
+            Message::SetToNumber(pos, value) => match pos {
+                0 => self.cutoff = value,
+                1 => self.q = value,
+                _ => {}
             },
             Message::Index(i) => {
                 // println!("got index without order {}", i);
                 self.input_order.push(i)
-            },
+            }
             Message::IndexOrder(pos, index) => {
                 // println!("got index order {}", index);
                 self.input_order.insert(pos, index)
-            },
+            }
             Message::ResetOrder => {
                 self.input_order.clear();
-            },
+            }
             _ => {}
         }
     }

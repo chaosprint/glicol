@@ -1,24 +1,28 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
-use hashbrown::HashMap;
+use crate::{impl_to_boxed_nodedata, BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
 use dasp_ring_buffer as ring_buffer;
+use hashbrown::HashMap;
 type Fixed = ring_buffer::Fixed<Vec<f32>>;
 
 #[derive(Debug, Clone)]
 pub struct DelayN {
     buf: Fixed,
     delay_n: usize,
-    input_order: Vec<usize>
+    input_order: Vec<usize>,
 }
 
 impl DelayN {
-    pub fn new(n: usize) -> Self {    
+    pub fn new(n: usize) -> Self {
         let delay_n = n;
         let init_n = match n {
             0 => 1,
-            _ => n
+            _ => n,
         };
         let buf = ring_buffer::Fixed::from(vec![0.0; init_n]);
-        Self {buf, delay_n, input_order: Vec::new()}
+        Self {
+            buf,
+            delay_n,
+            input_order: Vec::new(),
+        }
     }
     impl_to_boxed_nodedata!();
 }
@@ -50,8 +54,8 @@ impl<const N: usize> Node<N> for DelayN {
                         }
                     }
                 }
-            },
-            _ => {return ()}
+            }
+            _ => return (),
         }
     }
 
@@ -65,19 +69,15 @@ impl<const N: usize> Node<N> for DelayN {
                         // buf2 = Fixed::from(vec![0.0; delay_n]);
                         // self.buf.set_first(self.delay_n);
                         // self.buf2.set_first(delay_n);
-                    },
+                    }
                     _ => {}
                 }
-            },
-            Message::Index(i) => {
-                self.input_order.push(i)
-            },
-            Message::IndexOrder(pos, index) => {
-                self.input_order.insert(pos, index)
-            },
+            }
+            Message::Index(i) => self.input_order.push(i),
+            Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
             Message::ResetOrder => {
                 self.input_order.clear();
-            },
+            }
             _ => {}
         }
     }

@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use crate::{Buffer, Input, Node, Message};
+use crate::{Buffer, Input, Message, Node};
 use core::fmt;
 use core::ops::{Deref, DerefMut};
 use hashbrown::HashMap;

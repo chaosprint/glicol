@@ -1,2 +1,4 @@
-mod mul; pub use mul::Mul;
-mod add; pub use add::*;
+mod mul;
+pub use mul::Mul;
+mod add;
+pub use add::*;

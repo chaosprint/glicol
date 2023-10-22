@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use crate::{Buffer, Input, Node, Message};
+use crate::{Buffer, Input, Message, Node};
 use hashbrown::HashMap;
 
 /// A simple node that passes an input directly to the output.
@@ -48,7 +48,5 @@ impl<const N: usize> Node<N> for Pass {
             }
         }
     }
-    fn send_msg(&mut self, _info: Message) {
-        
-    }
+    fn send_msg(&mut self, _info: Message) {}
 }

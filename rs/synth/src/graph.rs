@@ -20,19 +20,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use crate::{
-    buffer::Buffer,
-    node::Input,
-    node::Node,
-    BoxedNode,
-};
+use crate::{buffer::Buffer, node::Input, node::Node, BoxedNode};
 use hashbrown::HashMap;
 use petgraph::data::{DataMap, DataMapMut};
 use petgraph::visit::{
-    Data, DfsPostOrder, GraphBase, IntoNeighborsDirected, Reversed, //NodeCount, NodeIndexable, 
+    Data,
+    DfsPostOrder,
+    GraphBase,
+    IntoNeighborsDirected,
+    Reversed, //NodeCount, NodeIndexable,
     Visitable,
 };
-use petgraph::{Incoming};
+use petgraph::Incoming;
 
 pub struct Processor<G, const N: usize>
 where

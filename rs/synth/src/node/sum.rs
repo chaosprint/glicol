@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use crate::{Buffer, Input, Node, Message};
+use crate::{Buffer, Input, Message, Node};
 use hashbrown::HashMap;
 
 /// A stateless node that sums each of the inputs onto the output.
@@ -65,12 +65,8 @@ impl<const N: usize> Node<N> for Sum {
         }
         // println!("{:?}", output);
     }
-    fn send_msg(&mut self, _info: Message) {
-        
-    }
+    fn send_msg(&mut self, _info: Message) {}
 }
-
-
 
 impl<const N: usize> Node<N> for Sum2 {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
@@ -85,7 +81,7 @@ impl<const N: usize> Node<N> for Sum2 {
                 match in_buffers.get(channel) {
                     Some(in_buffer) => {
                         dasp_slice::add_in_place(out_buffer, in_buffer);
-                    },
+                    }
                     None => {
                         dasp_slice::add_in_place(out_buffer, &in_buffers[0]);
                     }
@@ -93,9 +89,7 @@ impl<const N: usize> Node<N> for Sum2 {
             }
         }
     }
-    fn send_msg(&mut self, _info: Message) {
-        
-    }
+    fn send_msg(&mut self, _info: Message) {}
 }
 
 impl<const N: usize> Node<N> for SumBuffers {
@@ -119,7 +113,5 @@ impl<const N: usize> Node<N> for SumBuffers {
             out_buffer.copy_from_slice(out_buffer_first);
         }
     }
-    fn send_msg(&mut self, _info: Message) {
-        
-    }
+    fn send_msg(&mut self, _info: Message) {}
 }

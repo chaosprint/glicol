@@ -1,16 +1,10 @@
-use glicol_synth::{
-    AudioContextBuilder,
-    oscillator::SinOsc,
-    operator::Mul,
-    signal::ConstSig,
-    Message
-};
+use glicol_synth::{operator::Mul, signal::ConstSig, AudioContextBuilder};
 
 fn main() {
     let mut context = AudioContextBuilder::<8>::new()
-    .sr(44100)
-    .channels(1)
-    .build();
+        .sr(44100)
+        .channels(1)
+        .build();
 
     let node_a = context.add_mono_node(ConstSig::new(24.));
     let node_b = context.add_mono_node(Mul::new(0.5));

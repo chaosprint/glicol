@@ -1,4 +1,4 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
+use crate::{impl_to_boxed_nodedata, BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
 use hashbrown::HashMap;
 
 #[derive(Debug, Clone)]
@@ -6,7 +6,7 @@ pub struct Impulse {
     clock: usize,
     period: usize,
     sr: usize,
-    input_order: Vec<usize>
+    input_order: Vec<usize>,
 }
 
 impl Impulse {
@@ -15,17 +15,15 @@ impl Impulse {
             clock: 0,
             period: 44100,
             sr: 44100,
-            input_order: Vec::new()
+            input_order: Vec::new(),
         }
     }
     pub fn freq(self, freq: f32) -> Self {
         let period = (self.sr as f32 / freq) as usize;
-        Self {period, ..self}
+        Self { period, ..self }
     }
     pub fn sr(self, sr: usize) -> Self {
-        Self {
-            sr, ..self
-        }
+        Self { sr, ..self }
     }
     impl_to_boxed_nodedata!();
 }
@@ -46,20 +44,13 @@ impl<const N: usize> Node<N> for Impulse {
         }
     }
     fn send_msg(&mut self, info: Message) {
-
         match info {
-            Message::SetToNumber(pos, value) => {
-                match pos {
-                    0 => {self.period = (self.sr as f32 / value) as usize},
-                    _ => {}
-                }
+            Message::SetToNumber(pos, value) => match pos {
+                0 => self.period = (self.sr as f32 / value) as usize,
+                _ => {}
             },
-            Message::Index(i) => {
-                self.input_order.push(i)
-            },
-            Message::IndexOrder(pos, index) => {
-                self.input_order.insert(pos, index)
-            },
+            Message::Index(i) => self.input_order.push(i),
+            Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
             _ => {}
         }
     }

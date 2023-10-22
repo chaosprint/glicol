@@ -6,15 +6,14 @@
 
 // ~ep: imp 1 >> envperc 0.01 0.1;
 
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message};
-use hashbrown::HashMap;
 use crate::{
-    Pass,
-    AudioContext,
-    operator::{Mul, Add},
-    oscillator::{SinOsc},
     envelope::EnvPerc,
+    operator::{Add, Mul},
+    oscillator::SinOsc,
+    AudioContext, Pass,
 };
+use crate::{BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
+use hashbrown::HashMap;
 
 use petgraph::graph::NodeIndex;
 
@@ -25,17 +24,16 @@ pub struct Bd<const N: usize> {
 }
 
 impl<const N: usize> Bd<N> {
-
     pub fn new(decay: f32) -> Self {
         let mut context = crate::AudioContextBuilder::<N>::new().channels(2).build();
-        let input = context.add_mono_node( Pass{} );
-        let env_amp = context.add_mono_node( EnvPerc::new().attack(0.003).decay(decay));
+        let input = context.add_mono_node(Pass {});
+        let env_amp = context.add_mono_node(EnvPerc::new().attack(0.003).decay(decay));
         context.tags.insert("d", env_amp);
-        let env_pitch = context.add_mono_node( EnvPerc::new().attack(0.01).decay(0.1));
-        let mul = context.add_stereo_node( Mul::new(50.));
-        let add = context.add_stereo_node( Add::new(60.));
-        let sin = context.add_mono_node( SinOsc::new() );
-        let sin_amp = context.add_mono_node( Mul::new(0.) );
+        let env_pitch = context.add_mono_node(EnvPerc::new().attack(0.01).decay(0.1));
+        let mul = context.add_stereo_node(Mul::new(50.));
+        let add = context.add_stereo_node(Add::new(60.));
+        let sin = context.add_mono_node(SinOsc::new());
+        let sin_amp = context.add_mono_node(Mul::new(0.));
         context.chain(vec![sin, sin_amp, context.destination]);
         context.chain(vec![input, env_amp, sin_amp]);
         context.chain(vec![input, env_pitch, mul, add, sin]);
@@ -43,14 +41,13 @@ impl<const N: usize> Bd<N> {
         Self {
             context,
             input,
-            input_order: vec![]
+            input_order: vec![],
         }
     }
 
     pub fn to_boxed_nodedata(self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
-        NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new( self ) )
+        NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new(self))
     }
-
 }
 
 impl<const N: usize> Node<N> for Bd<N> {
@@ -66,26 +63,19 @@ impl<const N: usize> Node<N> for Bd<N> {
                     output[1][i] = cout[1][i];
                 }
             }
-            _ => return ()
+            _ => return (),
         }
     }
     fn send_msg(&mut self, info: Message) {
-
         match info {
-            Message::SetToNumber(pos, value) => {
-                match pos {
-                    0 => {
-                        self.context.graph[self.context.tags["d"]].node.send_msg(Message::SetToNumber(1, value))
-                    },
-                    _ => {}
-                }
+            Message::SetToNumber(pos, value) => match pos {
+                0 => self.context.graph[self.context.tags["d"]]
+                    .node
+                    .send_msg(Message::SetToNumber(1, value)),
+                _ => {}
             },
-            Message::Index(i) => {
-                self.input_order.push(i)
-            },
-            Message::IndexOrder(pos, index) => {
-                self.input_order.insert(pos, index)
-            },
+            Message::Index(i) => self.input_order.push(i),
+            Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
             _ => {}
         }
     }

@@ -2,24 +2,37 @@ use crate::buffer::Buffer;
 use hashbrown::HashMap;
 
 #[cfg(feature = "node-boxed")]
-mod boxed; pub use boxed::*;
+mod boxed;
+pub use boxed::*;
 #[cfg(feature = "node-pass")]
-mod pass; pub use pass::*;
+mod pass;
+pub use pass::*;
 #[cfg(feature = "node-sum")]
-mod sum; pub use sum::*;
+mod sum;
+pub use sum::*;
 
-pub mod oscillator; pub use oscillator::*;
-pub mod operator; pub use operator::*;
-pub mod signal; pub use signal::*;
-pub mod filter; pub use filter::*;
+pub mod oscillator;
+pub use oscillator::*;
+pub mod operator;
+pub use operator::*;
+pub mod signal;
+pub use signal::*;
+pub mod filter;
+pub use filter::*;
 
-pub mod sequencer; pub use sequencer::*;
-pub mod delay; pub use delay::*;
-pub mod envelope; pub use envelope::*;
-pub mod effect; pub use effect::*;
-pub mod compound; pub use compound::*;
+pub mod sequencer;
+pub use sequencer::*;
+pub mod delay;
+pub use delay::*;
+pub mod envelope;
+pub use envelope::*;
+pub mod effect;
+pub use effect::*;
+pub mod compound;
+pub use compound::*;
 
-pub mod synth; pub use synth::*;
+pub mod synth;
+pub use synth::*;
 
 #[cfg(feature = "use-samples")]
 pub mod sampling;
@@ -42,7 +55,7 @@ pub trait Node<const N: usize> {
 pub struct Input<const N: usize> {
     buffers_ptr: *const Buffer<N>,
     buffers_len: usize,
-    pub node_id: usize
+    pub node_id: usize,
 }
 
 impl<const N: usize> Input<N> {
@@ -53,7 +66,7 @@ impl<const N: usize> Input<N> {
         Input {
             buffers_ptr,
             buffers_len,
-            node_id
+            node_id,
         }
     }
 
@@ -96,31 +109,27 @@ where
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         (**self).process(inputs, output)
     }
-    fn send_msg(&mut self, _info: crate::Message) {
-    }
+    fn send_msg(&mut self, _info: crate::Message) {}
 }
 
 impl<const N: usize> Node<N> for dyn Fn(&HashMap<usize, Input<N>>, &mut [Buffer<N>]) {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         (*self)(inputs, output)
     }
-    fn send_msg(&mut self, _info: crate::Message) {
-    }
+    fn send_msg(&mut self, _info: crate::Message) {}
 }
 
 impl<const N: usize> Node<N> for dyn FnMut(&HashMap<usize, Input<N>>, &mut [Buffer<N>]) {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         (*self)(inputs, output)
     }
-    
-    fn send_msg(&mut self, _info: crate::Message) {
-    }
+
+    fn send_msg(&mut self, _info: crate::Message) {}
 }
 
 impl<const N: usize> Node<N> for fn(&HashMap<usize, Input<N>>, &mut [Buffer<N>]) {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         (*self)(inputs, output)
     }
-    fn send_msg(&mut self, _info: crate::Message) {
-    }
+    fn send_msg(&mut self, _info: crate::Message) {}
 }

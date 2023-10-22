@@ -1,15 +1,10 @@
-use glicol_synth::{
-    AudioContextBuilder,
-    effect::Plate,
-    signal::ConstSig,
-    Message
-};
+use glicol_synth::{effect::Plate, signal::ConstSig, AudioContextBuilder};
 
 fn main() {
     let mut context = AudioContextBuilder::<8>::new()
-    .sr(44100)
-    .channels(2)
-    .build();
+        .sr(44100)
+        .channels(2)
+        .build();
 
     let c = context.add_stereo_node(ConstSig::new(1.));
     let node_a = context.add_stereo_node(Plate::new(0.5));

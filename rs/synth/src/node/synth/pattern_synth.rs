@@ -1,4 +1,4 @@
-use crate::{Buffer, Input, Node, BoxedNodeSend, NodeData, Message, impl_to_boxed_nodedata};
+use crate::{impl_to_boxed_nodedata, BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
 use hashbrown::HashMap;
 
 #[derive(Debug, Clone)]
@@ -10,7 +10,7 @@ pub struct PatternSynth {
     events: Vec<(f32, f32)>, // event.0 is frac, event.1 is midi
     ref_order: HashMap<String, usize>,
     period_in_cycle: f32, // in cycles, can be 1.2121 for example
-    cycle_dur: f32, // time
+    cycle_dur: f32,       // time
     sr: usize,
     step: usize,
     input_order: Vec<usize>,
@@ -29,35 +29,30 @@ impl PatternSynth {
             period_in_cycle: 1.0,
             cycle_dur: 2.0,
             sr: 44100,
-            step: 0
+            step: 0,
         }
     }
     pub fn ref_order(self, ref_order: HashMap<String, usize>) -> Self {
-        Self {
-            ref_order, ..self
-        }
+        Self { ref_order, ..self }
     }
     pub fn sr(self, sr: usize) -> Self {
-        Self {
-            sr, ..self
-        }
+        Self { sr, ..self }
     }
     pub fn period_in_cycle(self, period_in_cycle: f32) -> Self {
         Self {
-            period_in_cycle, ..self
+            period_in_cycle,
+            ..self
         }
     }
 
     pub fn cycle_dur(self, cycle_dur: f32) -> Self {
-        Self {
-            cycle_dur, ..self
-        }
+        Self { cycle_dur, ..self }
     }
 
     impl_to_boxed_nodedata!();
 }
 
-impl< const N: usize> Node<N> for PatternSynth {
+impl<const N: usize> Node<N> for PatternSynth {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         // println!("seq inputs info {:?} ; self.input_order {:?}", inputs, self.input_order);
         // println!("events{:?}", self.events);
@@ -70,9 +65,11 @@ impl< const N: usize> Node<N> for PatternSynth {
                     output[0][i] = 0.0;
 
                     for event in &self.events {
-                        if (self.step % (bar_length as usize)) == ((event.0 * self.cycle_dur * self.sr as f32) as usize) {
+                        if (self.step % (bar_length as usize))
+                            == ((event.0 * self.cycle_dur * self.sr as f32) as usize)
+                        {
                             let midi = event.1;
-                            let freq = 2f32.powf((midi as f32-69.)/12.)* 440.;
+                            let freq = 2f32.powf((midi as f32 - 69.) / 12.) * 440.;
 
                             // need to push current step to the playback list
                             // println!("{}{}", event.0 * self.cycle_dur);
@@ -123,10 +120,10 @@ impl< const N: usize> Node<N> for PatternSynth {
                     // println!("output, {}", output[0][i]);
                 }
                 // println!("self.synth_list {:?} step, {:?}", self.synth_list, self.step);
-            },
+            }
             _ => {
                 // nothing input
-                return ()
+                return ();
             }
         }
     }
@@ -143,30 +140,26 @@ impl< const N: usize> Node<N> for PatternSynth {
                         let pattern = s.replace("`", "");
                         for event in pattern.split(",") {
                             // println!("event {:?}", event);
-                            let result: Vec<f32> = event.split(" ")
-                            .filter(|x|!x.is_empty())
-                            .map(|x|{
-                                x.replace(" ", "").parse::<f32>().unwrap()
-                            }).collect();
+                            let result: Vec<f32> = event
+                                .split(" ")
+                                .filter(|x| !x.is_empty())
+                                .map(|x| x.replace(" ", "").parse::<f32>().unwrap())
+                                .collect();
                             // println!("result {:?}", result);
                             self.events.push((result[0], result[1]));
                         }
-                    },
+                    }
                     _ => {}
                 }
-            },
+            }
             Message::SetRefOrder(ref_order) => {
                 self.ref_order = ref_order;
-            },
-            Message::Index(i) => {
-                self.input_order.push(i)
-            },
-            Message::IndexOrder(pos, index) => {
-                self.input_order.insert(pos, index)
-            },
+            }
+            Message::Index(i) => self.input_order.push(i),
+            Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
             Message::ResetOrder => {
                 self.input_order.clear();
-            },
+            }
             _ => {}
         }
     }
