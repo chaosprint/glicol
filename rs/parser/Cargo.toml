@@ -1,14 +1,8 @@
 [package]
 name = "glicol_parser"
-version = "0.13.2"
-edition = "2021"
-keywords = [
-	"audio",
-    "music",
-	"DSP",
-	"synth",
-    "synthesizer"
-]
+version = { workspace = true }
+edition = { workspace = true }
+keywords = ["audio", "music", "DSP", "synth", "synthesizer"]
 
 license-file = "LICENSE"
 description = "Parser for Glicol language."

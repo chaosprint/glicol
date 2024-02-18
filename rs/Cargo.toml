@@ -2,6 +2,7 @@
 default-members = ["main"]
 exclude = ["wasm"]
 members = ["main", "parser", "synth", "macros"]
+resolver = "1"
 
 [workspace.package]
 version = "0.13.4"

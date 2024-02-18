@@ -1,7 +1,7 @@
 [package]
 name = "glicol_macros"
-version = "0.13.2"
-edition = "2021"
+version = { workspace = true }
+edition = { workspace = true }
 keywords = ["audio", "music", "DSP", "synth", "synthesizer"]
 
 license-file = "LICENSE"
