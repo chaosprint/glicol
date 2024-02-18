@@ -14,9 +14,9 @@ authors = ["Qichao Lan <chaosprint@gmail.com>"]
 [dependencies]
 pest = { workspace = true }
 pest_derive = { workspace = true }
-glicol_macros = { workspace = true }
-# glicol_macros = { path = "../macros" }
-glicol_synth = { workspace = true }
-# glicol_synth = { path = "../synth" }
+# glicol_macros = { workspace = true }
+glicol_macros = { path = "../macros" }
+# glicol_synth = { workspace = true }
+glicol_synth = { path = "../synth" }
 hashbrown = { workspace = true }
 fasteval = { workspace = true }

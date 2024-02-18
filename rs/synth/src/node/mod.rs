@@ -37,12 +37,13 @@ pub mod synth;
 #[cfg(feature = "use-samples")]
 pub mod sampling;
 
-#[cfg(feature = "use-samples")]
+// #[cfg(feature = "use-samples")]
 // pub use sampling::*;
+
 #[cfg(feature = "use-meta")]
 pub mod dynamic;
 
-#[cfg(feature = "use-meta")]
+// #[cfg(feature = "use-meta")]
 // pub use dynamic::*;
 
 pub trait Node<const N: usize> {
