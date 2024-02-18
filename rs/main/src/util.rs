@@ -1,7 +1,7 @@
 use glicol_synth::{
     compound::{Bd, Hh, SawSynth, Sn, SquSynth, TriSynth},
     delay::{DelayMs, DelayN},
-    effect::{Balance, Plate},
+    effect::{Balance, Pan, Plate},
     envelope::{Adsr, EnvPerc},
     filter::{AllPassFilterGain, OnePole, ResonantHighPassFilter, ResonantLowPassFilter},
     operator::{Add, Mul},
@@ -384,6 +384,13 @@ pub fn makenode<const N: usize>(
                 unimplemented!();
             }
         },
+        "pan" => match &paras[0] {
+            GlicolPara::Number(v) => (Pan::new(*v).to_boxed_nodedata(2), vec![]),
+            GlicolPara::Reference(s) => (Pan::new(0.0).to_boxed_nodedata(2), vec![s.to_string()]),
+            _ => {
+                unimplemented!();
+            }
+        },
         "delayn" => match &paras[0] {
             GlicolPara::Number(v) => (DelayN::new(*v as usize).to_boxed_nodedata(2), vec![]),
             GlicolPara::Reference(s) => (DelayN::new(0).to_boxed_nodedata(2), vec![s.to_string()]),
@@ -567,6 +574,7 @@ pub fn makenode<const N: usize>(
                 reflist,
             )
         }
+
         // "sendpass" => {
         //     let reflist = match &paras[0] {
         //         GlicolPara::RefList(v) => {

@@ -1,7 +1,5 @@
 pub use crate::{
-    buffer::Buffer,
-    node::{Input, Node},
-    BoxedNode, BoxedNodeSend, Message, NodeData, Pass, Processor, Sum2,
+    buffer::Buffer, node::Node, BoxedNodeSend, Message, NodeData, Pass, Processor, Sum2,
 };
 use hashbrown::HashMap;
 use petgraph::{graph::NodeIndex, prelude::EdgeIndex};

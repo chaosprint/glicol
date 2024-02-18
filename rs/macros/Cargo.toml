@@ -2,13 +2,7 @@
 name = "glicol_macros"
 version = "0.13.2"
 edition = "2021"
-keywords = [
-	"audio",
-    "music",
-	"DSP",
-	"synth",
-    "synthesizer"
-]
+keywords = ["audio", "music", "DSP", "synth", "synthesizer"]
 
 license-file = "LICENSE"
 description = "Macros for Glicol engine."
