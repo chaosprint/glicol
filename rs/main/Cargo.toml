@@ -19,9 +19,12 @@ bela = []
 
 [dependencies]
 petgraph = { workspace = true }
-glicol_parser = { path = "../parser" }
-glicol_synth = { path = "../synth", features = ["use-samples", "use-meta"] }
-glicol_macros = { path = "../macros" }
+# glicol_parser = { path = "../parser" }
+glicol_parser = { version = "0.13.4" }
+# glicol_synth = { path = "../synth", features = ["use-samples", "use-meta"] }
+glicol_synth = { version = "0.13.4", features = ["use-samples", "use-meta"] }
+# glicol_macros = { path = "../macros" }
+glicol_macros = { version = "0.13.4" }
 lcs-diff = { workspace = true }
 pest = { workspace = true }
 hashbrown = { workspace = true }
