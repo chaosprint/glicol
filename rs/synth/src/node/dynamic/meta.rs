@@ -109,16 +109,24 @@ impl<const N: usize> Node<N> for Meta<N> {
             self.scope.set_or_push("input", arr);
             // self.engine.optimize_ast();
         }
-        let result = self
+
+        match self
             .engine
             .eval_ast_with_scope::<Array>(&mut self.scope, &self.ast)
-            .unwrap();
-
-        for i in 0..N {
-            output[0][i] = match result[i].as_float() {
-                Ok(v) => v,
-                _ => return (),
-            };
+        {
+            Ok(result) => {
+                for i in 0..N {
+                    output[0][i] = match result[i].as_float() {
+                        Ok(v) => v,
+                        _ => return,
+                    };
+                }
+            }
+            Err(e) => {
+                // TODO What do we do with this Box<EvalAltResult>?
+                _ = e;
+                return;
+            }
         }
         // self.phase += N;
     }
