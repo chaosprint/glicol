@@ -24,7 +24,7 @@ pub fn get_error_info(e: Error<Rule>) -> (Vec<Rule>, Vec<Rule>) {
         ErrorVariant::ParsingError {
             positives,
             negatives,
-        } => return (positives, negatives),
+        } => (positives, negatives),
         _ => {
             unimplemented!();
         }

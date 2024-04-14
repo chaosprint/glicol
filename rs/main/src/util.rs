@@ -31,7 +31,7 @@ pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
 #[allow(unused_variables, unused_mut)]
 pub fn makenode<const N: usize>(
     name: &str,
-    paras: &mut Vec<GlicolPara>,
+    paras: &mut [GlicolPara],
     // pos: (usize, usize),
     samples_dict: &HashMap<String, (&'static [f32], usize, usize)>,
     sr: usize,
@@ -111,14 +111,14 @@ pub fn makenode<const N: usize>(
         "pattern_synth" => {
             match &paras[0] {
                 GlicolPara::Symbol(s) => {
-                    let pattern = s.replace("`", "");
+                    let pattern = s.replace('`', "");
                     let mut events = vec![];
-                    for event in pattern.split(",") {
+                    for event in pattern.split(',') {
                         // println!("event {:?}", event);
                         let result: Vec<f32> = event
-                            .split(" ")
+                            .split(' ')
                             .filter(|x| !x.is_empty())
-                            .map(|x| x.replace(" ", "").parse::<f32>().unwrap())
+                            .map(|x| x.replace(' ', "").parse::<f32>().unwrap())
                             .collect();
                         // println!("result {:?}", result);
                         events.push((result[0], result[1]));
@@ -251,9 +251,8 @@ pub fn makenode<const N: usize>(
                 .to_boxed_nodedata(1);
 
             let mut reflist = vec![];
-            match &paras[0] {
-                GlicolPara::Reference(s) => reflist.push(s.to_owned()),
-                _ => {}
+            if let GlicolPara::Reference(s) = &paras[0] {
+                reflist.push(s.to_owned());
             };
             (data, reflist)
         }
@@ -272,9 +271,8 @@ pub fn makenode<const N: usize>(
                 .to_boxed_nodedata(2);
 
             let mut reflist = vec![];
-            match &paras[0] {
-                GlicolPara::Reference(s) => reflist.push(s.to_owned()),
-                _ => {}
+            if let GlicolPara::Reference(s) = &paras[0] {
+                reflist.push(s.to_owned());
             };
             (data, reflist)
         }
@@ -515,16 +513,13 @@ pub fn makenode<const N: usize>(
             let mut order = HashMap::new();
             let mut count = 0;
             for event in events {
-                match &event.1 {
-                    GlicolPara::Reference(s) => {
-                        // reflist: ["~a", "~b", "~a"]
-                        if !reflist.contains(&s) {
-                            reflist.push(s.to_string());
-                            order.insert(s.to_string(), count);
-                            count += 1;
-                        }
+                if let GlicolPara::Reference(s) = &event.1 {
+                    // reflist: ["~a", "~b", "~a"]
+                    if !reflist.contains(s) {
+                        reflist.push(s.to_string());
+                        order.insert(s.to_string(), count);
+                        count += 1;
                     }
-                    _ => {}
                 }
             }
             (
@@ -559,15 +554,12 @@ pub fn makenode<const N: usize>(
         "arrange" => {
             let mut reflist = vec![];
             for p in paras.iter() {
-                match p {
-                    GlicolPara::Reference(s) => {
-                        reflist.push((*s).clone());
-                    }
-                    _ => {}
+                if let GlicolPara::Reference(s) = p {
+                    reflist.push((*s).clone());
                 }
             }
             (
-                Arrange::new(paras.clone())
+                Arrange::new(paras.to_vec())
                     .sr(sr)
                     .bpm(bpm)
                     .to_boxed_nodedata(2),
@@ -586,5 +578,5 @@ pub fn makenode<const N: usize>(
         // },
         _ => unimplemented!(),
     };
-    return Ok((nodedata, reflist));
+    Ok((nodedata, reflist))
 }
