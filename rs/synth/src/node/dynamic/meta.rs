@@ -13,6 +13,12 @@ pub struct Meta<const N: usize> {
     input_order: Vec<usize>,
 }
 
+impl<const N: usize> Default for Meta<N> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<const N: usize> Meta<N> {
     pub fn new() -> Self {
         let phase: usize = 0;
@@ -21,46 +27,46 @@ impl<const N: usize> Meta<N> {
 
         scope
             .push("phase", phase as f32)
-            .push("x0", 0.0 as f32)
-            .push("x1", 0.0 as f32)
-            .push("x2", 0.0 as f32)
-            .push("x3", 0.0 as f32)
-            .push("y0", 0.0 as f32)
-            .push("y1", 0.0 as f32)
-            .push("y2", 0.0 as f32)
-            .push("y3", 0.0 as f32)
-            .push("z0", 0.0 as f32)
-            .push("z1", 0.0 as f32)
-            .push("z2", 0.0 as f32)
-            .push("z3", 0.0 as f32)
-            .push("a", 0.0 as f32)
-            .push("b", 0.0 as f32)
-            .push("c", 0.0 as f32)
-            .push("d", 0.0 as f32)
-            .push("e", 0.0 as f32)
-            .push("f", 0.0 as f32)
-            .push("g", 0.0 as f32)
-            .push("h", 0.0 as f32)
-            .push("i", 0.0 as f32)
-            .push("j", 0.0 as f32)
-            .push("k", 0.0 as f32)
-            .push("l", 0.0 as f32)
-            .push("m", 0.0 as f32)
-            .push("n", 0.0 as f32)
-            .push("o", 0.0 as f32)
-            .push("p", 0.0 as f32)
-            .push("q", 0.0 as f32)
-            .push("r", 0.0 as f32)
-            .push("s", 0.0 as f32)
-            .push("t", 0.0 as f32)
-            .push("u", 0.0 as f32)
-            .push("v", 0.0 as f32)
-            .push("w", 0.0 as f32)
-            .push("x", 0.0 as f32)
-            .push("y", 0.0 as f32)
-            .push("z", 0.0 as f32)
-            .push("freq", 0.0 as f32)
-            .push("freq2", 0.0 as f32)
+            .push("x0", 0.0_f32)
+            .push("x1", 0.0_f32)
+            .push("x2", 0.0_f32)
+            .push("x3", 0.0_f32)
+            .push("y0", 0.0_f32)
+            .push("y1", 0.0_f32)
+            .push("y2", 0.0_f32)
+            .push("y3", 0.0_f32)
+            .push("z0", 0.0_f32)
+            .push("z1", 0.0_f32)
+            .push("z2", 0.0_f32)
+            .push("z3", 0.0_f32)
+            .push("a", 0.0_f32)
+            .push("b", 0.0_f32)
+            .push("c", 0.0_f32)
+            .push("d", 0.0_f32)
+            .push("e", 0.0_f32)
+            .push("f", 0.0_f32)
+            .push("g", 0.0_f32)
+            .push("h", 0.0_f32)
+            .push("i", 0.0_f32)
+            .push("j", 0.0_f32)
+            .push("k", 0.0_f32)
+            .push("l", 0.0_f32)
+            .push("m", 0.0_f32)
+            .push("n", 0.0_f32)
+            .push("o", 0.0_f32)
+            .push("p", 0.0_f32)
+            .push("q", 0.0_f32)
+            .push("r", 0.0_f32)
+            .push("s", 0.0_f32)
+            .push("t", 0.0_f32)
+            .push("u", 0.0_f32)
+            .push("v", 0.0_f32)
+            .push("w", 0.0_f32)
+            .push("x", 0.0_f32)
+            .push("y", 0.0_f32)
+            .push("z", 0.0_f32)
+            .push("freq", 0.0_f32)
+            .push("freq2", 0.0_f32)
             .push("output", output);
 
         let mut engine = Engine::new();
@@ -84,9 +90,8 @@ impl<const N: usize> Meta<N> {
     }
 
     pub fn code(mut self, code: String) -> Self {
-        match self.engine.compile(&code) {
-            Ok(a) => self.ast = a,
-            _ => {}
+        if let Ok(a) = self.engine.compile(&code) {
+            self.ast = a;
         };
         Self { code, ..self }
     }
@@ -99,13 +104,12 @@ impl<const N: usize> Meta<N> {
 
 impl<const N: usize> Node<N> for Meta<N> {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
-        if inputs.len() > 0 {
-            let mut arr = Array::new();
-            for i in 0..N {
-                arr.push(Dynamic::from_float(
-                    inputs[&self.input_order[0]].buffers()[0][i],
-                ));
-            }
+        if !inputs.is_empty() {
+            let arr: Array = inputs[&self.input_order[0]].buffers()[0]
+                .iter()
+                .map(|f| Dynamic::from_float(*f))
+                .collect();
+
             self.scope.set_or_push("input", arr);
             // self.engine.optimize_ast();
         }
@@ -114,32 +118,22 @@ impl<const N: usize> Node<N> for Meta<N> {
             .engine
             .eval_ast_with_scope::<Array>(&mut self.scope, &self.ast)
         {
-            Ok(result) => {
-                for i in 0..N {
-                    output[0][i] = match result[i].as_float() {
-                        Ok(v) => v,
-                        _ => return,
-                    };
-                }
+            Ok(result) => for (out, res) in output[0].iter_mut().zip(result.iter()) {
+                if let Ok(v) = res.as_float() {
+                    *out = v;
+                };
             }
             Err(e) => {
                 // TODO What do we do with this Box<EvalAltResult>?
                 _ = e;
-                return;
             }
         }
         // self.phase += N;
     }
     fn send_msg(&mut self, info: Message) {
         match info {
-            Message::SetToSymbol(pos, s) => match pos {
-                0 => {
-                    match self.engine.compile(&s) {
-                        Ok(a) => self.ast = a,
-                        _ => {}
-                    };
-                }
-                _ => {}
+            Message::SetToSymbol(0, s) => if let Ok(a) = self.engine.compile(s) {
+                self.ast = a;
             },
             Message::Index(i) => self.input_order.push(i),
             Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
