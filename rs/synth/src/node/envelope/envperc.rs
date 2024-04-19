@@ -10,6 +10,12 @@ pub struct EnvPerc {
     input_order: Vec<usize>,
 }
 
+impl Default for EnvPerc {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EnvPerc {
     pub fn new() -> Self {
         Self {
@@ -40,38 +46,36 @@ impl EnvPerc {
 
 impl<const N: usize> Node<N> for EnvPerc {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
-        match inputs.len() {
-            1 => {
-                let attack_len = (self.attack * self.sr as f32) as usize;
-                let decay_len = (self.decay * self.sr as f32) as usize;
-                let dur = attack_len + decay_len;
-                let buf = &mut inputs[&self.input_order[0]].buffers();
-                for i in 0..N {
-                    if buf[0][i] > 0.0 {
-                        self.pos = 0;
-                        self.scale = buf[0][i];
-                    }
-                    if self.pos <= attack_len {
-                        if attack_len == 0 {
-                            output[0][i] = 0.0;
-                        } else {
-                            output[0][i] = self.pos as f32 / attack_len as f32;
-                        }
-                    } else if self.pos > attack_len && self.pos <= dur {
-                        if decay_len == 0 {
-                            output[0][i] = 0.0;
-                        } else {
-                            output[0][i] = (dur - self.pos) as f32 / decay_len as f32;
-                        }
-                    } else {
-                        output[0][i] = 0.0
-                    }
-                    // println!("{}", output[0][i]);
-                    output[0][i] *= self.scale;
-                    self.pos += 1;
+        if inputs.len() == 1 {
+            let attack_len = (self.attack * self.sr as f32) as usize;
+            let decay_len = (self.decay * self.sr as f32) as usize;
+            let dur = attack_len + decay_len;
+            let buf = &mut inputs[&self.input_order[0]].buffers();
+
+            for (input, out) in buf[0].iter().zip(output[0].iter_mut()) {
+                if *input > 0.0 {
+                    self.pos = 0;
+                    self.scale = *input;
                 }
+                if self.pos <= attack_len {
+                    if attack_len == 0 {
+                        *out = 0.0;
+                    } else {
+                        *out = self.pos as f32 / attack_len as f32;
+                    }
+                } else if self.pos > attack_len && self.pos <= dur {
+                    if decay_len == 0 {
+                        *out = 0.0;
+                    } else {
+                        *out = (dur - self.pos) as f32 / decay_len as f32;
+                    }
+                } else {
+                    *out = 0.0
+                }
+                // println!("{}", output[0][i]);
+                *out *= self.scale;
+                self.pos += 1;
             }
-            _ => return (),
         }
     }
 
