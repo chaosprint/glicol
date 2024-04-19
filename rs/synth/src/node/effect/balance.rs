@@ -5,6 +5,12 @@ pub struct Balance {
     input_order: Vec<usize>,
 }
 
+impl Default for Balance {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Balance {
     pub fn new() -> Self {
         Self {
@@ -18,14 +24,11 @@ impl<const N: usize> Node<N> for Balance {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         // println!("inputs {:?} self.input_order {:?}", inputs, self.input_order);
         // panic!();
-        match inputs.len() {
-            2 => {
-                let left = &inputs[&self.input_order[0]];
-                let right = &inputs[&self.input_order[1]];
-                output[0] = left.buffers()[0].clone();
-                output[1] = right.buffers()[0].clone();
-            }
-            _ => {}
+        if inputs.len() == 2 {
+            let left = &inputs[&self.input_order[0]];
+            let right = &inputs[&self.input_order[1]];
+            output[0] = left.buffers()[0].clone();
+            output[1] = right.buffers()[0].clone();
         }
     }
     fn send_msg(&mut self, info: Message) {

@@ -4,7 +4,7 @@ use hashbrown::HashMap;
 use petgraph::graph::NodeIndex;
 
 pub struct Reverb<const N: usize> {
-    fv: freeverb::Freeverb, 
+    fv: freeverb::Freeverb,
     input_order: Vec<usize>,
 }
 
@@ -12,7 +12,7 @@ impl<const N: usize> Reverb<N> {
     pub fn new() -> Self {
         let fv = freeverb::Freeverb::new(44100);
         Self {
-            fv: fv,
+            fv,
             input_order: Vec::new(),
         }
     }
