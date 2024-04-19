@@ -24,10 +24,7 @@ impl<const N: usize> Node<N> for Speed {
     }
     fn send_msg(&mut self, info: Message) {
         match info {
-            Message::SetToNumber(pos, value) => match pos {
-                0 => self.val = value,
-                _ => {}
-            },
+            Message::SetToNumber(0, value) => self.val = value,
             Message::Index(i) => self.input_order.push(i),
             Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
             Message::ResetOrder => {
