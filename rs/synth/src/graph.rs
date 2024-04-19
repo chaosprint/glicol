@@ -61,8 +61,10 @@ where
     where
         G::Map: Default,
     {
-        let mut dfs_post_order = DfsPostOrder::default();
-        dfs_post_order.stack = Vec::with_capacity(max_nodes);
+        let dfs_post_order = DfsPostOrder {
+            stack: Vec::with_capacity(max_nodes),
+            ..Default::default()
+        };
         let inputs = HashMap::new(); //Vec::with_capacity(max_nodes);
         Self {
             dfs_post_order,
@@ -141,7 +143,6 @@ pub fn process<G, T, const N: usize>(
     processor.dfs_post_order.reset(Reversed(&*graph));
     processor.dfs_post_order.move_to(node);
     while let Some(n) = processor.dfs_post_order.next(Reversed(&*graph)) {
-        let data: *mut NodeData<T, N> = graph.node_weight_mut(n).expect(NO_NODE) as *mut _;
         processor.inputs.clear();
         for in_n in (&*graph).neighbors_directed(n, Incoming) {
             // Skip edges that connect the node to itself to avoid aliasing `node`.
@@ -151,17 +152,17 @@ pub fn process<G, T, const N: usize>(
             // println!("{:?}", (&*graph).to_index(in_n));
 
             let input_container = graph.node_weight(in_n).expect(NO_NODE);
-            let input = Input::new(&input_container.buffers, (&*graph).to_index(in_n));
-            processor.inputs.insert((&*graph).to_index(in_n), input);
+            let input = Input::new(&input_container.buffers, (*graph).to_index(in_n));
+            processor.inputs.insert((*graph).to_index(in_n), input);
         }
-        // Here we deference our raw pointer to the `NodeData`. The only references to the graph at
-        // this point in time are the input references and the node itself. We know that the input
-        // references do not alias our node's mutable reference as we explicitly check for it while
-        // looping through the inputs above.
-        unsafe {
-            (*data)
-                .node
-                .process(&mut processor.inputs, &mut (*data).buffers);
-        }
+
+        // Here we used to dereference a raw pointer to the `NodeData`. The only references to the
+        // graph at this point in time are the input references and the node itself. We know that
+        // the input references do not alias out node's mutable reference as we explicitly check
+        // for it while looping through the inputs above.
+        let data = graph.node_weight_mut(n).expect(NO_NODE);
+        data
+            .node
+            .process(&mut processor.inputs, &mut data.buffers);
     }
 }
