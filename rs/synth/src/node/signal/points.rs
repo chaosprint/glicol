@@ -14,6 +14,12 @@ pub struct Points {
     input_order: Vec<usize>,
 }
 
+impl Default for Points {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Points {
     pub fn new() -> Self {
         // points: GlicolPara, bpm: f32, sr: usize, span: f32
@@ -62,46 +68,42 @@ impl Points {
         sr: usize,
         span: f32,
     ) -> Vec<(usize, f32)> {
-        let mut point_list = vec![];
-        match points {
-            GlicolPara::Points(p) => {
-                for point in p {
-                    let time = point.0;
-                    let mut pos = 0; // which sample
-                    match time {
-                        GlicolPara::Time(t) => {
-                            let cycle_dur = 60. / bpm * 4.;
-                            let bar_dur = cycle_dur * span * sr as f32;
+        let mut point_list = match points {
+            GlicolPara::Points(p) => p.into_iter().map(|point| {
+                let time = point.0;
+                let mut pos = 0; // which sample
+                if let GlicolPara::Time(t) = time {
+                    let cycle_dur = 60. / bpm * 4.;
+                    let bar_dur = cycle_dur * span * sr as f32;
 
-                            for time_kind in t {
-                                match time_kind {
-                                    GlicolPara::Bar(x) => {
-                                        pos += (x * bar_dur) as usize;
-                                    }
-                                    GlicolPara::Second(x) => {
-                                        pos += (x * (sr as f32)) as usize;
-                                    }
-                                    GlicolPara::Millisecond(x) => {
-                                        pos += (x / 1000.0 * (sr as f32)) as usize;
-                                    }
-                                    _ => {}
-                                }
+                    for time_kind in t {
+                        match time_kind {
+                            GlicolPara::Bar(x) => {
+                                pos += (x * bar_dur) as usize;
                             }
+                            GlicolPara::Second(x) => {
+                                pos += (x * (sr as f32)) as usize;
+                            }
+                            GlicolPara::Millisecond(x) => {
+                                pos += (x / 1000.0 * (sr as f32)) as usize;
+                            }
+                            _ => {}
                         }
-                        _ => {}
                     }
-                    let value = match point.1 {
-                        GlicolPara::Number(v) => v,
-                        _ => 0.0,
-                    };
-                    point_list.push((pos, value));
                 }
-            }
-            _ => {}
+                let value = match point.1 {
+                    GlicolPara::Number(v) => v,
+                    _ => 0.0,
+                };
+                (pos, value)
+            }).collect(),
+            _ => vec![]
         };
+
         if point_list[0].0 != 0 {
             point_list.insert(0, (0, 0.0));
         }
+
         point_list
     }
 
@@ -113,64 +115,56 @@ impl<const N: usize> Node<N> for Points {
         // println!("span {}", self.span);
         let list_len = self.point_list.len();
         if list_len == 0 {
-            return ();
+            return ;
         }
         let cycle_dur = 60. / self.bpm * 4.;
         let bar_dur = (cycle_dur * self.span * self.sr as f32) as usize;
 
         if !self.is_looping {
-            for i in 0..N {
+            for out in &mut *output[0] {
                 let pos = self.step;
                 let samples = &self.point_list;
 
-                // WRITTEN BY ChatGPT, instructed and modified by chaosprint
-                let len = samples.len();
-                let mut index = 0;
-                while index < len - 1 && pos > samples[index + 1].0 {
-                    index += 1;
-                }
+                let index = samples.iter().position(|s| pos <= s.0).map_or(0, |p| p - 1);
 
                 // println!("index {} pos {} samples {:?}", index, pos, samples);
-                if index < len - 1 {
+                if index < samples.len() - 1 {
                     // not yet reach the last point
                     let (prev_pos, prev_val) = samples[index];
                     let (next_pos, next_val) = samples[index + 1];
                     let t = (pos as f32 - prev_pos as f32) / (next_pos as f32 - prev_pos as f32);
-                    output[0][i] = prev_val + t * (next_val - prev_val);
-                    self.step += 1;
+                    *out = prev_val + t * (next_val - prev_val);
                 } else {
                     // reach the last point
                     // pass the last point stay at the last point
                     // panic!("self.step {}", self.step);
-                    output[0][i] = samples[len - 1].1;
-                    self.step += 1;
+                    *out = samples.last().unwrap().1;
                 }
+                self.step += 1;
             }
         } else {
-            for i in 0..N {
-                let pos = self.step % bar_dur as usize;
-                let period = bar_dur as usize;
+            for out in &mut *output[0] {
+                let pos = self.step % bar_dur;
+                let period = bar_dur;
                 let samples = &self.point_list;
 
-                // WRITTEN BY ChatGPT, instructed and modified by chaosprint
-                let len = samples.len();
-                let mut index = 0;
-                while index < len - 1 && pos > samples[index + 1].0 {
-                    index += 1;
-                }
-                let (prev_pos, prev_val) = samples[index];
-                let (next_pos, next_val) = if index == len - 1 {
-                    samples[0]
+                let prev = samples.iter()
+                    .enumerate()
+                    .find(|(_, (s, _))| pos <= *s);
+
+                let is_last = prev.is_none();
+                let (index, (prev_pos, prev_val)) = prev
+                    .unwrap_or_else(|| (samples.len() - 1, samples.last().unwrap()));
+
+                let (next_pos, next_val) = samples[(index + 1) % samples.len()];
+
+                let t = if is_last {
+                    (pos as f32 - *prev_pos as f32)
+                        / (period as f32 - *prev_pos as f32 + next_pos as f32)
                 } else {
-                    samples[index + 1]
+                    (pos as f32 - *prev_pos as f32) / (next_pos as f32 - *prev_pos as f32)
                 };
-                let t = if index == len - 1 {
-                    (pos as f32 - prev_pos as f32)
-                        / (period as f32 - prev_pos as f32 + next_pos as f32)
-                } else {
-                    (pos as f32 - prev_pos as f32) / (next_pos as f32 - prev_pos as f32)
-                };
-                output[0][i] = prev_val + t * (next_val - prev_val);
+                *out = prev_val + t * (next_val - prev_val);
 
                 self.step += 1;
             }
@@ -178,26 +172,17 @@ impl<const N: usize> Node<N> for Points {
     }
     fn send_msg(&mut self, info: Message) {
         match info {
-            Message::SetParam(pos, params) => match pos {
-                0 => {
-                    self.point_list = self.make_point_list(params, self.bpm, self.sr, self.span);
-                    self.step = 0;
-                }
-                _ => {}
+            Message::SetParam(0, params) => {
+                self.point_list = self.make_point_list(params, self.bpm, self.sr, self.span);
+                self.step = 0;
             },
-            Message::SetToNumber(pos, num) => match pos {
-                1 => {
-                    self.span = num;
-                    self.step = 0;
-                }
-                _ => {}
+            Message::SetToNumber(1, num) => {
+                self.span = num;
+                self.step = 0;
             },
-            Message::SetToBool(pos, b) => match pos {
-                2 => {
-                    self.is_looping = b;
-                    self.step = 0;
-                }
-                _ => {}
+            Message::SetToBool(2, b) => {
+                self.is_looping = b;
+                self.step = 0;
             },
             Message::SetBPM(bpm) => self.bpm = bpm,
             Message::Index(i) => self.input_order.push(i),

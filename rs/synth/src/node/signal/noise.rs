@@ -26,12 +26,7 @@ impl<const N: usize> Node<N> for Noise {
     }
     fn send_msg(&mut self, info: Message) {
         match info {
-            Message::SetToNumber(pos, value) => match pos {
-                0 => {
-                    self.sig = Box::new(signal::noise(value as u64));
-                }
-                _ => {}
-            },
+            Message::SetToNumber(0, value) => self.sig = Box::new(signal::noise(value as u64)),
             Message::Index(i) => self.input_order.push(i),
             Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
             _ => {}
