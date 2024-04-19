@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use crate::{impl_to_boxed_nodedata, BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
 use hashbrown::HashMap;
 
@@ -14,6 +16,12 @@ pub struct MsgSynth {
     sr: usize,
     step: usize,
     input_order: Vec<usize>,
+}
+
+impl Default for MsgSynth {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl MsgSynth {
@@ -75,44 +83,48 @@ impl<const N: usize> Node<N> for MsgSynth {
         // match inputs.len() {
         // 0 => {
         // let bar_length = self.cycle_dur * self.period_in_cycle * self.sr as f32;
-        for i in 0..N {
-            output[0][i] = 0.0;
+        for out in &mut *output[0] {
+            *out = 0.0;
 
             for event in &self.events {
                 if self.step == event.0 {
                     let midi = event.1;
-                    let freq = 2f32.powf((midi as f32 - 69.) / 12.) * 440.;
+                    let freq = 2f32.powf((midi - 69.) / 12.) * 440.;
                     self.synth_list.push((self.step, freq));
                     self.phase_list.push(0.0);
                 }
             }
 
-            let mut to_remove = vec![];
-            for (synth_index, synth_info) in self.synth_list.iter().enumerate() {
+            let mut to_remove = Vec::with_capacity(self.synth_list.len());
+            for (synth_index, (synth_info, phase)) in self.synth_list.iter()
+                .zip(self.phase_list.iter_mut())
+                .enumerate()
+            {
                 let dur = (self.att + self.dec) * self.sr as f32;
+
                 if self.step - synth_info.0 <= dur as usize {
                     let pos = self.step - synth_info.0;
-                    let mut amp = 0.0;
-                    if pos <= attack_n {
-                        if attack_n == 0 {
-                            amp = 0.0;
+
+                    let amp = match pos.cmp(&attack_n) {
+                        Ordering::Greater | Ordering::Equal => if attack_n == 0 {
+                            0.0
                         } else {
-                            amp = pos as f32 / (self.att * self.sr as f32);
-                        }
-                    } else if pos > attack_n {
-                        if decay_n == 0 {
-                            amp = 0.0;
+                            pos as f32 / (self.att * self.sr as f32)
+                        },
+                        Ordering::Less => if decay_n == 0 {
+                            0.0
                         } else {
-                            amp = (dur as usize - pos) as f32 / (self.dec * self.sr as f32);
+                            (dur as usize - pos) as f32 / (self.dec * self.sr as f32)
                         }
-                    }
-                    let out = self.phase_list[synth_index] * 2. - 1.;
-                    self.phase_list[synth_index] += synth_info.1 / self.sr as f32;
-                    if self.phase_list[synth_index] > 1. {
-                        self.phase_list[synth_index] -= 1.
+                    };
+
+                    let phase_out = *phase * 2. - 1.;
+                    *phase += synth_info.1 / self.sr as f32;
+                    if *phase > 1. {
+                        *phase -= 1.
                     }
                     // println!("amp {} out {} step {}", amp, out, self.step);
-                    output[0][i] += amp * out * 0.1;
+                    *out += amp * phase_out * 0.1;
                     // println!("output[{}] {}",i, output[0][i]);
                 } else {
                     // remove this from start_step_list and output_list
@@ -129,12 +141,8 @@ impl<const N: usize> Node<N> for MsgSynth {
     fn send_msg(&mut self, info: Message) {
         match info {
             Message::SetToNumber(pos, v) => match pos {
-                1 => {
-                    self.att = v;
-                }
-                2 => {
-                    self.dec = v;
-                }
+                1 => self.att = v,
+                2 => self.dec = v,
                 _ => {}
             },
             Message::SetToSymbol(pos, s) => {
@@ -149,17 +157,13 @@ impl<const N: usize> Node<N> for MsgSynth {
                         // estimate event_s "2.74343=>60"
                         // for event_s.split("=>");
                         if event_s.contains("=>") {
-                            let event: Vec<f32> = event_s
-                                .split("=>")
-                                .map(|v| v.parse::<f32>().unwrap())
-                                .collect();
-                            if event.len() != 2 {
-                                return ();
-                            } else {
-                                let event_n = (event[0] * self.sr as f32) as usize;
-                                self.events.push((event_n, event[1]));
+
+                            let mut events = event_s.split("=>").map(|v| v.parse::<f32>().unwrap());
+
+                            if let (Some(start), Some(end)) = (events.next(), events.next()) {
+                                let event_n = (start * self.sr as f32) as usize;
+                                self.events.push((event_n, end));
                             }
-                        } else {
                         }
                     }
                     _ => {}
