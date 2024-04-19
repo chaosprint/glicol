@@ -10,6 +10,12 @@ pub struct DelayMs {
     delay_n: usize,
 }
 
+impl Default for DelayMs {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DelayMs {
     pub fn new() -> Self {
         Self {
@@ -21,20 +27,9 @@ impl DelayMs {
     }
 
     pub fn delay(self, delay: f32, chan: u8) -> Self {
-        let mut buf;
-        let delay_n = (delay / 1000. * self.sr as f32) as usize;
+        let delay_n = ((delay / 1000. * self.sr as f32) as usize).max(1);
+        let buf = vec![Fixed::from(vec![0.0; delay_n]); chan as usize];
 
-        if delay_n == 0 {
-            buf = vec![];
-            for _ in 0..chan {
-                buf.push(Fixed::from(vec![0.0; 1]))
-            }
-        } else {
-            buf = vec![];
-            for _ in 0..chan {
-                buf.push(Fixed::from(vec![0.0; delay_n]))
-            }
-        };
         Self {
             buf,
             delay_n,
@@ -60,17 +55,13 @@ impl<const N: usize> Node<N> for DelayMs {
                     for i in 0..N {
                         output[0][i] = main_input.buffers()[0][i];
                     }
-                } else {
-                    if main_input.buffers().len() == 1 {
-                        for i in 0..N {
-                            output[0][i] = self.buf[0].push(main_input.buffers()[0][i]);
+                } else if (1..=2).contains(&main_input.buffers().len()) {
+                    for i in 0..N {
+                        let iter = self.buf.iter_mut().zip(output.iter_mut()).zip(main_input.buffers());
+
+                        for ((fixed, out_buf), main_buf) in iter {
+                            out_buf[i] = fixed.push(main_buf[i]);
                         }
-                    } else if main_input.buffers().len() == 2 {
-                        for i in 0..N {
-                            output[0][i] = self.buf[0].push(main_input.buffers()[0][i]);
-                            output[1][i] = self.buf[1].push(main_input.buffers()[1][i]);
-                        }
-                    } else {
                     }
                 }
             }
@@ -86,18 +77,14 @@ impl<const N: usize> Node<N> for DelayMs {
                     }
                     let pos_int = pos.floor() as usize;
                     let pos_frac = pos.fract();
-                    if main_input.buffers().len() == 1 {
-                        output[0][i] = self.buf[0].get(pos_int) * pos_frac
-                            + self.buf[0].get(pos_int + 1) * (1. - pos_frac);
-                        self.buf[0].push(main_input.buffers()[0][i]);
-                    } else if main_input.buffers().len() == 2 {
-                        output[0][i] = self.buf[0].get(pos_int) * pos_frac
-                            + self.buf[0].get(pos_int + 1) * (1. - pos_frac);
-                        self.buf[0].push(main_input.buffers()[0][i]);
-                        output[1][i] = self.buf[1].get(pos_int) * pos_frac
-                            + self.buf[1].get(pos_int + 1) * (1. - pos_frac);
-                        self.buf[1].push(main_input.buffers()[1][i]);
-                    } else {
+
+                    if (1..=2).contains(&main_input.buffers().len()) {
+                        let iter = self.buf.iter_mut().zip(output.iter_mut()).zip(main_input.buffers());
+
+                        for ((fixed, out_buf), main_buf) in iter {
+                            out_buf[i] = fixed.get(pos_int) * pos_frac + fixed.get(pos_int + 1) * (1. - pos_frac);
+                            fixed.push(main_buf[i]);
+                        }
                     }
 
                     // output[1][i] = self.buf2.get(pos_int) * pos_frac + self.buf2.get(pos_int+1) * (1.-pos_frac);
@@ -105,28 +92,22 @@ impl<const N: usize> Node<N> for DelayMs {
                     // self.buf2.push(main_input.buffers()[1][i]);
                 }
             }
-            _ => return (),
+            _ => (),
         }
     }
 
     fn send_msg(&mut self, info: Message) {
         match info {
-            Message::SetToNumber(pos, value) => match pos {
-                0 => {
-                    let delay_n = (value / 1000. * self.sr as f32) as usize;
-                    self.delay_n = delay_n;
+            Message::SetToNumber(0, value) => {
+                let delay_n = (value / 1000. * self.sr as f32) as usize;
+                self.delay_n = delay_n;
 
-                    if delay_n == 0 {
-                        self.buf = vec![];
-                    } else {
-                        let chan = self.buf.len();
-                        self.buf = vec![];
-                        for _ in 0..chan {
-                            self.buf.push(Fixed::from(vec![0.0; delay_n]))
-                        }
-                    };
-                }
-                _ => {}
+                if delay_n == 0 {
+                    self.buf.clear();
+                } else {
+                    let chan = self.buf.len();
+                    self.buf = vec![Fixed::from(vec![0.0; delay_n]); chan];
+                };
             },
             Message::Index(i) => self.input_order.push(i),
             Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
