@@ -13,6 +13,12 @@ pub struct ResonantHighPassFilter {
     input_order: Vec<usize>,
 }
 
+impl Default for ResonantHighPassFilter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ResonantHighPassFilter {
     pub fn new() -> Self {
         Self {
@@ -57,13 +63,12 @@ impl<const N: usize> Node<N> for ResonantHighPassFilter {
                 let a2 = (0.5 + beta + gama) / 2.0;
                 let b1 = -2.0 * gama;
                 let b2 = 2.0 * beta;
-                for i in 0..N {
-                    let x0 = main_input.buffers()[0][i];
+                for (out, x0) in output[0].iter_mut().zip(main_input.buffers()[0].iter()) {
                     let y =
                         a0 * self.x0 + a1 * self.x1 + a2 * self.x2 - b1 * self.y1 - b2 * self.y2;
-                    output[0][i] = y;
+                    *out = y;
                     self.x2 = self.x1;
-                    self.x1 = x0;
+                    self.x1 = *x0;
                     self.y2 = self.y1;
                     self.y1 = y;
                 }
@@ -83,18 +88,17 @@ impl<const N: usize> Node<N> for ResonantHighPassFilter {
                 let b1 = -2.0 * gama;
                 let b2 = 2.0 * beta;
 
-                for i in 0..N {
-                    let x0 = main_input.buffers()[0][i];
+                for (out, x0) in output[0].iter_mut().zip(main_input.buffers()[0].iter()) {
                     let y =
                         a0 * self.x0 + a1 * self.x1 + a2 * self.x2 - b1 * self.y1 - b2 * self.y2;
-                    output[0][i] = y;
+                    *out = y;
                     self.x2 = self.x1;
-                    self.x1 = x0;
+                    self.x1 = *x0;
                     self.y2 = self.y1;
                     self.y1 = y;
                 }
             }
-            _ => return (),
+            _ => (),
         }
     }
 
