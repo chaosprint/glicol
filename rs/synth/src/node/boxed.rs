@@ -101,15 +101,15 @@ where
     }
 }
 
-impl<const N: usize> Into<Box<dyn Node<N>>> for BoxedNode<N> {
-    fn into(self) -> Box<dyn Node<N>> {
-        self.0
+impl<const N: usize> From<BoxedNode<N>> for Box<dyn Node<N>> {
+    fn from(value: BoxedNode<N>) -> Self {
+        value.0
     }
 }
 
-impl<const N: usize> Into<Box<dyn Node<N> + Send>> for BoxedNodeSend<N> {
-    fn into(self) -> Box<dyn Node<N> + Send> {
-        self.0
+impl<const N: usize> From<BoxedNodeSend<N>> for Box<dyn Node<N> + Send> {
+    fn from(value: BoxedNodeSend<N>) -> Self {
+        value.0
     }
 }
 
