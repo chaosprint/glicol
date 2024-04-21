@@ -46,21 +46,24 @@ impl DelayMs {
 
 impl<const N: usize> Node<N> for DelayMs {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
+        if !(1..=2).contains(&main_input.buffers().len()) {
+            return;
+        }
+
         match inputs.len() {
             1 => {
                 // no modulation
                 let main_input = inputs.values_mut().next().unwrap();
-                if self.delay_n == 0 {
+                match self.delay_n {
                     // equal to a pass node
-                    for i in 0..N {
-                        output[0][i] = main_input.buffers()[0][i];
-                    }
-                } else if (1..=2).contains(&main_input.buffers().len()) {
-                    for i in 0..N {
+                    0 => output[0].copy_from_slice(&*main_input.buffers()[0]),
+                    _ =>  {
                         let iter = self.buf.iter_mut().zip(output.iter_mut()).zip(main_input.buffers());
 
                         for ((fixed, out_buf), main_buf) in iter {
-                            out_buf[i] = fixed.push(main_buf[i]);
+                            for (out, main) in out_buf.iter_mut().zip(main_buf.iter()) {
+                                *out = fixed.push(main);
+                            }
                         }
                     }
                 }
@@ -78,19 +81,17 @@ impl<const N: usize> Node<N> for DelayMs {
                     let pos_int = pos.floor() as usize;
                     let pos_frac = pos.fract();
 
-                    if (1..=2).contains(&main_input.buffers().len()) {
-                        let iter = self.buf.iter_mut().zip(output.iter_mut()).zip(main_input.buffers());
+                    let iter = self.buf.iter_mut().zip(output.iter_mut()).zip(main_input.buffers());
 
-                        for ((fixed, out_buf), main_buf) in iter {
-                            out_buf[i] = fixed.get(pos_int) * pos_frac + fixed.get(pos_int + 1) * (1. - pos_frac);
-                            fixed.push(main_buf[i]);
-                        }
+                    for ((fixed, out_buf), main_buf) in iter {
+                        out_buf[i] = fixed.get(pos_int) * pos_frac + fixed.get(pos_int + 1) * (1. - pos_frac);
+                        fixed.push(main_buf[i]);
                     }
-
-                    // output[1][i] = self.buf2.get(pos_int) * pos_frac + self.buf2.get(pos_int+1) * (1.-pos_frac);
-
-                    // self.buf2.push(main_input.buffers()[1][i]);
                 }
+
+                // output[1][i] = self.buf2.get(pos_int) * pos_frac + self.buf2.get(pos_int+1) * (1.-pos_frac);
+
+                // self.buf2.push(main_input.buffers()[1][i]);
             }
             _ => (),
         }

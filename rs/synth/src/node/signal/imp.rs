@@ -43,10 +43,12 @@ impl<const N: usize> Node<N> for Impulse {
         // for o in output {
         //     o.iter_mut().for_each(|s| *s = self.sig.next() as f32);
         // }
-        let new_out = [(self.clock % self.period == 0) as u8 as f32; N];
-        output[0].copy_from_slice(&new_out);
-        self.clock += N;
+        for out in &mut *output[0] {
+            *out = (self.clock % self.period == 0) as u8 as f32;
+            self.clock += 1;
+        }
     }
+
     fn send_msg(&mut self, info: Message) {
         match info {
             Message::SetToNumber(0, value) => self.period = (self.sr as f32 / value) as usize,
