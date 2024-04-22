@@ -30,10 +30,7 @@ impl<const N: usize> Node<N> for Choose {
     }
     fn send_msg(&mut self, info: Message) {
         match info {
-            Message::SetToNumberList(pos, list) => match pos {
-                0 => self.note_list = list,
-                _ => {}
-            },
+            Message::SetToNumberList(0, list) => self.note_list = list,
             Message::Index(i) => self.input_order.push(i),
             Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
             Message::ResetOrder => {

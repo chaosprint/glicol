@@ -9,6 +9,12 @@ pub struct Impulse {
     input_order: Vec<usize>,
 }
 
+impl Default for Impulse {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Impulse {
     pub fn new() -> Self {
         Self {
@@ -37,18 +43,15 @@ impl<const N: usize> Node<N> for Impulse {
         // for o in output {
         //     o.iter_mut().for_each(|s| *s = self.sig.next() as f32);
         // }
-        for i in 0..N {
-            let out = (self.clock % self.period == 0) as u8;
-            output[0][i] = out as f32;
+        for out in &mut *output[0] {
+            *out = (self.clock % self.period == 0) as u8 as f32;
             self.clock += 1;
         }
     }
+
     fn send_msg(&mut self, info: Message) {
         match info {
-            Message::SetToNumber(pos, value) => match pos {
-                0 => self.period = (self.sr as f32 / value) as usize,
-                _ => {}
-            },
+            Message::SetToNumber(0, value) => self.period = (self.sr as f32 / value) as usize,
             Message::Index(i) => self.input_order.push(i),
             Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
             _ => {}

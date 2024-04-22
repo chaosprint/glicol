@@ -1,8 +1,8 @@
 #[macro_use]
 extern crate lazy_static;
 
-use std::sync::{Mutex};
-use std::{slice::from_raw_parts_mut};
+use std::sync::Mutex;
+use std::slice::from_raw_parts_mut;
 
 use glicol::Engine;
 
@@ -11,7 +11,7 @@ pub extern "C" fn alloc(size: usize) -> *mut f32 {
     let mut buf = Vec::<f32>::with_capacity(size);
     let ptr = buf.as_mut_ptr();
     std::mem::forget(buf);
-    ptr as *mut f32
+    ptr
 }
 
 #[no_mangle]
@@ -26,31 +26,37 @@ lazy_static! {
     static ref ENGINE:Mutex<Engine<128>> = Mutex::new(Engine::<128>::new());
 }
 
+/// # Safety
+///
+/// - in_ptr must be aligned and non-null
+/// - out_ptr must aligned and non-null
+/// - result_ptr must be aligned and nonnull
 #[no_mangle]
-pub extern "C" fn process(in_ptr: *mut f32, out_ptr: *mut f32, size: usize, result_ptr: *mut u8) {
+pub unsafe extern "C" fn process(in_ptr: *mut f32, out_ptr: *mut f32, size: usize, result_ptr: *mut u8) {
     let mut engine = ENGINE.lock().unwrap();
 
-    let _in_buf: &mut [f32] = unsafe { std::slice::from_raw_parts_mut(in_ptr, 128) };
+    let _in_buf: &mut [f32] = unsafe { from_raw_parts_mut(in_ptr, 128) };
     let result:&mut [u8] = unsafe { from_raw_parts_mut(result_ptr, 256) };
-    
+
     let (engine_out, console) = engine.next_block(vec![]);
 
-    let out_buf: &mut [f32] = unsafe { std::slice::from_raw_parts_mut(out_ptr, size) };
-    for i in 0..128 {
-        out_buf[i] = engine_out[0][i] as f32;
-        out_buf[i+128] = engine_out[1][i] as f32;       
-    };
-    for i in 0..256 {
-        result[i] = console[i]
-    }
+    let out_buf: &mut [f32] = unsafe { from_raw_parts_mut(out_ptr, size) };
+
+    out_buf[..128].copy_from_slice(&engine_out[0][..128]);
+    out_buf[128..].copy_from_slice(&engine_out[1][..128]);
+    result[..256].copy_from_slice(&console);
 }
 
+/// # Safety
+///
+/// - name_ptr must be aligned and non-null
+/// - arr_ptr must aligned and non-null
 #[no_mangle]
-pub extern "C" fn add_sample(
+pub unsafe extern "C" fn add_sample(
     name_ptr: *mut u8,
     name_len: usize,
-    arr_ptr: *mut f32, 
-    length: usize, 
+    arr_ptr: *mut f32,
+    length: usize,
     channels: usize,
     sr: usize
 ) {
@@ -62,10 +68,12 @@ pub extern "C" fn add_sample(
     // engine.update(code);
 }
 
-
+/// # Safety
+///
+/// - arr_ptr must be aligned and non-null
 #[no_mangle]
-pub extern "C" fn update(arr_ptr: *mut u8, length: usize) { //, result_ptr: *mut u8
-    
+pub unsafe extern "C" fn update(arr_ptr: *mut u8, length: usize) { //, result_ptr: *mut u8
+
     let mut engine = ENGINE.lock().unwrap();
     let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
     let code = std::str::from_utf8(encoded).unwrap();
@@ -74,9 +82,12 @@ pub extern "C" fn update(arr_ptr: *mut u8, length: usize) { //, result_ptr: *mut
     engine.update_with_code(code);
 }
 
+/// # Safety
+///
+/// - arr_ptr must be aligned and non-null
 #[no_mangle]
-pub extern "C" fn send_msg(arr_ptr: *mut u8, length: usize) { //, result_ptr: *mut u8
-    
+pub unsafe extern "C" fn send_msg(arr_ptr: *mut u8, length: usize) { //, result_ptr: *mut u8
+
     let mut engine = ENGINE.lock().unwrap();
     let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
     let msg = std::str::from_utf8(encoded).unwrap();

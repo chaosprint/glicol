@@ -63,9 +63,9 @@ impl<const N:usize> Node<N> for Expr<N> {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
 
         // self.context.set_value("phase".to_owned(), Value::Float(self.phase_n as f64)).unwrap();
-        
+
         for i in 0..N {
-            if inputs.len() > 0 {    
+            if inputs.len() > 0 {
                 self.context.set_value("in".to_owned(),
                 evalexpr::Value::Float(
                     inputs[&self.input_order[0]].buffers()[0][i] as f64 )).unwrap();
@@ -74,25 +74,14 @@ impl<const N:usize> Node<N> for Expr<N> {
             self.phase_n += 1;
         }
     }
-    
+
     fn send_msg(&mut self, info: Message) {
 
         match info {
-            Message::SetToSymbol(pos, s) => {
-                match pos {
-                    0 => {self.precompiled = build_operator_tree(&s).unwrap()},
-                    _ => {}
-                }
-            },
-            Message::Index(i) => {
-                self.input_order.push(i)
-            },
-            Message::IndexOrder(pos, index) => {
-                self.input_order.insert(pos, index)
-            },
-            Message::ResetOrder => {
-                self.input_order.clear();
-            },
+            Message::SetToSymbol(0, s) => self.precompiled = build_operator_tree(&s).unwrap(),
+            Message::Index(i) => self.input_order.push(i),
+            Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
+            Message::ResetOrder => self.input_order.clear(),
             _ => {}
         }
     }

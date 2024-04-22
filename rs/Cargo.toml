@@ -18,7 +18,7 @@ dasp_slice = { version = "0.11.0", default-features = false, features = [
 dasp_ring_buffer = "0.11.0"
 dasp_signal = "0.11.0"
 dasp_interpolate = { version = "0.11.0", features = ["linear", "sinc"] }
-hashbrown = "0.13.1"
+hashbrown = "0.14.3"
 arrayvec = "0.7.2"
 rhai = { version = "1.12.0", default-features = false, features = [
     "sync",
@@ -26,6 +26,6 @@ rhai = { version = "1.12.0", default-features = false, features = [
     "only_i32",
 ] }
 fasteval = "0.2.4"
-pest = "2.1.3"
-pest_derive = "2.1.0"
+pest = "2.7.9"
+pest_derive = "2.7.9"
 lcs-diff = "0.1.1"

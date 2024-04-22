@@ -69,9 +69,8 @@ impl<const N: usize> Node<N> for PSampler {
                 }
             }
 
-            let mut count = 0;
-            let mut to_remove = vec![];
-            for (begin, name, dur) in &self.playback {
+            let mut to_remove = Vec::with_capacity(self.playback.len());
+            for (count, (begin, name, dur)) in self.playback.iter().enumerate() {
                 let pos = (self.step - begin) as f32 / dur;
                 if pos <= 1.0 {
                     let sample = self.samples_dict[name];
@@ -124,12 +123,11 @@ impl<const N: usize> Node<N> for PSampler {
                                 _ => {}
                             };
                         }
-                        _ => return (),
+                        _ => return,
                     }
                 } else {
                     to_remove.push(count)
                 }
-                count += 1;
             }
             for c in to_remove.iter().rev() {
                 self.playback.remove(*c);

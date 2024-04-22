@@ -13,6 +13,12 @@ pub struct AudioContextBuilder<const N: usize> {
     max_edges: usize,
 }
 
+impl<const N: usize> Default for AudioContextBuilder<N> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<const N: usize> AudioContextBuilder<N> {
     pub fn new() -> Self {
         Self {
@@ -145,39 +151,36 @@ impl<const N: usize> AudioContext<N> {
     where
         T: Node<N> + Send + 'static,
     {
-        let node_index = self.graph.add_node(
+        self.graph.add_node(
             // channel?
             NodeData::new1(BoxedNodeSend::<N>::new(node)),
-        );
-        return node_index;
+        )
     }
 
     pub fn add_stereo_node<T>(&mut self, node: T) -> NodeIndex
     where
         T: Node<N> + Send + 'static,
     {
-        let node_index = self.graph.add_node(
+        self.graph.add_node(
             // channel?
             NodeData::new2(BoxedNodeSend::<N>::new(node)),
-        );
-        return node_index;
+        )
     }
 
     pub fn add_multi_chan_node<T>(&mut self, chan: usize, node: T) -> NodeIndex
     where
         T: Node<N> + Send + 'static,
     {
-        let node_index = self.graph.add_node(
+        self.graph.add_node(
             // channel?
             NodeData::multi_chan_node(chan, BoxedNodeSend::<N>::new(node)),
-        );
-        return node_index;
+        )
     }
 
     pub fn connect(&mut self, from: NodeIndex, to: NodeIndex) -> EdgeIndex {
         let edge_index = self.graph.add_edge(from, to, ());
         self.graph[to].node.send_msg(Message::Index(from.index()));
-        return edge_index;
+        edge_index
     }
 
     pub fn connect_with_order(&mut self, from: NodeIndex, to: NodeIndex, pos: usize) -> EdgeIndex {
@@ -185,52 +188,52 @@ impl<const N: usize> AudioContext<N> {
         self.graph[to]
             .node
             .send_msg(Message::IndexOrder(pos, from.index()));
-        return edge_index;
+        edge_index
     }
 
     pub fn chain(&mut self, chain: Vec<NodeIndex>) -> Vec<EdgeIndex> {
-        let mut v = vec![];
-        for pair in chain.windows(2) {
-            v.push(self.graph.add_edge(pair[0], pair[1], ()));
-            self.graph[pair[1]]
-                .node
-                .send_msg(Message::Index(pair[0].index()));
-        }
-        v
+        chain.windows(2)
+            .map(|pair| {
+                let ret = self.graph.add_edge(pair[0], pair[1], ());
+                self.graph[pair[1]]
+                    .node
+                    .send_msg(Message::Index(pair[0].index()));
+                ret
+            }).collect()
     }
 
     pub fn chain_boxed(
         &mut self,
         chain: Vec<GlicolNodeData<N>>,
     ) -> (Vec<NodeIndex>, Vec<EdgeIndex>) {
-        let mut indexes = vec![];
-        let mut v = vec![];
-        for node in chain {
-            let id = self.graph.add_node(node);
-            indexes.push(id);
-        }
-        for pair in indexes.windows(2) {
-            v.push(self.graph.add_edge(pair[0], pair[1], ()));
-            self.graph[pair[1]]
-                .node
-                .send_msg(Message::Index(pair[0].index()));
-        }
-        (indexes, v)
+        let indices = chain.into_iter()
+            .map(|node| self.graph.add_node(node))
+            .collect::<Vec<_>>();
+
+        let v = indices.windows(2)
+            .map(|pair| {
+                let ret = self.graph.add_edge(pair[0], pair[1], ());
+                self.graph[pair[1]]
+                    .node
+                    .send_msg(Message::Index(pair[0].index()));
+                ret
+            }).collect();
+
+        (indices, v)
     }
 
     pub fn add_node_chain(
         &mut self,
         chain: Vec<NodeData<BoxedNodeSend<N>, N>>,
     ) -> (Vec<NodeIndex>, Vec<EdgeIndex>) {
-        let mut v = vec![];
-        let mut j = vec![];
-        for node in chain {
-            let id = self.graph.add_node(node);
-            v.push(id);
-        }
-        for pair in v.windows(2) {
-            j.push(self.graph.add_edge(pair[0], pair[1], ()));
-        }
+        let v = chain.into_iter()
+            .map(|node| self.graph.add_node(node))
+            .collect::<Vec<_>>();
+
+        let j = v.windows(2)
+            .map(|pair| self.graph.add_edge(pair[0], pair[1], ()))
+            .collect();
+
         (v, j)
     }
 

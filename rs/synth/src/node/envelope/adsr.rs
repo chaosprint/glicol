@@ -17,6 +17,12 @@ pub struct Adsr {
     input_order: Vec<usize>,
 }
 
+impl Default for Adsr {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Adsr {
     pub fn new() -> Self {
         Self {
@@ -59,77 +65,70 @@ impl Adsr {
 
 impl<const N: usize> Node<N> for Adsr {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
-        match inputs.len() {
-            1 => {
-                let attack_len = (self.attack * self.sr as f32) as usize;
-                let decay_len = (self.decay * self.sr as f32) as usize;
-                let release_len = (self.release * self.sr as f32) as usize;
+        if inputs.len() == 1 {
+            let attack_len = (self.attack * self.sr as f32) as usize;
+            let decay_len = (self.decay * self.sr as f32) as usize;
+            let release_len = (self.release * self.sr as f32) as usize;
 
-                let buf = &mut inputs[&self.input_order[0]].buffers();
+            let buf = &mut inputs[&self.input_order[0]].buffers();
+            let iter = buf[0].iter().zip(output[0].iter_mut());
 
-                for i in 0..N {
-                    if buf[0][i] > 0.0 && self.lastx == 0.0 {
-                        self.gate = 1.;
-                        self.phase = 1; // attack, decay or sustain
-                        self.pos = 0;
-                        self.state_change_y = self.lasty;
-                    } else if buf[0][i] == 0.0 && self.lastx > 0.0 {
-                        self.gate = 0.;
-                        self.phase = 2; // release
-                        self.pos = 0;
-                        self.state_change_y = self.lasty;
-                    }
-
-                    // based on pos and phase, calculate the output
-                    match self.phase {
-                        1 => {
-                            if self.pos <= attack_len {
-                                // attack phase
-                                if attack_len == 0 {
-                                    // special case
-                                    output[0][i] = 0.0;
-                                } else {
-                                    // attack from: lasty -> 1.0
-                                    output[0][i] = self.pos as f32 / attack_len as f32
-                                        * (1.0 - self.state_change_y);
-                                }
-                            } else if self.pos > attack_len && self.pos <= attack_len + decay_len {
-                                // decay phase
-                                if decay_len == 0 {
-                                    // special case
-                                    output[0][i] = self.sustain;
-                                } else {
-                                    output[0][i] = (attack_len + decay_len - self.pos) as f32
-                                        / decay_len as f32
-                                        * (1. - self.sustain)
-                                        + self.sustain;
-                                }
-                            } else {
-                                output[0][i] = self.sustain;
-                            }
-                        }
-                        2 => {
-                            if self.pos >= release_len {
-                                output[0][i] = 0.0;
-                            } else {
-                                output[0][i] = (release_len - self.pos) as f32 / release_len as f32
-                                    * (self.state_change_y);
-                            }
-                        }
-                        _ => {
-                            output[0][i] = 0.0;
-                        }
-                    };
-                    self.lasty = output[0][i];
-                    if output.len() == 2 {
-                        output[1][i] = output[0][i];
-                    }
-                    self.lastx = buf[0][i];
-                    self.step += 1;
-                    self.pos += 1;
+            for (input, out) in iter {
+                if *input > 0.0 && self.lastx == 0.0 {
+                    self.gate = 1.;
+                    self.phase = 1; // attack, decay or sustain
+                    self.pos = 0;
+                    self.state_change_y = self.lasty;
+                } else if *input == 0.0 && self.lastx > 0.0 {
+                    self.gate = 0.;
+                    self.phase = 2; // release
+                    self.pos = 0;
+                    self.state_change_y = self.lasty;
                 }
+
+                // based on pos and phase, calculate the output
+                match self.phase {
+                    1 => if self.pos <= attack_len {
+                        // attack phase
+                        if attack_len == 0 {
+                            // special case
+                            *out = 0.0;
+                        } else {
+                            // attack from: lasty -> 1.0
+                            *out = self.pos as f32 / attack_len as f32
+                                * (1.0 - self.state_change_y);
+                        }
+                    } else if self.pos > attack_len && self.pos <= attack_len + decay_len {
+                        // decay phase
+                        if decay_len == 0 {
+                            // special case
+                            *out = self.sustain;
+                        } else {
+                            *out = (attack_len + decay_len - self.pos) as f32
+                                / decay_len as f32
+                                * (1. - self.sustain)
+                                + self.sustain;
+                        }
+                    } else {
+                        *out = self.sustain;
+                    }
+                    2 => if self.pos >= release_len {
+                        *out = 0.0;
+                    } else {
+                        *out = (release_len - self.pos) as f32 / release_len as f32
+                            * (self.state_change_y);
+                    }
+                    _ => *out = 0.0,
+                };
+                self.lasty = *out;
+                self.lastx = *input;
+                self.step += 1;
+                self.pos += 1;
             }
-            _ => return (),
+
+            if let ([out_0], [out_1]) = output.split_at_mut(1) {
+                out_1.copy_from_slice(out_0);
+            }
         }
     }
 

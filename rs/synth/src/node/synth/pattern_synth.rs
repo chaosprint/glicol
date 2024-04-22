@@ -1,5 +1,6 @@
 use crate::{impl_to_boxed_nodedata, BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
 use hashbrown::HashMap;
+use std::cmp::Ordering;
 
 #[derive(Debug, Clone)]
 pub struct PatternSynth {
@@ -58,73 +59,69 @@ impl<const N: usize> Node<N> for PatternSynth {
         // println!("events{:?}", self.events);
         let attack_n = (self.att * self.sr as f32) as usize;
         let decay_n = (self.dec * self.sr as f32) as usize;
-        match inputs.len() {
-            0 => {
-                let bar_length = self.cycle_dur * self.period_in_cycle * self.sr as f32;
-                for i in 0..N {
-                    output[0][i] = 0.0;
+        if inputs.is_empty() {
+            let bar_length = self.cycle_dur * self.period_in_cycle * self.sr as f32;
+            for out in &mut *output[0] {
+                *out = 0.0;
 
-                    for event in &self.events {
-                        if (self.step % (bar_length as usize))
-                            == ((event.0 * self.cycle_dur * self.sr as f32) as usize)
-                        {
-                            let midi = event.1;
-                            let freq = 2f32.powf((midi as f32 - 69.) / 12.) * 440.;
+                for event in &self.events {
+                    if (self.step % (bar_length as usize))
+                        == ((event.0 * self.cycle_dur * self.sr as f32) as usize)
+                    {
+                        let midi = event.1;
+                        let freq = 2f32.powf((midi - 69.) / 12.) * 440.;
 
-                            // need to push current step to the playback list
-                            // println!("{}{}", event.0 * self.cycle_dur);
-                            self.synth_list.push((self.step, freq));
-                            self.phase_list.push(0.0);
-                        }
+                        // need to push current step to the playback list
+                        // println!("{}{}", event.0 * self.cycle_dur);
+                        self.synth_list.push((self.step, freq));
+                        self.phase_list.push(0.0);
                     }
-
-                    let mut to_remove = vec![];
-
-                    for (synth_index, synth_info) in self.synth_list.iter().enumerate() {
-                        let dur = (self.att + self.dec) * self.sr as f32;
-
-                        if self.step - synth_info.0 <= dur as usize {
-                            let pos = self.step - synth_info.0;
-                            let mut amp = 0.0;
-                            if pos <= attack_n {
-                                if attack_n == 0 {
-                                    amp = 0.0;
-                                } else {
-                                    amp = pos as f32 / (self.att * self.sr as f32);
-                                }
-                            } else if pos > attack_n {
-                                if decay_n == 0 {
-                                    amp = 0.0;
-                                } else {
-                                    amp = (dur as usize - pos) as f32 / (self.dec * self.sr as f32);
-                                }
-                            }
-                            let out = self.phase_list[synth_index] * 2. - 1.;
-                            self.phase_list[synth_index] += synth_info.1 / self.sr as f32;
-                            if self.phase_list[synth_index] > 1. {
-                                self.phase_list[synth_index] -= 1.
-                            }
-                            // println!("amp {} out {} step {}", amp, out, self.step);
-                            output[0][i] += amp * out * 0.1;
-                            // println!("output[{}] {}",i, output[0][i]);
-                        } else {
-                            // remove this from start_step_list and output_list
-                            to_remove.push(synth_index)
-                        }
-                    }
-                    for c in to_remove.iter().rev() {
-                        self.synth_list.remove(*c);
-                        self.phase_list.remove(*c);
-                    }
-                    self.step += 1;
-                    // println!("output, {}", output[0][i]);
                 }
-                // println!("self.synth_list {:?} step, {:?}", self.synth_list, self.step);
+
+                let mut to_remove = Vec::with_capacity(self.synth_list.len());
+                for (synth_index, (synth_info, phase)) in self.synth_list.iter()
+                    .zip(self.phase_list.iter_mut())
+                    .enumerate()
+                {
+                    let dur = (self.att + self.dec) * self.sr as f32;
+
+                    if self.step - synth_info.0 <= dur as usize {
+                        let pos = self.step - synth_info.0;
+
+                        let amp = match pos.cmp(&attack_n) {
+                            Ordering::Less | Ordering::Equal => if attack_n == 0 {
+                                0.0
+                            } else {
+                                pos as f32 / (self.att * self.sr as f32)
+                            },
+                            Ordering::Greater => if decay_n == 0 {
+                                0.0
+                            } else {
+                                (dur as usize - pos) as f32 / (self.dec * self.sr as f32)
+                            }
+                        };
+
+                        let phase_out = *phase * 2. - 1.;
+                        *phase += synth_info.1 / self.sr as f32;
+                        if *phase > 1. {
+                            *phase -= 1.
+                        }
+                        // println!("amp {} out {} step {}", amp, out, self.step);
+                        *out += amp * phase_out * 0.1;
+                        // println!("output[{}] {}",i, output[0][i]);
+                    } else {
+                        // remove this from start_step_list and output_list
+                        to_remove.push(synth_index)
+                    }
+                }
+                for c in to_remove.iter().rev() {
+                    self.synth_list.remove(*c);
+                    self.phase_list.remove(*c);
+                }
+                self.step += 1;
+                // println!("output, {}", output[0][i]);
             }
-            _ => {
-                // nothing input
-                return ();
-            }
+            // println!("self.synth_list {:?} step, {:?}", self.synth_list, self.step);
         }
     }
     fn send_msg(&mut self, info: Message) {
@@ -132,24 +129,21 @@ impl<const N: usize> Node<N> for PatternSynth {
             // Message::SetBPM(bpm) => {
             //     self.bpm = bpm
             // },
-            Message::SetToSymbol(pos, s) => {
+            Message::SetToSymbol(0, s) => {
                 // panic!();
-                match pos {
-                    0 => {
-                        self.events.clear();
-                        let pattern = s.replace("`", "");
-                        for event in pattern.split(",") {
-                            // println!("event {:?}", event);
-                            let result: Vec<f32> = event
-                                .split(" ")
-                                .filter(|x| !x.is_empty())
-                                .map(|x| x.replace(" ", "").parse::<f32>().unwrap())
-                                .collect();
-                            // println!("result {:?}", result);
-                            self.events.push((result[0], result[1]));
-                        }
-                    }
-                    _ => {}
+                self.events.clear();
+                let pattern = s.replace('`', "");
+                for event in pattern.split(',') {
+                    // println!("event {:?}", event);
+                    let mut result = event
+                        .split(' ')
+                        .filter(|x| !x.is_empty())
+                        .map(|x| x.replace(' ', "").parse::<f32>().unwrap());
+
+                    // println!("result {:?}", result);
+                    self.events.push(
+                        (result.next().unwrap(), result.next().unwrap())
+                    );
                 }
             }
             Message::SetRefOrder(ref_order) => {

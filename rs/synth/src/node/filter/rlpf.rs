@@ -18,6 +18,12 @@ pub struct ResonantLowPassFilter {
     input_order: Vec<usize>,
 }
 
+impl Default for ResonantLowPassFilter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ResonantLowPassFilter {
     pub fn new() -> Self {
         Self {
@@ -72,6 +78,7 @@ impl ResonantLowPassFilter {
 impl<const N: usize> Node<N> for ResonantLowPassFilter {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         // println!("inputs {:?} self.input_order {:?}", inputs, self.input_order);
+        let d = 1.0 / self.q;
         match inputs.len() {
             1 => {
                 let cycle_dur = 60. / self.bpm * 4.;
@@ -82,7 +89,8 @@ impl<const N: usize> Node<N> for ResonantLowPassFilter {
                 //         self.cutoff = event.0
                 //     }
                 // }
-                for i in 0..N {
+                let main_input = inputs.values_mut().next().unwrap();
+                for (out, x0) in output[0].iter_mut().zip(main_input.buffers()[0].iter()) {
                     for event in &self.pattern {
                         if (self.step % (bar_dur as usize))
                             == ((event.1 * cycle_dur * self.sr as f32) as usize)
@@ -91,9 +99,7 @@ impl<const N: usize> Node<N> for ResonantLowPassFilter {
                         }
                     }
 
-                    let main_input = inputs.values_mut().next().unwrap();
                     let theta_c = 2.0 * std::f32::consts::PI * self.cutoff / self.sr as f32;
-                    let d = 1.0 / self.q;
                     let beta =
                         0.5 * (1.0 - d * theta_c.sin() / 2.0) / (1.0 + d * theta_c.sin() / 2.0);
                     let gama = (0.5 + beta) * theta_c.cos();
@@ -103,13 +109,12 @@ impl<const N: usize> Node<N> for ResonantLowPassFilter {
                     let b1 = -2.0 * gama;
                     let b2 = 2.0 * beta;
 
-                    let x0 = main_input.buffers()[0][i];
                     let y =
                         a0 * self.x0 + a1 * self.x1 + a2 * self.x2 - b1 * self.y1 - b2 * self.y2;
 
-                    output[0][i] = y;
+                    *out = y;
                     self.x2 = self.x1;
-                    self.x1 = x0;
+                    self.x1 = *x0;
                     self.y2 = self.y1;
                     self.y1 = y;
                     self.step += 1;
@@ -121,7 +126,6 @@ impl<const N: usize> Node<N> for ResonantLowPassFilter {
 
                 let theta_c =
                     2.0 * std::f32::consts::PI * ref_input.buffers()[0][0] / self.sr as f32;
-                let d = 1.0 / self.q;
                 let beta = 0.5 * (1.0 - d * theta_c.sin() / 2.0) / (1.0 + d * theta_c.sin() / 2.0);
                 let gama = (0.5 + beta) * theta_c.cos();
                 let a0 = (0.5 + beta - gama) / 2.0;
@@ -130,19 +134,18 @@ impl<const N: usize> Node<N> for ResonantLowPassFilter {
                 let b1 = -2.0 * gama;
                 let b2 = 2.0 * beta;
 
-                for i in 0..N {
-                    let x0 = main_input.buffers()[0][i];
+                for (out, x0) in output[0].iter_mut().zip(main_input.buffers()[0].iter()) {
                     let y =
                         a0 * self.x0 + a1 * self.x1 + a2 * self.x2 - b1 * self.y1 - b2 * self.y2;
-                    output[0][i] = y;
+                    *out = y;
                     self.x2 = self.x1;
-                    self.x1 = x0;
+                    self.x1 = *x0;
                     self.y2 = self.y1;
                     self.y1 = y;
                     self.step += 1;
                 }
             }
-            _ => return (),
+            _ => (),
         }
     }
 

@@ -28,9 +28,9 @@ impl<const N: usize> Node<N> for OnePole {
         match inputs.len() {
             1 => {
                 let main_input = inputs.values_mut().next().unwrap();
-                for i in 0..N {
-                    let y = main_input.buffers()[0][i] * self.a + self.b * self.y1;
-                    output[0][i] = y;
+                for (out, main_in) in output[0].iter_mut().zip(main_input.buffers()[0].iter()) {
+                    let y = main_in * self.a + self.b * self.y1;
+                    *out = y;
                     self.y1 = y;
                 }
             }
@@ -38,26 +38,26 @@ impl<const N: usize> Node<N> for OnePole {
                 let main_input = &inputs[&self.input_order[0]]; // can panic if there is no id
                 let ref_input = &inputs[&self.input_order[1]]; // can panic if there is no id
 
-                for i in 0..N {
-                    self.b = (-2.0 * std::f32::consts::PI * main_input.buffers()[0][i]).exp();
+                for ((out, main_in), ref_in) in output[0].iter_mut()
+                    .zip(main_input.buffers()[0].iter())
+                    .zip(ref_input.buffers()[0].iter())
+                {
+                    self.b = (-2.0 * std::f32::consts::PI * main_in).exp();
                     self.a = 1. - self.b;
-                    let y = ref_input.buffers()[0][i] * self.a + self.b * self.y1;
-                    output[0][i] = y;
+                    let y = ref_in * self.a + self.b * self.y1;
+                    *out = y;
                     self.y1 = y;
                 }
             }
-            _ => return (),
+            _ => (),
         }
     }
 
     fn send_msg(&mut self, info: Message) {
         match info {
-            Message::SetToNumber(pos, value) => match pos {
-                0 => {
-                    self.b = (-2.0 * std::f32::consts::PI * value).exp();
-                    self.a = 1. - self.b
-                }
-                _ => {}
+            Message::SetToNumber(0, value) => {
+                self.b = (-2.0 * std::f32::consts::PI * value).exp();
+                self.a = 1. - self.b
             },
             Message::Index(i) => self.input_order.push(i),
             Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),

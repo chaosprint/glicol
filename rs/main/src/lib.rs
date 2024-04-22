@@ -269,8 +269,7 @@ impl<const N: usize> Engine<N> {
                     }
                 }
             } else {
-                for i in 0..node_info_tuple.0.len() {
-                    let name = &node_info_tuple.0[i];
+                for (i, name) in node_info_tuple.0.iter().enumerate() {
                     let mut paras = node_info_tuple.1[i].clone();
                     let (nodedata, reflist) = makenode(
                         name,
@@ -519,12 +518,12 @@ impl<const N: usize> Engine<N> {
         // println!("self.refpairlist in handle_connection {:?}", self.refpairlist);
 
         //
-        let mut already_reset = vec![];
+        let mut already_reset = std::collections::HashSet::new();
         for refpairs in &self.refpairlist {
             let index = self.index_info[&refpairs.1][refpairs.2];
             if !already_reset.contains(&index) {
                 self.context.graph[index].node.send_msg(Message::ResetOrder);
-                already_reset.push(index);
+                already_reset.insert(index);
             }
             for refname in &refpairs.0 {
                 if refname.contains("..") {

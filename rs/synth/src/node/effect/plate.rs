@@ -165,33 +165,27 @@ impl<const N: usize> Node<N> for Plate<N> {
         self.context.graph[self.input].buffers[0] = main_input[0].clone();
         // self.context.graph[self.input].buffers[1] = main_input[1].clone();
         let cout = self.context.next_block();
-        for i in 0..N {
-            output[0][i] = cout[0][i];
-            output[1][i] = cout[1][i];
-        }
+
+        output[0][..N].copy_from_slice(&cout[0][..N]);
+        output[1][..N].copy_from_slice(&cout[1][..N]);
     }
 
     fn send_msg(&mut self, info: Message) {
         match info {
-            Message::SetToNumber(pos, value) => {
-                match pos {
-                    0 => {
-                        // self.mix = value;
-                        self.context.graph[self.context.tags["mix1"]]
-                            .node
-                            .send_msg(Message::SetToNumber(0, value));
-                        self.context.graph[self.context.tags["mix2"]]
-                            .node
-                            .send_msg(Message::SetToNumber(0, value));
-                        self.context.graph[self.context.tags["mixdiff1"]]
-                            .node
-                            .send_msg(Message::SetToNumber(0, 1. - value));
-                        self.context.graph[self.context.tags["mixdiff2"]]
-                            .node
-                            .send_msg(Message::SetToNumber(0, 1. - value));
-                    }
-                    _ => {}
-                }
+            Message::SetToNumber(0, value) => {
+                // self.mix = value;
+                self.context.graph[self.context.tags["mix1"]]
+                    .node
+                    .send_msg(Message::SetToNumber(0, value));
+                self.context.graph[self.context.tags["mix2"]]
+                    .node
+                    .send_msg(Message::SetToNumber(0, value));
+                self.context.graph[self.context.tags["mixdiff1"]]
+                    .node
+                    .send_msg(Message::SetToNumber(0, 1. - value));
+                self.context.graph[self.context.tags["mixdiff2"]]
+                    .node
+                    .send_msg(Message::SetToNumber(0, 1. - value));
             }
             Message::Index(i) => self.input_order.push(i),
             Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),

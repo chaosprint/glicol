@@ -47,9 +47,7 @@ pub fn makenode<const N: usize>(
             };
             let mut samples_dict_selected = HashMap::new();
 
-            let mut pattern = vec![];
-
-            for v in (*pattern_info.0).iter() {
+            let pattern = (*pattern_info.0).iter().map(|v| {
                 let value = match &v.0 {
                     GlicolPara::Number(_) => "".to_owned(),
                     GlicolPara::Symbol(s) => s.to_string(),
@@ -61,8 +59,10 @@ pub fn makenode<const N: usize>(
                 } else {
                     samples_dict_selected.insert(value.clone(), samples_dict[&value]);
                 }
-                pattern.push((value, time));
-            }
+
+                Ok((value, time))
+            }).collect::<Result<Vec<_>, EngineError>>()?;
+
             let span = *pattern_info.1;
 
             (
@@ -112,17 +112,18 @@ pub fn makenode<const N: usize>(
             match &paras[0] {
                 GlicolPara::Symbol(s) => {
                     let pattern = s.replace('`', "");
-                    let mut events = vec![];
-                    for event in pattern.split(',') {
-                        // println!("event {:?}", event);
-                        let result: Vec<f32> = event
-                            .split(' ')
-                            .filter(|x| !x.is_empty())
-                            .map(|x| x.replace(' ', "").parse::<f32>().unwrap())
-                            .collect();
-                        // println!("result {:?}", result);
-                        events.push((result[0], result[1]));
-                    }
+                    let events = pattern.split(',')
+                        .map(|event| {
+                            // println!("event {:?}", event);
+                            let mut result = event
+                                .split(' ')
+                                .filter(|x| !x.is_empty())
+                                .map(|x| x.replace(' ', "").parse::<f32>().unwrap());
+
+                            // println!("result {:?}", result);
+                            (result.next().unwrap(), result.next().unwrap())
+                        }).collect();
+
                     (
                         PatternSynth::new(events).sr(sr).to_boxed_nodedata(1),
                         vec![],
@@ -201,15 +202,15 @@ pub fn makenode<const N: usize>(
                         .to_boxed_nodedata(1)
                 }
                 GlicolPara::Pattern(events, span) => {
-                    let mut pattern = vec![];
+                    let pattern = events.iter()
+                        .map(|v| {
+                            let value = match v.0 {
+                                GlicolPara::Number(num) => num,
+                                _ => 100.0,
+                            };
+                            (value, v.1)
+                        }).collect();
 
-                    for v in events.iter() {
-                        let value = match v.0 {
-                            GlicolPara::Number(num) => num,
-                            _ => 100.0,
-                        };
-                        pattern.push((value, v.1));
-                    }
                     // println!("pattern {:?}", pattern);
                     ResonantLowPassFilter::new()
                         .q(qvalue)
@@ -429,15 +430,15 @@ pub fn makenode<const N: usize>(
             let data = match &paras[0] {
                 GlicolPara::Number(v) => ConstSig::new(*v).sr(sr).to_boxed_nodedata(1),
                 GlicolPara::Pattern(events, span) => {
-                    let mut pattern = vec![];
+                    let pattern = events.iter()
+                        .map(|v| {
+                            let value = match v.0 {
+                                GlicolPara::Number(num) => num,
+                                _ => 100.0,
+                            };
+                            (value, v.1)
+                        }).collect();
 
-                    for v in events.iter() {
-                        let value = match v.0 {
-                            GlicolPara::Number(num) => num,
-                            _ => 100.0,
-                        };
-                        pattern.push((value, v.1));
-                    }
                     // println!("pattern {:?}", pattern);
                     ConstSig::new(0.0)
                         .pattern(pattern)

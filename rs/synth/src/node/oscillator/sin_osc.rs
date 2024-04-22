@@ -40,8 +40,8 @@ impl<const N: usize> Node<N> for SinOsc {
         match inputs.len() {
             0 => {
                 for i in 0..N {
-                    for j in 0..output.len() {
-                        output[j][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
+                    for buf in output.iter_mut() {
+                        buf[i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
                     }
                     self.phase += self.freq / self.sr as f32;
                     if self.phase > 1.0 {
@@ -50,30 +50,28 @@ impl<const N: usize> Node<N> for SinOsc {
                 }
             }
             1 => {
-                let mod_input = match self.input_order.len() {
-                    0 => &mut *inputs.values_mut().next().unwrap(),
-                    _ => &inputs[&self.input_order[0]],
+                let mod_input = match *self.input_order {
+                    [] => &mut *inputs.values_mut().next().unwrap(),
+                    [ref first_input, ..] => &inputs[first_input],
                 };
-                let mod_buf = mod_input.buffers();
-                for i in 0..N {
-                    for j in 0..output.len() {
-                        output[j][i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
+
+                for (i, mod_buf) in mod_input.buffers()[0].iter().enumerate() {
+                    for buf in output.iter_mut() {
+                        buf[i] = (self.phase * 2.0 * std::f32::consts::PI).sin();
                     }
-                    self.phase += mod_buf[0][i] / self.sr as f32;
+
+                    self.phase += mod_buf / self.sr as f32;
                     if self.phase > 1.0 {
                         self.phase -= 1.0
                     }
                 }
             }
-            _ => return (),
+            _ => (),
         }
     }
     fn send_msg(&mut self, info: Message) {
         match info {
-            Message::SetToNumber(pos, value) => match pos {
-                0 => self.freq = value,
-                _ => {}
-            },
+            Message::SetToNumber(0, value) => self.freq = value,
             Message::Index(i) => self.input_order.push(i),
             Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
             Message::ResetOrder => {

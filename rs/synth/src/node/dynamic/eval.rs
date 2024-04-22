@@ -20,6 +20,12 @@ pub struct Eval<const N: usize> {
     input_order: Vec<usize>,
 }
 
+impl<const N: usize> Default for Eval<N> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<const N: usize> Eval<N> {
     pub fn new() -> Self {
         let parser = fasteval::Parser::new();
@@ -57,7 +63,17 @@ impl<const N: usize> Eval<N> {
     }
 
     pub fn code(mut self, code: String) -> Self {
-        let lines = code.split(";");
+        self.apply_code(code);
+        Self { ..self }
+    }
+
+    pub fn to_boxed_nodedata(self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
+        // self.scope.push("sr", self.sr as f32);
+        NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new(self))
+    }
+
+    fn apply_code(&mut self, code: String) {
+        let lines = code.split(';');
         for line in lines {
             let mut slab = fasteval::Slab::new();
             let mut assign = line.split(":=");
@@ -67,9 +83,7 @@ impl<const N: usize> Eval<N> {
                         .next()
                         .unwrap()
                         .to_string()
-                        .replace(" ", "")
-                        .replace("\t", "")
-                        .replace("\n", ""),
+                        .replace([' ', '\t', '\n'], "")
                 );
             }
             let compiled = self
@@ -81,19 +95,13 @@ impl<const N: usize> Eval<N> {
             self.slab.push(slab);
             self.compiled.push(compiled);
         }
-        Self { ..self }
-    }
-
-    pub fn to_boxed_nodedata(self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
-        // self.scope.push("sr", self.sr as f32);
-        NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new(self))
     }
 }
 
 impl<const N: usize> Node<N> for Eval<N> {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         for i in 0..N {
-            if inputs.len() > 0 {
+            if !inputs.is_empty() {
                 self.map.insert(
                     "in".to_owned(),
                     inputs[&self.input_order[0]].buffers()[0][i] as f64,
@@ -119,45 +127,16 @@ impl<const N: usize> Node<N> for Eval<N> {
 
     fn send_msg(&mut self, info: Message) {
         match info {
-            Message::SetToSymbol(pos, s) => {
-                match pos {
-                    0 => {
-                        let code = s;
-                        let lines = code.split(";");
-                        self.slab.clear();
-                        self.var.clear();
-                        self.compiled.clear();
-                        for line in lines {
-                            let mut slab = fasteval::Slab::new();
-                            let mut assign = line.split(":=");
-                            if line.contains(":=") {
-                                self.var.push(
-                                    assign
-                                        .next()
-                                        .unwrap()
-                                        .to_string()
-                                        .replace(" ", "")
-                                        .replace("\t", "")
-                                        .replace("\n", ""),
-                                );
-                            }
-                            let compiled = self
-                                .parser
-                                .parse(assign.next().unwrap(), &mut slab.ps)
-                                .unwrap()
-                                .from(&slab.ps)
-                                .compile(&slab.ps, &mut slab.cs);
-                            self.slab.push(slab);
-                            self.compiled.push(compiled);
-                        }
-                        // self.code(s);
-                        // self.compiled = self.parser.parse(&s, &mut self.slab.ps).unwrap().from(&self.slab.ps)
-                        // .compile(&self.slab.ps, &mut self.slab.cs);
-                        // self.code = s
-                        // self.precompiled = build_operator_tree(&s).unwrap()
-                    }
-                    _ => {}
-                }
+            Message::SetToSymbol(0, code) => {
+                self.slab.clear();
+                self.var.clear();
+                self.compiled.clear();
+                self.apply_code(code);
+                // self.code(s);
+                // self.compiled = self.parser.parse(&s, &mut self.slab.ps).unwrap().from(&self.slab.ps)
+                // .compile(&self.slab.ps, &mut self.slab.cs);
+                // self.code = s
+                // self.precompiled = build_operator_tree(&s).unwrap()
             }
             Message::Index(i) => self.input_order.push(i),
             Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),

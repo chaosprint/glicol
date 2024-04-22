@@ -46,8 +46,8 @@ impl<const N: usize> Node<N> for Sequencer {
         match inputs.len() {
             0 => {
                 let bar_length = 240.0 / self.bpm as f64 * self.sr as f64 / self.speed as f64;
-                for i in 0..N {
-                    output[0][i] = 0.0;
+                for out in &mut *output[0] {
+                    *out = 0.0;
                     for event in &self.events {
                         if (self.step % (bar_length as usize))
                             == ((event.0 as f64 * bar_length) as usize)
@@ -58,9 +58,9 @@ impl<const N: usize> Node<N> for Sequencer {
                             };
 
                             if midi == 0.0 {
-                                output[0][i] = 0.0
+                                *out = 0.0
                             } else {
-                                output[0][i] = 2.0f32.powf((midi - 60.0) / 12.0)
+                                *out = 2.0f32.powf((midi - 60.0) / 12.0)
                             }
                         }
                     }
@@ -69,15 +69,16 @@ impl<const N: usize> Node<N> for Sequencer {
             }
             _ => {
                 // println!("{:?} {:?}", inputs, self.input_order);
-                let possible_speed = &self.input_order[0];
-                let has_speed = inputs[possible_speed].buffers()[0][0] > 0.
-                    && inputs[possible_speed].buffers()[0][1] == 0.;
+                let possible_speed = &inputs[&self.input_order[0]].buffers()[0];
+                let has_speed = possible_speed[0] > 0. && possible_speed[1] == 0.;
+
                 if has_speed {
-                    self.speed = inputs[possible_speed].buffers()[0][0]
+                    self.speed = possible_speed[0];
                 }
+
                 let bar_length = 240.0 / self.bpm as f64 * self.sr as f64 / self.speed as f64;
-                for i in 0..N {
-                    output[0][i] = 0.0;
+                for (idx, out) in output[0].iter_mut().enumerate() {
+                    *out = 0.0;
 
                     for event in &self.events {
                         if (self.step % (bar_length as usize))
@@ -88,15 +89,15 @@ impl<const N: usize> Node<N> for Sequencer {
                                 GlicolPara::Reference(s) => {
                                     let source = &inputs
                                         [&self.input_order[self.ref_order[s] + has_speed as usize]]; //panic?
-                                    source.buffers()[0][i]
+                                    source.buffers()[0][idx]
                                 }
-                                _ => return (),
+                                _ => return,
                             };
 
                             if midi == 0.0 {
-                                output[0][i] = 0.0
+                                *out = 0.0
                             } else {
-                                output[0][i] = 2.0f32.powf((midi - 60.0) / 12.0)
+                                *out = 2.0f32.powf((midi - 60.0) / 12.0)
                             }
                         }
                     }
@@ -108,10 +109,7 @@ impl<const N: usize> Node<N> for Sequencer {
     fn send_msg(&mut self, info: Message) {
         match info {
             Message::SetBPM(bpm) => self.bpm = bpm,
-            Message::SetToSeq(pos, events) => match pos {
-                0 => self.events = events,
-                _ => {}
-            },
+            Message::SetToSeq(0, events) => self.events = events,
             Message::SetRefOrder(ref_order) => {
                 self.ref_order = ref_order;
             }

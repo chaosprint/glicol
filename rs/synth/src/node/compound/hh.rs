@@ -10,6 +10,8 @@ use hashbrown::HashMap;
 
 use petgraph::graph::NodeIndex;
 
+use super::process_compound;
+
 pub struct Hh<const N: usize> {
     input: NodeIndex,
     context: AudioContext<N>,
@@ -45,28 +47,15 @@ impl<const N: usize> Hh<N> {
 
 impl<const N: usize> Node<N> for Hh<N> {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
-        match inputs.len() {
-            1 => {
-                let main_input = inputs[&self.input_order[0]].buffers();
-                self.context.graph[self.input].buffers[0] = main_input[0].clone();
-                // self.context.graph[self.input].buffers[1] = main_input[1].clone();
-                let cout = self.context.next_block();
-                for i in 0..N {
-                    output[0][i] = cout[0][i];
-                    output[1][i] = cout[1][i];
-                }
-            }
-            _ => return (),
-        }
+        process_compound(inputs, &self.input_order, self.input, &mut self.context, output);
     }
+
     fn send_msg(&mut self, info: Message) {
         match info {
-            Message::SetToNumber(pos, value) => match pos {
-                0 => self.context.graph[self.context.tags["d"]]
+            Message::SetToNumber(0, value) =>
+                self.context.graph[self.context.tags["d"]]
                     .node
                     .send_msg(Message::SetToNumber(1, value)),
-                _ => {}
-            },
             Message::Index(i) => self.input_order.push(i),
             Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
             _ => {}

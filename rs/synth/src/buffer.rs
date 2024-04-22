@@ -62,7 +62,7 @@ impl<const N: usize> fmt::Debug for Buffer<N> {
 
 impl<const N: usize> PartialEq for Buffer<N> {
     fn eq(&self, other: &Self) -> bool {
-        &self[..] == &other[..]
+        self[..] == other[..]
     }
 }
 

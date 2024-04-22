@@ -1,7 +1,5 @@
-use proc_macro::{TokenStream};
+use proc_macro::TokenStream;
 use quote::quote;
-use proc_macro2;
-
 
 #[proc_macro]
 pub fn one_para_number_or_ref(item: TokenStream) -> TokenStream {
@@ -10,7 +8,7 @@ pub fn one_para_number_or_ref(item: TokenStream) -> TokenStream {
         {
             // println!("node {:?}", node.as_str()); //"sin 440"
             let paras = node.into_inner().next().unwrap();
-            // println!("paras {:?}", paras.as_str());//"440"                                        
+            // println!("paras {:?}", paras.as_str());//"440"
             chain_node_names.push(#name);
             match paras.as_rule() {
                 Rule::number => {
@@ -85,4 +83,3 @@ pub fn get_one_para_from_number_or_ref2(item: TokenStream) -> TokenStream {
     };
     gen.into()
 }
-

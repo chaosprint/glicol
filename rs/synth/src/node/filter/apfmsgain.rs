@@ -11,6 +11,12 @@ pub struct AllPassFilterGain {
     input_order: Vec<usize>,
 }
 
+impl Default for AllPassFilterGain {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AllPassFilterGain {
     pub fn new() -> Self {
         Self {
@@ -23,12 +29,11 @@ impl AllPassFilterGain {
     }
 
     pub fn delay(self, delay: f32) -> Self {
-        let size;
-        if delay == 0.0 {
-            size = (3. * self.sr as f32) as usize;
+        let size = if delay == 0.0 {
+            3. * self.sr as f32
         } else {
-            size = (delay / 1000. * self.sr as f32) as usize
-        };
+            delay / 1000. * self.sr as f32
+        } as usize;
         Self {
             bufx: ring_buffer::Fixed::from(vec![0.0; size]),
             bufy: ring_buffer::Fixed::from(vec![0.0; size]),
@@ -66,9 +71,12 @@ impl<const N: usize> Node<N> for AllPassFilterGain {
             2 => {
                 let main_input = &inputs[&self.input_order[0]]; // can panic if there is no id
                 let ref_input = &inputs[&self.input_order[1]]; // can panic if there is no id
-                let mod_buf = &mut ref_input.buffers();
-                for i in 0..N {
-                    let mut pos = -mod_buf[0][i] / 1000. * self.sr as f32;
+
+                for ((out, xn), mod_buf) in output[0].iter_mut()
+                    .zip(main_input.buffers()[0].iter())
+                    .zip(ref_input.buffers()[0].iter())
+                {
+                    let mut pos = -mod_buf / 1000. * self.sr as f32;
                     while pos < 0. {
                         pos += self.bufx.len() as f32;
                     }
@@ -80,15 +88,14 @@ impl<const N: usize> Node<N> for AllPassFilterGain {
                     let ydelay = self.bufy.get(pos_int) * pos_frac
                         + self.bufy.get(pos_int + 1) * (1. - pos_frac);
 
-                    let xn = main_input.buffers()[0][i];
                     let yn = -self.gain * xn + xdelay + self.gain * ydelay;
 
-                    self.bufx.push(xn);
+                    self.bufx.push(*xn);
                     self.bufy.push(yn);
-                    output[0][i] = yn;
+                    *out = yn;
                 }
             }
-            _ => return (),
+            _ => (),
         }
     }
 

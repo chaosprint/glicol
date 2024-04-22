@@ -54,7 +54,7 @@ impl<const N: usize> Node<N> for ConstSig {
         let cycle_dur = 60. / self.bpm * 4.;
         let bar_dur = cycle_dur * self.span * self.sr as f32;
 
-        for i in 0..N {
+        for out in &mut *output[0] {
             for event in &self.events {
                 if (self.step % (bar_dur as usize))
                     == ((event.1 * cycle_dur * self.sr as f32) as usize)
@@ -70,7 +70,8 @@ impl<const N: usize> Node<N> for ConstSig {
                     self.val = event.0
                 }
             }
-            output[0][i] = self.val;
+
+            *out = self.val;
             self.step += 1;
         }
     }
@@ -80,10 +81,7 @@ impl<const N: usize> Node<N> for ConstSig {
                 self.pattern = p;
                 self.span = span;
             }
-            Message::SetToNumber(pos, value) => match pos {
-                0 => self.val = value,
-                _ => {}
-            },
+            Message::SetToNumber(0, value) => self.val = value,
             Message::SetBPM(bpm) => self.bpm = bpm,
             Message::Index(i) => self.input_order.push(i),
             Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
