@@ -46,6 +46,7 @@ impl DelayMs {
 
 impl<const N: usize> Node<N> for DelayMs {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
+        let main_input = inputs.values().next().unwrap();
         if !(1..=2).contains(&main_input.buffers().len()) {
             return;
         }
@@ -53,16 +54,15 @@ impl<const N: usize> Node<N> for DelayMs {
         match inputs.len() {
             1 => {
                 // no modulation
-                let main_input = inputs.values_mut().next().unwrap();
                 match self.delay_n {
                     // equal to a pass node
-                    0 => output[0].copy_from_slice(&*main_input.buffers()[0]),
+                    0 => output[0].copy_from_slice(&main_input.buffers()[0]),
                     _ =>  {
                         let iter = self.buf.iter_mut().zip(output.iter_mut()).zip(main_input.buffers());
 
                         for ((fixed, out_buf), main_buf) in iter {
                             for (out, main) in out_buf.iter_mut().zip(main_buf.iter()) {
-                                *out = fixed.push(main);
+                                *out = fixed.push(*main);
                             }
                         }
                     }
