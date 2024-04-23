@@ -19,16 +19,15 @@ bela = []
 
 [dependencies]
 petgraph = { workspace = true }
-# glicol_parser = { path = "../parser" }
-glicol_parser = { version = "0.13.4" }
-# glicol_synth = { path = "../synth", features = ["use-samples", "use-meta"] }
-glicol_synth = { version = "0.13.4", features = ["use-samples", "use-meta"] }
-# glicol_macros = { path = "../macros" }
-glicol_macros = { version = "0.13.4" }
+glicol_parser = { version = "0.13.5", path = "../parser" }
+glicol_synth = { version = "0.13.5", path = "../synth", features = [
+    "use-samples",
+    "use-meta",
+] }
+glicol_macros = { version = "0.13.5", path = "../macros" }
 lcs-diff = { workspace = true }
 pest = { workspace = true }
 hashbrown = { workspace = true }
-# cargo build --target wasm32-unknown-unknown --release
 
 [dev-dependencies]
 gnuplot = "0.0.37"
