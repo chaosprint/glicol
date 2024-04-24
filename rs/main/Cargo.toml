@@ -24,7 +24,6 @@ glicol_synth = { version = "0.13.5", path = "../synth", features = [
     "use-samples",
     "use-meta",
 ] }
-glicol_macros = { version = "0.13.5", path = "../macros" }
 lcs-diff = { workspace = true }
 pest = { workspace = true }
 hashbrown = { workspace = true }

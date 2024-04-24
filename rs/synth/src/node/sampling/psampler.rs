@@ -1,4 +1,4 @@
-use crate::{impl_to_boxed_nodedata, BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
+use crate::{Buffer, Input, Message, Node};
 use hashbrown::HashMap;
 
 #[derive(Debug, Clone)]
@@ -39,7 +39,6 @@ impl PSampler {
             input_order: vec![],
         }
     }
-    impl_to_boxed_nodedata!();
 }
 
 impl<const N: usize> Node<N> for PSampler {

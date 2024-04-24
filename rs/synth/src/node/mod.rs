@@ -49,6 +49,13 @@ pub mod dynamic;
 pub trait Node<const N: usize> {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]);
     fn send_msg(&mut self, info: crate::Message);
+
+    fn to_boxed_nodedata(self, channels: usize) -> crate::NodeData<BoxedNodeSend<N>, N>
+    where
+        Self: Send + 'static + Sized
+    {
+        crate::NodeData::multi_chan_node(channels, BoxedNodeSend::new(self))
+    }
 }
 
 /// An important part of the `Node` trait; each `Input` contains the relevant node id as `usize`

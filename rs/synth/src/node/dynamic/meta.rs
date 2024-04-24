@@ -95,11 +95,6 @@ impl<const N: usize> Meta<N> {
         };
         Self { code, ..self }
     }
-
-    pub fn to_boxed_nodedata(mut self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
-        self.scope.push("sr", self.sr as f32);
-        NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new(self))
-    }
 }
 
 impl<const N: usize> Node<N> for Meta<N> {
@@ -142,5 +137,10 @@ impl<const N: usize> Node<N> for Meta<N> {
             }
             _ => {}
         }
+    }
+
+    fn to_boxed_nodedata(mut self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
+        self.scope.push("sr", self.sr as f32);
+        NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new(self))
     }
 }

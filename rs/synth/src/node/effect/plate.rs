@@ -5,7 +5,7 @@ use crate::{
     node::Pass,
     operator::{Add, Mul},
     oscillator::SinOsc,
-    AudioContext, BoxedNodeSend, Buffer, Input, Message, Node, NodeData,
+    AudioContext, Buffer, Input, Message, Node
 };
 use hashbrown::HashMap;
 use petgraph::graph::NodeIndex;
@@ -153,9 +153,6 @@ impl<const N: usize> Plate<N> {
             context,
             input_order: Vec::new(),
         }
-    }
-    pub fn to_boxed_nodedata(self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
-        NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new(self))
     }
 }
 

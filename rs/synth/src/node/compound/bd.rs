@@ -12,7 +12,7 @@ use crate::{
     oscillator::SinOsc,
     AudioContext, Pass,
 };
-use crate::{BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
+use crate::{Buffer, Input, Message, Node};
 use hashbrown::HashMap;
 
 use petgraph::graph::NodeIndex;
@@ -27,6 +27,12 @@ pub struct Bd<const N: usize> {
 
 impl<const N: usize> Bd<N> {
     pub fn new(decay: f32) -> Self {
+        Self::from(decay)
+    }
+}
+
+impl<const N: usize> From<f32> for Bd<N> {
+    fn from(decay: f32) -> Self {
         let mut context = crate::AudioContextBuilder::<N>::new().channels(2).build();
         let input = context.add_mono_node(Pass {});
         let env_amp = context.add_mono_node(EnvPerc::new().attack(0.003).decay(decay));
@@ -45,10 +51,6 @@ impl<const N: usize> Bd<N> {
             input,
             input_order: vec![],
         }
-    }
-
-    pub fn to_boxed_nodedata(self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
-        NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new(self))
     }
 }
 

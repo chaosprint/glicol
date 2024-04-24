@@ -1,4 +1,4 @@
-use crate::{impl_to_boxed_nodedata, BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
+use crate::{Buffer, Input, Message, Node};
 use hashbrown::HashMap;
 #[derive(Debug, Clone)]
 pub struct OnePole {
@@ -10,6 +10,12 @@ pub struct OnePole {
 
 impl OnePole {
     pub fn new(rate: f32) -> Self {
+        Self::from(rate)
+    }
+}
+
+impl From<f32> for OnePole {
+    fn from(rate: f32) -> Self {
         let b = (-2.0 * std::f32::consts::PI * rate).exp();
         let a = 1.0 - b;
         Self {
@@ -19,7 +25,6 @@ impl OnePole {
             input_order: vec![],
         }
     }
-    impl_to_boxed_nodedata!();
 }
 
 impl<const N: usize> Node<N> for OnePole {

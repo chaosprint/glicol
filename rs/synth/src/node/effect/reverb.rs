@@ -22,9 +22,6 @@ impl<const N: usize> Reverb<N> {
             fv, ..self
         }
     }
-    pub fn to_boxed_nodedata(self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
-        NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new( self ) )
-    }
 }
 
 impl<const N:usize> Node<N> for Reverb<N> {

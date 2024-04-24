@@ -59,18 +59,6 @@ use hashbrown::HashMap;
 // pub use hashbrown::HashMap;
 // pub use arrayvec::ArrayVec;
 
-#[macro_export]
-macro_rules! impl_to_boxed_nodedata {
-    () => {
-        pub fn to_boxed_nodedata<const N: usize>(
-            self,
-            channels: usize,
-        ) -> NodeData<BoxedNodeSend<N>, N> {
-            NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new(self))
-        }
-    };
-}
-
 #[derive(Debug, Clone)]
 pub enum Message {
     SetToNumber(u8, f32),

@@ -52,11 +52,6 @@ impl<const N: usize> Expr<N> {
         let precompiled = build_operator_tree(&code).unwrap();
         Self {precompiled, ..self}
     }
-
-    pub fn to_boxed_nodedata(mut self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
-        // self.scope.push("sr", self.sr as f32);
-        NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new( self ) )
-    }
 }
 
 impl<const N:usize> Node<N> for Expr<N> {
@@ -84,5 +79,10 @@ impl<const N:usize> Node<N> for Expr<N> {
             Message::ResetOrder => self.input_order.clear(),
             _ => {}
         }
+    }
+
+    fn to_boxed_nodedata(mut self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
+        // self.scope.push("sr", self.sr as f32);
+        NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new( self ) )
     }
 }
