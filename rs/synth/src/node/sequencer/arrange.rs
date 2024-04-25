@@ -1,6 +1,4 @@
-use crate::{
-    impl_to_boxed_nodedata, BoxedNodeSend, Buffer, GlicolPara, Input, Message, Node, NodeData,
-};
+use crate::{Buffer, GlicolPara, Input, Message, Node};
 use hashbrown::HashMap;
 
 #[derive(Debug, Clone)]
@@ -40,8 +38,6 @@ impl Arrange {
     pub fn bpm(self, bpm: f32) -> Self {
         Self { bpm, ..self }
     }
-
-    impl_to_boxed_nodedata!();
 }
 
 impl<const N: usize> Node<N> for Arrange {

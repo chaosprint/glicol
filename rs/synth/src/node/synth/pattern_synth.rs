@@ -1,4 +1,4 @@
-use crate::{impl_to_boxed_nodedata, BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
+use crate::{Buffer, Input, Message, Node};
 use hashbrown::HashMap;
 use std::cmp::Ordering;
 
@@ -49,8 +49,6 @@ impl PatternSynth {
     pub fn cycle_dur(self, cycle_dur: f32) -> Self {
         Self { cycle_dur, ..self }
     }
-
-    impl_to_boxed_nodedata!();
 }
 
 impl<const N: usize> Node<N> for PatternSynth {

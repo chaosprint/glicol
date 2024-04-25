@@ -6,8 +6,6 @@ The `main` provides an `Engine` that takes the code as input, stores samples, an
 
 The `parser` offers the `get_ast` function for the `Engine` to parse the code.
 
-The `macros` is basically some proc macros to make some dev work easier.
-
 The `wasm` crate exports the `Engine` to a WebAssembly file which can be used in web browsers.
 
 The `synth` provides all the audio support.

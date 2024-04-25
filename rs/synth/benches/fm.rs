@@ -5,7 +5,7 @@ use glicol_synth::{
     AudioContextBuilder,
 };
 
-fn next_block_benchmark(c: &mut Criterion) {
+fn fm_benchmark(c: &mut Criterion) {
     let mut context = AudioContextBuilder::<128>::new()
         .sr(44100)
         .channels(2)
@@ -21,12 +21,12 @@ fn next_block_benchmark(c: &mut Criterion) {
     context.connect(add2, sin1);
     context.connect(mul1, context.destination);
 
-    c.bench_function("next_block", |b| {
+    c.bench_function("fm", |b| {
         b.iter(|| {
             context.next_block();
         })
     });
 }
 
-criterion_group!(benches, next_block_benchmark);
+criterion_group!(benches, fm_benchmark);
 criterion_main!(benches);

@@ -3,10 +3,10 @@ name = "glicol_synth"
 version = { workspace = true }
 edition = { workspace = true }
 keywords = [
-	"audio",
+    "audio",
     "music",
-	"DSP",
-	"synth",
+    "DSP",
+    "synth",
     "synthesizer"
 ]
 readme = "README.md"

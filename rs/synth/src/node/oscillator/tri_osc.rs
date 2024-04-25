@@ -1,4 +1,4 @@
-use crate::{impl_to_boxed_nodedata, oscillator::process_oscillation, BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
+use crate::{oscillator::process_oscillation, Buffer, Input, Message, Node};
 use hashbrown::HashMap;
 #[derive(Debug, Clone)]
 pub struct TriOsc {
@@ -34,7 +34,6 @@ impl TriOsc {
     pub fn phase(self, phase: f32) -> Self {
         Self { phase, ..self }
     }
-    impl_to_boxed_nodedata!();
 }
 
 impl<const N: usize> Node<N> for TriOsc {

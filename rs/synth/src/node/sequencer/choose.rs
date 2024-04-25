@@ -1,4 +1,4 @@
-use crate::{impl_to_boxed_nodedata, BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
+use crate::{Buffer, Input, Message, Node};
 use dasp_signal::{self as signal, Signal};
 use hashbrown::HashMap;
 
@@ -16,7 +16,6 @@ impl Choose {
             input_order: Vec::new(),
         }
     }
-    impl_to_boxed_nodedata!();
 }
 
 impl<const N: usize> Node<N> for Choose {

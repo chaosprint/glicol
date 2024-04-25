@@ -10,7 +10,7 @@ use crate::{
     AudioContext,
     Pass,
 };
-use crate::{BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
+use crate::{Buffer, Input, Message, Node};
 use hashbrown::HashMap;
 
 use petgraph::graph::NodeIndex;
@@ -45,10 +45,6 @@ impl<const N: usize> SawSynth<N> {
             input,
             input_order: vec![],
         }
-    }
-
-    pub fn to_boxed_nodedata(self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
-        NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new(self))
     }
 }
 

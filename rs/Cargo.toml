@@ -1,7 +1,7 @@
 [workspace]
 default-members = ["main"]
 exclude = ["wasm"]
-members = ["main", "parser", "synth", "macros"]
+members = ["main", "parser", "synth"]
 resolver = "1"
 
 [workspace.package]

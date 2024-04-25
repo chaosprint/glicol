@@ -1,4 +1,4 @@
-use crate::{impl_to_boxed_nodedata, BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
+use crate::{Buffer, Input, Message, Node};
 use dasp_ring_buffer as ring_buffer;
 use hashbrown::HashMap;
 type Fixed = ring_buffer::Fixed<Vec<f32>>;
@@ -24,7 +24,6 @@ impl DelayN {
             input_order: Vec::new(),
         }
     }
-    impl_to_boxed_nodedata!();
 }
 
 impl<const N: usize> Node<N> for DelayN {

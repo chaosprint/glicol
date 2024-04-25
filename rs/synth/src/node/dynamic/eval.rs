@@ -67,11 +67,6 @@ impl<const N: usize> Eval<N> {
         Self { ..self }
     }
 
-    pub fn to_boxed_nodedata(self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
-        // self.scope.push("sr", self.sr as f32);
-        NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new(self))
-    }
-
     fn apply_code(&mut self, code: String) {
         let lines = code.split(';');
         for line in lines {
@@ -145,5 +140,10 @@ impl<const N: usize> Node<N> for Eval<N> {
             }
             _ => {}
         }
+    }
+
+    fn to_boxed_nodedata(self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
+        // self.scope.push("sr", self.sr as f32);
+        NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new(self))
     }
 }

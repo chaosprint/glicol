@@ -9,7 +9,7 @@ use glicol_synth::{
     sequencer::{Arrange, Choose, Sequencer, Speed},
     signal::{ConstSig, Impulse, Noise, Points},
     synth::{MsgSynth, PatternSynth},
-    Pass, Sum2,
+    Node, Pass, Sum2
 };
 
 #[cfg(feature = "use-meta")]
@@ -21,7 +21,6 @@ use glicol_synth::dynamic::Eval;
 use glicol_synth::sampling::{PSampler, Sampler};
 
 use crate::EngineError;
-use glicol_macros::{get_one_para_from_number_or_ref, get_one_para_from_number_or_ref2};
 use glicol_synth::{BoxedNodeSend, GlicolPara, NodeData}; //, Processor, Buffer, Input, Node
 use hashbrown::HashMap;
 
@@ -416,8 +415,8 @@ pub fn makenode<const N: usize>(
                 unimplemented!();
             }
         },
-        "speed" => get_one_para_from_number_or_ref!(Speed),
-        "onepole" => get_one_para_from_number_or_ref!(OnePole),
+        "speed" => get_one_para_from_number_or_ref::<N, Speed>(paras, 1),
+        "onepole" => get_one_para_from_number_or_ref::<N, OnePole>(paras, 1),
         "add" => match &paras[0] {
             GlicolPara::Number(v) => (Add::new(*v).to_boxed_nodedata(2), vec![]),
             GlicolPara::Reference(s) => (Add::new(0.0).to_boxed_nodedata(2), vec![s.to_string()]),
@@ -452,9 +451,9 @@ pub fn makenode<const N: usize>(
             (data, reflist)
         }
         // todo: give sr to them
-        "bd" => get_one_para_from_number_or_ref2!(Bd),
-        "hh" => get_one_para_from_number_or_ref2!(Hh),
-        "sn" => get_one_para_from_number_or_ref2!(Sn),
+        "bd" => get_one_para_from_number_or_ref::<N, Bd<N>>(paras, 2),
+        "hh" => get_one_para_from_number_or_ref::<N, Hh<N>>(paras, 2),
+        "sn" => get_one_para_from_number_or_ref::<N, Sn<N>>(paras, 2),
         "sawsynth" => {
             let data = SawSynth::new(
                 match &paras[0] {
@@ -580,4 +579,24 @@ pub fn makenode<const N: usize>(
         _ => unimplemented!(),
     };
     Ok((nodedata, reflist))
+}
+
+fn get_one_para_from_number_or_ref<const N: usize, T>(
+    paras: &[GlicolPara],
+    channels: usize
+) -> (NodeData<BoxedNodeSend<N>, N>, Vec<String>)
+where
+    T: From<f32> + Node<N> + Send + 'static
+{
+    match &paras[0] {
+        GlicolPara::Number(v) => {
+            (T::from(*v).to_boxed_nodedata(channels), vec![])
+        },
+        GlicolPara::Reference(s) => {
+            (T::from(0.0).to_boxed_nodedata(channels), vec![s.to_owned()])
+        },
+        _ => {
+            unimplemented!();
+        }
+    }
 }

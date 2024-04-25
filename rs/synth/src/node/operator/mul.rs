@@ -1,4 +1,4 @@
-use crate::{impl_to_boxed_nodedata, BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
+use crate::{Buffer, Input, Message, Node};
 use hashbrown::HashMap;
 
 use super::apply_op;
@@ -15,10 +15,6 @@ impl Mul {
             input_order: vec![],
         }
     }
-    impl_to_boxed_nodedata!();
-    // pub fn to_boxed_nodedata<const N: usize>(self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
-    //     NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new( self ) )
-    // }
 }
 
 impl<const N: usize> Node<N> for Mul {

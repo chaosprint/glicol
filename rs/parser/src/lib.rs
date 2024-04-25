@@ -5,19 +5,15 @@ use pest_derive::*;
 // use pest::error::ErrorVariant;
 use hashbrown::HashMap;
 
-use glicol_macros::{one_para_number_or_ref, two_numbers};
 use glicol_synth::GlicolPara;
+
+mod util;
+
+use util::{two_numbers, one_para_number_or_ref};
 
 #[derive(Parser)]
 #[grammar = "glicol.pest"]
 pub struct GlicolParser;
-
-pub fn get_num(para: GlicolPara) -> f32 {
-    match para {
-        GlicolPara::Number(v) => v,
-        _ => 0.0,
-    }
-}
 
 /// index, (vector of chain name, vector of parameter list)
 pub type GlicolAst = HashMap<String, (Vec<String>, Vec<Vec<GlicolPara>>)>;
@@ -47,10 +43,13 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                         let chain = line_component;
                         for node_pair in chain.into_inner() {
                             let node = node_pair.into_inner().next().unwrap();
-                            match node.as_rule() {
-                                Rule::point_node => {
+
+                            let as_rule = node.as_rule();
+                            chain_node_names.push(format!("{as_rule:?}"));
+
+                            match as_rule {
+                                Rule::points => {
                                     // println!("node {:?}", node.as_str()); //"all params"
-                                    chain_node_names.push("points");
                                     let mut span = -1.0;
                                     let mut is_looping = false;
                                     let mut node_inner = node.into_inner();
@@ -146,23 +145,22 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                         GlicolPara::Bool(is_looping),
                                     ]);
                                 }
-                                Rule::delayn => one_para_number_or_ref!("delayn"),
-                                Rule::delayms => one_para_number_or_ref!("delayms"),
-                                Rule::imp => one_para_number_or_ref!("imp"),
-                                Rule::tri => one_para_number_or_ref!("tri"),
-                                Rule::squ => one_para_number_or_ref!("squ"),
-                                Rule::saw => one_para_number_or_ref!("saw"),
-                                Rule::onepole => one_para_number_or_ref!("onepole"),
-                                Rule::sin => one_para_number_or_ref!("sin"),
-                                Rule::mul => one_para_number_or_ref!("mul"),
-                                Rule::add => one_para_number_or_ref!("add"),
-                                Rule::pan => one_para_number_or_ref!("pan"),
+                                Rule::delayn => one_para_number_or_ref(node, &mut chain_paras),
+                                Rule::delayms => one_para_number_or_ref(node, &mut chain_paras),
+                                Rule::imp => one_para_number_or_ref(node, &mut chain_paras),
+                                Rule::tri => one_para_number_or_ref(node, &mut chain_paras),
+                                Rule::squ => one_para_number_or_ref(node, &mut chain_paras),
+                                Rule::saw => one_para_number_or_ref(node, &mut chain_paras),
+                                Rule::onepole => one_para_number_or_ref(node, &mut chain_paras),
+                                Rule::sin => one_para_number_or_ref(node, &mut chain_paras),
+                                Rule::mul => one_para_number_or_ref(node, &mut chain_paras),
+                                Rule::add => one_para_number_or_ref(node, &mut chain_paras),
+                                Rule::pan => one_para_number_or_ref(node, &mut chain_paras),
                                 Rule::seq => {
                                     let mut event = Vec::<(f32, GlicolPara)>::new();
                                     // println!("node {:?}", node.as_str());
                                     let paras = node.into_inner().next().unwrap();
                                     // println!("paras {:?}", paras.as_str());
-                                    chain_node_names.push("seq");
                                     // to do, more than a symbol
                                     // should be an event that contains time and note
                                     // GlicolPara::Symbol(paras.as_str())
@@ -218,7 +216,6 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                         .map(|x| x.as_str().parse::<f32>().unwrap())
                                         .collect();
                                     // println!("paras {:?}", paras);
-                                    chain_node_names.push("choose");
                                     chain_paras.push(vec![GlicolPara::NumberList(paras)]);
                                 }
                                 Rule::mix => {
@@ -228,24 +225,21 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                         .map(|x| GlicolPara::Reference(x.as_str().to_owned()))
                                         .collect();
                                     // println!("paras {:?}", paras);
-                                    chain_node_names.push("mix");
                                     chain_paras.push(paras);
                                 }
                                 Rule::sp => {
                                     // println!("node {:?}", node.as_str());
                                     let paras = node.into_inner().next().unwrap();
                                     // println!("paras {:?}", paras.as_str());
-                                    chain_node_names.push("sp");
                                     chain_paras.push(vec![GlicolPara::SampleSymbol(
                                         paras.as_str().to_owned(),
                                     )]);
                                 }
-                                Rule::speed => one_para_number_or_ref!("speed"),
+                                Rule::speed => one_para_number_or_ref(node, &mut chain_paras),
                                 Rule::constsig => {
                                     // println!("node {:?}", node.as_str()); //"sin 440"
                                     let paras = node.into_inner().next().unwrap();
                                     // println!("paras {:?}", paras.as_str());//"440"
-                                    chain_node_names.push("constsig");
                                     match paras.as_rule() {
                                         Rule::number => {
                                             chain_paras.push(vec![GlicolPara::Number(
@@ -313,19 +307,18 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                         _ => {}
                                     }
                                 }
-                                Rule::adc => one_para_number_or_ref!("adc"),
-                                Rule::bd => one_para_number_or_ref!("bd"),
-                                Rule::sn => one_para_number_or_ref!("sn"),
-                                Rule::hh => one_para_number_or_ref!("hh"),
-                                Rule::sawsynth => two_numbers!("sawsynth"),
-                                Rule::squsynth => two_numbers!("squsynth"),
-                                Rule::trisynth => two_numbers!("trisynth"),
+                                Rule::adc => one_para_number_or_ref(node, &mut chain_paras),
+                                Rule::bd => one_para_number_or_ref(node, &mut chain_paras),
+                                Rule::sn => one_para_number_or_ref(node, &mut chain_paras),
+                                Rule::hh => one_para_number_or_ref(node, &mut chain_paras),
+                                Rule::sawsynth => two_numbers(node, &mut chain_paras),
+                                Rule::squsynth => two_numbers(node, &mut chain_paras),
+                                Rule::trisynth => two_numbers(node, &mut chain_paras),
                                 Rule::lpf => {
                                     // println!("node {:?}", node.as_str());
                                     let mut iter = node.into_inner();
                                     let p1 = iter.next().unwrap();
                                     let p2 = iter.next().unwrap();
-                                    chain_node_names.push("lpf");
                                     chain_paras.push(vec![
                                         match p1.as_rule() {
                                             Rule::number => GlicolPara::Number(
@@ -399,7 +392,6 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                     let mut iter = node.into_inner();
                                     let p1 = iter.next().unwrap();
                                     // let p2 = iter.next().unwrap();
-                                    chain_node_names.push("psampler");
                                     chain_paras.push(vec![match p1.as_rule() {
                                         Rule::number => GlicolPara::Number(
                                             p1.as_str().parse::<f32>().unwrap(),
@@ -469,7 +461,6 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                     let mut iter = node.into_inner();
                                     let p1 = iter.next().unwrap();
                                     let p2 = iter.next().unwrap();
-                                    chain_node_names.push("balance");
                                     chain_paras.push(vec![
                                         GlicolPara::Reference(p1.as_str().to_owned()),
                                         GlicolPara::Reference(p2.as_str().to_owned()),
@@ -481,7 +472,6 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                     let mut iter = node.into_inner();
                                     let p1 = iter.next().unwrap();
                                     let p2 = iter.next().unwrap();
-                                    chain_node_names.push("rhpf");
                                     chain_paras.push(vec![
                                         match p1.as_rule() {
                                             Rule::number => GlicolPara::Number(
@@ -501,7 +491,6 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                     let mut iter = node.into_inner();
                                     let p1 = iter.next().unwrap();
                                     let p2 = iter.next().unwrap();
-                                    chain_node_names.push("apfmsgain");
                                     chain_paras.push(vec![
                                         match p1.as_rule() {
                                             Rule::number => GlicolPara::Number(
@@ -525,7 +514,6 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                     let p4 = iter.next().unwrap();
                                     let p5 = iter.next().unwrap();
                                     // let p6 = iter.next().unwrap();
-                                    chain_node_names.push("reverb");
                                     chain_paras.push(vec![
                                         GlicolPara::Number(p1.as_str().parse::<f32>().unwrap()),
                                         GlicolPara::Number(p2.as_str().parse::<f32>().unwrap()),
@@ -541,7 +529,6 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                     let mut iter = node.into_inner();
                                     let p1 = iter.next().unwrap();
                                     let p2 = iter.next().unwrap();
-                                    chain_node_names.push("envperc");
                                     chain_paras.push(vec![
                                         GlicolPara::Number(p1.as_str().parse::<f32>().unwrap()),
                                         GlicolPara::Number(p2.as_str().parse::<f32>().unwrap()),
@@ -555,7 +542,6 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                     let p2 = iter.next().unwrap();
                                     let p3 = iter.next().unwrap();
                                     let p4 = iter.next().unwrap();
-                                    chain_node_names.push("adsr");
                                     chain_paras.push(vec![
                                         GlicolPara::Number(p1.as_str().parse::<f32>().unwrap()),
                                         GlicolPara::Number(p2.as_str().parse::<f32>().unwrap()),
@@ -563,14 +549,13 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                         GlicolPara::Number(p4.as_str().parse::<f32>().unwrap()),
                                     ]);
                                 }
-                                Rule::plate => one_para_number_or_ref!("plate"),
-                                Rule::get => one_para_number_or_ref!("get"),
-                                Rule::noise => one_para_number_or_ref!("noise"),
+                                Rule::plate => one_para_number_or_ref(node, &mut chain_paras),
+                                Rule::get => one_para_number_or_ref(node, &mut chain_paras),
+                                Rule::noise => one_para_number_or_ref(node, &mut chain_paras),
                                 Rule::meta => {
                                     // println!("node {:?}", node.as_str());
                                     let paras = node.into_inner().next().unwrap();
                                     // println!("paras {:?}", paras.as_str());
-                                    chain_node_names.push("meta");
                                     chain_paras.push(vec![GlicolPara::Symbol(
                                         paras.as_str().replace('`', "")
                                     )]);
@@ -579,7 +564,6 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                     // println!("node {:?}", node.as_str());
                                     let paras = node.into_inner().next().unwrap();
                                     // println!("paras {:?}", paras.as_str());
-                                    chain_node_names.push("expr");
                                     chain_paras.push(vec![GlicolPara::Symbol(
                                         paras.as_str().replace('`', "")
                                     )]);
@@ -588,7 +572,6 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                     // println!("node {:?}", node.as_str());
                                     let paras = node.into_inner().next().unwrap();
                                     // println!("paras {:?}", paras.as_str());
-                                    chain_node_names.push("eval");
                                     // we do some checkings here
                                     // parse first
                                     // then run later
@@ -615,11 +598,9 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                         })
                                         .collect();
                                     // println!("paras {:?}", paras);
-                                    chain_node_names.push("arrange");
                                     chain_paras.push(paras);
                                 }
                                 Rule::msgsynth => {
-                                    chain_node_names.push("msgsynth");
                                     // println!("node {:?}", node.as_str());
                                     let mut iter = node.into_inner();
                                     let mut paras = vec![];
@@ -638,7 +619,6 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
                                     chain_paras.push(paras)
                                 }
                                 Rule::pattern_synth => {
-                                    chain_node_names.push("pattern_synth");
                                     // println!("node {:?}", node.as_str());
                                     let mut iter = node.into_inner();
                                     let mut paras = vec![];
@@ -662,10 +642,7 @@ pub fn get_ast(code: &str) -> Result<GlicolAst, Error<Rule>> {
             ast.insert(
                 key.to_owned(),
                 (
-                    chain_node_names
-                        .iter_mut()
-                        .map(|x| x.to_owned())
-                        .collect::<Vec<String>>(),
+                    chain_node_names,
                     chain_paras,
                 ),
             );

@@ -1,4 +1,4 @@
-use crate::{impl_to_boxed_nodedata, BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
+use crate::{Buffer, Input, Message, Node};
 use hashbrown::HashMap;
 
 use super::process_oscillation;
@@ -36,7 +36,6 @@ impl SawOsc {
     pub fn phase(self, phase: f32) -> Self {
         Self { phase, ..self }
     }
-    impl_to_boxed_nodedata!();
 }
 
 impl<const N: usize> Node<N> for SawOsc {

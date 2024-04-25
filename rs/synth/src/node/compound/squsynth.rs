@@ -3,7 +3,7 @@
 // ~pitch: ~trigger >> mul 261.626;
 // ~env: ~trigger >> envperc #attack #decay;
 use crate::{envelope::EnvPerc, operator::Mul, oscillator::SquOsc, AudioContext, Pass};
-use crate::{BoxedNodeSend, Buffer, Input, Message, Node, NodeData};
+use crate::{Buffer, Input, Message, Node};
 use hashbrown::HashMap;
 
 use petgraph::graph::NodeIndex;
@@ -38,10 +38,6 @@ impl<const N: usize> SquSynth<N> {
             input,
             input_order: vec![],
         }
-    }
-
-    pub fn to_boxed_nodedata(self, channels: usize) -> NodeData<BoxedNodeSend<N>, N> {
-        NodeData::multi_chan_node(channels, BoxedNodeSend::<N>::new(self))
     }
 }
 
