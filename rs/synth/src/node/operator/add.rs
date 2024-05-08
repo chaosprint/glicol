@@ -17,6 +17,12 @@ impl Add {
     }
 }
 
+impl From<f32> for Add {
+    fn from(value: f32) -> Self {
+        Self::new(value)
+    }
+}
+
 impl<const N: usize> Node<N> for Add {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         // println!("inputs of add {:?} {}", inputs, inputs.len());

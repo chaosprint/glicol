@@ -1,7 +1,6 @@
 [workspace]
 default-members = ["main"]
-exclude = ["wasm"]
-members = ["main", "parser", "synth"]
+members = ["main", "parser", "synth", "wasm"]
 resolver = "1"
 
 [workspace.package]
@@ -28,4 +27,11 @@ rhai = { version = "1.12.0", default-features = false, features = [
 fasteval = "0.2.4"
 pest = "2.7.9"
 pest_derive = "2.7.9"
-lcs-diff = "0.1.1"
+yoke = { version = "0.7.3", features = ["derive"] }
+
+[profile.wasm-release]
+inherits = "release"
+opt-level = 'z'   # Optimize for size.
+lto = true        # Enable Link Time Optimization
+codegen-units = 1 # Reduce number of codegen units to increase optimizations.
+panic = 'abort'   # Abort on panic

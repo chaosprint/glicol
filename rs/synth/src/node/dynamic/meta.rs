@@ -5,7 +5,6 @@ use rhai::{Array, Dynamic, Engine, OptimizationLevel, Scope, AST};
 pub struct Meta<const N: usize> {
     sr: usize,
     // phase: usize,
-    pub code: String,
     pub backup: String,
     ast: AST,
     scope: Scope<'static>,
@@ -77,7 +76,6 @@ impl<const N: usize> Meta<N> {
             sr: 44100,
             engine,
             scope,
-            code: "".to_owned(),
             backup: "".to_owned(),
             ast,
             // phase,
@@ -89,11 +87,11 @@ impl<const N: usize> Meta<N> {
         Self { sr, ..self }
     }
 
-    pub fn code(mut self, code: String) -> Self {
-        if let Ok(a) = self.engine.compile(&code) {
+    pub fn code(mut self, code: &str) -> Self {
+        if let Ok(a) = self.engine.compile(code) {
             self.ast = a;
         };
-        Self { code, ..self }
+        self
     }
 }
 

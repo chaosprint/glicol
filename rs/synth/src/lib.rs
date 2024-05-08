@@ -22,9 +22,11 @@
 
 #![doc = include_str!("../README.md")]
 mod context;
+
 pub use context::*;
 
 mod graph;
+use glicol_parser::{ToInnerOwned, nodes::{NumberOrRef, TimeList}};
 pub use graph::*;
 
 mod node;
@@ -52,12 +54,7 @@ pub use node::{Sum, Sum2};
 #[cfg(feature = "node-pass")]
 pub use node::Pass;
 
-// #[cfg(feature = "node-pass")]
-// pub use node::{Pass};
-
 use hashbrown::HashMap;
-// pub use hashbrown::HashMap;
-// pub use arrayvec::ArrayVec;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -71,7 +68,7 @@ pub enum Message {
         HashMap<String, (&'static [f32], usize, usize)>,
     ),
     SetPattern(Vec<(f32, f32)>, f32),
-    SetToSeq(u8, Vec<(f32, GlicolPara)>),
+    SetToSeq(u8, Vec<(f32, NumberOrRef<String>)>),
     SetRefOrder(HashMap<String, usize>),
     SetBPM(f32),
     SetSampleRate(usize),
@@ -80,24 +77,51 @@ pub enum Message {
     Index(usize),
     IndexOrder(usize, usize),
     ResetOrder,
-    SetParam(u8, GlicolPara),
+    SetParam(u8, GlicolPara<String>),
     SetToBool(u8, bool),
 }
 
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub enum GlicolPara {
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+pub enum GlicolPara<S>
+where
+    S: AsRef<str>
+{
     Number(f32),
     Bool(bool),
     NumberList(Vec<f32>),
-    Reference(String),
-    SampleSymbol(String), // symbol is for sample only
-    Symbol(String),
-    Sequence(Vec<(f32, GlicolPara)>),
-    Pattern(Vec<(GlicolPara, f32)>, f32),
-    Event(Vec<(GlicolPara, f32)>),
-    Points(Vec<(GlicolPara, GlicolPara)>),
-    Time(Vec<GlicolPara>),
+    Reference(S),
+    SampleSymbol(S), // symbol is for sample only
+    Symbol(S),
+    Sequence(Vec<(f32, NumberOrRef<S>)>),
+    Pattern(Vec<(Self, f32)>, f32),
+    Event(Vec<(Self, f32)>),
+    Points(Vec<(TimeList, f32)>),
     Bar(f32),
     Second(f32),
     Millisecond(f32),
+}
+
+impl<S> ToInnerOwned for GlicolPara<&S>
+where
+    S: AsRef<str> + ToOwned + ?Sized,
+    <S as ToOwned>::Owned: AsRef<str>,
+{
+    type Owned = GlicolPara<<S as ToOwned>::Owned>;
+    fn to_inner_owned(&self) -> Self::Owned {
+        match self {
+            Self::Number(num) => GlicolPara::Number(*num),
+            Self::Bool(bool) => GlicolPara::Bool(*bool),
+            Self::NumberList(vec) => GlicolPara::NumberList(vec.to_vec()),
+            Self::Reference(s) => GlicolPara::Reference((*s).to_owned()),
+            Self::SampleSymbol(s) => GlicolPara::SampleSymbol((*s).to_owned()),
+            Self::Symbol(s) => GlicolPara::Symbol((*s).to_owned()),
+            Self::Sequence(seq) => GlicolPara::Sequence(seq.to_inner_owned()),
+            Self::Pattern(vec, num) => GlicolPara::Pattern(vec.to_inner_owned(), *num),
+            Self::Event(vec) => GlicolPara::Event(vec.to_inner_owned()),
+            Self::Points(vec) => GlicolPara::Points(vec.to_inner_owned()),
+            Self::Bar(num) => GlicolPara::Bar(*num),
+            Self::Second(num) => GlicolPara::Second(*num),
+            Self::Millisecond(num) => GlicolPara::Millisecond(*num)
+        }
+    }
 }

@@ -14,6 +14,6 @@ authors = ["Qichao Lan <chaosprint@gmail.com>"]
 [dependencies]
 pest = { workspace = true }
 pest_derive = { workspace = true }
-glicol_synth = { version = "0.13.5", path = "../synth" }
 hashbrown = { workspace = true }
 fasteval = { workspace = true }
+yoke = { workspace = true }

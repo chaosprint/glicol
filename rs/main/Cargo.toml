@@ -24,9 +24,9 @@ glicol_synth = { version = "0.13.5", path = "../synth", features = [
     "use-samples",
     "use-meta",
 ] }
-lcs-diff = { workspace = true }
 pest = { workspace = true }
 hashbrown = { workspace = true }
+yoke = "0.7.3"
 
 [dev-dependencies]
 gnuplot = "0.0.37"

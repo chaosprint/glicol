@@ -4,7 +4,7 @@ extern crate lazy_static;
 use std::sync::Mutex;
 use std::slice::from_raw_parts_mut;
 
-use glicol::Engine;
+use glicol::{Engine, EngineError};
 
 #[no_mangle]
 pub extern "C" fn alloc(size: usize) -> *mut f32 {
@@ -23,28 +23,25 @@ pub extern "C" fn alloc_uint8array(length: usize) -> *mut u8 {
 }
 
 lazy_static! {
-    static ref ENGINE:Mutex<Engine<128>> = Mutex::new(Engine::<128>::new());
+    static ref ENGINE: Mutex<Engine<128>> = Mutex::new(Engine::<128>::new());
 }
 
 /// # Safety
 ///
 /// - in_ptr must be aligned and non-null
 /// - out_ptr must aligned and non-null
-/// - result_ptr must be aligned and nonnull
 #[no_mangle]
-pub unsafe extern "C" fn process(in_ptr: *mut f32, out_ptr: *mut f32, size: usize, result_ptr: *mut u8) {
+pub unsafe extern "C" fn process(in_ptr: *mut f32, out_ptr: *mut f32, size: usize) {
     let mut engine = ENGINE.lock().unwrap();
 
     let _in_buf: &mut [f32] = unsafe { from_raw_parts_mut(in_ptr, 128) };
-    let result:&mut [u8] = unsafe { from_raw_parts_mut(result_ptr, 256) };
 
-    let (engine_out, console) = engine.next_block(vec![]);
+    let engine_out = engine.next_block(vec![]);
 
     let out_buf: &mut [f32] = unsafe { from_raw_parts_mut(out_ptr, size) };
 
     out_buf[..128].copy_from_slice(&engine_out[0][..128]);
     out_buf[128..].copy_from_slice(&engine_out[1][..128]);
-    result[..256].copy_from_slice(&console);
 }
 
 /// # Safety
@@ -71,15 +68,19 @@ pub unsafe extern "C" fn add_sample(
 /// # Safety
 ///
 /// - arr_ptr must be aligned and non-null
+/// - result_ptr must be aligned and non-null
 #[no_mangle]
-pub unsafe extern "C" fn update(arr_ptr: *mut u8, length: usize) { //, result_ptr: *mut u8
-
+pub unsafe extern "C" fn update(arr_ptr: *mut u8, length: usize, result_ptr: *mut u8) { //, result_ptr: *mut u8
     let mut engine = ENGINE.lock().unwrap();
-    let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
+    let encoded: &mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
     let code = std::str::from_utf8(encoded).unwrap();
-    // let result:&mut [u8] = unsafe { from_raw_parts_mut(result_ptr, 256) };
+
     // assert_eq!(code, "o: sin 110");
-    engine.update_with_code(code);
+
+    if let Err(e) = engine.update_with_code(code) {
+        let result: &mut [u8] = unsafe { from_raw_parts_mut(result_ptr, RES_BUFFER_SIZE) };
+        write_err_to_buf(e, result);
+    }
 }
 
 /// # Safety
@@ -129,4 +130,48 @@ pub extern "C" fn set_seed(seed: f32) {
 pub extern "C" fn reset() {
     let mut engine = ENGINE.lock().unwrap();
     engine.reset();
+}
+
+const RES_BUFFER_SIZE: usize = 256;
+
+fn write_err_to_buf(err: EngineError, result: &mut [u8]) {
+    result[0] = match err {
+        EngineError::ParsingError(_) => 1,
+        EngineError::NonExistSample(_) => 2,
+        EngineError::NonExistReference(_) => 3,
+    };
+
+    let error = match err {
+        EngineError::ParsingError(v) => {
+            let location = match v.location {
+                pest::error::InputLocation::Pos(u) => u,
+                pest::error::InputLocation::Span((s, _)) => s
+            };
+            let (line, col) = match v.line_col {
+                pest::error::LineColLocation::Pos(u) => u,
+                pest::error::LineColLocation::Span(u, _) => u
+            };
+            let (positives, negatives) = match &v.variant {
+                pest::error::ErrorVariant::ParsingError {
+                    positives,
+                    negatives,
+                } => (positives, negatives),
+                _ => panic!("unknown parsing error")
+            };
+
+            format!(
+                "pos[{:?}], line[{:?}], col[{:?}], positives{:?}, negatives{:?}",
+                location, line, col, positives, negatives
+            )
+        }
+        EngineError::NonExistSample(v) => format!("There is no sample named {v}"),
+        EngineError::NonExistReference(v) => format!("There is no reference named {v}"),
+    };
+
+    let s = error.as_bytes();
+    let max_idx = s.len().min(RES_BUFFER_SIZE) - 2;
+    result[2..][..max_idx].copy_from_slice(s);
+    for byte in &mut result[2 + max_idx..] {
+        *byte = 0;
+    }
 }
