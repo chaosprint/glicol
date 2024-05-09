@@ -2,5 +2,5 @@
 use glicol_parser::*;
 
 fn main() {
-    println!("{:?}", get_ast(r#"o: psampler "'bd'@0.0 'sd'@0.5""#));
+    println!("{:?}", get_ast(r#"o: psampler "'bd'@0.0 'sd'@0.5""#).unwrap());
 }

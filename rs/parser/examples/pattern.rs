@@ -2,5 +2,5 @@
 use glicol_parser::*;
 
 fn main() {
-    println!("{:?}", get_ast(r#"o: sig "60@0.0 72@0.5"(1)"#));
+    println!("{:?}", get_ast(r#"o: sig "60@0.0 72@0.5"(1)"#).unwrap());
 }
