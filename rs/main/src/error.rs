@@ -34,3 +34,5 @@ impl std::fmt::Display for EngineError {
         }
     }
 }
+
+impl std::error::Error for EngineError {}

@@ -78,7 +78,7 @@ impl<'ast, R> EndSpan<'ast> for Pair<'ast, R> where R: pest::RuleType {
 impl<'ast> EndSpan<'ast> for Span<'ast> {
     fn as_end_span(&self) -> Span<'ast> {
         // This is safe to unwrap 'cause we know it's valid due to the indexes we pass in
-        self.get(self.end()..=self.end()).unwrap()
+        self.get(self.end() - self.start()..).unwrap()
     }
 }
 
