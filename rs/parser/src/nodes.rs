@@ -3,7 +3,10 @@ use hashbrown::HashMap;
 
 use crate::{match_or_return_err, util::{ToPestErrWithPositives, TryToParse, EndSpan, GetNextParsed}, Rule};
 
-#[derive(yoke::Yokeable)]
+#[cfg(test)]
+trace::init_depth_var!();
+
+#[derive(yoke::Yokeable, Debug, PartialEq)]
 pub struct Ast<'ast> {
     pub nodes: HashMap<&'ast str, Vec<Component<'ast>>>
 }
@@ -147,6 +150,7 @@ pub struct Points {
 }
 
 impl Node<'_> for Points {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ Points]"))]
     fn parse_from_iter(pairs: &mut Pairs<'_, Rule>, span: Span<'_>) -> Result<Self, Box<Error<Rule>>> {
         let mut node_span = -1.0;
         let mut is_looping = false;
@@ -253,18 +257,22 @@ where
 }
 
 impl<'ast> Node<'ast> for NumberOrRef<&'ast str> {
-    fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
-        let paras = pairs.next()
-            .ok_or(span.to_err_with_positives([Rule::number, Rule::reference]))?;
-
-        match_or_return_err!(paras,
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ NumberOrRef]"))]
+    fn parse(pair: Pair<'ast, Rule>) -> Result<Self, Box<Error<Rule>>> {
+        match_or_return_err!(pair,
             Rule::number => {
-                Ok(NumberOrRef::Number(paras.try_to_parse()?))
+                pair.try_to_parse().map(Self::Number)
             },
             Rule::reference => {
-                Ok(NumberOrRef::Ref(paras.as_str()))
+                Ok(Self::Ref(pair.as_str()))
             },
         )
+    }
+
+    fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
+        pairs.next()
+            .ok_or_else(|| span.to_err_with_positives([Rule::reference, Rule::number]))
+            .and_then(Self::parse)
     }
 }
 
@@ -319,6 +327,7 @@ pub struct Get<'ast> {
 }
 
 impl<'ast> Node<'ast> for Get<'ast> {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ Get]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         pairs.next()
             .ok_or_else(|| span.as_end_span().to_err_with_positives([Rule::reference]))
@@ -332,6 +341,7 @@ pub struct Noise {
 }
 
 impl Node<'_> for Noise {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ Noise]"))]
     fn parse_from_iter(pairs: &mut Pairs<'_, Rule>, span: Span<'_>) -> Result<Self, Box<Error<Rule>>> {
         pairs.next_parsed(span).map(|seed| Self { seed })
     }
@@ -344,6 +354,7 @@ pub enum UsizeOrRef<'ast> {
 }
 
 impl<'ast> Node<'ast> for UsizeOrRef<'ast>{
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ UsizeOrRef]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         let next = pairs.next()
             .ok_or_else(|| span.as_end_span().to_err_with_positives([Rule::integer, Rule::reference]))?;
@@ -368,6 +379,7 @@ pub struct Adc {
 }
 
 impl Node<'_> for Adc {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ Adc]"))]
     fn parse_from_iter(pairs: &mut Pairs<'_, Rule>, span: Span<'_>) -> Result<Self, Box<Error<Rule>>> {
         pairs.next()
             .and_then(|p| p.as_str().parse::<u32>().ok())
@@ -382,6 +394,7 @@ pub struct Plate {
 }
 
 impl Node<'_> for Plate {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ Plate]"))]
     fn parse_from_iter(pairs: &mut Pairs<'_, Rule>, span: Span<'_>) -> Result<Self, Box<Error<Rule>>> {
         pairs.next_parsed(span).map(|mix| Self { mix })
     }
@@ -393,6 +406,7 @@ pub struct Seq<'ast> {
 }
 
 impl<'ast> Node<'ast> for Seq<'ast> {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ Seq]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         let positives = [
             Rule::integer,
@@ -458,7 +472,8 @@ pub struct Choose {
 }
 
 impl Node<'_> for Choose {
-    fn parse_from_iter(pairs: &mut Pairs<'_, Rule>, _: Span<'_>) -> Result<Self, Box<Error<Rule>>> {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ Choose]"))]
+    fn parse_from_iter(pairs: &mut Pairs<'_, Rule>, _s: Span<'_>) -> Result<Self, Box<Error<Rule>>> {
         Ok(Self {
             choices: pairs
                 .map(|n| n.try_to_parse())
@@ -473,12 +488,12 @@ pub struct Arrange<'ast> {
 }
 
 impl<'ast> Node<'ast> for Arrange<'ast> {
-    fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, _: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
-        Ok(Self {
-            events: pairs
-                .map(NumberOrRef::parse)
-                .collect::<Result<Vec<_>, _>>()?
-        })
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ Arrange]"))]
+    fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, _s: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
+        pairs
+            .map(NumberOrRef::parse)
+            .collect::<Result<Vec<_>, _>>()
+            .map(|events| Self { events })
     }
 }
 
@@ -488,7 +503,8 @@ pub struct Mix<'ast> {
 }
 
 impl<'ast> Node<'ast> for Mix<'ast> {
-    fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, _: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ Mix]"))]
+    fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, _s: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         Ok(Self {
             nodes: pairs
                 .map(|p| p.as_str())
@@ -503,6 +519,7 @@ pub struct Sp<'ast> {
 }
 
 impl<'ast> Node<'ast> for Sp<'ast> {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ Sp]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         Ok(Self {
             sample_sym: pairs.next()
@@ -527,6 +544,7 @@ pub struct EventInner<'ast> {
 }
 
 impl<'ast> Node<'ast> for EventInner<'ast> {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ EventInner]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         pairs.next()
             .ok_or_else(|| span.to_err_with_positives([Rule::pattern_event_body]))?
@@ -562,6 +580,7 @@ pub struct Pattern<'ast> {
 }
 
 impl<'ast> Node<'ast> for Pattern<'ast> {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ Pattern]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         let event = EventInner::parse_from_iter(pairs, span)?;
 
@@ -581,6 +600,7 @@ pub enum ConstSig<'ast> {
 }
 
 impl<'ast> Node<'ast> for ConstSig<'ast> {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ ConstSig]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         let paras = pairs.next()
             .ok_or_else(|| span.to_err_with_positives([
@@ -619,6 +639,7 @@ pub struct SawSynth {
 }
 
 impl Node<'_> for SawSynth {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ SawSynth]"))]
     fn parse_from_iter(pairs: &mut Pairs<'_, Rule>, span: Span<'_>) -> Result<Self, Box<Error<Rule>>> {
         parse_to_two_nums(pairs, span)
             .map(|[attack, decay]| Self { attack, decay })
@@ -632,6 +653,7 @@ pub struct SquSynth {
 }
 
 impl Node<'_> for SquSynth {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ SquSynth]"))]
     fn parse_from_iter(pairs: &mut Pairs<'_, Rule>, span: Span<'_>) -> Result<Self, Box<Error<Rule>>> {
         parse_to_two_nums(pairs, span)
             .map(|[attack, decay]| Self { attack, decay })
@@ -645,6 +667,7 @@ pub struct TriSynth {
 }
 
 impl Node<'_> for TriSynth {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ TriSynth]"))]
     fn parse_from_iter(pairs: &mut Pairs<'_, Rule>, span: Span<'_>) -> Result<Self, Box<Error<Rule>>> {
         parse_to_two_nums(pairs, span)
             .map(|[attack, decay]| Self { attack, decay })
@@ -659,6 +682,7 @@ pub struct MsgSynth<'ast> {
 }
 
 impl<'ast> Node<'ast> for MsgSynth<'ast> {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ MsgSynth]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         let end_span = span.as_end_span();
         let symbol = pairs.next()
@@ -680,6 +704,7 @@ pub struct PatternSynth<'ast> {
 }
 
 impl<'ast> Node<'ast> for PatternSynth<'ast> {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ PatternSynth]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         let end_span = span.as_end_span();
         let symbol = pairs.next()
@@ -698,6 +723,7 @@ pub struct Lpf<'ast> {
 }
 
 impl<'ast> Node<'ast> for Lpf<'ast> {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ Lpf]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         let end_span = span.as_end_span();
 
@@ -715,6 +741,7 @@ pub enum PSampler<'ast> {
 }
 
 impl<'ast> Node<'ast> for PSampler<'ast> {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ PSampler]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         let paras = pairs.next()
             .ok_or_else(|| span.to_err_with_positives([Rule::event, Rule::pattern]))?;
@@ -737,6 +764,7 @@ pub struct Balance<'ast> {
 }
 
 impl<'ast> Node<'ast> for Balance<'ast> {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ Balance]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         let end_span = span.as_end_span();
 
@@ -758,6 +786,7 @@ pub struct Rhpf<'ast> {
 }
 
 impl<'ast> Node<'ast> for Rhpf<'ast> {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ Rhpf]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         let end_span = span.as_end_span();
         let cutoff = NumberOrRef::parse_from_iter(pairs, span)?;
@@ -773,6 +802,7 @@ pub struct ApfmsGain<'ast> {
 }
 
 impl<'ast> Node<'ast> for ApfmsGain<'ast> {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ ApfmsGain]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         let end_span = span.as_end_span();
         let delay = NumberOrRef::parse_from_iter(pairs, span)?;
@@ -842,6 +872,7 @@ pub struct Reverb {
 }
 
 impl Node<'_> for Reverb {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ Reverb]"))]
     fn parse_from_iter(pairs: &mut Pairs<'_, Rule>, span: Span<'_>) -> Result<Self, Box<Error<Rule>>> {
         let [p1, p2, p3, p4, p5] = get_f32_arr(pairs, span)?;
         Ok(Self { p1, p2, p3, p4, p5 })
@@ -855,6 +886,7 @@ pub struct EnvPerc {
 }
 
 impl Node<'_> for EnvPerc {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ EnvPerc]"))]
     fn parse_from_iter(pairs: &mut Pairs<'_, Rule>, span: Span<'_>) -> Result<Self, Box<Error<Rule>>> {
         let [attack, decay] = get_f32_arr(pairs, span)?;
         Ok(Self { attack, decay })
@@ -870,6 +902,7 @@ pub struct Adsr {
 }
 
 impl Node<'_> for Adsr {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ Adsr]"))]
     fn parse_from_iter(pairs: &mut Pairs<'_, Rule>, span: Span<'_>) -> Result<Self, Box<Error<Rule>>> {
         let [attack, decay, sustain, release] = get_f32_arr(pairs, span)?;
         Ok(Self { attack, decay, sustain, release })
@@ -882,6 +915,7 @@ pub struct CodeBlock<'ast> {
 }
 
 impl<'ast> Node<'ast> for CodeBlock<'ast> {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ CodeBlock]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         let s = pairs.next()
             .ok_or_else(|| span.to_err_with_positives([Rule::code]))?

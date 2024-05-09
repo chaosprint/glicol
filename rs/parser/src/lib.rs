@@ -9,6 +9,8 @@ mod util;
 pub mod nodes;
 pub use util::ToInnerOwned;
 
+mod tests;
+
 #[derive(Parser)]
 #[grammar = "glicol.pest"]
 pub struct GlicolParser;

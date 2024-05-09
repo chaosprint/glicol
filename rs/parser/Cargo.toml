@@ -17,3 +17,6 @@ pest_derive = { workspace = true }
 hashbrown = { workspace = true }
 fasteval = { workspace = true }
 yoke = { workspace = true }
+
+[dev-dependencies]
+trace = "0.1.7"
