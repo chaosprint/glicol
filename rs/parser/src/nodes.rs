@@ -400,6 +400,11 @@ impl Node<'_> for Plate {
     }
 }
 
+// TODO: There are some ambiguous 'seq' inputs, afaict.
+// `seq o_`: is this a single event, ref "o_", or is this a ref "o" and then a rest?
+// `seq _o`: is this a single event, ref "_o", or is this a rest and then a ref "o"?
+// `seq 6060`: is this two 60's or one 6060? How do we indicate two numbers without a pause
+// `seq ~a14`: i think you get the gist
 #[derive(PartialEq, Debug)]
 pub struct Seq<'ast> {
     pub events: Vec<(f32, NumberOrRef<&'ast str>)>
@@ -420,7 +425,6 @@ impl<'ast> Node<'ast> for Seq<'ast> {
 
         // to do, more than a symbol
         // should be an event that contains time and note
-        // GlicolPara::Symbol(paras.as_str())
         let compounds = paras.into_inner();
         // one bar will firstly be divided here
         let compounds_num = compounds.len();
@@ -443,6 +447,8 @@ impl<'ast> Node<'ast> for Seq<'ast> {
                 let time = relative_time_sub + relative_time_base;
 
                 match_or_return_err!(e,
+                    // TODO: We only match on integer here, but we store it as a f32. We should
+                    // pick a lane; either it must be an integer or it doesn't have to
                     Rule::integer => {
                         e.try_to_parse()
                             .map(|num| Some((time, NumberOrRef::Number(num))))
