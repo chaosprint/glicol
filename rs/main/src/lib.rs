@@ -6,7 +6,7 @@ use std::collections::VecDeque;
 use util::makenode;
 pub mod error;
 pub use error::{get_error_info, EngineError};
-use glicol_parser::{get_ast, nodes::{Ast, NumberOrRef}, ToInnerOwned as _};
+use glicol_parser::{get_ast, nodes::{Ast, Component, NumberOrRef}, ToInnerOwned as _};
 use glicol_synth::{
     AudioContext, AudioContextConfig, BoxedNodeSend, Buffer, GlicolGraph, GlicolPara, Message, NodeData, Pass
 };
@@ -184,26 +184,41 @@ impl<const N: usize> Engine<N> {
         // also remove the whole chain in_old but not_in_new, after ensuring there is no problem with new stuff
         // println!("\n\nold ast {:?}\n\n new {:?}", self.ast, self.new_ast);
 
+        fn add_nodes<'iter, 'ast: 'iter, const N: usize>(
+            chain_name: &'ast str,
+            iter: impl Iterator<Item = (usize, &'iter Component<'ast>)>,
+            graph_diff: &mut GraphDiff<'ast, N>,
+            samples_dict: &HashMap<String, (&'static [f32], usize, usize)>,
+            sr: usize,
+            bpm: f32,
+            seed: usize
+        ) -> Result<(), EngineError> {
+            for (i, components) in iter {
+                let (nodedata, reflist) = makenode(components, samples_dict, sr, bpm, seed)?;
+
+                if !reflist.is_empty() {
+                    graph_diff.refpairlist.push((reflist, chain_name, i));
+                }
+
+                graph_diff.node_add_list.push_back((chain_name, i, nodedata));
+            }
+            Ok(())
+        }
+
         if let Some(ref old_ast) = self.ast {
             for (chain_name, new_chain) in &new_ast.get().nodes {
                 let Some(old_chain) = old_ast.get().nodes.get(chain_name) else {
                     // if we can't find this chain in the old_ast, we just go through it and add
                     // every single one to the chain
-                    for (i, components) in new_chain.iter().enumerate() {
-                        let (nodedata, reflist) = makenode(
-                            components,
-                            &self.samples_dict,
-                            self.sr,
-                            self.bpm,
-                            self.seed,
-                        )?;
-
-                        if !reflist.is_empty() {
-                            graph_diff.refpairlist.push((reflist, chain_name, i));
-                        }
-
-                        graph_diff.node_add_list.push_back((chain_name, i, nodedata));
-                    }
+                    add_nodes(
+                        chain_name,
+                        new_chain.iter().enumerate(),
+                        &mut graph_diff,
+                        &self.samples_dict,
+                        self.sr,
+                        self.bpm,
+                        self.seed
+                    )?;
                     continue
                 };
 
@@ -235,23 +250,16 @@ impl<const N: usize> Engine<N> {
 
                 // then look through the new chain and find everything which doesn't exist in the
                 // old one, and was thus inserted, and track it for insertion
-                for (new_idx, new_comp) in new_chain.iter().enumerate()
-                    .filter(|(_, comp)| !old_chain.iter().any(|old_comp| old_comp == *comp))
-                {
-                    let (nodedata, reflist) = makenode(
-                        new_comp,
-                        &self.samples_dict,
-                        self.sr,
-                        self.bpm,
-                        self.seed,
-                    )?;
-                    if !reflist.is_empty() {
-                        graph_diff.refpairlist.push((reflist, chain_name, new_idx));
-                    }
-
-                    graph_diff.node_add_list
-                        .push_back((chain_name, new_idx, nodedata));
-                }
+                add_nodes(
+                    chain_name,
+                    new_chain.iter().enumerate()
+                        .filter(|(_, comp)| !old_chain.iter().any(|old_comp| old_comp == *comp)),
+                    &mut graph_diff,
+                    &self.samples_dict,
+                    self.sr,
+                    self.bpm,
+                    self.seed
+                )?;
             }
 
             // there are some chains show up in old_ast but not in new ast
@@ -264,10 +272,6 @@ impl<const N: usize> Engine<N> {
                     self.index_info.remove_entry(*key)
                         .expect("Index info should be consistent with self.ast, but it turned out to not be. This is a bug.")
                         .1
-
-                    // we have to collect this (and can't just return the iterator) since it captures the
-                    // same lifetime as self and that needs to be a mutable borrow to access
-                    // self.index_info
                 }));
 
             // Then remove them all from self
@@ -280,22 +284,30 @@ impl<const N: usize> Engine<N> {
                     chain.remove(position_in_chain);
                 }
             }
+        } else {
+            // if the old ast doesn't exist, just add everything to the new graph
+            for (chain_name, new_chain) in &new_ast.get().nodes {
+                add_nodes(
+                    chain_name,
+                    new_chain.iter().enumerate(),
+                    &mut graph_diff,
+                    &self.samples_dict,
+                    self.sr,
+                    self.bpm,
+                    self.seed
+                )?;
+            }
         };
 
         // go through all the nodes that are
         while let Some((key, position_in_chain, nodedata)) = graph_diff.node_add_list.pop_front() {
-
-            if !self.index_info.contains_key(key) {
-                self.index_info.insert(key.to_string(), vec![]);
-            };
-
             // TODO: save these id, if there is an error, remove these node
             let nodeindex = self.context.graph.add_node(nodedata);
 
             self.temp_node_index.push(nodeindex);
-            if let Some(chain) = self.index_info.get_mut(key) {
-                // TODO: backup the index_info
-                chain.insert(position_in_chain, nodeindex);
+            match self.index_info.get_mut(key) {
+                Some(chain) => chain.insert(position_in_chain, nodeindex),
+                None => _ = self.index_info.insert(key.to_string(), vec![nodeindex]),
             }
         }
 
@@ -473,7 +485,12 @@ impl<const N: usize> Engine<N> {
         // now we have to go through and actually make the graph with all the connections we have
         let mut already_reset = std::collections::HashSet::new();
         for (reflist, name, new_idx) in &graph_diff.refpairlist {
-            let index = self.index_info[*name][*new_idx];
+            let Some(chain) = self.index_info.get(*name) else {
+                return Err(EngineError::NonExistReference(name.to_string()));
+            };
+
+            let index = chain[*new_idx];
+
             if !already_reset.contains(&index) {
                 self.context.graph[index].node.send_msg(Message::ResetOrder);
                 already_reset.insert(index);
