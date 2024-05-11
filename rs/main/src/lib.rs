@@ -577,4 +577,95 @@ impl<const N: usize> Engine<N> {
     pub fn set_track_amp(&mut self, amp: f32) {
         self.track_amp = amp
     }
+
+    #[cfg(test)]
+    fn get_ast(&self) -> Option<&Ast<'_>> {
+        self.ast.as_ref().map(|y| y.get())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+    use glicol_parser::nodes::*;
+
+    fn ast_from_nodes<const N: usize>(
+        nodes: [(&'static str, Vec<Component<'static>>); N]
+    ) -> Ast<'static> {
+        Ast { nodes: hashbrown::HashMap::from_iter(nodes) }
+    }
+
+    #[test]
+    fn adding_nodes() {
+        let mut eng = Engine::<128>::new();
+        eng.update_with_code("o: saw 440 >> mul 0.3").unwrap();
+
+        assert_eq!(
+            eng.get_ast().unwrap(),
+            &ast_from_nodes([
+                ("o", vec![
+                    Component::Saw(Saw {
+                        param: NumberOrRef::Number(440.)
+                    }),
+                    Component::Mul(Mul {
+                        param: NumberOrRef::Number(0.3)
+                    })
+                ])
+            ])
+        );
+
+        eng.update_with_code("
+            o: saw 440 >> mul 0.3
+            i: sin 880 >> pan 0.5
+        ").unwrap();
+
+        assert_eq!(
+            eng.get_ast().unwrap(),
+            &ast_from_nodes([
+                ("o", vec![
+                    Component::Saw(Saw {
+                        param: NumberOrRef::Number(440.)
+                    }),
+                    Component::Mul(Mul {
+                        param: NumberOrRef::Number(0.3)
+                    })
+                ]),
+                ("i", vec![
+                    Component::Sin(Sin {
+                        param: NumberOrRef::Number(880.)
+                    }),
+                    Component::Pan(Pan {
+                        param: NumberOrRef::Number(0.5)
+                    })
+                ])
+            ])
+        );
+
+        eng.update_with_code("
+            o: saw 440 >> mul i
+            i: sin 880 >> pan 0.5
+        ").unwrap();
+
+        assert_eq!(
+            eng.get_ast().unwrap(),
+            &ast_from_nodes([
+                ("o", vec![
+                    Component::Saw(Saw {
+                        param: NumberOrRef::Number(440.)
+                    }),
+                    Component::Mul(Mul {
+                        param: NumberOrRef::Ref("i")
+                    })
+                ]),
+                ("i", vec![
+                    Component::Sin(Sin {
+                        param: NumberOrRef::Number(880.)
+                    }),
+                    Component::Pan(Pan {
+                        param: NumberOrRef::Number(0.5)
+                    })
+                ])
+            ])
+        );
+    }
 }

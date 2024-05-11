@@ -2,7 +2,7 @@ use glicol_parser::Rule;
 use pest::error::Error;
 pub use pest::error::ErrorVariant;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum EngineError {
     ParsingError(Box<pest::error::Error<glicol_parser::Rule>>),
     NonExistReference(String),
