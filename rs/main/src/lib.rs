@@ -193,8 +193,8 @@ impl<const N: usize> Engine<N> {
             bpm: f32,
             seed: usize
         ) -> Result<(), EngineError> {
-            for (i, components) in iter {
-                let (nodedata, reflist) = makenode(components, samples_dict, sr, bpm, seed)?;
+            for (i, component) in iter {
+                let (nodedata, reflist) = makenode(component, samples_dict, sr, bpm, seed)?;
 
                 if !reflist.is_empty() {
                     graph_diff.refpairlist.push((reflist, chain_name, i));
@@ -265,7 +265,7 @@ impl<const N: usize> Engine<N> {
             // there are some chains show up in old_ast but not in new ast
             // so we need to figure out what they are and collect them into a Vec
             graph_diff.idx_to_remove.extend(old_ast.get().nodes.keys()
-                .filter(|key| new_ast.get().nodes.contains_key(*key))
+                .filter(|key| !new_ast.get().nodes.contains_key(*key))
                 .flat_map(|key| {
                     // This should be safe to unwrap because index_info should always be consistent
                     // with self.ast, but we're .expect'ing just to provide a good message in case
@@ -313,14 +313,14 @@ impl<const N: usize> Engine<N> {
 
         fn handle_node_update<const N: usize>(
             graph_diff: &mut GraphDiff<'_, N>,
-            index_info: &mut HashMap<String, Vec<NodeIndex>>,
+            index_info: &HashMap<String, Vec<NodeIndex>>,
             graph: &mut GlicolGraph<N>,
             samples_dict: &mut HashMap<String, (&'static [f32], usize, usize)>,
         ) -> Result<(), EngineError> {
             while let Some((key, position_in_chain, paras)) = graph_diff.node_update_list.pop() {
 
                 // println!("handle update {:?} {:?}", key, position_in_chain);
-                if let Some(chain) = index_info.get_mut(key) {
+                if let Some(chain) = index_info.get(key) {
                     // TODO: reset order here, if ref is wrong, cannot be reverted
                     // self.context.graph[
                     //     chain[position_in_chain]].node.send_msg(Message::ResetOrder);
@@ -433,7 +433,7 @@ impl<const N: usize> Engine<N> {
 
         if let Err(e) = handle_node_update(
             &mut graph_diff,
-            &mut self.index_info,
+            &self.index_info,
             &mut self.context.graph,
             &mut self.samples_dict
         ) {
@@ -667,5 +667,28 @@ mod tests {
                 ])
             ])
         );
+    }
+
+    #[test]
+    fn removing_nodes() {
+        let mut eng = Engine::<128>::new();
+
+        assert_eq!(
+            eng.update_with_code("
+                o: saw 440 >> mul i
+                i: sin 880 >> pan 0.5
+            "),
+            Ok(())
+        );
+
+        assert_eq!(
+            eng.update_with_code("
+                o: saw 440 >> mul 0.3
+                i: sin 880 >> pan 0.5
+            "),
+            Ok(())
+        );
+
+        assert_eq!(eng.update_with_code("o: saw 440 >> mul 0.3"), Ok(()));
     }
 }
