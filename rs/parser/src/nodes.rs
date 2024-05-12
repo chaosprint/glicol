@@ -30,11 +30,6 @@ impl<'ast, T> Node<'ast> for T where T: SingleNodeItem<'ast> {
     }
 }
 
-// TODO: Make spans more accurate.
-// In many cases when we use `as_span().to_err_with_positives()`, we are using a span that's like
-// close to where the error is actually occuring, but it would be more accurate to, for example,
-// point to the very end or beginning of that span, or some point in the middle.
-
 #[derive(PartialEq, Debug)]
 pub enum Component<'ast> {
     Points(Points),
@@ -261,7 +256,7 @@ impl<'ast> Node<'ast> for NumberOrRef<&'ast str> {
 
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         pairs.next()
-            .ok_or_else(|| span.to_err_with_positives([Rule::reference, Rule::number]))
+            .ok_or_else(|| span.as_end_span().to_err_with_positives([Rule::reference, Rule::number]))
             .and_then(Self::parse)
     }
 }
@@ -512,14 +507,9 @@ pub struct Sp<'ast> {
 impl<'ast> Node<'ast> for Sp<'ast> {
     #[cfg_attr(test, trace::trace(prefix_enter = "[+ Sp]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
-        Ok(Self {
-            sample_sym: pairs.next()
-                // TODO: Reference isn't the right type of error for right here, but the grammar
-                // currently doesn't contain something for this. Should we modify the grammar to
-                // make this more specific? Probably
-                .ok_or_else(|| span.to_err_with_positives([Rule::reference]))?
-                .as_str()
-        })
+        pairs.next()
+            .ok_or_else(|| span.as_end_span().to_err_with_positives([Rule::symbol]))
+            .map(|sym| Self { sample_sym: sym.as_str() })
     }
 }
 
@@ -538,7 +528,7 @@ impl<'ast> Node<'ast> for EventInner<'ast> {
     #[cfg_attr(test, trace::trace(prefix_enter = "[+ EventInner]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         pairs.next()
-            .ok_or_else(|| span.to_err_with_positives([Rule::pattern_event_body]))?
+            .ok_or_else(|| span.as_end_span().to_err_with_positives([Rule::pattern_event_body]))?
             .into_inner()
             .map(|pair| {
                 let end_span = pair.as_end_span();
@@ -594,7 +584,7 @@ impl<'ast> Node<'ast> for ConstSig<'ast> {
     #[cfg_attr(test, trace::trace(prefix_enter = "[+ ConstSig]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         let paras = pairs.next()
-            .ok_or_else(|| span.to_err_with_positives([
+            .ok_or_else(|| span.as_end_span().to_err_with_positives([
                 Rule::number,
                 Rule::reference,
                 Rule::event,
@@ -735,7 +725,7 @@ impl<'ast> Node<'ast> for PSampler<'ast> {
     #[cfg_attr(test, trace::trace(prefix_enter = "[+ PSampler]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         let paras = pairs.next()
-            .ok_or_else(|| span.to_err_with_positives([Rule::event, Rule::pattern]))?;
+            .ok_or_else(|| span.as_end_span().to_err_with_positives([Rule::event, Rule::pattern]))?;
 
         match_or_return_err!(paras,
             Rule::event => {
@@ -905,7 +895,7 @@ impl<'ast> Node<'ast> for CodeBlock<'ast> {
     #[cfg_attr(test, trace::trace(prefix_enter = "[+ CodeBlock]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         let s = pairs.next()
-            .ok_or_else(|| span.to_err_with_positives([Rule::code]))?
+            .ok_or_else(|| span.as_end_span().to_err_with_positives([Rule::code]))?
             .as_str();
 
         Ok(Self { code: &s[1..s.len() - 1] })
