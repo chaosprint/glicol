@@ -27,6 +27,9 @@ impl RuleRepresentable for usize {
     const RULE: Rule = Rule::integer;
 }
 
+impl RuleRepresentable for u32 {
+	const RULE: Rule = Rule::integer;
+}
 
 pub trait TryToParse {
     fn try_to_parse<T>(&self) -> Result<T, Box<Error<Rule>>> where T: RuleRepresentable;

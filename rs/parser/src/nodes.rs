@@ -34,9 +34,6 @@ impl<'ast, T> Node<'ast> for T where T: SingleNodeItem<'ast> {
 // In many cases when we use `as_span().to_err_with_positives()`, we are using a span that's like
 // close to where the error is actually occuring, but it would be more accurate to, for example,
 // point to the very end or beginning of that span, or some point in the middle.
-//
-// TODO: Get rid of all unwraps
-// We should be able to propogate everything as some sort of pest::error::Error, ideally
 
 #[derive(PartialEq, Debug)]
 pub enum Component<'ast> {
@@ -179,23 +176,26 @@ impl Node<'_> for Points {
             let end_span = point.as_end_span();
             let mut point_inner = point.into_inner();
 
-            let time = point_inner.next().unwrap();
+            let time = point_inner.next()
+                .ok_or_else(|| end_span.to_err_with_positives([Rule::time]))?;
+
             let time_end = time.as_end_span();
             let mut time_inner = time.into_inner();
-            let bar = time_inner.next().unwrap();
+            let bar = time_inner.next()
+                .ok_or_else(|| end_span.to_err_with_positives([Rule::number, Rule::bar]))?;
 
             let mut times = match_or_return_err!(bar,
                 Rule::number => {
                     vec![Duration::Bar(bar.try_to_parse()?)]
                 },
                 Rule::bar => {
-                    let mut nums = bar
-                        .as_str()
-                        .split('/')
-                        .map(|x| x.parse::<f32>().unwrap());
+                    let bar_end = bar.as_end_span();
+                    let mut nums = bar.into_inner();
 
-                    let num = nums.next().unwrap() / nums.next().unwrap();
-                    vec![Duration::Bar(num)]
+                    let top = nums.next_parsed::<f32>(bar_end)?;
+                    let bottom = nums.next_parsed::<f32>(bar_end)?;
+
+                    vec![Duration::Bar(top / bottom)]
                 },
             );
 
@@ -208,27 +208,17 @@ impl Node<'_> for Points {
 
                 let s = time_inner.next()
                     .ok_or_else(|| time_end.to_err_with_positives([Rule::second, Rule::ms]))?;
+                let s_end = s.as_end_span();
+
                 match_or_return_err!(s,
                     Rule::second => {
                         times.push(Duration::Seconds(
-                            sign * s
-                                .as_str()
-                                .replace("_s", "")
-                                .parse::<f32>()
-                                .map_err(|_| s.as_span()
-                                    .to_err_with_positives([Rule::float])
-                                )?
+                            sign * s.into_inner().next_parsed::<f32>(s_end)?
                         ))
                     },
                     Rule::ms => {
                         times.push(Duration::Milliseconds(
-                            sign * s
-                                .as_str()
-                                .replace("_ms", "")
-                                .parse::<f32>()
-                                .map_err(|_| s.as_span()
-                                    .to_err_with_positives([Rule::float])
-                                )?
+                            sign * s.into_inner().next_parsed::<f32>(s_end)?
                         ))
                     },
                 );
@@ -361,10 +351,7 @@ impl<'ast> Node<'ast> for UsizeOrRef<'ast>{
 
         match_or_return_err!(next,
             Rule::number => {
-                next.as_str()
-                    .parse::<usize>()
-                    .map_err(|_| next.as_span().to_err_with_positives([Rule::integer]))
-                    .map(Self::Usize)
+                next.try_to_parse().map(Self::Usize)
             },
             Rule::reference => {
                 Ok(Self::Ref(next.as_str()))
@@ -381,9 +368,7 @@ pub struct Adc {
 impl Node<'_> for Adc {
     #[cfg_attr(test, trace::trace(prefix_enter = "[+ Adc]"))]
     fn parse_from_iter(pairs: &mut Pairs<'_, Rule>, span: Span<'_>) -> Result<Self, Box<Error<Rule>>> {
-        pairs.next()
-            .and_then(|p| p.as_str().parse::<u32>().ok())
-            .ok_or_else(|| span.to_err_with_positives([Rule::integer]))
+        pairs.next_parsed::<u32>(span)
             .map(|port| Self { port })
     }
 }
@@ -832,13 +817,9 @@ fn get_f32_arr<const N: usize>(
 
     let mut initialized = 0;
     let mut err = None;
-    //for i in 0..N {
+
     for item in &mut array {
-        match pairs.next()
-            .ok_or(end_span)
-            .and_then(|p| p.as_str().parse::<f32>().map_err(|_| p.as_span()))
-            .map_err(|span| span.to_err_with_positives([Rule::float]))
-        {
+        match pairs.next_parsed(end_span) {
             Ok(f) => _ = item.write(f),
             Err(e) => {
                 err = Some(e);
