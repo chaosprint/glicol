@@ -1,8 +1,7 @@
 #[macro_use]
 extern crate lazy_static;
-
-use std::sync::Mutex;
 use std::slice::from_raw_parts_mut;
+use std::sync::Mutex;
 
 use glicol::{Engine, EngineError};
 
@@ -55,12 +54,12 @@ pub unsafe extern "C" fn add_sample(
     arr_ptr: *mut f32,
     length: usize,
     channels: usize,
-    sr: usize
+    sr: usize,
 ) {
     let mut engine = ENGINE.lock().unwrap();
-    let encoded:&mut [u8] = unsafe { from_raw_parts_mut(name_ptr, name_len) };
+    let encoded: &mut [u8] = unsafe { from_raw_parts_mut(name_ptr, name_len) };
     let name = std::str::from_utf8(encoded).unwrap();
-    let sample:&mut [f32] = unsafe { from_raw_parts_mut(arr_ptr, length) };
+    let sample: &mut [f32] = unsafe { from_raw_parts_mut(arr_ptr, length) };
     engine.add_sample(name, sample, channels, sr);
     // engine.update(code);
 }
@@ -70,7 +69,8 @@ pub unsafe extern "C" fn add_sample(
 /// - arr_ptr must be aligned and non-null
 /// - result_ptr must be aligned and non-null
 #[no_mangle]
-pub unsafe extern "C" fn update(arr_ptr: *mut u8, length: usize, result_ptr: *mut u8) { //, result_ptr: *mut u8
+pub unsafe extern "C" fn update(arr_ptr: *mut u8, length: usize, result_ptr: *mut u8) {
+    //, result_ptr: *mut u8
     let mut engine = ENGINE.lock().unwrap();
     let encoded: &mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
     let code = std::str::from_utf8(encoded).unwrap();
@@ -87,10 +87,11 @@ pub unsafe extern "C" fn update(arr_ptr: *mut u8, length: usize, result_ptr: *mu
 ///
 /// - arr_ptr must be aligned and non-null
 #[no_mangle]
-pub unsafe extern "C" fn send_msg(arr_ptr: *mut u8, length: usize) { //, result_ptr: *mut u8
+pub unsafe extern "C" fn send_msg(arr_ptr: *mut u8, length: usize) {
+    //, result_ptr: *mut u8
 
     let mut engine = ENGINE.lock().unwrap();
-    let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
+    let encoded: &mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
     let msg = std::str::from_utf8(encoded).unwrap();
     engine.send_msg(msg);
 }
@@ -145,18 +146,18 @@ fn write_err_to_buf(err: EngineError, result: &mut [u8]) {
         EngineError::ParsingError(v) => {
             let location = match v.location {
                 pest::error::InputLocation::Pos(u) => u,
-                pest::error::InputLocation::Span((s, _)) => s
+                pest::error::InputLocation::Span((s, _)) => s,
             };
             let (line, col) = match v.line_col {
                 pest::error::LineColLocation::Pos(u) => u,
-                pest::error::LineColLocation::Span(u, _) => u
+                pest::error::LineColLocation::Span(u, _) => u,
             };
             let (positives, negatives) = match &v.variant {
                 pest::error::ErrorVariant::ParsingError {
                     positives,
                     negatives,
                 } => (positives, negatives),
-                _ => panic!("unknown parsing error")
+                _ => panic!("unknown parsing error"),
             };
 
             format!(
