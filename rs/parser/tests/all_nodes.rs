@@ -162,4 +162,90 @@ fn arrange() {
             })])
         ])
     );
+
+	assert_eq!(
+		get_ast("o: arrange ~t1 3 ~t2 1"),
+		ast_from_nodes([
+			("o", vec![Component::Arrange(Arrange {
+				events: vec![
+					NumberOrRef::Ref("~t1"),
+					NumberOrRef::Number(3.),
+					NumberOrRef::Ref("~t2"),
+					NumberOrRef::Number(1.)
+				]
+			})])
+		])
+	);
+}
+
+#[test]
+fn choose() {
+	assert_eq!(
+		get_ast("~a: choose 42 42 42 42 42 37 0 0 0 0"),
+		ast_from_nodes([
+			("~a", vec![Component::Choose(Choose {
+				choices: vec![42., 42., 42., 42., 42., 37., 0., 0., 0., 0.]
+			})])
+		])
+	);
+
+	assert_eq!(
+		get_ast("o: choose 52"),
+		ast_from_nodes([
+			("o", vec![Component::Choose(Choose {
+				choices: vec![52.]
+			})])
+		])
+	);
+}
+
+#[test]
+fn mix() {
+	assert_eq!(
+		get_ast("out: mix ~bd ~sn ~hh ~lead ~basslow ~bassmid"),
+		ast_from_nodes([
+			("out", vec![Component::Mix(Mix {
+				nodes: vec!["~bd", "~sn", "~hh", "~lead", "~basslow", "~bassmid"]
+			})])
+		])
+	);
+
+	assert_eq!(
+		get_ast("out: mix ~t.. ~drum.."),
+		ast_from_nodes([
+			("out", vec![Component::Mix(Mix {
+				nodes: vec!["~t..", "~drum.."]
+			})])
+		])
+	);
+}
+
+#[test]
+fn sp() {
+	assert_eq!(
+		get_ast("o: sp \\808db"),
+		ast_from_nodes([
+			("o", vec![Component::Sp(Sp {
+				sample_sym: "\\808db"
+			})])
+		])
+	);
+
+	assert_eq!(
+		get_ast("o: sp \\guitar"),
+		ast_from_nodes([
+			("o", vec![Component::Sp(Sp {
+				sample_sym: "\\guitar"
+			})])
+		])
+	);
+
+	assert_eq!(
+		get_ast("o: sp \\##s(\"in\")#"),
+		ast_from_nodes([
+			("o", vec![Component::Sp(Sp {
+				sample_sym: "\\##s(\"in\")#"
+			})])
+		])
+	);
 }
