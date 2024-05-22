@@ -49,7 +49,7 @@ pub enum Component<'ast> {
     Arrange(Arrange<'ast>),
     Mix(Mix<'ast>),
     Sp(Sp<'ast>),
-    Speed(Speed<'ast>),
+    Speed(Speed),
     ConstSig(ConstSig<'ast>),
     Adc(Adc),
     Bd(Bd<'ast>),
@@ -100,7 +100,6 @@ impl<'ast> Component<'ast> {
             | Self::Mul(Mul { param: NumberOrRef::Ref(r) })
             | Self::Add(Add { param: NumberOrRef::Ref(r) })
             | Self::Pan(Pan { param: NumberOrRef::Ref(r) })
-            | Self::Speed(Speed { param: NumberOrRef::Ref(r) })
             | Self::Bd(Bd { param: NumberOrRef::Ref(r) })
             | Self::Sn(Sn { param: NumberOrRef::Ref(r) })
             | Self::Hh(Hh { param: NumberOrRef::Ref(r) })
@@ -294,7 +293,6 @@ impl_single_item_classes!(
         Mul,
         Add,
         Pan,
-        Speed,
         Bd,
         Sn,
         Hh,
@@ -305,6 +303,18 @@ impl_single_item_classes!(
         Eval,
     ) => code: CodeBlock<'ast>,
 );
+
+#[derive(PartialEq, Debug)]
+pub struct Speed {
+    pub speed: f32
+}
+
+impl Node<'_> for Speed {
+    fn parse_from_iter(pairs: &mut Pairs<'_, Rule>, span: Span<'_>) -> Result<Self, Box<Error<Rule>>> {
+        pairs.next_parsed(span)
+            .map(|speed| Self { speed })
+    }
+}
 
 #[derive(PartialEq, Debug)]
 pub struct Get<'ast> {
