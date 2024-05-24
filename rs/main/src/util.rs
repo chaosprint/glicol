@@ -296,7 +296,7 @@ pub fn makenode<const N: usize>(
         Component::Noise(nodes::Noise { seed }) => (
             Noise::new(*seed).to_boxed_nodedata(1), vec![]
         ),
-        Component::Speed(nodes::Speed { param }) => get_one_para_from_number_or_ref::<N, Speed>(param, 1),
+        Component::Speed(nodes::Speed { speed }) => (Speed::from(*speed).to_boxed_nodedata(1), vec![]),
         Component::Onepole(nodes::Onepole { param }) => get_one_para_from_number_or_ref::<N, OnePole>(param, 1),
         Component::Add(nodes::Add { param }) => get_one_para_from_number_or_ref::<N, Add>(param, 2),
         Component::ConstSig(sig) => (
