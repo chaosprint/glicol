@@ -189,6 +189,19 @@ class RingBuffer {
   }
 
   _copy(input, offset_input, output, offset_output, size) {
+    if (!size) {
+      return;
+    }
+    // Fast-path: use `set(...)` if possible: copying all the input linearly to
+    // the output.
+    if (
+      offset_input === 0 &&
+      offset_output + input.length <= this._storage_capacity() &&
+      input.length === size
+    ) {
+      output.set(input, offset_output);
+      return;
+    }
     for (var i = 0; i < size; i++) {
       output[offset_output + i] = input[offset_input + i];
     }

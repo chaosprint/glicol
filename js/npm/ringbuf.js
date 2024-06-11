@@ -181,9 +181,10 @@ export class RingBuffer {
     return this.capacity;
     }
     _copy(input, offset_input, output, offset_output, size) {
-    for (var i = 0; i < size; i++) {
-        output[offset_output + i] = input[offset_input + i];
-    }
+        if (size === 0) {
+            return;
+        }
+        output.set(input.subarray(offset_input, offset_input + size), offset_output);
     }
 }
 // }
