@@ -16,7 +16,7 @@ pub type GlicolNodeData<const N: usize> = NodeData<BoxedNodeSend<N>, N>;
 
 pub struct Engine<const N: usize> {
     pub context: AudioContext<N>,
-    code: String,
+    pub code: String,
     ast: HashMap<String, (Vec<String>, Vec<Vec<GlicolPara>>)>,
     new_ast: HashMap<String, (Vec<String>, Vec<Vec<GlicolPara>>)>,
     pub index_info: HashMap<String, Vec<NodeIndex>>,
@@ -76,12 +76,9 @@ impl<const N: usize> Engine<N> {
         let commands: String = msg.chars().filter(|c| !c.is_whitespace()).collect::<_>();
         for command in commands.split(';').filter(|c| !c.is_empty()) {
             let mut list = command.split(',');
-            let (
-                Some(chain_name),
-                Some(chain_pos),
-                Some(param_pos),
-                Some(value)
-            ) = (list.next(), list.next(), list.next(), list.next()) else {
+            let (Some(chain_name), Some(chain_pos), Some(param_pos), Some(value)) =
+                (list.next(), list.next(), list.next(), list.next())
+            else {
                 continue; // todo: this should be an error
             };
 
@@ -346,7 +343,9 @@ impl<const N: usize> Engine<N> {
                     if count == 0 {
                         return Err(EngineError::NonExistReference(refname.to_owned()));
                     }
-                } else if !self.new_ast.contains_key(refname) && !self.index_info.contains_key(refname) {
+                } else if !self.new_ast.contains_key(refname)
+                    && !self.index_info.contains_key(refname)
+                {
                     return Err(EngineError::NonExistReference(refname.to_owned()));
                 }
             }
@@ -385,7 +384,6 @@ impl<const N: usize> Engine<N> {
     }
     pub fn handle_node_update(&mut self) -> Result<(), EngineError> {
         while let Some((key, position_in_chain, paras)) = self.node_update_list.pop() {
-
             // println!("handle update {:?} {:?}", key, position_in_chain);
             if let Some(chain) = self.index_info.get_mut(&key) {
                 // TODO: reset order here, if ref is wrong, cannot be reverted
@@ -549,7 +547,8 @@ impl<const N: usize> Engine<N> {
             }
             if !key.contains('~') {
                 if let Some(end) = chain.last() {
-                    self.context.connect_with_order(*end, self.context.destination, 0);
+                    self.context
+                        .connect_with_order(*end, self.context.destination, 0);
                 }
             }
         }
@@ -575,7 +574,7 @@ impl<const N: usize> Engine<N> {
             match self.update() {
                 Ok(_) => {
                     for r in &mut result {
-                       *r = 0;
+                        *r = 0;
                     }
                 }
                 Err(e) => {

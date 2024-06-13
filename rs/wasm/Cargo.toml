@@ -10,11 +10,14 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
-lazy_static = "1.2.0"
 glicol = { path = "../main", features = ["use-samples", "use-meta"] }
+wee_alloc = "0.4.5"
 
 [profile.release]
-opt-level = 'z'   # Optimize for size.
-lto = true        # Enable Link Time Optimization
-codegen-units = 1 # Reduce number of codegen units to increase optimizations.
-panic = 'abort'   # Abort on panic
+opt-level = "z"
+debug = false
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+incremental = false

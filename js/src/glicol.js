@@ -1,7 +1,7 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
 
-window.version = "v0.13.5"
+window.version = "v0.13.6"
 
 window.source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 fetch(source+`utils.js`).then(res=>res.text()).then( text => // ${window.version ? ".min": ""}
@@ -208,9 +208,10 @@ class RingBuffer {
     return this.capacity;
   }
   _copy(input, offset_input, output, offset_output, size) {
-    for (var i = 0; i < size; i++) {
-      output[offset_output + i] = input[offset_input + i];
+        if (size === 0) {
+      return;
     }
+    output.set(input.subarray(offset_input, offset_input + size), offset_output);
   }
 }
 

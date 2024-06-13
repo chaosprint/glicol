@@ -9,7 +9,7 @@ use glicol_synth::{
     sequencer::{Arrange, Choose, Sequencer, Speed},
     signal::{ConstSig, Impulse, Noise, Points},
     synth::{MsgSynth, PatternSynth},
-    Node, Pass, Sum2
+    Node, Pass, Sum2,
 };
 
 #[cfg(feature = "use-meta")]
@@ -46,21 +46,24 @@ pub fn makenode<const N: usize>(
             };
             let mut samples_dict_selected = HashMap::new();
 
-            let pattern = (*pattern_info.0).iter().map(|v| {
-                let value = match &v.0 {
-                    GlicolPara::Number(_) => "".to_owned(),
-                    GlicolPara::Symbol(s) => s.to_string(),
-                    _ => unimplemented!(),
-                };
-                let time = v.1;
-                if !samples_dict.contains_key(&value) {
-                    return Err(EngineError::NonExsitSample(value.clone()));
-                } else {
-                    samples_dict_selected.insert(value.clone(), samples_dict[&value]);
-                }
+            let pattern = (*pattern_info.0)
+                .iter()
+                .map(|v| {
+                    let value = match &v.0 {
+                        GlicolPara::Number(_) => "".to_owned(),
+                        GlicolPara::Symbol(s) => s.to_string(),
+                        _ => unimplemented!(),
+                    };
+                    let time = v.1;
+                    if !samples_dict.contains_key(&value) {
+                        return Err(EngineError::NonExsitSample(value.clone()));
+                    } else {
+                        samples_dict_selected.insert(value.clone(), samples_dict[&value]);
+                    }
 
-                Ok((value, time))
-            }).collect::<Result<Vec<_>, EngineError>>()?;
+                    Ok((value, time))
+                })
+                .collect::<Result<Vec<_>, EngineError>>()?;
 
             let span = *pattern_info.1;
 
@@ -111,7 +114,8 @@ pub fn makenode<const N: usize>(
             match &paras[0] {
                 GlicolPara::Symbol(s) => {
                     let pattern = s.replace('`', "");
-                    let events = pattern.split(',')
+                    let events = pattern
+                        .split(',')
                         .map(|event| {
                             // println!("event {:?}", event);
                             let mut result = event
@@ -121,7 +125,8 @@ pub fn makenode<const N: usize>(
 
                             // println!("result {:?}", result);
                             (result.next().unwrap(), result.next().unwrap())
-                        }).collect();
+                        })
+                        .collect();
 
                     (
                         PatternSynth::new(events).sr(sr).to_boxed_nodedata(1),
@@ -201,14 +206,16 @@ pub fn makenode<const N: usize>(
                         .to_boxed_nodedata(1)
                 }
                 GlicolPara::Pattern(events, span) => {
-                    let pattern = events.iter()
+                    let pattern = events
+                        .iter()
                         .map(|v| {
                             let value = match v.0 {
                                 GlicolPara::Number(num) => num,
                                 _ => 100.0,
                             };
                             (value, v.1)
-                        }).collect();
+                        })
+                        .collect();
 
                     // println!("pattern {:?}", pattern);
                     ResonantLowPassFilter::new()
@@ -429,14 +436,16 @@ pub fn makenode<const N: usize>(
             let data = match &paras[0] {
                 GlicolPara::Number(v) => ConstSig::new(*v).sr(sr).to_boxed_nodedata(1),
                 GlicolPara::Pattern(events, span) => {
-                    let pattern = events.iter()
+                    let pattern = events
+                        .iter()
                         .map(|v| {
                             let value = match v.0 {
                                 GlicolPara::Number(num) => num,
                                 _ => 100.0,
                             };
                             (value, v.1)
-                        }).collect();
+                        })
+                        .collect();
 
                     // println!("pattern {:?}", pattern);
                     ConstSig::new(0.0)
@@ -583,18 +592,14 @@ pub fn makenode<const N: usize>(
 
 fn get_one_para_from_number_or_ref<const N: usize, T>(
     paras: &[GlicolPara],
-    channels: usize
+    channels: usize,
 ) -> (NodeData<BoxedNodeSend<N>, N>, Vec<String>)
 where
-    T: From<f32> + Node<N> + Send + 'static
+    T: From<f32> + Node<N> + Send + 'static,
 {
     match &paras[0] {
-        GlicolPara::Number(v) => {
-            (T::from(*v).to_boxed_nodedata(channels), vec![])
-        },
-        GlicolPara::Reference(s) => {
-            (T::from(0.0).to_boxed_nodedata(channels), vec![s.to_owned()])
-        },
+        GlicolPara::Number(v) => (T::from(*v).to_boxed_nodedata(channels), vec![]),
+        GlicolPara::Reference(s) => (T::from(0.0).to_boxed_nodedata(channels), vec![s.to_owned()]),
         _ => {
             unimplemented!();
         }
