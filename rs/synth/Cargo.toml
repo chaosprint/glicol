@@ -25,6 +25,7 @@ node-pass = []
 node-sampling = []
 node-dynamic = ["rhai"]
 node-sum = ["dasp_slice"]
+wasm-bindgen = ["rhai/wasm-bindgen"]
 
 [[bench]]
 name = "next_block"
@@ -42,7 +43,7 @@ dasp_signal = { workspace = true  }
 dasp_interpolate = { workspace = true  }
 hashbrown = { workspace = true  }
 arrayvec = { workspace = true  }
-rhai = { workspace = true, optional = true  }
+rhai = { workspace = true, optional = true }
 fasteval = { workspace = true }
 glicol_parser = { version = "0.13.5", path = "../parser" }
 

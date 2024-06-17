@@ -6,22 +6,6 @@ use std::sync::{Mutex, MutexGuard};
 use glicol::{Engine, EngineError};
 use wasm_bindgen::prelude::wasm_bindgen;
 
-#[no_mangle]
-pub extern "C" fn alloc(size: usize) -> *mut f32 {
-    let mut buf = Vec::<f32>::with_capacity(size);
-    let ptr = buf.as_mut_ptr();
-    std::mem::forget(buf);
-    ptr
-}
-
-#[no_mangle]
-pub extern "C" fn alloc_uint8array(length: usize) -> *mut u8 {
-    let mut arr = Vec::<u8>::with_capacity(length);
-    let ptr = arr.as_mut_ptr();
-    std::mem::forget(arr);
-    ptr
-}
-
 lazy_static! {
     static ref ENGINE: Mutex<Engine<128>> = Mutex::new(Engine::<128>::new());
 }
@@ -32,6 +16,8 @@ fn get_engine() -> MutexGuard<'static, Engine<128>> {
 
 #[wasm_bindgen]
 pub fn process(size: usize) -> Vec<f32> {
+    console_error_panic_hook::set_once();
+
     let mut engine = get_engine();
 
     let engine_out = engine.next_block(vec![]);
@@ -59,8 +45,6 @@ pub fn add_sample(
 
 #[wasm_bindgen]
 pub fn update(code: String) -> Vec<u8> {
-    console_error_panic_hook::set_once();
-
     let mut res = vec![0; RES_BUFFER_SIZE];
     if let Err(e) = get_engine().update_with_code(&code) {
         write_err_to_buf(e, &mut res);
@@ -142,9 +126,6 @@ fn write_err_to_buf(err: EngineError, result: &mut [u8]) {
     };
 
     let s = error.as_bytes();
-    let max_idx = s.len().min(RES_BUFFER_SIZE) - 2;
-    result[2..][..max_idx].copy_from_slice(s);
-    for byte in &mut result[2 + max_idx..] {
-        *byte = 0;
-    }
+    let max_bytes_len = s.len().min(RES_BUFFER_SIZE - 2);
+    result[2..][..max_bytes_len].copy_from_slice(&s[..max_bytes_len]);
 }

@@ -131,7 +131,7 @@ window.addSampleFolder = async () => {
                               sample: sample,
                               channels: buffer.numberOfChannels,
                               length: buffer.length,
-                              name: encoder.encode("\\"+ name),
+                              name: "\\"+ name,
                               sr: buffer.sampleRate
                             })
                         })
@@ -171,7 +171,7 @@ window.loadSamples = async () => {
                   sample: sample,
                   channels: buffer.numberOfChannels,
                   length: buffer.length,
-                  name: encoder.encode("\\"+ name.replace("-","_")),
+                  name: "\\"+ name.replace("-","_"),
                   sr: buffer.sampleRate
                 })
             }, function(e){ log("Error with decoding audio data" + e.err + name); })
@@ -215,7 +215,7 @@ window.addSampleFiles = async (name, url) => {
                               sample: sample,
                               channels: buffer.numberOfChannels,
                               length: buffer.length,
-                              name: encoder.encode("\\"+ name),
+                              name: "\\"+ name,
                               sr: buffer.sampleRate
                             })
                         })
@@ -234,7 +234,7 @@ window.addSampleFiles = async (name, url) => {
             window.actx.decodeAudioData(arrayBuffer, buffer => {
                 // log(new Int16Array(buffer.getChannelData(0).buffer))
                 // let name = file.name.toLowerCase().replace(".wav", "").replace(".mp3", "").replace("-","_").replace(" ","_")
-                
+
                     window.sampleBuffers[name] = buffer
                     var sample;
                     if (buffer.numberOfChannels === 1) {
@@ -251,7 +251,7 @@ window.addSampleFiles = async (name, url) => {
                       sample: sample,
                       channels: buffer.numberOfChannels,
                       length: buffer.length,
-                      name: encoder.encode("\\"+ name),
+                      name: "\\"+ name,
                       sr: buffer.sampleRate
                     })
             }, function(e){ log("Error with decoding audio data" + e.err); })
@@ -308,9 +308,9 @@ window.r = Math.random
 
 window.v = () => {
   if (window.hydra) {
-      func = [`.diff(o0)`, 
-      `.scale(${r().toFixed(2)})`, 
-      `.rotate(${Math.round(r()*90)})`, 
+      func = [`.diff(o0)`,
+      `.scale(${r().toFixed(2)})`,
+      `.rotate(${Math.round(r()*90)})`,
       `.color(${r().toFixed(2)}, ${r().toFixed(2)}, ${r().toFixed(2)})`
     ]
     .sort(() => Math.random() - 0.5).join("")
@@ -360,14 +360,14 @@ window.visualizeTimeDomainData = ({canvas, analyserL, analyserR}) => {
       for(let i = 0; i < bufferLength; i++) {
         let v = dataArray[i] / 128.0;
         let y = canvas.height - v * canvas.height/2;
-        
+
         if(i === 0) {
           ctx.moveTo(x, y);
         } else {
           ctx.lineTo(x, y);
         }
         x += sliceWidth;
-        
+
       }
       // ctx.closePath();
       // ctx.beginPath();
@@ -384,10 +384,10 @@ window.visualizeTimeDomainData = ({canvas, analyserL, analyserR}) => {
       x = 0;
       ctx.beginPath();
       for(let i = 0; i < bufferLength; i++) {
-        
+
         let v = dataArray[i] / 128.0;
         let y = canvas.height - v * canvas.height/2;
-                
+
         if(i === 0) {
           ctx.moveTo(x, y);
         } else {
@@ -423,7 +423,7 @@ window.visualizeFrequencyData = ({canvas, analyserL, analyserR}) => {
           let barHeight = fractionalVolume*canvas.height;
           ctx.fillRect(
             (barWidth + 1)*i,
-            canvas.height / 2,  
+            canvas.height / 2,
             barWidth,
             -barHeight/2
           );
@@ -458,7 +458,7 @@ window.h = () => {
 %chelp("someNodeName")
 %cget docs for a node, e.g. help("sin"). if no parameter is given, will list all nodes.
 on glicol web editor, you can use key shortcut alt-d (win) / option-d (mac) to trigger this function.
-      
+
 %csetBPM(someNumber)\n%cset the BPM. the default is 120.
 
 %caddSampleFolder()
@@ -485,19 +485,19 @@ keep the second augument empty to load local samples. if you load multiple sampl
 e.g. if the filter is '0', it will only return a sample whose name contains '0'.
 
 %ctrackAmp(someFloat)
-%cset the amplitude of each node chain. useful for preventing clipping.`, 
+%cset the amplitude of each node chain. useful for preventing clipping.`,
 
 "background: black; color:white; font-weight: bold",
 "color:green; font-weight:bold", "",
-"color:green; font-weight:bold", "", 
-"color:green; font-weight:bold", "", 
-"color:green; font-weight:bold", "", 
 "color:green; font-weight:bold", "",
-"color:green; font-weight:bold", "", 
-"color:green; font-weight:bold", "", 
+"color:green; font-weight:bold", "",
+"color:green; font-weight:bold", "",
+"color:green; font-weight:bold", "",
+"color:green; font-weight:bold", "",
+"color:green; font-weight:bold", "",
 ); return window.emoj
 }
-  
+
 window.allNodes = () => {
 let obj = {
     oscillator: ["sin", "squ", "saw", "tri"],
@@ -538,10 +538,10 @@ window.stop = async () => {
 }
 
 window.artsource = `
- ██████╗ ██╗     ██╗ ██████╗ ██████╗ ██╗     
-██╔════╝ ██║     ██║██╔════╝██╔═══██╗██║     
-██║  ███╗██║     ██║██║     ██║   ██║██║     
-██║   ██║██║     ██║██║     ██║   ██║██║     
+ ██████╗ ██╗     ██╗ ██████╗ ██████╗ ██╗
+██╔════╝ ██║     ██║██╔════╝██╔═══██╗██║
+██║  ███╗██║     ██║██║     ██║   ██║██║
+██║   ██║██║     ██║██║     ██║   ██║██║
 ╚██████╔╝███████╗██║╚██████╗╚██████╔╝███████╗
  ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═════╝ ╚══════╝`
 

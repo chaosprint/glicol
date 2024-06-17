@@ -4,9 +4,9 @@ which wasm-pack 2>/dev/null || { echo "Please install wasm-pack with 'cargo inst
 
 if [[ "$1" == "--release" ]]
 then
-	wasm-pack build --target web --release
+	wasm-pack build --target web --no-typescript --release
 else
-	wasm-pack build --target web --debug
+	wasm-pack build --target web --no-typescript --debug
 fi
 
 cp -f ./pkg/glicol_wasm{.js,_bg.js,_bg.wasm} ../../js/src/

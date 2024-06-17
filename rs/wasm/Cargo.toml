@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 lazy_static = "1.2.0"
-glicol = { path = "../main", features = ["use-samples", "use-meta"] }
+glicol = { path = "../main", features = ["use-samples", "use-meta", "wasm-bindgen"] }
 pest = { workspace = true }
 console_error_panic_hook = "0.1.7"
 wasm-bindgen = "0.2.92"

@@ -16,6 +16,7 @@ default = []
 use-samples = []
 use-meta = []
 bela = []
+wasm-bindgen = ["glicol_synth/wasm-bindgen"]
 
 [dependencies]
 petgraph = { workspace = true }
