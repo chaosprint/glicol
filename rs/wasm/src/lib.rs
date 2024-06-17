@@ -1,10 +1,10 @@
 #[macro_use]
 extern crate lazy_static;
 
-use std::sync::Mutex;
-use std::slice::from_raw_parts_mut;
+use std::sync::{Mutex, MutexGuard};
 
 use glicol::{Engine, EngineError};
+use wasm_bindgen::prelude::wasm_bindgen;
 
 #[no_mangle]
 pub extern "C" fn alloc(size: usize) -> *mut f32 {
@@ -26,110 +26,83 @@ lazy_static! {
     static ref ENGINE: Mutex<Engine<128>> = Mutex::new(Engine::<128>::new());
 }
 
-/// # Safety
-///
-/// - in_ptr must be aligned and non-null
-/// - out_ptr must aligned and non-null
-#[no_mangle]
-pub unsafe extern "C" fn process(in_ptr: *mut f32, out_ptr: *mut f32, size: usize) {
-    let mut engine = ENGINE.lock().unwrap();
+fn get_engine() -> MutexGuard<'static, Engine<128>> {
+    ENGINE.lock().unwrap_or_else(|e| e.into_inner())
+}
 
-    let _in_buf: &mut [f32] = unsafe { from_raw_parts_mut(in_ptr, 128) };
+#[wasm_bindgen]
+pub fn process(size: usize) -> Vec<f32> {
+    let mut engine = get_engine();
 
     let engine_out = engine.next_block(vec![]);
 
-    let out_buf: &mut [f32] = unsafe { from_raw_parts_mut(out_ptr, size) };
+    let mut out_buf = vec![0.; size];
+    let half_size = size / 2;
+    out_buf[..half_size].copy_from_slice(&engine_out[0][..half_size]);
+    out_buf[half_size..].copy_from_slice(&engine_out[1][..half_size]);
 
-    out_buf[..128].copy_from_slice(&engine_out[0][..128]);
-    out_buf[128..].copy_from_slice(&engine_out[1][..128]);
+    out_buf
 }
 
-/// # Safety
-///
-/// - name_ptr must be aligned and non-null
-/// - arr_ptr must aligned and non-null
-#[no_mangle]
-pub unsafe extern "C" fn add_sample(
-    name_ptr: *mut u8,
-    name_len: usize,
-    arr_ptr: *mut f32,
-    length: usize,
+#[wasm_bindgen]
+pub fn add_sample(
+    name: String,
+    sample: Box<[f32]>,
     channels: usize,
     sr: usize
 ) {
     let mut engine = ENGINE.lock().unwrap();
-    let encoded:&mut [u8] = unsafe { from_raw_parts_mut(name_ptr, name_len) };
-    let name = std::str::from_utf8(encoded).unwrap();
-    let sample:&mut [f32] = unsafe { from_raw_parts_mut(arr_ptr, length) };
-    engine.add_sample(name, sample, channels, sr);
+    let leaked_sample = Box::leak(sample);
+    engine.add_sample(&name, leaked_sample, channels, sr);
     // engine.update(code);
 }
 
-/// # Safety
-///
-/// - arr_ptr must be aligned and non-null
-/// - result_ptr must be aligned and non-null
-#[no_mangle]
-pub unsafe extern "C" fn update(arr_ptr: *mut u8, length: usize, result_ptr: *mut u8) { //, result_ptr: *mut u8
-    let mut engine = ENGINE.lock().unwrap();
-    let encoded: &mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
-    let code = std::str::from_utf8(encoded).unwrap();
+#[wasm_bindgen]
+pub fn update(code: String) -> Vec<u8> {
+    console_error_panic_hook::set_once();
 
-    // assert_eq!(code, "o: sin 110");
-
-    if let Err(e) = engine.update_with_code(code) {
-        let result: &mut [u8] = unsafe { from_raw_parts_mut(result_ptr, RES_BUFFER_SIZE) };
-        write_err_to_buf(e, result);
+    let mut res = vec![0; RES_BUFFER_SIZE];
+    if let Err(e) = get_engine().update_with_code(&code) {
+        write_err_to_buf(e, &mut res);
     }
+
+    res
 }
 
-/// # Safety
-///
-/// - arr_ptr must be aligned and non-null
-#[no_mangle]
-pub unsafe extern "C" fn send_msg(arr_ptr: *mut u8, length: usize) { //, result_ptr: *mut u8
-
-    let mut engine = ENGINE.lock().unwrap();
-    let encoded:&mut [u8] = unsafe { from_raw_parts_mut(arr_ptr, length) };
-    let msg = std::str::from_utf8(encoded).unwrap();
-    engine.send_msg(msg);
+#[wasm_bindgen]
+pub fn send_msg(msg: String) { //, result_ptr: *mut u8
+    get_engine().send_msg(&msg);
 }
 
-#[no_mangle]
-pub extern "C" fn live_coding_mode(io: bool) {
-    let mut engine = ENGINE.lock().unwrap();
-    engine.livecoding = io;
+#[wasm_bindgen]
+pub fn live_coding_mode(io: bool) {
+    get_engine().livecoding = io;
 }
 
-#[no_mangle]
-pub extern "C" fn set_bpm(bpm: f32) {
-    let mut engine = ENGINE.lock().unwrap();
-    engine.set_bpm(bpm);
+#[wasm_bindgen]
+pub fn set_bpm(bpm: f32) {
+    get_engine().set_bpm(bpm);
     // engine.reset();
 }
 
-#[no_mangle]
-pub extern "C" fn set_track_amp(amp: f32) {
-    let mut engine = ENGINE.lock().unwrap();
-    engine.set_track_amp(amp);
+#[wasm_bindgen]
+pub fn set_track_amp(amp: f32) {
+    get_engine().set_track_amp(amp);
 }
 
-#[no_mangle]
-pub extern "C" fn set_sr(sr: f32) {
-    let mut engine = ENGINE.lock().unwrap();
-    engine.set_sr(sr as usize);
+#[wasm_bindgen]
+pub fn set_sr(sr: f32) {
+    get_engine().set_sr(sr as usize);
 }
 
-#[no_mangle]
-pub extern "C" fn set_seed(seed: f32) {
-    let mut engine = ENGINE.lock().unwrap();
-    engine.set_seed(seed as usize);
+#[wasm_bindgen]
+pub fn set_seed(seed: f32) {
+    get_engine().set_seed(seed as usize);
 }
 
-#[no_mangle]
-pub extern "C" fn reset() {
-    let mut engine = ENGINE.lock().unwrap();
-    engine.reset();
+#[wasm_bindgen]
+pub fn reset() {
+    get_engine().reset();
 }
 
 const RES_BUFFER_SIZE: usize = 256;

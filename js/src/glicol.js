@@ -1,7 +1,7 @@
 // when publish, change the exact version number
 // in local testing, comment the version out!
 
-window.version = "v0.13.5"
+// window.version = "v0.13.5"
 
 window.source = window.version ? `https://cdn.jsdelivr.net/gh/chaosprint/glicol@${version}/js/src/` : "src/"
 fetch(source+`utils.js`).then(res=>res.text()).then( text => // ${window.version ? ".min": ""}
@@ -120,7 +120,7 @@ class RingBuffer {
     var rd = Atomics.load(this.read_ptr, 0);
     var wr = Atomics.load(this.write_ptr, 0);
     if ((wr + 1) % this._storage_capacity() == rd) {
-      // full 
+      // full
       return 0;
     }
     let to_write = Math.min(this._available_write(rd, wr), elements.length);
@@ -302,7 +302,7 @@ window.loadModule = async () => {
       window.decoder = new TextDecoder('utf-8');
       window.node.port.onmessage = async e => {
         if (e.data.type === 'ready') {
-          
+
           if (Object.keys(window.sampleBuffers).length !== 0) {
             for (let key in window.sampleBuffers) {
               let buffer = window.sampleBuffers[key];
@@ -333,7 +333,7 @@ window.loadModule = async () => {
             // log("parsing error.")
             let info = decoder.decode(e.data.info.slice(2).filter(v => v !== 0.0));
             log(info)
-            let pos = parseInt(info.split("pos[")[1].split("]")[0])
+
             let line = parseInt(info.split("line[")[1].split("]")[0])
             let col = parseInt(info.split("col[")[1].split("]")[0])
             let positives = info.split("positives[")[1].split("]")[0].replace("EOI", "END OF INPUT").split(",").join(" ||")
@@ -366,14 +366,14 @@ window.encoder = new TextEncoder('utf-8');
 var {name, _} = detectBrowser();
 
 window.run = async (codeRaw) =>{
-  
+
   let regex = /(##.*?#)/s
   let parse = codeRaw.split(regex).filter(Boolean)
   let code = parse.map(str => {
       if (str.includes("#")) {
         try {
           let result = str.includes('\\n') || str.includes(';') ?
-          Function(`'use strict'; return ()=>{${str.replaceAll("#", "")}}`)()() : 
+          Function(`'use strict'; return ()=>{${str.replaceAll("#", "")}}`)()() :
           Function(`'use strict'; return ()=>(${str.replaceAll("#", "")})`)()();
           // log("result", result)
           return typeof result === "undefined"? "": String(result)
@@ -405,6 +405,6 @@ window.run = async (codeRaw) =>{
     if ( document.getElementById("freqVisualizer")) {
       window.visualizeFrequencyData({canvas: document.getElementById("freqVisualizer"), analyserL: window.analyserL, analyserR: window.analyserR});
     }
-    window.isGlicolRunning = true   
+    window.isGlicolRunning = true
   }
 }

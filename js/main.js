@@ -1,4 +1,4 @@
-import mode from './src/glicol-mode'
+import mode from './src/glicol-mode.js'
 import './neo.css'
 import './style.css'
 let myTextarea =  document.getElementById("code");

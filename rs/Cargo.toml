@@ -32,6 +32,6 @@ yoke = { version = "0.7.3", features = ["derive"] }
 [profile.wasm-release]
 inherits = "release"
 opt-level = 'z'   # Optimize for size.
-lto = true        # Enable Link Time Optimization
+lto = "fat"       # Enable Link Time Optimization
 codegen-units = 1 # Reduce number of codegen units to increase optimizations.
 panic = 'abort'   # Abort on panic

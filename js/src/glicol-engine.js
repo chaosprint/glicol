@@ -195,6 +195,10 @@ class RingBuffer {
   }
 }
 
+const RES_BUFFER_SIZE = 256;
+
+import * as wasm from "./glicol_wasm.js"
+
 class GlicolEngine extends AudioWorkletProcessor {
     static get parameterDescriptors() {
         return []
@@ -206,104 +210,50 @@ class GlicolEngine extends AudioWorkletProcessor {
         this._param_reader = new TextParameterReader(new RingBuffer(codeQueue, Uint8Array));
         this.port.onmessage = async e => {
             if (e.data.type === "load") {
-                await WebAssembly.instantiate(e.data.obj, {
-                  env: {
-                    now: Date.now
-                  }
-                }).then(obj => {
-                  // console.log(obj)
-                    this._wasm = obj.instance
-                    this._size = 256
-                    this._resultPtr = this._wasm.exports.alloc_uint8array(256);
-                    this._result = new Uint8Array(
-                      this._wasm.exports.memory.buffer,
-                      this._resultPtr,
-                      256
-                    )
-                    this._resultPtr = this._wasm.exports.alloc_uint8array(256);
-                    this._result = new Uint8Array(
-                      this._wasm.exports.memory.buffer,
-                      this._resultPtr,
-                      256
-                    )
-                    this._outPtr = this._wasm.exports.alloc(this._size)
-                    this._outBuf = new Float32Array(
-                      this._wasm.exports.memory.buffer,
-                      this._outPtr,
-                      this._size
-                    )
-                    // console.log(sampleRate);
-                    this._wasm.exports.set_sr(sampleRate);
-                    this._wasm.exports.set_seed(Math.random()*4096);
-                })
+                wasm.set_sr(sampleRate)
+                wasm.set_seed(Math.random() * 4096)
                 this.port.postMessage({type: 'ready'})
             } else if (e.data.type === "loadsample") {
+              wasm.initSync()
               // console.log("data: ", e.data)
               let channels = e.data.channels;
-              let length = e.data.sample.length;
               let sr = e.data.sr;
 
-              let samplePtr = this._wasm.exports.alloc(length);
-              let sampleArrayBuffer = new Float32Array(
-                this._wasm.exports.memory.buffer,
-                samplePtr,
-                length
-              );
-              sampleArrayBuffer.set(e.data.sample)
-
-              let nameLen = e.data.name.byteLength
-              let namePtr = this._wasm.exports.alloc_uint8array(nameLen);
-              let nameArrayBuffer = new Uint8Array(
-                this._wasm.exports.memory.buffer, 
-                namePtr, 
-                nameLen
-              );
-              nameArrayBuffer.set(e.data.name);
-              this._wasm.exports.add_sample(namePtr, nameLen, samplePtr, length, channels, sr)
+              wasm.add_sample(e.data.name, e.data.sample, channels, sr)
 
               // recall this to ensure
-              this._outBuf = new Float32Array(
-                this._wasm.exports.memory.buffer,
-                this._outPtr,
-                this._size
-              )
-              this._result = new Uint8Array(
-                this._wasm.exports.memory.buffer,
-                this._resultPtr,
-                256
-              )
+              this._result = this.buf_for_ptr(this._resultPtr, RES_BUFFER_SIZE)
             } else if (e.data.type === "run") {
-              let code = e.data.value
-              let size = code.byteLength
-              let codeUint8ArrayPtr = this._wasm.exports.alloc_uint8array(size);
-              let codeUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, codeUint8ArrayPtr, size);
-              codeUint8Array.set(code.slice(0, size));
-              this._wasm.exports.update(codeUint8ArrayPtr, size)
+              this.update(e.data.value)
             } else if (e.data.type === "bpm") {
                 this._wasm.exports.set_bpm(e.data.value);
             } else if (e.data.type === "amp") {
                 this._wasm.exports.set_track_amp(e.data.value);
             // } else if (e.data.type === "sab") {
-                
+
             // } else if (e.data.type === "result") {
                 // this._result_reader = new TextParameterReader(new RingBuffer(e.data.data, Uint8Array));
             } else {
-                throw "unexpected.";
+                throw `Unexpected data type ${e.data.type}`;
             }
         }
     }
-
-    process(inputs, outputs, _parameters) {
-        if(!this._wasm) {
-            return true
+    buf_for_ptr(ptr, size) {
+        return new Uint8Array(this._wasm.exports.memory.buffer, ptr, size)
+    }
+    f32arr_for_ptr(ptr, size) {
+        return new Float32Array(this._wasm.exports.memory.buffer, ptr, size)
+    }
+    update(code) {
+        let result = wasm.update(code)
+        if (result[0] !== 0) {
+            this.port.postMessage({type: 'e', info: result})
         }
-
+    }
+    process(inputs, outputs, _parameters) {
         let size = this._param_reader.dequeue(this._codeArray)
-        if (size) {
-            let codeUint8ArrayPtr = this._wasm.exports.alloc_uint8array(size);
-            let codeUint8Array = new Uint8Array(this._wasm.exports.memory.buffer, codeUint8ArrayPtr, size);
-            codeUint8Array.set(this._codeArray.slice(0, size));
-            this._wasm.exports.update(codeUint8ArrayPtr, size)
+        if (!size) {
+            this.update(window.decoder.decode(this._codeArray))
         }
 
       //   if (midiSize) {
@@ -313,35 +263,16 @@ class GlicolEngine extends AudioWorkletProcessor {
 
         if (inputs[0][0]) { // TODO: support stereo or multi-chan
             this._inPtr = this._wasm.exports.alloc(128)
-            this._inBuf = new Float32Array(
-                this._wasm.exports.memory.buffer,
-                this._inPtr,
-                128
-            )
+            this._inBuf = this.f32arr_for_ptr(this._inPtr, 128)
             this._inBuf.set(inputs[0][0])
         }
 
-        this._wasm.exports.process(
-          this._inPtr, this._outPtr, this._size, this._resultPtr)
+        this._wasm.exports.process(this._inPtr, this._outPtr, this._size)
 
-        this._outBuf = new Float32Array(
-          this._wasm.exports.memory.buffer,
-          this._outPtr,
-          this._size
-        )
+        this._outBuf = this.f32arr_for_ptr(this._outPtr, this._size)
 
-        this._result = new Uint8Array(
-          this._wasm.exports.memory.buffer,
-          this._resultPtr,
-          256
-        )
-        
-        if (this._result[0] !== 0) {
-          this.port.postMessage({type: 'e', info: this._result.slice(0,256)})
-        }
-    
-        outputs[0][0].set(this._outBuf.slice(0, 128))
-        outputs[0][1].set(this._outBuf.slice(128, 256))
+        outputs[0][0].set(this._outBuf.slice(0, this._size / 2))
+        outputs[0][1].set(this._outBuf.slice(this._size / 2, this._size))
         return true
     }
 }
