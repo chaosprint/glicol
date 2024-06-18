@@ -228,18 +228,27 @@ export function add_sample(name, sample, channels, sr) {
     wasm.add_sample(ptr0, len0, ptr1, len1, channels, sr);
 }
 
+function passArray8ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 1, 1) >>> 0;
+    getUint8Memory0().set(arg, ptr / 1);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
+
 function getArrayU8FromWasm0(ptr, len) {
     ptr = ptr >>> 0;
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
 }
 /**
-* @param {string} code
+* SAFETY:
+* - `code` must be valid utf-8. If it is not, this function invokes undefined behavior.
+* @param {Uint8Array} code_buf
 * @returns {Uint8Array}
 */
-export function update(code) {
+export function update(code_buf) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        const ptr0 = passStringToWasm0(code, wasm.__wbindgen_export_0, wasm.__wbindgen_export_1);
+        const ptr0 = passArray8ToWasm0(code_buf, wasm.__wbindgen_export_0);
         const len0 = WASM_VECTOR_LEN;
         wasm.update(retptr, ptr0, len0);
         var r0 = getInt32Memory0()[retptr / 4 + 0];

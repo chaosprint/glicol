@@ -140,7 +140,8 @@ window.run = async (codeRaw) => {
   window.code = code
   try { window.actx.resume() } catch (e) {console.log(e)}
   window.node.port.postMessage({
-    type: "run", value: code
+    type: "run",
+    value: window.encoder.encode(code)
   })
 
   if (!window.isGlicolRunning) {

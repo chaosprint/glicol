@@ -6,7 +6,6 @@ class GlicolEngine extends AudioWorkletProcessor {
     }
     constructor(options) {
         super(options)
-        this._code = ""
         const { wasmBlob } = options.processorOptions;
         initSync(wasmBlob);
         this.port.onmessage = async e => {
@@ -37,12 +36,9 @@ class GlicolEngine extends AudioWorkletProcessor {
         }
     }
     update(code) {
-        if (code !== this._code) {
-            this._code = code
-            let result = update(code)
-            if (result[0] !== 0) {
-                this.port.postMessage({type: 'e', info: result})
-            }
+        let result = update(code)
+        if (result[0] !== 0) {
+            this.port.postMessage({type: 'e', info: result})
         }
     }
     process(_, outputs, _parameters) {
