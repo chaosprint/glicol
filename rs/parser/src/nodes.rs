@@ -50,7 +50,7 @@ pub enum Component<'ast> {
     Mix(Mix<'ast>),
     Sp(Sp<'ast>),
     Speed(Speed),
-    ConstSig(ConstSig<'ast>),
+    ConstSig(ConstSig),
     Adc(Adc),
     Bd(Bd<'ast>),
     Sn(Sn<'ast>),
@@ -103,8 +103,7 @@ impl<'ast> Component<'ast> {
             | Self::Bd(Bd { param: NumberOrRef::Ref(r) })
             | Self::Sn(Sn { param: NumberOrRef::Ref(r) })
             | Self::Hh(Hh { param: NumberOrRef::Ref(r) })
-            | Self::ConstSig(ConstSig::Reference(r))
-            | Self::Lpf(Lpf { signal: ConstSig::Reference(r), qvalue: _ })
+            | Self::Lpf(Lpf { signal: Signal::Reference(r), qvalue: _ })
             | Self::Rhpf(Rhpf { cutoff: NumberOrRef::Ref(r), qvalue: _ })
             | Self::ApfmsGain(ApfmsGain { delay: NumberOrRef::Ref(r), gain: _ })
             | Self::Get(Get { reference: r }) => vec![r],
@@ -583,15 +582,27 @@ impl<'ast> Node<'ast> for Pattern<'ast> {
 }
 
 #[derive(PartialEq, Debug)]
-pub enum ConstSig<'ast> {
+pub struct ConstSig {
+    pub value: f32
+}
+
+impl Node<'_> for ConstSig {
+    fn parse_from_iter(pairs: &mut Pairs<'_, Rule>, span: Span<'_>) -> Result<Self, Box<Error<Rule>>> {
+        pairs.next_parsed(span)
+            .map(|value| Self { value })
+    }
+}
+
+#[derive(PartialEq, Debug)]
+pub enum Signal<'ast> {
     Number(f32),
     Reference(&'ast str),
     Event(EventInner<'ast>),
     Pattern(Pattern<'ast>)
 }
 
-impl<'ast> Node<'ast> for ConstSig<'ast> {
-    #[cfg_attr(test, trace::trace(prefix_enter = "[+ ConstSig]"))]
+impl<'ast> Node<'ast> for Signal<'ast> {
+    #[cfg_attr(test, trace::trace(prefix_enter = "[+ Signal]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         let paras = pairs.next()
             .ok_or_else(|| span.as_end_span().to_err_with_positives([
@@ -709,7 +720,7 @@ impl<'ast> Node<'ast> for PatternSynth<'ast> {
 
 #[derive(PartialEq, Debug)]
 pub struct Lpf<'ast> {
-    pub signal: ConstSig<'ast>,
+    pub signal: Signal<'ast>,
     pub qvalue: f32
 }
 
@@ -718,7 +729,7 @@ impl<'ast> Node<'ast> for Lpf<'ast> {
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         let end_span = span.as_end_span();
 
-        let signal = ConstSig::parse_from_iter(pairs, span)?;
+        let signal = Signal::parse_from_iter(pairs, span)?;
         let qvalue = pairs.next_parsed(end_span)?;
 
         Ok(Self { signal, qvalue })

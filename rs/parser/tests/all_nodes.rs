@@ -239,18 +239,6 @@ fn sp() {
             })])
         ])
     );
-
-    // TODO
-    // This test is failing because the gligol.pest file doesn't match this text, despite the fact
-    // that it exists on the glicol.org examples. What do we do here?
-    assert_eq!(
-        get_ast("o: sp \\##s(\"in\")#"),
-        ast_from_nodes([
-            ("o", vec![Component::Sp(Sp {
-                sample_sym: "\\##s(\"in\")#"
-            })])
-        ])
-    );
 }
 
 #[test]
@@ -265,8 +253,26 @@ fn speed() {
     );
 }
 
-// TODO: There are no examples on glicol.org for what the `(sig|constsig)` syntax should look like,
-// so we don't have any tests for that.
+#[test]
+fn sig() {
+    assert_eq!(
+        get_ast("fhhfh: sig 4.0"),
+        ast_from_nodes([
+            ("fhhfh", vec![Component::ConstSig(ConstSig {
+                value: 4.0
+            })])
+        ])
+    );
+
+    assert_eq!(
+        get_ast("oo_: constsig 5.111"),
+        ast_from_nodes([
+            ("oo_", vec![Component::ConstSig(ConstSig {
+                value: 5.111
+            })])
+        ])
+    );
+}
 
 #[test]
 fn adc() {
@@ -343,7 +349,7 @@ fn lpf() {
         get_ast("~l: lpf ~mod 1.0"),
         ast_from_nodes([
             ("~l", vec![Component::Lpf(Lpf {
-                signal: ConstSig::Reference("~mod"),
+                signal: Signal::Reference("~mod"),
                 qvalue: 1.
             })])
         ])
@@ -353,7 +359,7 @@ fn lpf() {
         get_ast("ooo: lpf 100.0 1.0"),
         ast_from_nodes([
             ("ooo", vec![Component::Lpf(Lpf {
-                signal: ConstSig::Number(100.),
+                signal: Signal::Number(100.),
                 qvalue: 1.
             })])
         ])

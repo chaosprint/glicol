@@ -80,7 +80,7 @@ saw = ${"saw" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 squ = ${"squ" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 tri = ${"tri" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
 pan = ${"pan" ~ WHITESPACE+ ~ !node_name ~ (number | reference) }
-constsig = ${(("sig"|"constsig") ~ WHITESPACE+ ) ~ !node_name ~ ( number | pattern | event ) }
+constsig = ${(("sig"|"constsig") ~ WHITESPACE+ ) ~ !node_name ~ number }
 onepole = ${"onepole" ~ WHITESPACE+ ~ !node_name ~ ( number | reference) }
 
 // single float
