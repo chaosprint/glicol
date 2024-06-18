@@ -27,8 +27,6 @@ window.loadModule = async () => {
     // sampleRate: 44100
   })
 
-  await window.actx.audioWorklet.addModule("https://cdn.jsdelivr.net/npm/text-encoding@0.7.0/lib/encoding.min.js")
-
   let wasmBlob = await fetch("./src/glicol_wasm_bg.wasm")
     .then(response => response.arrayBuffer())
 

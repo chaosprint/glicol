@@ -27,7 +27,7 @@ glicol_synth = { version = "0.13.5", path = "../synth", features = [
 ] }
 pest = { workspace = true }
 hashbrown = { workspace = true }
-yoke = "0.7.3"
+yoke = { workspace = true }
 
 [dev-dependencies]
 gnuplot = "0.0.37"

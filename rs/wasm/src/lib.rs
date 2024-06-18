@@ -16,8 +16,6 @@ fn get_engine() -> MutexGuard<'static, Engine<128>> {
 
 #[wasm_bindgen]
 pub fn process(size: usize) -> Vec<f32> {
-    console_error_panic_hook::set_once();
-
     let mut engine = get_engine();
 
     let engine_out = engine.next_block(vec![]);

@@ -42,7 +42,6 @@ dasp_ring_buffer = { workspace = true  }
 dasp_signal = { workspace = true  }
 dasp_interpolate = { workspace = true  }
 hashbrown = { workspace = true  }
-arrayvec = { workspace = true  }
 rhai = { workspace = true, optional = true }
 fasteval = { workspace = true }
 glicol_parser = { version = "0.13.5", path = "../parser" }
