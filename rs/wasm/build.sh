@@ -4,7 +4,7 @@ which wasm-pack 2>/dev/null || { echo "Please install wasm-pack with 'cargo inst
 
 if [[ "$1" == "--release" ]]
 then
-	wasm-pack build --target web --no-typescript --release
+	RUSTFLAGS="-Cpanic=abort -Ccodegen-units=1 -Cembed-bitcode=yes -Clto=fat -Cstrip=symbols -Copt-level=z" wasm-pack build --target web --no-typescript --release
 else
 	wasm-pack build --target web --no-typescript --debug
 fi
