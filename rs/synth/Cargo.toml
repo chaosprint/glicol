@@ -47,8 +47,8 @@ fasteval = { workspace = true }
 glicol_parser = { version = "0.13.5", path = "../parser" }
 
 [dev-dependencies]
-gnuplot = "0.0.37"
-criterion = "0.4.0"
+gnuplot = "0.0.43"
+criterion = "0.5.1"
 # petgraph = { version = "0.6",  features = ["stable_graph"] }
 # cpal = "0.14.0"
 # anyhow = "1.0.63"

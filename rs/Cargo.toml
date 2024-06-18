@@ -18,7 +18,6 @@ dasp_ring_buffer = { version = "0.11.0", default-features = false }
 dasp_signal = { version = "0.11.0", default-features = false }
 dasp_interpolate = { version = "0.11.0", default-features = false, features = ["linear", "sinc"] }
 hashbrown = "0.14.3"
-arrayvec = "0.7.2"
 rhai = { version = "1.12.0", default-features = false, features = [
     "sync",
     "f32_float",
@@ -27,7 +26,7 @@ rhai = { version = "1.12.0", default-features = false, features = [
 fasteval = "0.2.4"
 pest = "2.7.9"
 pest_derive = "2.7.9"
-yoke = { version = "0.7.3", features = ["derive"] }
+yoke = { version = "0.7.3", default-features = false, features = ["derive", "alloc"] }
 
 [profile.wasm-release]
 inherits = "release"
