@@ -340,9 +340,6 @@ fn synths() {
     );
 }
 
-// TODO: There are no examples of what `msgsynth` syntax should look like on glicol.org
-// TODO: There are no examples of what `pattern_synth` syntax should look like on glicol.org
-
 #[test]
 fn lpf() {
     assert_eq!(
@@ -365,8 +362,6 @@ fn lpf() {
         ])
     );
 }
-
-// TODO: There are no examples of what `psampler` syntax should look like on glicol.org
 
 #[test]
 fn balance() {
