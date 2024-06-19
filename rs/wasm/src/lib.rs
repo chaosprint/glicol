@@ -41,14 +41,14 @@ pub fn add_sample(
     // engine.update(code);
 }
 
-/// SAFETY:
+/// # Safety
 /// - `code` must be valid utf-8. If it is not, this function invokes undefined behavior.
 #[wasm_bindgen]
 pub unsafe fn update(code_buf: &[u8]) -> Vec<u8> {
     let code = std::str::from_utf8_unchecked(code_buf);
 
     let mut res = vec![0; RES_BUFFER_SIZE];
-    if let Err(e) = get_engine().update_with_code(&code) {
+    if let Err(e) = get_engine().update_with_code(code) {
         write_err_to_buf(e, &mut res);
     }
 

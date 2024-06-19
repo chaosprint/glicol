@@ -139,19 +139,19 @@ pub fn makenode<const N: usize>(
         Component::Lpf(nodes::Lpf { signal, qvalue }) => {
             let mut reflist = vec![];
             let data = match signal {
-                nodes::ConstSig::Number(v) => ResonantLowPassFilter::new()
+                nodes::Signal::Number(v) => ResonantLowPassFilter::new()
                     .cutoff(*v)
                     .q(*qvalue)
                     .sr(sr)
                     .to_boxed_nodedata(1),
-                nodes::ConstSig::Reference(s) => {
+                nodes::Signal::Reference(s) => {
                     reflist.push(s.to_string());
                     ResonantLowPassFilter::new()
                         .q(*qvalue)
                         .sr(sr)
                         .to_boxed_nodedata(1)
                 }
-                nodes::ConstSig::Pattern(nodes::Pattern { event, span }) => {
+                nodes::Signal::Pattern(nodes::Pattern { event, span }) => {
                     let pattern = event.val_times.iter()
                         .map(|(val, time)| {
                             let value = match val {
@@ -170,7 +170,7 @@ pub fn makenode<const N: usize>(
                         .sr(sr)
                         .to_boxed_nodedata(1)
                 }
-                nodes::ConstSig::Event(_) => panic!("An event as a parameter to lpf is not currently supported")
+                nodes::Signal::Event(_) => panic!("An event as a parameter to lpf is not currently supported")
             };
             (data, reflist)
         }
@@ -299,32 +299,7 @@ pub fn makenode<const N: usize>(
         Component::Speed(nodes::Speed { speed }) => (Speed::from(*speed).to_boxed_nodedata(1), vec![]),
         Component::Onepole(nodes::Onepole { param }) => get_one_para_from_number_or_ref::<N, OnePole>(param, 1),
         Component::Add(nodes::Add { param }) => get_one_para_from_number_or_ref::<N, Add>(param, 2),
-        Component::ConstSig(sig) => (
-            match sig {
-                nodes::ConstSig::Number(v) => ConstSig::new(*v).sr(sr).to_boxed_nodedata(1),
-                nodes::ConstSig::Pattern(nodes::Pattern { event, span }) => {
-                    let pattern = event.val_times.iter()
-                        .map(|(val, times)| {
-                            let value = match val {
-                                nodes::EventValue::Number(num) => *num,
-                                nodes::EventValue::Symbol(_) => 100.0,
-                            };
-                            (value, *times)
-                        }).collect();
-
-                    // println!("pattern {:?}", pattern);
-                    ConstSig::new(0.0)
-                        .pattern(pattern)
-                        .span(*span)
-                        .bpm(bpm)
-                        .sr(sr)
-                        .to_boxed_nodedata(1)
-                }
-                nodes::ConstSig::Reference(_) | nodes::ConstSig::Event(_) =>
-                    panic!("constsig does not yet support using a reference or an event as the parameter"),
-            },
-            vec![]
-        ),
+        Component::ConstSig(nodes::ConstSig { value }) => (ConstSig::new(*value).sr(sr).to_boxed_nodedata(1), vec![]),
         // todo: give sr to them
         Component::Bd(nodes::Bd { param }) => get_one_para_from_number_or_ref::<N, Bd<N>>(param, 2),
         Component::Hh(nodes::Hh { param }) => get_one_para_from_number_or_ref::<N, Hh<N>>(param, 2),
