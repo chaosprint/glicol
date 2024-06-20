@@ -12,7 +12,7 @@ use glicol_synth::{
     Node, Pass, Sum2
 };
 
-use glicol_parser::{ToInnerOwned as _, nodes::{self, Component, NumberOrRef}};
+use glicol_parser::{ToInnerOwned as _, nodes::{self, Component, UsizeOrRef}};
 
 #[cfg(feature = "use-meta")]
 use glicol_synth::dynamic::Meta;
@@ -83,7 +83,7 @@ pub fn makenode<const N: usize>(
                 .to_boxed_nodedata(1),
             vec![],
         ),
-        Component::PatternSynth(nodes::PatternSynth { symbol, p2 }) => {
+        Component::PatternSynth(nodes::PatternSynth { symbol, span }) => {
             let pattern = symbol.replace('`', "");
             let events = pattern.split(',')
                 .map(|event| {
@@ -325,7 +325,7 @@ pub fn makenode<const N: usize>(
             let mut order = HashMap::new();
             let mut count = 0;
             for event in events {
-                if let NumberOrRef::Ref(s) = &event.1 {
+                if let UsizeOrRef::Ref(s) = &event.1 {
                     // reflist: ["~a", "~b", "~a"]
                     if !reflist.iter().any(|r| r == s) {
                         reflist.push(s.to_string());

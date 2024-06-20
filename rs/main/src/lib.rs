@@ -6,7 +6,7 @@ use std::collections::VecDeque;
 use util::makenode;
 pub mod error;
 pub use error::{get_error_info, EngineError};
-use glicol_parser::{get_ast, nodes::{Ast, Component, NumberOrRef}, ToInnerOwned as _};
+use glicol_parser::{get_ast, nodes::{Ast, Component, UsizeOrRef}, ToInnerOwned as _};
 use glicol_synth::{
     AudioContext, AudioContextConfig, BoxedNodeSend, Buffer, GlicolGraph, GlicolPara, Message, NodeData, Pass
 };
@@ -364,7 +364,7 @@ impl<const N: usize> Engine<N> {
                                 let mut count = 0;
                                 let mut order = hashbrown::HashMap::new();
                                 for event in events {
-                                    if let NumberOrRef::Ref(s) = &event.1 {
+                                    if let UsizeOrRef::Ref(s) = &event.1 {
                                         // reflist: ["~a", "~b", "~a"]
                                         if !reflist.iter().any(|r| r == s) {
                                             reflist.push(s.to_string());

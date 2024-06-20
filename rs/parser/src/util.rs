@@ -1,6 +1,6 @@
 use pest::{error::{Error, ErrorVariant}, iterators::{Pair, Pairs}, RuleType, Span};
 
-use crate::{nodes::{NumberOrRef, TimeList}, Rule};
+use crate::{nodes::{NumberOrRef, UsizeOrRef, TimeList}, Rule};
 
 pub trait ToPestErrWithPositives {
     fn to_err_with_positives<const N: usize, R: RuleType>(self, positives: [R; N]) -> Box<Error<R>>;
@@ -28,7 +28,7 @@ impl RuleRepresentable for usize {
 }
 
 impl RuleRepresentable for u32 {
-	const RULE: Rule = Rule::integer;
+    const RULE: Rule = Rule::integer;
 }
 
 pub trait TryToParse {
@@ -100,6 +100,20 @@ where
         match self {
             Self::Ref(s) => NumberOrRef::Ref((*s).to_owned()),
             Self::Number(n) => NumberOrRef::Number(*n)
+        }
+    }
+}
+
+impl<T> ToInnerOwned for UsizeOrRef<&T>
+where
+    T: AsRef<str> + ToOwned + ?Sized,
+    <T as ToOwned>::Owned: AsRef<str>
+{
+    type Owned = UsizeOrRef<<T as ToOwned>::Owned>;
+    fn to_inner_owned(&self) -> Self::Owned {
+        match self {
+            Self::Ref(s) => UsizeOrRef::Ref((*s).to_owned()),
+            Self::Usize(u) => UsizeOrRef::Usize(*u),
         }
     }
 }

@@ -115,4 +115,4 @@ node_name = ${"reverb"|"arrange"|"adsr"|"sig"|"psampler"|"synth"|"msgsynth"|"psy
 "sin"|"squ"|"imp"|"envperc"|"sampler"|"noiz"|"lpf"|"plate"|"onepole"|
 "hpf"|"pha"|"buf"|"state"|"freeverb"|"pan"|"delay"|"apfgain"|"comb"|"mix"|"monosum"|
 "const_sig"|"constsig"|"*"|"sp"|"spd"|"tri"|"noise"|"amplfo"|"balance"|"rlpf"|"rhpf"|"kick"|"ks"|
-"pha"|"shape"|"sawsynth"|"saw"|"script"|"closure"| "r" | "apfmsgain" |"sendpass"|"mix"|"sum"|"meta"}
+"pha"|"shape"|"sawsynth"|"saw"|"script"|"closure"| "r" | "apfmsgain" |"sendpass"|"mix"|"sum"|"meta"|"adc"}

@@ -74,16 +74,14 @@ impl Points {
                 let cycle_dur = 60. / bpm * 4.;
                 let bar_dur = cycle_dur * span * sr as f32;
 
-                let pos = time.times.into_iter()
-                    .map(|time_kind|
-                        match time_kind {
-                            Duration::Bar(x) =>x * bar_dur,
-                            Duration::Seconds(x) => x * (sr as f32),
-                            Duration::Milliseconds(x) => x / 1000.0 * (sr as f32),
-                        } as usize
-                    ).sum();
+                let bar_pos = time.bar * bar_dur;
+                let time_pos = time.time.map_or(0., |kind| match kind {
+                    Duration::Bar(b) => b * bar_dur,
+                    Duration::Seconds(s) => s * (sr as f32),
+                    Duration::Milliseconds(ms) => (ms / 1000.0) * sr as f32
+                });
 
-                (pos, value)
+                ((bar_pos + time_pos) as usize, value)
             }).collect::<Vec<_>>();
 
         if point_list[0].0 != 0 {

@@ -240,7 +240,7 @@ function getArrayU8FromWasm0(ptr, len) {
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
 }
 /**
-* SAFETY:
+* # Safety
 * - `code` must be valid utf-8. If it is not, this function invokes undefined behavior.
 * @param {Uint8Array} code_buf
 * @returns {Uint8Array}

@@ -26,7 +26,7 @@ mod context;
 pub use context::*;
 
 mod graph;
-use glicol_parser::{ToInnerOwned, nodes::{NumberOrRef, TimeList}};
+use glicol_parser::{ToInnerOwned, nodes::{UsizeOrRef, TimeList}};
 pub use graph::*;
 
 mod node;
@@ -68,7 +68,7 @@ pub enum Message {
         HashMap<String, (&'static [f32], usize, usize)>,
     ),
     SetPattern(Vec<(f32, f32)>, f32),
-    SetToSeq(u8, Vec<(f32, NumberOrRef<String>)>),
+    SetToSeq(u8, Vec<(f32, UsizeOrRef<String>)>),
     SetRefOrder(HashMap<String, usize>),
     SetBPM(f32),
     SetSampleRate(usize),
@@ -92,7 +92,7 @@ where
     Reference(S),
     SampleSymbol(S), // symbol is for sample only
     Symbol(S),
-    Sequence(Vec<(f32, NumberOrRef<S>)>),
+    Sequence(Vec<(f32, UsizeOrRef<S>)>),
     Pattern(Vec<(Self, f32)>, f32),
     Event(Vec<(Self, f32)>),
     Points(Vec<(TimeList, f32)>),

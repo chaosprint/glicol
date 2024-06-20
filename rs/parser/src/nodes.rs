@@ -78,16 +78,6 @@ pub enum Component<'ast> {
 
 impl<'ast> Component<'ast> {
     pub fn all_references<'a>(&'a self) -> Vec<&'ast str> {
-        fn get_refs<'a, 'ast: 'a, I>(iter: I) -> Vec<&'ast str>
-        where
-            I: Iterator<Item = &'a NumberOrRef<&'ast str>>
-        {
-            iter.flat_map(|n| match n {
-                NumberOrRef::Number(_) => None,
-                NumberOrRef::Ref(r) => Some(*r)
-            }).collect()
-        }
-
         match self {
             Self::Delayn(Delayn { param: UsizeOrRef::Ref(r) })
             | Self::Delayms(Delayms { param: NumberOrRef::Ref(r) })
@@ -108,8 +98,16 @@ impl<'ast> Component<'ast> {
             | Self::ApfmsGain(ApfmsGain { delay: NumberOrRef::Ref(r), gain: _ })
             | Self::Get(Get { reference: r }) => vec![r],
 
-            Self::Seq(Seq { events }) => get_refs(events.iter().map(|n| &n.1)),
-            Self::Arrange(Arrange { events }) => get_refs(events.iter()),
+            Self::Seq(Seq { events }) => events.iter()
+                .flat_map(|(_, e)| match e {
+                    UsizeOrRef::Usize(_) => None,
+                    UsizeOrRef::Ref(r) => Some(*r)
+                }).collect(),
+            Self::Arrange(Arrange { events }) => events.iter()
+                .flat_map(|e| match e {
+                    NumberOrRef::Number(_) => None,
+                    NumberOrRef::Ref(r) => Some(*r),
+                }).collect(),
             Self::Mix(Mix { nodes }) => nodes.clone(),
             Self::Balance(Balance { left, right }) => vec![left, right],
 
@@ -129,7 +127,8 @@ pub enum Duration {
 
 #[derive(PartialEq, Debug, Clone, PartialOrd)]
 pub struct TimeList {
-    pub times: Vec<Duration>,
+    pub bar: f32,
+    pub time: Option<Duration>
 }
 
 #[derive(PartialEq, Debug)]
@@ -177,9 +176,9 @@ impl Node<'_> for Points {
             let bar = time_inner.next()
                 .ok_or_else(|| end_span.to_err_with_positives([Rule::number, Rule::bar]))?;
 
-            let mut times = match_or_return_err!(bar,
+            let bar = match_or_return_err!(bar,
                 Rule::number => {
-                    vec![Duration::Bar(bar.try_to_parse()?)]
+                    bar.try_to_parse()?
                 },
                 Rule::bar => {
                     let bar_end = bar.as_end_span();
@@ -188,11 +187,11 @@ impl Node<'_> for Points {
                     let top = nums.next_parsed::<f32>(bar_end)?;
                     let bottom = nums.next_parsed::<f32>(bar_end)?;
 
-                    vec![Duration::Bar(top / bottom)]
+                    top / bottom
                 },
             );
 
-            if let Some(sign_rule) = time_inner.next() {
+            let time_res = time_inner.next().map(|sign_rule| {
                 let sign = if sign_rule.as_str() == "-" {
                     -1.0
                 } else {
@@ -203,23 +202,32 @@ impl Node<'_> for Points {
                     .ok_or_else(|| time_end.to_err_with_positives([Rule::second, Rule::ms]))?;
                 let s_end = s.as_end_span();
 
+                // clippy has a false positive on these return statements - they are needed.
                 match_or_return_err!(s,
                     Rule::second => {
-                        times.push(Duration::Seconds(
+                        #[allow(clippy::needless_return)]
+                        return Ok(Duration::Seconds(
                             sign * s.into_inner().next_parsed::<f32>(s_end)?
                         ))
                     },
                     Rule::ms => {
-                        times.push(Duration::Milliseconds(
+                        #[allow(clippy::needless_return)]
+                        return Ok(Duration::Milliseconds(
                             sign * s.into_inner().next_parsed::<f32>(s_end)?
                         ))
                     },
                 );
+            });
+
+            let time = match time_res {
+                Some(Err(e)) => return Err(e),
+                Some(Ok(t)) => Some(t),
+                None => None,
             };
 
             let value = point_inner.next_parsed(end_span)?;
 
-            Ok((TimeList { times }, value))
+            Ok((TimeList { bar, time }, value))
         }).collect::<Result<Vec<_>, _>>()?;
 
         Ok(Self {
@@ -280,7 +288,7 @@ macro_rules! impl_single_item_classes{
 impl_single_item_classes!(
     (
         Delayn,
-    ) => param: UsizeOrRef<'ast>,
+    ) => param: UsizeOrRef<&'ast str>,
     (
         Delayms,
         Imp,
@@ -341,13 +349,16 @@ impl Node<'_> for Noise {
     }
 }
 
-#[derive(PartialEq, Debug)]
-pub enum UsizeOrRef<'ast> {
+#[derive(PartialEq, Debug, PartialOrd, Clone)]
+pub enum UsizeOrRef<S>
+where
+    S: AsRef<str>
+{
     Usize(usize),
-    Ref(&'ast str)
+    Ref(S)
 }
 
-impl<'ast> Node<'ast> for UsizeOrRef<'ast>{
+impl<'ast> Node<'ast> for UsizeOrRef<&'ast str>{
     #[cfg_attr(test, trace::trace(prefix_enter = "[+ UsizeOrRef]"))]
     fn parse_from_iter(pairs: &mut Pairs<'ast, Rule>, span: Span<'ast>) -> Result<Self, Box<Error<Rule>>> {
         let next = pairs.next()
@@ -389,14 +400,9 @@ impl Node<'_> for Plate {
     }
 }
 
-// TODO: There are some ambiguous 'seq' inputs, afaict.
-// `seq o_`: is this a single event, ref "o_", or is this a ref "o" and then a rest?
-// `seq _o`: is this a single event, ref "_o", or is this a rest and then a ref "o"?
-// `seq 6060`: is this two 60's or one 6060? How do we indicate two numbers without a pause
-// `seq ~a14`: i think you get the gist
 #[derive(PartialEq, Debug)]
 pub struct Seq<'ast> {
-    pub events: Vec<(f32, NumberOrRef<&'ast str>)>
+    pub events: Vec<(f32, UsizeOrRef<&'ast str>)>
 }
 
 impl<'ast> Node<'ast> for Seq<'ast> {
@@ -415,38 +421,30 @@ impl<'ast> Node<'ast> for Seq<'ast> {
         // to do, more than a symbol
         // should be an event that contains time and note
         let compounds = paras.into_inner();
-        // one bar will firstly be divided here
-        let compounds_num = compounds.len();
 
         let events = compounds.enumerate().map(|(i, compound)| {
-            let relative_time_base =
-                i as f32 / compounds_num as f32;
             let elements = compound.into_inner();
             let elements_n = elements.len();
 
             elements.enumerate().map(|(j, element)| {
-                let relative_time_sub = 1. / compounds_num as f32
-                    * j as f32
-                    / elements_n as f32;
+                let relative_time_sub = j as f32 / elements_n as f32;
                 let e_span = element.as_end_span();
                 let e = element.into_inner()
                     .next()
                     .ok_or_else(|| e_span.to_err_with_positives(positives))?;
 
-                let time = relative_time_sub + relative_time_base;
+                let time = relative_time_sub + i as f32;
 
                 match_or_return_err!(e,
-                    // TODO: We only match on integer here, but we store it as a f32. We should
-                    // pick a lane; either it must be an integer or it doesn't have to
                     Rule::integer => {
                         e.try_to_parse()
-                            .map(|num| Some((time, NumberOrRef::Number(num))))
+                            .map(|num| Some((time, UsizeOrRef::Usize(num))))
                     },
                     Rule::rest => {
                         Ok(None)
                     },
                     Rule::note_ref => {
-                        Ok(Some((time, NumberOrRef::Ref(e.as_str()))))
+                        Ok(Some((time, UsizeOrRef::Ref(e.as_str()))))
                     },
                 )
             }).collect::<Result<Vec<_>, _>>()
@@ -701,8 +699,7 @@ impl<'ast> Node<'ast> for MsgSynth<'ast> {
 #[derive(PartialEq, Debug)]
 pub struct PatternSynth<'ast> {
     pub symbol: &'ast str,
-    // TODO: This isn't named in the grammar so i don't know what to call it
-    pub p2: f32
+    pub span: f32
 }
 
 impl<'ast> Node<'ast> for PatternSynth<'ast> {
@@ -713,8 +710,8 @@ impl<'ast> Node<'ast> for PatternSynth<'ast> {
             .ok_or_else(|| end_span.to_err_with_positives([Rule::symbol]))?
             .as_str();
 
-        let p2 = pairs.next_parsed(end_span)?;
-        Ok(Self { symbol, p2 })
+        let span = pairs.next_parsed(end_span)?;
+        Ok(Self { symbol, span })
     }
 }
 
@@ -859,21 +856,20 @@ fn get_f32_arr<const N: usize>(
     Ok(array.map(|t| unsafe { t.assume_init() }))
 }
 
-// TODO: What are the actual param names?
 #[derive(PartialEq, Debug)]
 pub struct Reverb {
-    pub p1: f32,
-    pub p2: f32,
-    pub p3: f32,
-    pub p4: f32,
-    pub p5: f32
+    pub dampening: f32,
+    pub room_size: f32,
+    pub width: f32,
+    pub wet: f32,
+    pub dry: f32
 }
 
 impl Node<'_> for Reverb {
     #[cfg_attr(test, trace::trace(prefix_enter = "[+ Reverb]"))]
     fn parse_from_iter(pairs: &mut Pairs<'_, Rule>, span: Span<'_>) -> Result<Self, Box<Error<Rule>>> {
-        let [p1, p2, p3, p4, p5] = get_f32_arr(pairs, span)?;
-        Ok(Self { p1, p2, p3, p4, p5 })
+        let [dampening, room_size, width, wet, dry] = get_f32_arr(pairs, span)?;
+        Ok(Self { dampening, room_size, width, wet, dry })
     }
 }
 

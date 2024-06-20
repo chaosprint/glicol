@@ -127,7 +127,7 @@ fn waves() {
 #[test]
 fn seq() {
     assert_eq!(
-        get_ast("o: seq 60_ 1000_ 1010__10 _1010_1011_ 1_1_ ~a12_13__ r4 4"),
+        get_ast("o: seq 60_ 1000_ 1010__10 _1010_1011_ 1_1_ ~a12_13_ ~r4 4"),
         ast_from_nodes([
             ("o", vec![Component::Seq(Seq {
                 events: vec![
@@ -136,12 +136,14 @@ fn seq() {
                     (2., NumberOrRef::Number(1010.)),
                     (2.75, NumberOrRef::Number(10.)),
                     (3.2, NumberOrRef::Number(1010.)),
-                    (3.4, NumberOrRef::Number(1011.)),
+                    (3.6, NumberOrRef::Number(1011.)),
                     (4., NumberOrRef::Number(1.)),
                     (4.5, NumberOrRef::Number(1.)),
-                    (5., NumberOrRef::Ref("~a12")),
-                    (5.4, NumberOrRef::Number(13.)),
-                    (6., NumberOrRef::Ref("r4")),
+                    (5., NumberOrRef::Ref("~a")),
+                    (5.2, NumberOrRef::Number(12.)),
+                    (5.6, NumberOrRef::Number(13.)),
+                    (6., NumberOrRef::Ref("~r")),
+                    (6.5, NumberOrRef::Number(4.)),
                     (7., NumberOrRef::Number(4.))
                 ]
             })])
