@@ -9,10 +9,13 @@ use glicol_synth::{
     sequencer::{Arrange, Choose, Sequencer, Speed},
     signal::{ConstSig, Impulse, Noise, Points},
     synth::{MsgSynth, PatternSynth},
-    Node, Pass, Sum2
+    Node, Pass, Sum2,
 };
 
-use glicol_parser::{ToInnerOwned as _, nodes::{self, Component, UsizeOrRef}};
+use glicol_parser::{
+    nodes::{self, Component, UsizeOrRef},
+    ToInnerOwned as _,
+};
 
 #[cfg(feature = "use-meta")]
 use glicol_synth::dynamic::Meta;
@@ -45,27 +48,36 @@ pub fn makenode<const N: usize>(
                 nodes::PSampler::Pattern(ref pat) => (&pat.event, pat.span)
             };
 
-            let pattern = pattern.val_times.iter().map(|(val, time)| {
-                let value = match &val {
-                    nodes::EventValue::Number(_) => String::new(),
-                    nodes::EventValue::Symbol(sym) => sym.to_string(),
-                };
+            let pattern = pattern
+                .val_times
+                .iter()
+                .map(|(val, time)| {
+                    let value = match &val {
+                        nodes::EventValue::Number(_) => String::new(),
+                        nodes::EventValue::Symbol(sym) => sym.to_string(),
+                    };
 
-                if !samples_dict.contains_key(&value) {
-                    return Err(EngineError::NonExistSample(value.clone()));
-                } else {
-                    samples_dict_selected.insert(value.clone(), samples_dict[&value]);
-                }
+                    if !samples_dict.contains_key(&value) {
+                        return Err(EngineError::NonExistSample(value.clone()));
+                    } else {
+                        samples_dict_selected.insert(value.clone(), samples_dict[&value]);
+                    }
 
-                Ok((value, *time))
-            }).collect::<Result<Vec<_>, EngineError>>()?;
+                    Ok((value, *time))
+                })
+                .collect::<Result<Vec<_>, EngineError>>()?;
 
             (
-                PSampler::new(samples_dict_selected, sr, bpm, vec![], pattern, span).to_boxed_nodedata(2),
+                PSampler::new(samples_dict_selected, sr, bpm, vec![], pattern, span)
+                    .to_boxed_nodedata(2),
                 vec![],
             )
         }
-        Component::Points(nodes::Points { points, span, is_looping }) => (
+        Component::Points(nodes::Points {
+            points,
+            span,
+            is_looping,
+        }) => (
             Points::new()
                 .bpm(bpm)
                 .sr(sr)
@@ -75,7 +87,11 @@ pub fn makenode<const N: usize>(
                 .to_boxed_nodedata(1),
             vec![],
         ),
-        Component::MsgSynth(nodes::MsgSynth { symbol, attack, decay }) => (
+        Component::MsgSynth(nodes::MsgSynth {
+            symbol,
+            attack,
+            decay,
+        }) => (
             MsgSynth::new()
                 .sr(sr)
                 .attack(*attack)
@@ -85,7 +101,8 @@ pub fn makenode<const N: usize>(
         ),
         Component::PatternSynth(nodes::PatternSynth { symbol, span }) => {
             let pattern = symbol.replace('`', "");
-            let events = pattern.split(',')
+            let events = pattern
+                .split(',')
                 .map(|event| {
                     let mut result = event
                         .split(' ')
@@ -93,7 +110,8 @@ pub fn makenode<const N: usize>(
                         .map(|x| x.replace(' ', "").parse::<f32>().unwrap());
 
                     (result.next().unwrap(), result.next().unwrap())
-                }).collect();
+                })
+                .collect();
 
             (
                 PatternSynth::new(events).sr(sr).to_boxed_nodedata(1),
@@ -113,10 +131,7 @@ pub fn makenode<const N: usize>(
                 return Err(EngineError::NonExistSample(sample_sym.to_string()));
             };
 
-            (
-                Sampler::new(*sample, sr).to_boxed_nodedata(2),
-                vec![],
-            )
+            (Sampler::new(*sample, sr).to_boxed_nodedata(2), vec![])
         }
 
         #[cfg(feature = "use-meta")]
@@ -152,14 +167,17 @@ pub fn makenode<const N: usize>(
                         .to_boxed_nodedata(1)
                 }
                 nodes::Signal::Pattern(nodes::Pattern { event, span }) => {
-                    let pattern = event.val_times.iter()
+                    let pattern = event
+                        .val_times
+                        .iter()
                         .map(|(val, time)| {
                             let value = match val {
                                 nodes::EventValue::Number(num) => *num,
                                 nodes::EventValue::Symbol(_) => 100.0,
                             };
                             (value, *time)
-                        }).collect();
+                        })
+                        .collect();
 
                     // println!("pattern {:?}", pattern);
                     ResonantLowPassFilter::new()
@@ -170,7 +188,9 @@ pub fn makenode<const N: usize>(
                         .sr(sr)
                         .to_boxed_nodedata(1)
                 }
-                nodes::Signal::Event(_) => panic!("An event as a parameter to lpf is not currently supported")
+                nodes::Signal::Event(_) => {
+                    panic!("An event as a parameter to lpf is not currently supported")
+                }
             };
             (data, reflist)
         }
@@ -221,9 +241,14 @@ pub fn makenode<const N: usize>(
                 .attack(*attack)
                 .decay(*decay)
                 .to_boxed_nodedata(2),
-            vec![]
+            vec![],
         ),
-        Component::Adsr(nodes::Adsr { attack, decay, sustain, release }) => (
+        Component::Adsr(nodes::Adsr {
+            attack,
+            decay,
+            sustain,
+            release,
+        }) => (
             Adsr::new()
                 .sr(sr)
                 .attack(*attack)
@@ -231,41 +256,49 @@ pub fn makenode<const N: usize>(
                 .sustain(*sustain)
                 .release(*release)
                 .to_boxed_nodedata(2),
-            vec![]
+            vec![],
         ),
         Component::Tri(nodes::Tri { param }) => match param {
-            nodes::NumberOrRef::Number(v) => (TriOsc::new().sr(sr).freq(*v).to_boxed_nodedata(1), vec![]),
+            nodes::NumberOrRef::Number(v) => {
+                (TriOsc::new().sr(sr).freq(*v).to_boxed_nodedata(1), vec![])
+            }
             nodes::NumberOrRef::Ref(s) => (
                 TriOsc::new().sr(sr).freq(0.0).to_boxed_nodedata(1),
                 vec![s.to_string()],
             ),
         },
         Component::Squ(nodes::Squ { param }) => match param {
-            nodes::NumberOrRef::Number(v) => (SquOsc::new().sr(sr).freq(*v).to_boxed_nodedata(1), vec![]),
+            nodes::NumberOrRef::Number(v) => {
+                (SquOsc::new().sr(sr).freq(*v).to_boxed_nodedata(1), vec![])
+            }
             nodes::NumberOrRef::Ref(s) => (
                 SquOsc::new().sr(sr).freq(0.0).to_boxed_nodedata(1),
                 vec![s.to_string()],
             ),
         },
         Component::Saw(nodes::Saw { param }) => match param {
-            nodes::NumberOrRef::Number(v) => (SawOsc::new().sr(sr).freq(*v).to_boxed_nodedata(1), vec![]),
+            nodes::NumberOrRef::Number(v) => {
+                (SawOsc::new().sr(sr).freq(*v).to_boxed_nodedata(1), vec![])
+            }
             nodes::NumberOrRef::Ref(s) => (
                 SawOsc::new().sr(sr).freq(0.0).to_boxed_nodedata(1),
                 vec![s.to_string()],
             ),
         },
         Component::Sin(nodes::Sin { param }) => match param {
-            nodes::NumberOrRef::Number(v) => (SinOsc::new().sr(sr).freq(*v).to_boxed_nodedata(1), vec![]),
+            nodes::NumberOrRef::Number(v) => {
+                (SinOsc::new().sr(sr).freq(*v).to_boxed_nodedata(1), vec![])
+            }
             nodes::NumberOrRef::Ref(s) => (
                 SinOsc::new().sr(sr).freq(0.0).to_boxed_nodedata(1),
                 vec![s.to_string()],
             ),
         },
-        Component::Plate(nodes::Plate { mix }) => (
-            Plate::new(*mix).to_boxed_nodedata(2), vec![]
-        ),
+        Component::Plate(nodes::Plate { mix }) => (Plate::new(*mix).to_boxed_nodedata(2), vec![]),
         Component::Imp(nodes::Imp { param }) => match param {
-            nodes::NumberOrRef::Number(v) => (Impulse::new().sr(sr).freq(*v).to_boxed_nodedata(1), vec![]),
+            nodes::NumberOrRef::Number(v) => {
+                (Impulse::new().sr(sr).freq(*v).to_boxed_nodedata(1), vec![])
+            }
             nodes::NumberOrRef::Ref(s) => (
                 Impulse::new().sr(sr).freq(0.0).to_boxed_nodedata(1),
                 vec![s.to_string()],
@@ -293,32 +326,33 @@ pub fn makenode<const N: usize>(
                 vec![s.to_string()],
             ),
         },
-        Component::Noise(nodes::Noise { seed }) => (
-            Noise::new(*seed).to_boxed_nodedata(1), vec![]
-        ),
-        Component::Speed(nodes::Speed { speed }) => (Speed::from(*speed).to_boxed_nodedata(1), vec![]),
-        Component::Onepole(nodes::Onepole { param }) => get_one_para_from_number_or_ref::<N, OnePole>(param, 1),
+        Component::Noise(nodes::Noise { seed }) => (Noise::new(*seed).to_boxed_nodedata(1), vec![]),
+        Component::Speed(nodes::Speed { speed }) => {
+            (Speed::from(*speed).to_boxed_nodedata(1), vec![])
+        }
+        Component::Onepole(nodes::Onepole { param }) => {
+            get_one_para_from_number_or_ref::<N, OnePole>(param, 1)
+        }
         Component::Add(nodes::Add { param }) => get_one_para_from_number_or_ref::<N, Add>(param, 2),
-        Component::ConstSig(nodes::ConstSig { value }) => (ConstSig::new(*value).sr(sr).to_boxed_nodedata(1), vec![]),
+        Component::ConstSig(nodes::ConstSig { value }) => {
+            (ConstSig::new(*value).sr(sr).to_boxed_nodedata(1), vec![])
+        }
         // todo: give sr to them
         Component::Bd(nodes::Bd { param }) => get_one_para_from_number_or_ref::<N, Bd<N>>(param, 2),
         Component::Hh(nodes::Hh { param }) => get_one_para_from_number_or_ref::<N, Hh<N>>(param, 2),
         Component::Sn(nodes::Sn { param }) => get_one_para_from_number_or_ref::<N, Sn<N>>(param, 2),
-        Component::SawSynth(nodes::SawSynth { attack, decay }) => (
-            SawSynth::new(*attack, *decay).to_boxed_nodedata(2),
-            vec![]
-        ),
-        Component::SquSynth(nodes::SquSynth { attack, decay }) => (
-            SquSynth::new(*attack, *decay).to_boxed_nodedata(2),
-            vec![]
-        ),
-        Component::TriSynth(nodes::TriSynth { attack, decay }) => (
-            TriSynth::new(*attack, *decay).to_boxed_nodedata(2),
-            vec![]
-        ),
+        Component::SawSynth(nodes::SawSynth { attack, decay }) => {
+            (SawSynth::new(*attack, *decay).to_boxed_nodedata(2), vec![])
+        }
+        Component::SquSynth(nodes::SquSynth { attack, decay }) => {
+            (SquSynth::new(*attack, *decay).to_boxed_nodedata(2), vec![])
+        }
+        Component::TriSynth(nodes::TriSynth { attack, decay }) => {
+            (TriSynth::new(*attack, *decay).to_boxed_nodedata(2), vec![])
+        }
         Component::Get(nodes::Get { reference }) => (
             NodeData::new2(BoxedNodeSend::new(Pass {})),
-            vec![reference.to_string()]
+            vec![reference.to_string()],
         ),
         Component::Seq(nodes::Seq { events }) => {
             let mut reflist = Vec::<String>::new();
@@ -349,14 +383,14 @@ pub fn makenode<const N: usize>(
         ),
         Component::Mix(nodes::Mix { nodes }) => (
             NodeData::new2(BoxedNodeSend::new(Sum2 {})),
-            nodes.iter().map(ToString::to_string).collect()
+            nodes.iter().map(ToString::to_string).collect(),
         ),
         Component::Arrange(nodes::Arrange { events }) => {
             let reflist = events
                 .iter()
                 .flat_map(|ev| match ev {
                     nodes::NumberOrRef::Number(_) => None,
-                    nodes::NumberOrRef::Ref(s) => Some(s.to_string())
+                    nodes::NumberOrRef::Ref(s) => Some(s.to_string()),
                 })
                 .collect();
 
@@ -367,16 +401,18 @@ pub fn makenode<const N: usize>(
                     .to_boxed_nodedata(2),
                 reflist,
             )
-        },
-        Component::Reverb(_)
-        | Component::Expr(_) => panic!("{component:?} is currently not supported within the engine"),
+        }
+        Component::Reverb(_) | Component::Expr(_) => {
+            panic!("{component:?} is currently not supported within the engine")
+        }
         #[cfg(not(feature = "use-samples"))]
-        Component::Sp(_) | Component::PSampler(_) => panic!("The `use-samples` feature is required to use the `sp` or `psampler` node"),
+        Component::Sp(_) | Component::PSampler(_) => {
+            panic!("The `use-samples` feature is required to use the `sp` or `psampler` node")
+        }
         #[cfg(not(feature = "bela"))]
         Component::Adc(_) => panic!("The `bela` feature is required to use the `adc` node"),
         #[cfg(not(feature = "use-meta"))]
         Component::Meta(_) => panic!("The `use-meta` feature is required to use the `meta` node"),
-
         // "sendpass" => {
         //     let reflist = match &paras[0] {
         //         GlicolPara::RefList(v) => {
@@ -392,13 +428,16 @@ pub fn makenode<const N: usize>(
 
 fn get_one_para_from_number_or_ref<const N: usize, T>(
     param: &nodes::NumberOrRef<&str>,
-    channels: usize
+    channels: usize,
 ) -> (NodeData<BoxedNodeSend<N>, N>, Vec<String>)
 where
     T: From<f32> + Node<N> + Send + 'static,
 {
     match param {
         nodes::NumberOrRef::Number(v) => (T::from(*v).to_boxed_nodedata(channels), vec![]),
-        nodes::NumberOrRef::Ref(s) => (T::from(0.0).to_boxed_nodedata(channels), vec![(*s).to_owned()]),
+        nodes::NumberOrRef::Ref(s) => (
+            T::from(0.0).to_boxed_nodedata(channels),
+            vec![(*s).to_owned()],
+        ),
     }
 }

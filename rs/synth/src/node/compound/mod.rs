@@ -20,7 +20,7 @@ fn process_compound<const N: usize>(
     input_order: &[usize],
     input: NodeIndex<u32>,
     context: &mut AudioContext<N>,
-    output: &mut [Buffer<N>]
+    output: &mut [Buffer<N>],
 ) {
     if inputs.len() == 1 {
         let main_input = inputs[&input_order[0]].buffers();

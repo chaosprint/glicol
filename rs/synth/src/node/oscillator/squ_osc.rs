@@ -38,18 +38,25 @@ impl SquOsc {
 
 impl<const N: usize> Node<N> for SquOsc {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
-        process_oscillation(inputs, &mut self.input_order, output, self.freq, &mut self.inc, |out, freq| {
-            if self.phase <= 0.5 {
-                *out = 1.0;
-            } else {
-                *out = -1.0;
-            }
+        process_oscillation(
+            inputs,
+            &mut self.input_order,
+            output,
+            self.freq,
+            &mut self.inc,
+            |out, freq| {
+                if self.phase <= 0.5 {
+                    *out = 1.0;
+                } else {
+                    *out = -1.0;
+                }
 
-            self.phase += freq / self.sr as f32;
-            if self.phase > 1. {
-                self.phase -= 1.
-            }
-        });
+                self.phase += freq / self.sr as f32;
+                if self.phase > 1. {
+                    self.phase -= 1.
+                }
+            },
+        );
     }
 
     fn send_msg(&mut self, info: Message) {

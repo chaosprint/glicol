@@ -1,12 +1,12 @@
+use hashbrown::HashMap;
+use nodes::{Component, Node as _, Points};
 use pest::error::Error;
 use pest::Parser;
 use pest_derive::*;
-use nodes::{Component, Points, Node as _};
 use util::{EndSpan, ToPestErrWithPositives};
-use hashbrown::HashMap;
 
-mod util;
 pub mod nodes;
+mod util;
 pub use util::ToInnerOwned;
 
 #[derive(Parser)]
@@ -17,12 +17,12 @@ pub fn get_ast(code: &str) -> Result<nodes::Ast<'_>, Box<Error<Rule>>> {
     let mut block = GlicolParser::parse(Rule::block, code)?;
 
     // this can be a comment though, but we call it a line
-    let lines = block.next()
-        .ok_or_else(|| pest::Span::new(code, 0, 0)
+    let lines = block.next().ok_or_else(|| {
+        pest::Span::new(code, 0, 0)
             // We know this will be a valid span b/c 0 (end) >= 0 (start)
             .unwrap()
             .to_err_with_positives([Rule::line])
-        )?;
+    })?;
 
     //for line in lines.into_inner() {
     let nodes = lines.into_inner()

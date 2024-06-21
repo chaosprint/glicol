@@ -1,6 +1,6 @@
 use glicol_parser::*;
-use pest::Parser;
 use pest::error::ErrorVariant;
+use pest::Parser;
 // use lcs_diff::*;
 
 // fn main() {
@@ -14,28 +14,37 @@ use pest::error::ErrorVariant;
 // }
 
 fn main() {
-    let mut block = match GlicolParser::parse(Rule::block, r#"out: sin 440 >> mul 0.1 >> add 0.1; b: seq 60 _60 >> sp \808;"#) {
+    let mut block = match GlicolParser::parse(
+        Rule::block,
+        r#"out: sin 440 >> mul 0.1 >> add 0.1; b: seq 60 _60 >> sp \808;"#,
+    ) {
         Ok(v) => v,
         Err(e) => {
             // println!("in location: {:?}; line_col: {:?}", e.location, e.line_col);
 
             match e.variant {
-                ErrorVariant::ParsingError{ positives, negatives } => {
+                ErrorVariant::ParsingError {
+                    positives,
+                    negatives,
+                } => {
                     if !positives.is_empty() {
                         print!("\n\nexpecting ");
-                        for possible in positives { print!("{:?} ", possible) }
+                        for possible in positives {
+                            print!("{:?} ", possible)
+                        }
                         print!("\n\n");
                     }
                     if !negatives.is_empty() {
                         print!("\n\nunexpected element: ");
-                        for possible in negatives { print!("{:?} ", possible) }
+                        for possible in negatives {
+                            print!("{:?} ", possible)
+                        }
                         print!("\n\n");
                     }
                     panic!();
                 }
-                _ => panic!("unknown parsing error")
+                _ => panic!("unknown parsing error"),
             }
-
         }
     };
     let lines = block.next().unwrap(); // this can be a comment though, but we call it a line
@@ -51,7 +60,7 @@ fn main() {
                     Rule::reference => {
                         println!("ref {:?}", line_component.as_str());
                         key = line_component.as_str();
-                    },
+                    }
                     Rule::chain => {
                         println!("chain {:?}", line_component.as_str());
                         let chain = line_component;
@@ -61,43 +70,43 @@ fn main() {
                                 Rule::sin => {
                                     println!("node {:?}", node.as_str()); //"sin 440"
                                     let paras = node.into_inner().next().unwrap();
-                                    println!("paras {:?}", paras.as_str());//"440"
+                                    println!("paras {:?}", paras.as_str()); //"440"
                                     chain_node_names.push("sin");
                                     chain_paras.push(paras.as_str());
-                                },
+                                }
                                 Rule::mul => {
                                     println!("node {:?}", node.as_str());
                                     let paras = node.into_inner().next().unwrap();
                                     println!("paras {:?}", paras.as_str());
                                     chain_node_names.push("mul");
                                     chain_paras.push(paras.as_str());
-                                },
+                                }
                                 Rule::add => {
                                     println!("node {:?}", node.as_str());
                                     let paras = node.into_inner().next().unwrap();
                                     println!("paras {:?}", paras.as_str());
                                     chain_node_names.push("add");
                                     chain_paras.push(paras.as_str());
-                                },
+                                }
                                 Rule::seq => {
                                     println!("node {:?}", node.as_str());
                                     let paras = node.into_inner().next().unwrap();
                                     println!("paras {:?}", paras.as_str());
                                     chain_node_names.push("seq");
                                     chain_paras.push(paras.as_str());
-                                },
+                                }
                                 Rule::sp => {
                                     println!("node {:?}", node.as_str());
                                     let paras = node.into_inner().next().unwrap();
                                     println!("paras {:?}", paras.as_str());
                                     chain_node_names.push("sp");
                                     chain_paras.push(paras.as_str());
-                                },
+                                }
                                 _ => {}
                             }
                         }
                         // println!("chain.into_inner(); {:?}", chain.into_inner());
-                    },
+                    }
                     _ => {}
                 }
             }

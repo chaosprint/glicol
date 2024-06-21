@@ -52,7 +52,7 @@ pub trait Node<const N: usize> {
 
     fn to_boxed_nodedata(self, channels: usize) -> crate::NodeData<BoxedNodeSend<N>, N>
     where
-        Self: Send + 'static + Sized
+        Self: Send + 'static + Sized,
     {
         crate::NodeData::multi_chan_node(channels, BoxedNodeSend::new(self))
     }

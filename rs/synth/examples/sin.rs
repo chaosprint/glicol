@@ -1,15 +1,10 @@
-use glicol_synth::{
-    AudioContextBuilder,
-    oscillator::SinOsc,
-    operator::Mul,
-    Message
-};
+use glicol_synth::{operator::Mul, oscillator::SinOsc, AudioContextBuilder, Message};
 
 fn main() {
     let mut context = AudioContextBuilder::<8>::new()
-    .sr(44100)
-    .channels(2)
-    .build();
+        .sr(44100)
+        .channels(2)
+        .build();
 
     let node_a = context.add_mono_node(SinOsc::new().freq(440.0));
     let node_b = context.add_stereo_node(Mul::new(0.1));
@@ -18,6 +13,6 @@ fn main() {
 
     println!("first block {:?}", context.next_block());
     // message
-    context.send_msg(node_a, Message::SetToNumber(0, 100.) );
+    context.send_msg(node_a, Message::SetToNumber(0, 100.));
     println!("second block, after msg {:?}", context.next_block());
 }

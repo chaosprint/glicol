@@ -43,7 +43,8 @@ impl<const N: usize> Node<N> for OnePole {
                 let main_input = &inputs[&self.input_order[0]]; // can panic if there is no id
                 let ref_input = &inputs[&self.input_order[1]]; // can panic if there is no id
 
-                for ((out, main_in), ref_in) in output[0].iter_mut()
+                for ((out, main_in), ref_in) in output[0]
+                    .iter_mut()
                     .zip(main_input.buffers()[0].iter())
                     .zip(ref_input.buffers()[0].iter())
                 {
@@ -63,7 +64,7 @@ impl<const N: usize> Node<N> for OnePole {
             Message::SetToNumber(0, value) => {
                 self.b = (-2.0 * std::f32::consts::PI * value).exp();
                 self.a = 1. - self.b
-            },
+            }
             Message::Index(i) => self.input_order.push(i),
             Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
             Message::ResetOrder => {

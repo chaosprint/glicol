@@ -26,7 +26,10 @@ mod context;
 pub use context::*;
 
 mod graph;
-use glicol_parser::{ToInnerOwned, nodes::{UsizeOrRef, TimeList}};
+use glicol_parser::{
+    nodes::{TimeList, UsizeOrRef},
+    ToInnerOwned,
+};
 pub use graph::*;
 
 mod node;
@@ -84,7 +87,7 @@ pub enum Message {
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum GlicolPara<S>
 where
-    S: AsRef<str>
+    S: AsRef<str>,
 {
     Number(f32),
     Bool(bool),
@@ -121,7 +124,7 @@ where
             Self::Points(vec) => GlicolPara::Points(vec.to_inner_owned()),
             Self::Bar(num) => GlicolPara::Bar(*num),
             Self::Second(num) => GlicolPara::Second(*num),
-            Self::Millisecond(num) => GlicolPara::Millisecond(*num)
+            Self::Millisecond(num) => GlicolPara::Millisecond(*num),
         }
     }
 }

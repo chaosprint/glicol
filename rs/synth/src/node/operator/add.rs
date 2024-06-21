@@ -26,7 +26,13 @@ impl From<f32> for Add {
 impl<const N: usize> Node<N> for Add {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         // println!("inputs of add {:?} {}", inputs, inputs.len());
-        apply_op(inputs, &self.input_order, output, self.val, std::ops::Add::add)
+        apply_op(
+            inputs,
+            &self.input_order,
+            output,
+            self.val,
+            std::ops::Add::add,
+        )
     }
 
     fn send_msg(&mut self, info: Message) {

@@ -111,10 +111,12 @@ impl<const N: usize> Node<N> for Meta<N> {
             .engine
             .eval_ast_with_scope::<Array>(&mut self.scope, &self.ast)
         {
-            Ok(result) => for (out, res) in output[0].iter_mut().zip(result.iter()) {
-                if let Ok(v) = res.as_float() {
-                    *out = v;
-                };
+            Ok(result) => {
+                for (out, res) in output[0].iter_mut().zip(result.iter()) {
+                    if let Ok(v) = res.as_float() {
+                        *out = v;
+                    };
+                }
             }
             Err(e) => {
                 // TODO What do we do with this Box<EvalAltResult>?
@@ -125,9 +127,11 @@ impl<const N: usize> Node<N> for Meta<N> {
     }
     fn send_msg(&mut self, info: Message) {
         match info {
-            Message::SetToSymbol(0, s) => if let Ok(a) = self.engine.compile(s) {
-                self.ast = a;
-            },
+            Message::SetToSymbol(0, s) => {
+                if let Ok(a) = self.engine.compile(s) {
+                    self.ast = a;
+                }
+            }
             Message::Index(i) => self.input_order.push(i),
             Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
             Message::ResetOrder => {

@@ -73,12 +73,8 @@ impl<const N: usize> Eval<N> {
             let mut slab = fasteval::Slab::new();
             let mut assign = line.split(":=");
             if line.contains(":=") {
-                self.var.push(
-                    assign
-                        .next()
-                        .unwrap()
-                        .replace([' ', '\t', '\n'], "")
-                );
+                self.var
+                    .push(assign.next().unwrap().replace([' ', '\t', '\n'], ""));
             }
             let compiled = self
                 .parser

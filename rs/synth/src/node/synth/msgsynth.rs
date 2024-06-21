@@ -94,7 +94,9 @@ impl<const N: usize> Node<N> for MsgSynth {
             }
 
             let mut to_remove = Vec::with_capacity(self.synth_list.len());
-            for (synth_index, (synth_info, phase)) in self.synth_list.iter()
+            for (synth_index, (synth_info, phase)) in self
+                .synth_list
+                .iter()
                 .zip(self.phase_list.iter_mut())
                 .enumerate()
             {
@@ -104,15 +106,19 @@ impl<const N: usize> Node<N> for MsgSynth {
                     let pos = self.step - synth_info.0;
 
                     let amp = match pos.cmp(&attack_n) {
-                        Ordering::Greater | Ordering::Equal => if attack_n == 0 {
-                            0.0
-                        } else {
-                            pos as f32 / (self.att * self.sr as f32)
-                        },
-                        Ordering::Less => if decay_n == 0 {
-                            0.0
-                        } else {
-                            (dur as usize - pos) as f32 / (self.dec * self.sr as f32)
+                        Ordering::Greater | Ordering::Equal => {
+                            if attack_n == 0 {
+                                0.0
+                            } else {
+                                pos as f32 / (self.att * self.sr as f32)
+                            }
+                        }
+                        Ordering::Less => {
+                            if decay_n == 0 {
+                                0.0
+                            } else {
+                                (dur as usize - pos) as f32 / (self.dec * self.sr as f32)
+                            }
                         }
                     };
 
@@ -155,7 +161,6 @@ impl<const N: usize> Node<N> for MsgSynth {
                         // estimate event_s "2.74343=>60"
                         // for event_s.split("=>");
                         if event_s.contains("=>") {
-
                             let mut events = event_s.split("=>").map(|v| v.parse::<f32>().unwrap());
 
                             if let (Some(start), Some(end)) = (events.next(), events.next()) {

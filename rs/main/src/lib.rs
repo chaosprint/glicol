@@ -6,9 +6,14 @@ use std::collections::VecDeque;
 use util::makenode;
 pub mod error;
 pub use error::{get_error_info, EngineError};
-use glicol_parser::{get_ast, nodes::{Ast, Component, UsizeOrRef}, ToInnerOwned as _};
+use glicol_parser::{
+    get_ast,
+    nodes::{Ast, Component, UsizeOrRef},
+    ToInnerOwned as _,
+};
 use glicol_synth::{
-    AudioContext, AudioContextConfig, BoxedNodeSend, Buffer, GlicolGraph, GlicolPara, Message, NodeData, Pass
+    AudioContext, AudioContextConfig, BoxedNodeSend, Buffer, GlicolGraph, GlicolPara, Message,
+    NodeData, Pass,
 };
 use hashbrown::HashMap;
 use petgraph::graph::NodeIndex;
@@ -23,7 +28,7 @@ struct GraphDiff<'engine, const N: usize> {
     node_update_list: Vec<(&'engine str, usize, Vec<GlicolPara<&'engine str>>)>,
     refpairlist: Vec<(Vec<String>, &'engine str, usize)>,
     node_add_list: VecDeque<(&'engine str, usize, GlicolNodeData<N>)>,
-    idx_to_remove: Vec<NodeIndex>
+    idx_to_remove: Vec<NodeIndex>,
 }
 
 pub struct Engine<const N: usize> {
@@ -74,12 +79,9 @@ impl<const N: usize> Engine<N> {
         let commands: String = msg.chars().filter(|c| !c.is_whitespace()).collect::<_>();
         for command in commands.split(';').filter(|c| !c.is_empty()) {
             let mut list = command.split(',');
-            let (
-                Some(chain_name),
-                Some(chain_pos),
-                Some(param_pos),
-                Some(value)
-            ) = (list.next(), list.next(), list.next(), list.next()) else {
+            let (Some(chain_name), Some(chain_pos), Some(param_pos), Some(value)) =
+                (list.next(), list.next(), list.next(), list.next())
+            else {
                 continue; // todo: this should be an error
             };
 
@@ -175,7 +177,8 @@ impl<const N: usize> Engine<N> {
         // self.ast `Yoke`, and we can't `self.ast.take()` and then re-use the allocation there
         // 'cause then we'll be unable to do this diffing thing against what it used to be b/c
         // it'll have been overwritten.
-        let new_ast: YokedAst = Yoke::try_attach_to_cart(code.to_owned().into_boxed_str(), |code| get_ast(code))?;
+        let new_ast: YokedAst =
+            Yoke::try_attach_to_cart(code.to_owned().into_boxed_str(), |code| get_ast(code))?;
 
         self.temp_node_index.clear();
 
@@ -191,7 +194,7 @@ impl<const N: usize> Engine<N> {
             samples_dict: &HashMap<String, (&'static [f32], usize, usize)>,
             sr: usize,
             bpm: f32,
-            seed: usize
+            seed: usize,
         ) -> Result<(), EngineError> {
             for (i, component) in iter {
                 let (nodedata, reflist) = makenode(component, samples_dict, sr, bpm, seed)?;
@@ -200,7 +203,9 @@ impl<const N: usize> Engine<N> {
                     graph_diff.refpairlist.push((reflist, chain_name, i));
                 }
 
-                graph_diff.node_add_list.push_back((chain_name, i, nodedata));
+                graph_diff
+                    .node_add_list
+                    .push_back((chain_name, i, nodedata));
             }
             Ok(())
         }
@@ -217,15 +222,19 @@ impl<const N: usize> Engine<N> {
                         &self.samples_dict,
                         self.sr,
                         self.bpm,
-                        self.seed
+                        self.seed,
                     )?;
-                    continue
+                    continue;
                 };
 
                 // we gotta go through every node which exists in the old chain and check if it
                 // exists in the new one.
                 for (old_idx, old_comp) in old_chain.iter().enumerate() {
-                    match new_chain.iter().enumerate().find(|(_, comp)| old_comp == *comp) {
+                    match new_chain
+                        .iter()
+                        .enumerate()
+                        .find(|(_, comp)| old_comp == *comp)
+                    {
                         // If it exists in the new chain, then we have to update it
                         Some((idx, new_comp)) => {
                             // the paras can be the same
@@ -237,12 +246,13 @@ impl<const N: usize> Engine<N> {
                             // so we will need to rebuild all the ref connection anyway
                             let reflist = new_comp.all_references();
                             if !reflist.is_empty() {
-                                let owned_reflist = reflist.into_iter()
-                                    .map(|s| s.to_owned())
-                                    .collect();
-                                graph_diff.refpairlist.push((owned_reflist, chain_name, idx));
+                                let owned_reflist =
+                                    reflist.into_iter().map(|s| s.to_owned()).collect();
+                                graph_diff
+                                    .refpairlist
+                                    .push((owned_reflist, chain_name, idx));
                             }
-                        },
+                        }
                         // If it doesn't exist in the new chain,
                         None => graph_diff.node_remove_list.push((chain_name, old_idx)),
                     }
@@ -252,13 +262,15 @@ impl<const N: usize> Engine<N> {
                 // old one, and was thus inserted, and track it for insertion
                 add_nodes(
                     chain_name,
-                    new_chain.iter().enumerate()
+                    new_chain
+                        .iter()
+                        .enumerate()
                         .filter(|(_, comp)| !old_chain.iter().any(|old_comp| old_comp == *comp)),
                     &mut graph_diff,
                     &self.samples_dict,
                     self.sr,
                     self.bpm,
-                    self.seed
+                    self.seed,
                 )?;
             }
 
@@ -294,7 +306,7 @@ impl<const N: usize> Engine<N> {
                     &self.samples_dict,
                     self.sr,
                     self.bpm,
-                    self.seed
+                    self.seed,
                 )?;
             }
         };
@@ -318,7 +330,6 @@ impl<const N: usize> Engine<N> {
             samples_dict: &mut HashMap<String, (&'static [f32], usize, usize)>,
         ) -> Result<(), EngineError> {
             while let Some((key, position_in_chain, paras)) = graph_diff.node_update_list.pop() {
-
                 // println!("handle update {:?} {:?}", key, position_in_chain);
                 if let Some(chain) = index_info.get(key) {
                     // TODO: reset order here, if ref is wrong, cannot be reverted
@@ -373,7 +384,8 @@ impl<const N: usize> Engine<N> {
                                         }
                                     }
                                 }
-                                graph_diff.refpairlist
+                                graph_diff
+                                    .refpairlist
                                     .push((reflist, key, position_in_chain));
                                 graph[chain[position_in_chain]]
                                     .node
@@ -391,14 +403,17 @@ impl<const N: usize> Engine<N> {
                                 for value_time in value_time_list.iter() {
                                     let time = value_time.1;
                                     match &value_time.0 {
-                                        GlicolPara::Number(num) => number_pattern.push((*num, time)),
+                                        GlicolPara::Number(num) => {
+                                            number_pattern.push((*num, time))
+                                        }
                                         GlicolPara::Symbol(s) => {
                                             let Some(sample) = samples_dict.get(*s) else {
-                                                return Err(EngineError::NonExistSample(s.to_string()));
+                                                return Err(EngineError::NonExistSample(
+                                                    s.to_string(),
+                                                ));
                                             };
 
-                                            samples_dict_selected
-                                                .insert(s.to_string(), *sample);
+                                            samples_dict_selected.insert(s.to_string(), *sample);
                                             symbol_pattern.push((s.to_string(), time));
                                         }
                                         _ => unimplemented!(),
@@ -435,7 +450,7 @@ impl<const N: usize> Engine<N> {
             &mut graph_diff,
             &self.index_info,
             &mut self.context.graph,
-            &mut self.samples_dict
+            &mut self.samples_dict,
         ) {
             return Err(self.clean_up(e));
         };
@@ -445,7 +460,7 @@ impl<const N: usize> Engine<N> {
         fn handle_ref_check(
             refpairlist: &[(Vec<String>, &str, usize)],
             index_info: &HashMap<String, Vec<NodeIndex>>,
-            new_ast: &YokedAst
+            new_ast: &YokedAst,
         ) -> Result<(), EngineError> {
             // ref pair is like (~mod -> a node [e.g key: out, pos_in_chain: 3])
             // ref check should use the new ast hashmap
@@ -457,10 +472,15 @@ impl<const N: usize> Engine<N> {
                     // println!("ref check {} {}", self.new_ast.contains_key(refname), refname);
                     if refname.contains("..") {
                         // println!("look for {}", &refname.replace("..", ""));
-                        if !index_info.keys().any(|key| key.starts_with(&refname.replace("..", ""))) {
+                        if !index_info
+                            .keys()
+                            .any(|key| key.starts_with(&refname.replace("..", "")))
+                        {
                             return Err(EngineError::NonExistReference(refname.to_owned()));
                         }
-                    } else if !new_ast.get().nodes.contains_key(&**refname) && !index_info.contains_key(refname) {
+                    } else if !new_ast.get().nodes.contains_key(&**refname)
+                        && !index_info.contains_key(refname)
+                    {
                         return Err(EngineError::NonExistReference(refname.to_owned()));
                     }
                 }
@@ -521,7 +541,8 @@ impl<const N: usize> Engine<N> {
             }
             if !key.contains('~') {
                 if let Some(end) = chain.last() {
-                    self.context.connect_with_order(*end, self.context.destination, 0);
+                    self.context
+                        .connect_with_order(*end, self.context.destination, 0);
                 }
             }
         }
@@ -590,9 +611,11 @@ mod tests {
     use glicol_parser::nodes::*;
 
     fn ast_from_nodes<const N: usize>(
-        nodes: [(&'static str, Vec<Component<'static>>); N]
+        nodes: [(&'static str, Vec<Component<'static>>); N],
     ) -> Ast<'static> {
-        Ast { nodes: hashbrown::HashMap::from_iter(nodes) }
+        Ast {
+            nodes: hashbrown::HashMap::from_iter(nodes),
+        }
     }
 
     #[test]
@@ -602,69 +625,88 @@ mod tests {
 
         assert_eq!(
             eng.get_ast().unwrap(),
-            &ast_from_nodes([
-                ("o", vec![
+            &ast_from_nodes([(
+                "o",
+                vec![
                     Component::Saw(Saw {
                         param: NumberOrRef::Number(440.)
                     }),
                     Component::Mul(Mul {
                         param: NumberOrRef::Number(0.3)
                     })
-                ])
-            ])
+                ]
+            )])
         );
 
-        eng.update_with_code("
+        eng.update_with_code(
+            "
             o: saw 440 >> mul 0.3
             i: sin 880 >> pan 0.5
-        ").unwrap();
+        ",
+        )
+        .unwrap();
 
         assert_eq!(
             eng.get_ast().unwrap(),
             &ast_from_nodes([
-                ("o", vec![
-                    Component::Saw(Saw {
-                        param: NumberOrRef::Number(440.)
-                    }),
-                    Component::Mul(Mul {
-                        param: NumberOrRef::Number(0.3)
-                    })
-                ]),
-                ("i", vec![
-                    Component::Sin(Sin {
-                        param: NumberOrRef::Number(880.)
-                    }),
-                    Component::Pan(Pan {
-                        param: NumberOrRef::Number(0.5)
-                    })
-                ])
+                (
+                    "o",
+                    vec![
+                        Component::Saw(Saw {
+                            param: NumberOrRef::Number(440.)
+                        }),
+                        Component::Mul(Mul {
+                            param: NumberOrRef::Number(0.3)
+                        })
+                    ]
+                ),
+                (
+                    "i",
+                    vec![
+                        Component::Sin(Sin {
+                            param: NumberOrRef::Number(880.)
+                        }),
+                        Component::Pan(Pan {
+                            param: NumberOrRef::Number(0.5)
+                        })
+                    ]
+                )
             ])
         );
 
-        eng.update_with_code("
+        eng.update_with_code(
+            "
             o: saw 440 >> mul i
             i: sin 880 >> pan 0.5
-        ").unwrap();
+        ",
+        )
+        .unwrap();
 
         assert_eq!(
             eng.get_ast().unwrap(),
             &ast_from_nodes([
-                ("o", vec![
-                    Component::Saw(Saw {
-                        param: NumberOrRef::Number(440.)
-                    }),
-                    Component::Mul(Mul {
-                        param: NumberOrRef::Ref("i")
-                    })
-                ]),
-                ("i", vec![
-                    Component::Sin(Sin {
-                        param: NumberOrRef::Number(880.)
-                    }),
-                    Component::Pan(Pan {
-                        param: NumberOrRef::Number(0.5)
-                    })
-                ])
+                (
+                    "o",
+                    vec![
+                        Component::Saw(Saw {
+                            param: NumberOrRef::Number(440.)
+                        }),
+                        Component::Mul(Mul {
+                            param: NumberOrRef::Ref("i")
+                        })
+                    ]
+                ),
+                (
+                    "i",
+                    vec![
+                        Component::Sin(Sin {
+                            param: NumberOrRef::Number(880.)
+                        }),
+                        Component::Pan(Pan {
+                            param: NumberOrRef::Number(0.5)
+                        })
+                    ]
+                )
             ])
         );
     }
@@ -674,18 +716,22 @@ mod tests {
         let mut eng = Engine::<128>::new();
 
         assert_eq!(
-            eng.update_with_code("
+            eng.update_with_code(
+                "
                 o: saw 440 >> mul i
                 i: sin 880 >> pan 0.5
-            "),
+            "
+            ),
             Ok(())
         );
 
         assert_eq!(
-            eng.update_with_code("
+            eng.update_with_code(
+                "
                 o: saw 440 >> mul 0.3
                 i: sin 880 >> pan 0.5
-            "),
+            "
+            ),
             Ok(())
         );
 

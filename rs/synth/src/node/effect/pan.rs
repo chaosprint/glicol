@@ -29,7 +29,11 @@ impl<const N: usize> Node<N> for Pan {
             let right_gain = pan_norm.sqrt(); // Right channel gain
 
             let (left, right) = output.split_at_mut(1);
-            for ((left, right), sample) in left[0].iter_mut().zip(right[1].iter_mut()).zip(input_buffers[0].iter()) {
+            for ((left, right), sample) in left[0]
+                .iter_mut()
+                .zip(right[1].iter_mut())
+                .zip(input_buffers[0].iter())
+            {
                 *left = left_gain * sample; // Left channel
                 *right = right_gain * sample; // Right channel
             }
@@ -37,7 +41,9 @@ impl<const N: usize> Node<N> for Pan {
             let ref_input = &inputs[&self.input_order[1]]; // can panic if there is no id
             let main_input = &inputs[&self.input_order[0]]; // can panic if there is no id
 
-            let ref_main = ref_input.buffers()[0].iter().zip(main_input.buffers()[0].iter());
+            let ref_main = ref_input.buffers()[0]
+                .iter()
+                .zip(main_input.buffers()[0].iter());
             let (left, right) = output.split_at_mut(1);
             let outs = left[0].iter_mut().zip(right[0].iter_mut());
 

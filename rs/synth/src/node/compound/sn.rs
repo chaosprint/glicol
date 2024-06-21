@@ -65,15 +65,20 @@ impl<const N: usize> From<f32> for Sn<N> {
 
 impl<const N: usize> Node<N> for Sn<N> {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
-        process_compound(inputs, &self.input_order, self.input, &mut self.context, output)
+        process_compound(
+            inputs,
+            &self.input_order,
+            self.input,
+            &mut self.context,
+            output,
+        )
     }
 
     fn send_msg(&mut self, info: Message) {
         match info {
-            Message::SetToNumber(0, value) =>
-                self.context.graph[self.context.tags["d"]]
-                    .node
-                    .send_msg(Message::SetToNumber(1, value)),
+            Message::SetToNumber(0, value) => self.context.graph[self.context.tags["d"]]
+                .node
+                .send_msg(Message::SetToNumber(1, value)),
             Message::Index(i) => self.input_order.push(i),
             Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
             _ => {}

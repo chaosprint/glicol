@@ -29,12 +29,7 @@ pub fn process(size: usize) -> Vec<f32> {
 }
 
 #[wasm_bindgen]
-pub fn add_sample(
-    name: String,
-    sample: Box<[f32]>,
-    channels: usize,
-    sr: usize
-) {
+pub fn add_sample(name: String, sample: Box<[f32]>, channels: usize, sr: usize) {
     let mut engine = ENGINE.lock().unwrap();
     let leaked_sample = Box::leak(sample);
     engine.add_sample(&name, leaked_sample, channels, sr);
@@ -56,7 +51,8 @@ pub unsafe fn update(code_buf: &[u8]) -> Vec<u8> {
 }
 
 #[wasm_bindgen]
-pub fn send_msg(msg: String) { //, result_ptr: *mut u8
+pub fn send_msg(msg: String) {
+    //, result_ptr: *mut u8
     get_engine().send_msg(&msg);
 }
 
@@ -104,18 +100,18 @@ fn write_err_to_buf(err: EngineError, result: &mut [u8]) {
         EngineError::ParsingError(v) => {
             let location = match v.location {
                 pest::error::InputLocation::Pos(u) => u,
-                pest::error::InputLocation::Span((s, _)) => s
+                pest::error::InputLocation::Span((s, _)) => s,
             };
             let (line, col) = match v.line_col {
                 pest::error::LineColLocation::Pos(u) => u,
-                pest::error::LineColLocation::Span(u, _) => u
+                pest::error::LineColLocation::Span(u, _) => u,
             };
             let (positives, negatives) = match &v.variant {
                 pest::error::ErrorVariant::ParsingError {
                     positives,
                     negatives,
                 } => (positives, negatives),
-                _ => panic!("unknown parsing error")
+                _ => panic!("unknown parsing error"),
             };
 
             format!(

@@ -161,8 +161,6 @@ pub fn process<G, T, const N: usize>(
         // the input references do not alias out node's mutable reference as we explicitly check
         // for it while looping through the inputs above.
         let data = graph.node_weight_mut(n).expect(NO_NODE);
-        data
-            .node
-            .process(&mut processor.inputs, &mut data.buffers);
+        data.node.process(&mut processor.inputs, &mut data.buffers);
     }
 }

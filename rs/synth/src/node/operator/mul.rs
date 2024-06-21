@@ -21,7 +21,13 @@ impl<const N: usize> Node<N> for Mul {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
         // println!("inputs {:?} self.input_order {:?}", inputs, self.input_order);
         // panic!();
-        apply_op(inputs, &self.input_order, output, self.val, std::ops::Mul::mul);
+        apply_op(
+            inputs,
+            &self.input_order,
+            output,
+            self.val,
+            std::ops::Mul::mul,
+        );
     }
     fn send_msg(&mut self, info: Message) {
         match info {

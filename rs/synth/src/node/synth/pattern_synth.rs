@@ -77,7 +77,9 @@ impl<const N: usize> Node<N> for PatternSynth {
                 }
 
                 let mut to_remove = Vec::with_capacity(self.synth_list.len());
-                for (synth_index, (synth_info, phase)) in self.synth_list.iter()
+                for (synth_index, (synth_info, phase)) in self
+                    .synth_list
+                    .iter()
                     .zip(self.phase_list.iter_mut())
                     .enumerate()
                 {
@@ -87,15 +89,19 @@ impl<const N: usize> Node<N> for PatternSynth {
                         let pos = self.step - synth_info.0;
 
                         let amp = match pos.cmp(&attack_n) {
-                            Ordering::Less | Ordering::Equal => if attack_n == 0 {
-                                0.0
-                            } else {
-                                pos as f32 / (self.att * self.sr as f32)
-                            },
-                            Ordering::Greater => if decay_n == 0 {
-                                0.0
-                            } else {
-                                (dur as usize - pos) as f32 / (self.dec * self.sr as f32)
+                            Ordering::Less | Ordering::Equal => {
+                                if attack_n == 0 {
+                                    0.0
+                                } else {
+                                    pos as f32 / (self.att * self.sr as f32)
+                                }
+                            }
+                            Ordering::Greater => {
+                                if decay_n == 0 {
+                                    0.0
+                                } else {
+                                    (dur as usize - pos) as f32 / (self.dec * self.sr as f32)
+                                }
                             }
                         };
 
@@ -139,9 +145,8 @@ impl<const N: usize> Node<N> for PatternSynth {
                         .map(|x| x.replace(' ', "").parse::<f32>().unwrap());
 
                     // println!("result {:?}", result);
-                    self.events.push(
-                        (result.next().unwrap(), result.next().unwrap())
-                    );
+                    self.events
+                        .push((result.next().unwrap(), result.next().unwrap()));
                 }
             }
             Message::SetRefOrder(ref_order) => {

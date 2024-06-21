@@ -47,9 +47,11 @@ impl<const N: usize> Node<N> for DelayN {
                     ([in_buf], [ref mut out_a, ref mut out_b]) => {
                         out_a.copy_from_slice(in_buf);
                         out_b.copy_from_slice(in_buf);
-                    },
-                    _ => for (out_buf, in_buf) in output.iter_mut().zip(input.buffers()) {
-                        out_buf.copy_from_slice(in_buf);
+                    }
+                    _ => {
+                        for (out_buf, in_buf) in output.iter_mut().zip(input.buffers()) {
+                            out_buf.copy_from_slice(in_buf);
+                        }
                     }
                 }
             }

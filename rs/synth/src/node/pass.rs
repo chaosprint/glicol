@@ -44,8 +44,10 @@ impl<const N: usize> Node<N> for Pass {
                 out_left.copy_from_slice(in_buf);
                 out_right.copy_from_slice(in_buf);
             }
-            _ => for (out_buf, in_buf) in output.iter_mut().zip(input.buffers()) {
-                out_buf.copy_from_slice(in_buf);
+            _ => {
+                for (out_buf, in_buf) in output.iter_mut().zip(input.buffers()) {
+                    out_buf.copy_from_slice(in_buf);
+                }
             }
         }
     }

@@ -69,7 +69,8 @@ impl Points {
         sr: usize,
         span: f32,
     ) -> Vec<(usize, f32)> {
-        let mut point_list = points.into_iter()
+        let mut point_list = points
+            .into_iter()
             .map(|(time, value)| {
                 let cycle_dur = 60. / bpm * 4.;
                 let bar_dur = cycle_dur * span * sr as f32;
@@ -78,11 +79,12 @@ impl Points {
                 let time_pos = time.time.map_or(0., |kind| match kind {
                     Duration::Bar(b) => b * bar_dur,
                     Duration::Seconds(s) => s * (sr as f32),
-                    Duration::Milliseconds(ms) => (ms / 1000.0) * sr as f32
+                    Duration::Milliseconds(ms) => (ms / 1000.0) * sr as f32,
                 });
 
                 ((bar_pos + time_pos) as usize, value)
-            }).collect::<Vec<_>>();
+            })
+            .collect::<Vec<_>>();
 
         if point_list[0].0 != 0 {
             point_list.insert(0, (0, 0.0));
@@ -97,7 +99,7 @@ impl<const N: usize> Node<N> for Points {
         // println!("span {}", self.span);
         let list_len = self.point_list.len();
         if list_len == 0 {
-            return ;
+            return;
         }
         let cycle_dur = 60. / self.bpm * 4.;
         let bar_dur = (cycle_dur * self.span * self.sr as f32) as usize;
@@ -130,13 +132,11 @@ impl<const N: usize> Node<N> for Points {
                 let period = bar_dur;
                 let samples = &self.point_list;
 
-                let prev = samples.iter()
-                    .enumerate()
-                    .find(|(_, (s, _))| pos <= *s);
+                let prev = samples.iter().enumerate().find(|(_, (s, _))| pos <= *s);
 
                 let is_last = prev.is_none();
-                let (index, (prev_pos, prev_val)) = prev
-                    .unwrap_or_else(|| (samples.len() - 1, samples.last().unwrap()));
+                let (index, (prev_pos, prev_val)) =
+                    prev.unwrap_or_else(|| (samples.len() - 1, samples.last().unwrap()));
 
                 let (next_pos, next_val) = samples[(index + 1) % samples.len()];
 
@@ -157,15 +157,15 @@ impl<const N: usize> Node<N> for Points {
             Message::SetParam(0, GlicolPara::Points(time_list)) => {
                 self.point_list = self.make_point_list(time_list, self.bpm, self.sr, self.span);
                 self.step = 0;
-            },
+            }
             Message::SetToNumber(1, num) => {
                 self.span = num;
                 self.step = 0;
-            },
+            }
             Message::SetToBool(2, b) => {
                 self.is_looping = b;
                 self.step = 0;
-            },
+            }
             Message::SetBPM(bpm) => self.bpm = bpm,
             Message::Index(i) => self.input_order.push(i),
             Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),

@@ -70,7 +70,8 @@ impl<const N: usize> Node<N> for AllPassFilterGain {
                 let main_input = &inputs[&self.input_order[0]]; // can panic if there is no id
                 let ref_input = &inputs[&self.input_order[1]]; // can panic if there is no id
 
-                for ((out, xn), mod_buf) in output[0].iter_mut()
+                for ((out, xn), mod_buf) in output[0]
+                    .iter_mut()
                     .zip(main_input.buffers()[0].iter())
                     .zip(ref_input.buffers()[0].iter())
                 {

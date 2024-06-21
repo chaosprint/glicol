@@ -88,7 +88,8 @@ impl<const N: usize> Node<N> for Arrange {
                 let to_push = i as usize - self.events.len();
 
                 self.events.reserve(to_push + 1);
-                self.events.extend(std::iter::from_fn(|| Some(NumberOrRef::Number(0.0))).take(to_push));
+                self.events
+                    .extend(std::iter::from_fn(|| Some(NumberOrRef::Number(0.0))).take(to_push));
                 self.events.push(NumberOrRef::Number(value));
             }
             Message::Index(i) => self.input_order.push(i),

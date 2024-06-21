@@ -87,35 +87,39 @@ impl<const N: usize> Node<N> for Adsr {
 
                 // based on pos and phase, calculate the output
                 match self.phase {
-                    1 => if self.pos <= attack_len {
-                        // attack phase
-                        if attack_len == 0 {
-                            // special case
+                    1 => {
+                        if self.pos <= attack_len {
+                            // attack phase
+                            if attack_len == 0 {
+                                // special case
+                                *out = 0.0;
+                            } else {
+                                // attack from: lasty -> 1.0
+                                *out = self.pos as f32 / attack_len as f32
+                                    * (1.0 - self.state_change_y);
+                            }
+                        } else if self.pos > attack_len && self.pos <= attack_len + decay_len {
+                            // decay phase
+                            if decay_len == 0 {
+                                // special case
+                                *out = self.sustain;
+                            } else {
+                                *out = (attack_len + decay_len - self.pos) as f32
+                                    / decay_len as f32
+                                    * (1. - self.sustain)
+                                    + self.sustain;
+                            }
+                        } else {
+                            *out = self.sustain;
+                        }
+                    }
+                    2 => {
+                        if self.pos >= release_len {
                             *out = 0.0;
                         } else {
-                            // attack from: lasty -> 1.0
-                            *out = self.pos as f32 / attack_len as f32
-                                * (1.0 - self.state_change_y);
+                            *out = (release_len - self.pos) as f32 / release_len as f32
+                                * (self.state_change_y);
                         }
-                    } else if self.pos > attack_len && self.pos <= attack_len + decay_len {
-                        // decay phase
-                        if decay_len == 0 {
-                            // special case
-                            *out = self.sustain;
-                        } else {
-                            *out = (attack_len + decay_len - self.pos) as f32
-                                / decay_len as f32
-                                * (1. - self.sustain)
-                                + self.sustain;
-                        }
-                    } else {
-                        *out = self.sustain;
-                    }
-                    2 => if self.pos >= release_len {
-                        *out = 0.0;
-                    } else {
-                        *out = (release_len - self.pos) as f32 / release_len as f32
-                            * (self.state_change_y);
                     }
                     _ => *out = 0.0,
                 };

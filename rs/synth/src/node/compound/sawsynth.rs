@@ -50,7 +50,13 @@ impl<const N: usize> SawSynth<N> {
 
 impl<const N: usize> Node<N> for SawSynth<N> {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
-        process_compound(inputs, &self.input_order, self.input, &mut self.context, output);
+        process_compound(
+            inputs,
+            &self.input_order,
+            self.input,
+            &mut self.context,
+            output,
+        );
     }
 
     fn send_msg(&mut self, info: Message) {

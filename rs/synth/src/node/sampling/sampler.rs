@@ -35,9 +35,8 @@ impl<const N: usize> Node<N> for Sampler {
             let input_buf = &mut main_input.buffers();
             for i in 0..N {
                 if input_buf[0][i] > 0.0 {
-                    let dur = self.len as f32
-                        / input_buf[0][i]
-                        / (self.sample.2 as f32 / self.sr as f32);
+                    let dur =
+                        self.len as f32 / input_buf[0][i] / (self.sample.2 as f32 / self.sr as f32);
                     self.playback.push((self.clock, dur));
                 }
 
@@ -84,18 +83,16 @@ impl<const N: usize> Node<N> for Sampler {
                                     let left_portion = pos_index_float - left;
                                     let right_portion = 1. - left_portion;
 
-                                    output[0][i] += self.sample.0[left as usize]
-                                        * left_portion
+                                    output[0][i] += self.sample.0[left as usize] * left_portion
                                         + self.sample.0[right as usize] * right_portion;
 
-                                    output[1][i] += self.sample.0
-                                        [left as usize + self.len + 1]
+                                    output[1][i] += self.sample.0[left as usize + self.len + 1]
                                         * left_portion
                                         + self.sample.0[right as usize + self.len + 1]
                                             * right_portion;
                                 }
                                 _ => {}
-                            }
+                            },
                             _ => (),
                         }
                     } else {

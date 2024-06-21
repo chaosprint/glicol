@@ -55,8 +55,12 @@ impl<const N: usize> Node<N> for DelayMs {
                 match self.delay_n {
                     // equal to a pass node
                     0 => output[0].copy_from_slice(&main_input.buffers()[0]),
-                    _ =>  {
-                        let iter = self.buf.iter_mut().zip(output.iter_mut()).zip(main_input.buffers());
+                    _ => {
+                        let iter = self
+                            .buf
+                            .iter_mut()
+                            .zip(output.iter_mut())
+                            .zip(main_input.buffers());
 
                         for ((fixed, out_buf), main_buf) in iter {
                             for (out, main) in out_buf.iter_mut().zip(main_buf.iter()) {
@@ -79,10 +83,15 @@ impl<const N: usize> Node<N> for DelayMs {
                     let pos_int = pos.floor() as usize;
                     let pos_frac = pos.fract();
 
-                    let iter = self.buf.iter_mut().zip(output.iter_mut()).zip(main_input.buffers());
+                    let iter = self
+                        .buf
+                        .iter_mut()
+                        .zip(output.iter_mut())
+                        .zip(main_input.buffers());
 
                     for ((fixed, out_buf), main_buf) in iter {
-                        out_buf[i] = fixed.get(pos_int) * pos_frac + fixed.get(pos_int + 1) * (1. - pos_frac);
+                        out_buf[i] = fixed.get(pos_int) * pos_frac
+                            + fixed.get(pos_int + 1) * (1. - pos_frac);
                         fixed.push(main_buf[i]);
                     }
                 }
@@ -107,7 +116,7 @@ impl<const N: usize> Node<N> for DelayMs {
                     let chan = self.buf.len();
                     self.buf = vec![Fixed::from(vec![0.0; delay_n]); chan];
                 };
-            },
+            }
             Message::Index(i) => self.input_order.push(i),
             Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),
             Message::ResetOrder => {

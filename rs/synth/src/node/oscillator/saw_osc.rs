@@ -40,13 +40,20 @@ impl SawOsc {
 
 impl<const N: usize> Node<N> for SawOsc {
     fn process(&mut self, inputs: &mut HashMap<usize, Input<N>>, output: &mut [Buffer<N>]) {
-        process_oscillation(inputs, &mut self.input_order, output, self.freq, &mut self.inc, |out, freq| {
-            *out = self.phase * 2. - 1.;
-            self.phase += freq / self.sr as f32;
-            if self.phase > 1. {
-                self.phase -= 1.
-            }
-        });
+        process_oscillation(
+            inputs,
+            &mut self.input_order,
+            output,
+            self.freq,
+            &mut self.inc,
+            |out, freq| {
+                *out = self.phase * 2. - 1.;
+                self.phase += freq / self.sr as f32;
+                if self.phase > 1. {
+                    self.phase -= 1.
+                }
+            },
+        );
     }
 
     fn send_msg(&mut self, info: Message) {

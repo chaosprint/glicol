@@ -20,8 +20,8 @@ wasm-bindgen = ["glicol_synth/wasm-bindgen"]
 
 [dependencies]
 petgraph = { workspace = true }
-glicol_parser = { version = "0.13.5", path = "../parser" }
-glicol_synth = { version = "0.13.5", path = "../synth", features = [
+glicol_parser = { path = "../parser", version = "0.14.0-dev" }
+glicol_synth = { path = "../synth", version = "0.14.0-dev", features = [
     "use-samples",
     "use-meta",
 ] }

@@ -5,7 +5,7 @@ use crate::{
     node::Pass,
     operator::{Add, Mul},
     oscillator::SinOsc,
-    AudioContext, Buffer, Input, Message, Node
+    AudioContext, Buffer, Input, Message, Node,
 };
 use hashbrown::HashMap;
 use petgraph::graph::NodeIndex;

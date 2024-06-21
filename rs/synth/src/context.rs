@@ -192,32 +192,37 @@ impl<const N: usize> AudioContext<N> {
     }
 
     pub fn chain(&mut self, chain: Vec<NodeIndex>) -> Vec<EdgeIndex> {
-        chain.windows(2)
+        chain
+            .windows(2)
             .map(|pair| {
                 let ret = self.graph.add_edge(pair[0], pair[1], ());
                 self.graph[pair[1]]
                     .node
                     .send_msg(Message::Index(pair[0].index()));
                 ret
-            }).collect()
+            })
+            .collect()
     }
 
     pub fn chain_boxed(
         &mut self,
         chain: Vec<GlicolNodeData<N>>,
     ) -> (Vec<NodeIndex>, Vec<EdgeIndex>) {
-        let indices = chain.into_iter()
+        let indices = chain
+            .into_iter()
             .map(|node| self.graph.add_node(node))
             .collect::<Vec<_>>();
 
-        let v = indices.windows(2)
+        let v = indices
+            .windows(2)
             .map(|pair| {
                 let ret = self.graph.add_edge(pair[0], pair[1], ());
                 self.graph[pair[1]]
                     .node
                     .send_msg(Message::Index(pair[0].index()));
                 ret
-            }).collect();
+            })
+            .collect();
 
         (indices, v)
     }
@@ -226,11 +231,13 @@ impl<const N: usize> AudioContext<N> {
         &mut self,
         chain: Vec<NodeData<BoxedNodeSend<N>, N>>,
     ) -> (Vec<NodeIndex>, Vec<EdgeIndex>) {
-        let v = chain.into_iter()
+        let v = chain
+            .into_iter()
             .map(|node| self.graph.add_node(node))
             .collect::<Vec<_>>();
 
-        let j = v.windows(2)
+        let j = v
+            .windows(2)
             .map(|pair| self.graph.add_edge(pair[0], pair[1], ()))
             .collect();
 

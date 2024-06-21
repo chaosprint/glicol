@@ -16,12 +16,14 @@ fn process_oscillation<const N: usize>(
     output: &mut [Buffer<N>],
     freq: f32,
     inc: &mut f32,
-    mut osc: impl FnMut(&mut f32, f32)
+    mut osc: impl FnMut(&mut f32, f32),
 ) {
     match inputs.len() {
-        0 => for out in &mut *output[0] {
-            osc(out, freq);
-        },
+        0 => {
+            for out in &mut *output[0] {
+                osc(out, freq);
+            }
+        }
         1 => {
             let mod_input = match input_order {
                 [] => &mut *inputs.values_mut().next().unwrap(),

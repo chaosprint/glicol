@@ -44,7 +44,7 @@ dasp_interpolate = { workspace = true  }
 hashbrown = { workspace = true  }
 rhai = { workspace = true, optional = true }
 fasteval = { workspace = true }
-glicol_parser = { version = "0.13.5", path = "../parser" }
+glicol_parser = { path = "../parser", version = "0.14.0-dev"}
 
 [dev-dependencies]
 gnuplot = "0.0.43"

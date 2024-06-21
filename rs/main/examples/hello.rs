@@ -6,7 +6,9 @@ use glicol::Engine;
 
 fn main() {
     let mut engine = Engine::<32>::new();
-    engine.update_with_code(r#"o: constsig 1.0 >> pan 0.9"#).unwrap();
+    engine
+        .update_with_code(r#"o: constsig 1.0 >> pan 0.9"#)
+        .unwrap();
     // engine.update_with_code(r#"o: [0.1=>100, 1/2=> 1.0]"#);
     // engine.update_with_code(r#"o: sin 440"#);
     // engine.update_with_code(r#"// a sawtooth osc chained with a onepole filter
