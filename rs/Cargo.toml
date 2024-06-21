@@ -14,9 +14,11 @@ petgraph = { version = "0.6", default-features = false,  features = ["stable_gra
 dasp_slice = { version = "0.11.0", default-features = false, features = [
     "std",
 ] }
+
 dasp_ring_buffer = { version = "0.11.0", default-features = false }
-dasp_signal = { version = "0.11.0", default-features = false }
-dasp_interpolate = { version = "0.11.0", default-features = false, features = ["linear", "sinc"] }
+# default-features = false can't be used here; we need std
+dasp_signal = { version = "0.11.0" }
+dasp_interpolate = { version = "0.11.0", features = ["linear", "sinc"] }
 hashbrown = "0.14.3"
 rhai = { version = "1.12.0", default-features = false, features = [
     "sync",
