@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  fmt-and-clippy:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        rust: [stable, beta, nightly]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+
+      - name: Run formatter check
+        working-directory: rs
+        run: cargo fmt -- --check
+
+      - name: Run clippy
+        working-directory: rs
+        run: cargo clippy -- -D warnings
