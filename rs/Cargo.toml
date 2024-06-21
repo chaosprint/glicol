@@ -4,7 +4,7 @@ members = ["main", "parser", "synth", "wasm"]
 resolver = "1"
 
 [workspace.package]
-version = "0.13.5"
+version = "0.14.0-dev"
 edition = "2021"
 repository = "https://github.com/chaosprint/glicol.git"
 authors = ["Qichao Lan <chaosprint@gmail.com>"]
