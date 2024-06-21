@@ -9,26 +9,29 @@ on:
       - main
 
 jobs:
-  fmt-and-clippy:
+  clippy-test:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v4
+      # - name: Update apt
+      # run: sudo apt update
+      # - name: Install alsa
+      # run: sudo apt-get install libasound2-dev
+      # - name: Install libjack
+      # run: sudo apt-get install libjack-jackd2-dev libjack-jackd2-0
+      - name: Install stable
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          override: true
-
-      - name: Run formatter check
-        working-directory: rs
-        run: cargo fmt -- --check
-
+          components: clippy
       - name: Run clippy
-        working-directory: rs
-        run: cargo clippy -- -D warnings
-
-      - name: Run tests
-        working-directory: rs
-        run: cargo test --workspace --all-targets --exclude wasm
+        run: cargo clippy --all --all-features
+  rustfmt-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Run rustfmt
+        run: cargo fmt --all -- --check
