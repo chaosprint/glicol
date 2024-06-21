@@ -12,17 +12,13 @@ jobs:
   fmt-and-clippy:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        rust: [stable, beta, nightly]
-
     steps:
       - uses: actions/checkout@v2
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ matrix.rust }}
+          toolchain: stable
           override: true
 
       - name: Run formatter check
@@ -32,3 +28,7 @@ jobs:
       - name: Run clippy
         working-directory: rs
         run: cargo clippy -- -D warnings
+
+      - name: Run tests
+        working-directory: rs
+        run: cargo test --workspace --all-targets --exclude wasm
