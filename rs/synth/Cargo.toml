@@ -25,6 +25,7 @@ node-pass = []
 node-sampling = []
 node-dynamic = ["rhai"]
 node-sum = ["dasp_slice"]
+wasm-bindgen = ["rhai/wasm-bindgen"]
 
 [[bench]]
 name = "next_block"
@@ -41,13 +42,13 @@ dasp_ring_buffer = { workspace = true  }
 dasp_signal = { workspace = true  }
 dasp_interpolate = { workspace = true  }
 hashbrown = { workspace = true  }
-arrayvec = { workspace = true  }
-rhai = { workspace = true, optional = true  }
+rhai = { workspace = true, optional = true }
 fasteval = { workspace = true }
+glicol_parser = { version = "0.13.5", path = "../parser" }
 
 [dev-dependencies]
-gnuplot = "0.0.37"
-criterion = "0.4.0"
+gnuplot = "0.0.43"
+criterion = "0.5.1"
 # petgraph = { version = "0.6",  features = ["stable_graph"] }
 # cpal = "0.14.0"
 # anyhow = "1.0.63"

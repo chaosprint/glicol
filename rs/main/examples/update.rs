@@ -13,7 +13,7 @@ fn main() {
     // engine.next_block();
     // engine.update(r#"o: constsig 42 >> mul ~mod; ~mod: constsig 0.9"#);
     // engine.next_block();
-   
+
     // engine.update(r#"o: constsig 42. >> add 0 >> mul ~mod; ~mod: constsig 0.5"#).unwrap();
     // engine.next_block();
     // engine.update(r#"o: constsig 42. >> mul ~mod; ~mod: constsig 0.5"#).unwrap();
@@ -46,7 +46,7 @@ fn main() {
     // println!(" engine.next_block() {:?}", engine.next_block());
     // engine.update(r#"o: saw 12"#).unwrap();
     // println!(" engine.next_block() {:?}", engine.next_block());
-    
+
     // engine.update_with_code(r#"a: constsig 10 >> lpf 300 0.1"#);
     // println!(" engine.next_block() 0 {:?}", engine.next_block().0);
     // engine.update_with_code(r#"a: constsig 10 >> lpf ~m 0.1; ~m: constsig 0.5"#);
@@ -56,12 +56,12 @@ fn main() {
     ~t1: sig 10
     ~t2: sig 31
     ~t3: sig 42
-    o: balance ~t1 ~t2"#);
-    println!(" engine.next_block() 0 {:?}", engine.next_block(vec![]).0);
+    o: balance ~t1 ~t2"#).unwrap();
+    println!(" engine.next_block() 0 {:?}", engine.next_block(vec![]));
     engine.update_with_code(r#"
     ~t1: sig 10
     ~t2: sig 31
     ~t3: sig 42
-    o: balance ~t1 ~t3"#);
-    println!(" engine.next_block() 1 {:?}", engine.next_block(vec![]).0);
+    o: balance ~t1 ~t3"#).unwrap();
+    println!(" engine.next_block() 1 {:?}", engine.next_block(vec![]));
 }

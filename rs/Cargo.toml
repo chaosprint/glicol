@@ -1,7 +1,6 @@
 [workspace]
 default-members = ["main"]
-exclude = ["wasm"]
-members = ["main", "parser", "synth"]
+members = ["main", "parser", "synth", "wasm"]
 resolver = "1"
 
 [workspace.package]
@@ -11,15 +10,14 @@ repository = "https://github.com/chaosprint/glicol.git"
 authors = ["Qichao Lan <chaosprint@gmail.com>"]
 
 [workspace.dependencies]
-petgraph = { version = "0.6", features = ["stable_graph"] }
+petgraph = { version = "0.6", default-features = false,  features = ["stable_graph"] }
 dasp_slice = { version = "0.11.0", default-features = false, features = [
     "std",
 ] }
-dasp_ring_buffer = "0.11.0"
-dasp_signal = "0.11.0"
-dasp_interpolate = { version = "0.11.0", features = ["linear", "sinc"] }
+dasp_ring_buffer = { version = "0.11.0", default-features = false }
+dasp_signal = { version = "0.11.0", default-features = false }
+dasp_interpolate = { version = "0.11.0", default-features = false, features = ["linear", "sinc"] }
 hashbrown = "0.14.3"
-arrayvec = "0.7.2"
 rhai = { version = "1.12.0", default-features = false, features = [
     "sync",
     "f32_float",
@@ -28,4 +26,11 @@ rhai = { version = "1.12.0", default-features = false, features = [
 fasteval = "0.2.4"
 pest = "2.7.9"
 pest_derive = "2.7.9"
-lcs-diff = "0.1.1"
+yoke = { version = "0.7.3", default-features = false, features = ["derive", "alloc"] }
+
+[profile.wasm-release]
+inherits = "release"
+opt-level = 'z'   # Optimize for size.
+lto = "fat"       # Enable Link Time Optimization
+codegen-units = 1 # Reduce number of codegen units to increase optimizations.
+panic = 'abort'   # Abort on panic

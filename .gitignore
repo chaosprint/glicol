@@ -274,6 +274,7 @@ firebase.json
 # will have compiled files and executables
 glicol-wasm/target/
 glicol-rs/target/
+rs/wasm/pkg
 
 # Remove Cargo.lock from gitignore if creating an executable, leave it for libraries
 # More information here https://doc.rust-lang.org/cargo/guide/cargo-toml-vs-cargo-lock.html

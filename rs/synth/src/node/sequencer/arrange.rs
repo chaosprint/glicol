@@ -1,10 +1,11 @@
-use crate::{Buffer, GlicolPara, Input, Message, Node};
+use crate::{Buffer, Input, Message, Node};
+use glicol_parser::nodes::NumberOrRef;
 use hashbrown::HashMap;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Arrange {
     _current_bar: usize,
-    events: Vec<GlicolPara>,
+    events: Vec<NumberOrRef<String>>,
     speed: f32,
     pub bpm: f32,
     sr: usize,
@@ -14,7 +15,7 @@ pub struct Arrange {
 }
 
 impl Arrange {
-    pub fn new(events: Vec<GlicolPara>) -> Self {
+    pub fn new(events: Vec<NumberOrRef<String>>) -> Self {
         // let mut total_circles = 0;
         // for j in 0..(self.events.len()/2) {
         //     match self.event[j*2] {
@@ -48,7 +49,7 @@ impl<const N: usize> Node<N> for Arrange {
             let pos = self.step as f32 / bar_length;
             let mut bar_count = 0.0;
             for j in 0..(self.events.len() / 2) {
-                let GlicolPara::Number(bar) = self.events[j * 2 + 1] else {
+                let NumberOrRef::Number(bar) = self.events[j * 2 + 1] else {
                     return;
                 };
 
@@ -87,8 +88,8 @@ impl<const N: usize> Node<N> for Arrange {
                 let to_push = i as usize - self.events.len();
 
                 self.events.reserve(to_push + 1);
-                self.events.extend(std::iter::repeat(GlicolPara::Number(0.0)).take(to_push));
-                self.events.push(GlicolPara::Number(value));
+                self.events.extend(std::iter::from_fn(|| Some(NumberOrRef::Number(0.0))).take(to_push));
+                self.events.push(NumberOrRef::Number(value));
             }
             Message::Index(i) => self.input_order.push(i),
             Message::IndexOrder(pos, index) => self.input_order.insert(pos, index),

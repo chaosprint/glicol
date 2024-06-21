@@ -62,12 +62,12 @@ impl<const N: usize> Eval<N> {
         Self { bpm, ..self }
     }
 
-    pub fn code(mut self, code: String) -> Self {
+    pub fn code(mut self, code: &str) -> Self {
         self.apply_code(code);
         Self { ..self }
     }
 
-    fn apply_code(&mut self, code: String) {
+    fn apply_code(&mut self, code: &str) {
         let lines = code.split(';');
         for line in lines {
             let mut slab = fasteval::Slab::new();
@@ -77,7 +77,6 @@ impl<const N: usize> Eval<N> {
                     assign
                         .next()
                         .unwrap()
-                        .to_string()
                         .replace([' ', '\t', '\n'], "")
                 );
             }
@@ -126,7 +125,7 @@ impl<const N: usize> Node<N> for Eval<N> {
                 self.slab.clear();
                 self.var.clear();
                 self.compiled.clear();
-                self.apply_code(code);
+                self.apply_code(&code);
                 // self.code(s);
                 // self.compiled = self.parser.parse(&s, &mut self.slab.ps).unwrap().from(&self.slab.ps)
                 // .compile(&self.slab.ps, &mut self.slab.cs);

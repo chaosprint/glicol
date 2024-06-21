@@ -2,22 +2,18 @@ use glicol_parser::Rule;
 use pest::error::Error;
 pub use pest::error::ErrorVariant;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum EngineError {
-    ParsingError(pest::error::Error<glicol_parser::Rule>),
+    ParsingError(Box<pest::error::Error<glicol_parser::Rule>>),
     NonExistReference(String),
-    NonExsitSample(String),
+    NonExistSample(String),
 }
 
-impl std::convert::From<Error<Rule>> for EngineError {
-    fn from(err: Error<Rule>) -> EngineError {
+impl From<Box<Error<Rule>>> for EngineError {
+    fn from(err: Box<Error<Rule>>) -> EngineError {
         EngineError::ParsingError(err)
     }
 }
-
-// pub fn encode_error_info(e) -> [u8; 256] {
-
-// }
 
 pub fn get_error_info(e: Error<Rule>) -> (Vec<Rule>, Vec<Rule>) {
     match e.variant {
@@ -25,8 +21,18 @@ pub fn get_error_info(e: Error<Rule>) -> (Vec<Rule>, Vec<Rule>) {
             positives,
             negatives,
         } => (positives, negatives),
-        _ => {
-            unimplemented!();
+        _ => unimplemented!(),
+    }
+}
+
+impl std::fmt::Display for EngineError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::ParsingError(err) => writeln!(f, "Parsing error: {err}"),
+            EngineError::NonExistSample(v) => writeln!(f, "There is no sample named {v}s"),
+            EngineError::NonExistReference(v) => writeln!(f, "There is no reference named {v}"),
         }
     }
 }
+
+impl std::error::Error for EngineError {}

@@ -1,5 +1,6 @@
 use crate::GlicolPara;
 use crate::{Buffer, Input, Message, Node};
+use glicol_parser::nodes::{Duration, TimeList};
 use hashbrown::HashMap;
 
 #[derive(Debug, Clone)]
@@ -53,7 +54,7 @@ impl Points {
         Self { sr, ..self }
     }
 
-    pub fn points(self, points: GlicolPara) -> Self {
+    pub fn points(self, points: Vec<(TimeList, f32)>) -> Self {
         let bpm = self.bpm;
         let sr = self.sr;
         let span = self.span;
@@ -63,42 +64,25 @@ impl Points {
 
     fn make_point_list(
         &self,
-        points: GlicolPara,
+        points: Vec<(TimeList, f32)>,
         bpm: f32,
         sr: usize,
         span: f32,
     ) -> Vec<(usize, f32)> {
-        let mut point_list = match points {
-            GlicolPara::Points(p) => p.into_iter().map(|point| {
-                let time = point.0;
-                let mut pos = 0; // which sample
-                if let GlicolPara::Time(t) = time {
-                    let cycle_dur = 60. / bpm * 4.;
-                    let bar_dur = cycle_dur * span * sr as f32;
+        let mut point_list = points.into_iter()
+            .map(|(time, value)| {
+                let cycle_dur = 60. / bpm * 4.;
+                let bar_dur = cycle_dur * span * sr as f32;
 
-                    for time_kind in t {
-                        match time_kind {
-                            GlicolPara::Bar(x) => {
-                                pos += (x * bar_dur) as usize;
-                            }
-                            GlicolPara::Second(x) => {
-                                pos += (x * (sr as f32)) as usize;
-                            }
-                            GlicolPara::Millisecond(x) => {
-                                pos += (x / 1000.0 * (sr as f32)) as usize;
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-                let value = match point.1 {
-                    GlicolPara::Number(v) => v,
-                    _ => 0.0,
-                };
-                (pos, value)
-            }).collect(),
-            _ => vec![]
-        };
+                let bar_pos = time.bar * bar_dur;
+                let time_pos = time.time.map_or(0., |kind| match kind {
+                    Duration::Bar(b) => b * bar_dur,
+                    Duration::Seconds(s) => s * (sr as f32),
+                    Duration::Milliseconds(ms) => (ms / 1000.0) * sr as f32
+                });
+
+                ((bar_pos + time_pos) as usize, value)
+            }).collect::<Vec<_>>();
 
         if point_list[0].0 != 0 {
             point_list.insert(0, (0, 0.0));
@@ -170,8 +154,8 @@ impl<const N: usize> Node<N> for Points {
     }
     fn send_msg(&mut self, info: Message) {
         match info {
-            Message::SetParam(0, params) => {
-                self.point_list = self.make_point_list(params, self.bpm, self.sr, self.span);
+            Message::SetParam(0, GlicolPara::Points(time_list)) => {
+                self.point_list = self.make_point_list(time_list, self.bpm, self.sr, self.span);
                 self.step = 0;
             },
             Message::SetToNumber(1, num) => {

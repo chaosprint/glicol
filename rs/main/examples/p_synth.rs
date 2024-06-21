@@ -1,4 +1,4 @@
-use glicol::Engine; 
+use glicol::Engine;
 // use glicol::{EngineError, get_error_info};
 
 // use glicol::GlicolNodeInfo;
@@ -6,6 +6,6 @@ use glicol::Engine;
 
 fn main() {
     let mut engine = Engine::<8>::new();
-    engine.update_with_code(r#"o: pattern_synth `` 1"#);
+    engine.update_with_code(r#"o: pattern_synth `` 1"#).unwrap();
     println!("next block {:?}", engine.next_block(vec![]));
 }

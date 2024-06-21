@@ -16,6 +16,7 @@ default = []
 use-samples = []
 use-meta = []
 bela = []
+wasm-bindgen = ["glicol_synth/wasm-bindgen"]
 
 [dependencies]
 petgraph = { workspace = true }
@@ -24,12 +25,12 @@ glicol_synth = { version = "0.13.5", path = "../synth", features = [
     "use-samples",
     "use-meta",
 ] }
-lcs-diff = { workspace = true }
 pest = { workspace = true }
 hashbrown = { workspace = true }
+yoke = { workspace = true }
 
 [dev-dependencies]
-gnuplot = "0.0.37"
+gnuplot = "0.0.43"
 # petgraph = { version = "0.6",  features = ["stable_graph"] }
-cpal = "0.14.0"
+# cpal = "0.15.3"
 anyhow = "1.0.63"

@@ -2,5 +2,5 @@
 use glicol_parser::*;
 
 fn main() {
-    println!("{:?}", get_ast("o: choose 60 50 80 70"));
+    println!("{:?}", get_ast("o: choose 60 50 80 70").unwrap());
 }

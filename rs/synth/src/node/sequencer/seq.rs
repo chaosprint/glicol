@@ -1,9 +1,10 @@
-use crate::{Buffer, GlicolPara, Input, Message, Node};
+use crate::{Buffer, Input, Message, Node};
+use glicol_parser::nodes::UsizeOrRef;
 use hashbrown::HashMap;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Sequencer {
-    events: Vec<(f32, GlicolPara)>,
+    events: Vec<(f32, UsizeOrRef<String>)>,
     ref_order: HashMap<String, usize>,
     speed: f32,
     pub bpm: f32,
@@ -14,7 +15,7 @@ pub struct Sequencer {
 }
 
 impl Sequencer {
-    pub fn new(events: Vec<(f32, GlicolPara)>) -> Self {
+    pub fn new(events: Vec<(f32, UsizeOrRef<String>)>) -> Self {
         Self {
             events,
             ref_order: HashMap::new(),
@@ -49,14 +50,14 @@ impl<const N: usize> Node<N> for Sequencer {
                             == ((event.0 as f64 * bar_length) as usize)
                         {
                             let midi = match event.1 {
-                                GlicolPara::Number(value) => value,
-                                _ => 0.0,
+                                UsizeOrRef::Usize(value) => value,
+                                UsizeOrRef::Ref(_) => 0,
                             };
 
-                            if midi == 0.0 {
+                            if midi == 0 {
                                 *out = 0.0
                             } else {
-                                *out = 2.0f32.powf((midi - 60.0) / 12.0)
+                                *out = 2.0f32.powf((midi as f32 - 60.0) / 12.0)
                             }
                         }
                     }
@@ -81,13 +82,12 @@ impl<const N: usize> Node<N> for Sequencer {
                             == ((event.0 as f64 * bar_length) as usize)
                         {
                             let midi = match &event.1 {
-                                GlicolPara::Number(value) => *value,
-                                GlicolPara::Reference(s) => {
+                                UsizeOrRef::Usize(value) => *value as f32,
+                                UsizeOrRef::Ref(s) => {
                                     let source = &inputs
                                         [&self.input_order[self.ref_order[s] + has_speed as usize]]; //panic?
                                     source.buffers()[0][idx]
                                 }
-                                _ => return,
                             };
 
                             if midi == 0.0 {

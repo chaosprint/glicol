@@ -6,9 +6,8 @@ It can be used as a standalone audio library, with quite intuitive APIs:
 ```rust
 use glicol_synth::{AudioContextBuilder, signal::ConstSig, Message};
 
-fn main() {
 let mut context = AudioContextBuilder::<16>::new()
-.sr(44100).channels(1).build();
+    .sr(44100).channels(1).build();
 
 let node_a = context.add_mono_node(ConstSig::new(42.));
 context.connect(node_a, context.destination);
@@ -16,7 +15,6 @@ println!("first block {:?}", context.next_block());
 
 context.send_msg(node_a, Message::SetToNumber(0, 100.) );
 println!("second block, after msg {:?}", context.next_block());
-}
 ```
 
 ## Overview
