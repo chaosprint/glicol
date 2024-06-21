@@ -25,7 +25,7 @@ jobs:
           components: clippy
       - name: Run clippy
         working-directory: rs
-        run: cargo clippy --all --all-features --workspace --all-targets --exclude glicol_wasm
+        run: cargo clippy --all --all-features --workspace --all-targets --exclude glicol-wasm
   rustfmt-check:
     runs-on: ubuntu-latest
     steps:
