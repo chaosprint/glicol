@@ -52,7 +52,7 @@
         "description": "impulse signal generator",
         "parameters": [{"freq": "NonModulable(1.0)"}],
         "input": "none",
-        "output": "impulse signal lile [1.0, 0.0, 0.0, ...]; the gap between two 1.0 depends on the frequency.",
+        "output": "impulse signal like [1.0, 0.0, 0.0, ...]; the gap between two 1.0 depends on the frequency.",
         "example": "o: imp 1.0"
     },
     "lpf": {
