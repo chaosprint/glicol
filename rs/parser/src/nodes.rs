@@ -517,24 +517,26 @@ impl<'ast> Node<'ast> for Seq<'ast> {
         // to do, more than a symbol
         // should be an event that contains time and note
         let compounds = paras.into_inner();
+        let compounds_num = compounds.len();
 
         let events = compounds
             .enumerate()
             .map(|(i, compound)| {
                 let elements = compound.into_inner();
                 let elements_n = elements.len();
+                let relative_time_base = i as f32 / compounds_num as f32;
 
                 elements
                     .enumerate()
                     .map(|(j, element)| {
-                        let relative_time_sub = j as f32 / elements_n as f32;
+                        let relative_time_sub = j as f32 / elements_n as f32  / compounds_num as f32;
                         let e_span = element.as_end_span();
                         let e = element
                             .into_inner()
                             .next()
                             .ok_or_else(|| e_span.to_err_with_positives(positives))?;
 
-                        let time = relative_time_sub + i as f32;
+                        let time = relative_time_sub + relative_time_base as f32;
 
                         match_or_return_err!(e,
                             Rule::integer => {
@@ -556,7 +558,7 @@ impl<'ast> Node<'ast> for Seq<'ast> {
             .into_iter()
             .flatten()
             .collect();
-
+        
         Ok(Self { events })
     }
 }
