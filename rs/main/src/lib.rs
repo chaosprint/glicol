@@ -177,8 +177,14 @@ impl<const N: usize> Engine<N> {
         // self.ast `Yoke`, and we can't `self.ast.take()` and then re-use the allocation there
         // 'cause then we'll be unable to do this diffing thing against what it used to be b/c
         // it'll have been overwritten.
+
+        // Normalize line endings to \n
+        let normalized_code = code.replace("\r\n", "\n");
+
         let new_ast: YokedAst =
-            Yoke::try_attach_to_cart(code.to_owned().into_boxed_str(), |code| get_ast(code))?;
+            Yoke::try_attach_to_cart(normalized_code.to_owned().into_boxed_str(), |code| {
+                get_ast(code)
+            })?;
 
         self.temp_node_index.clear();
 
