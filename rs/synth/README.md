@@ -19,7 +19,7 @@ println!("second block, after msg {:?}", context.next_block());
 
 ## Overview
 
-`glicol_synth` begins with a fork of the `dasp_graph` crate, written by @mitchmindtree.
+`glicol_synth` begins with a fork of the `dasp_graph` create, written by @mitchmindtree.
 many features and contents are added:
 
 - use const generics for a customisable buffer size
