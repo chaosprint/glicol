@@ -1,6 +1,5 @@
 use crate::{Buffer, Input, Message, Node};
 use hashbrown::HashMap;
-// use std::f32::consts::PI;
 
 #[derive(Debug, Clone)]
 pub struct Pan {
@@ -31,7 +30,7 @@ impl<const N: usize> Node<N> for Pan {
             let (left, right) = output.split_at_mut(1);
             for ((left, right), sample) in left[0]
                 .iter_mut()
-                .zip(right[1].iter_mut())
+                .zip(right[0].iter_mut())
                 .zip(input_buffers[0].iter())
             {
                 *left = left_gain * sample; // Left channel
