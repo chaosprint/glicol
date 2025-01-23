@@ -58,7 +58,7 @@ https://glicol.org
 | [Run on Bela](https://github.com/chaosprint/glicol/tree/main/rs/bela) | Run Glicol DSL on Bela board for quick audio prototyping.  |
 
 ### 🍿 YouTube Channel
-Find Glicol demo vidoes [in this playlist](https://www.youtube.com/playlist?list=PLT4REhRBWaOOrLQxCg5Uw97gEpN-woo1c).
+Find Glicol demo videos [in this playlist](https://www.youtube.com/playlist?list=PLT4REhRBWaOOrLQxCg5Uw97gEpN-woo1c).
 
 ## Philosophy of Glicol
 
