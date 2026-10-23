@@ -9,7 +9,6 @@ pub struct ResonantLowPassFilter {
     sr: usize,
     cutoff: f32,
     q: f32,
-    x0: f32,
     x1: f32,
     x2: f32,
     y1: f32,
@@ -35,7 +34,6 @@ impl ResonantLowPassFilter {
             step: 0,
             cutoff: 20.,
             q: 1.0,
-            x0: 0.,
             x1: 0.,
             x2: 0.,
             y1: 0.,
@@ -107,8 +105,7 @@ impl<const N: usize> Node<N> for ResonantLowPassFilter {
                     let b1 = -2.0 * gama;
                     let b2 = 2.0 * beta;
 
-                    let y =
-                        a0 * self.x0 + a1 * self.x1 + a2 * self.x2 - b1 * self.y1 - b2 * self.y2;
+                    let y = a0 * *x0 + a1 * self.x1 + a2 * self.x2 - b1 * self.y1 - b2 * self.y2;
 
                     *out = y;
                     self.x2 = self.x1;
@@ -133,8 +130,7 @@ impl<const N: usize> Node<N> for ResonantLowPassFilter {
                 let b2 = 2.0 * beta;
 
                 for (out, x0) in output[0].iter_mut().zip(main_input.buffers()[0].iter()) {
-                    let y =
-                        a0 * self.x0 + a1 * self.x1 + a2 * self.x2 - b1 * self.y1 - b2 * self.y2;
+                    let y = a0 * *x0 + a1 * self.x1 + a2 * self.x2 - b1 * self.y1 - b2 * self.y2;
                     *out = y;
                     self.x2 = self.x1;
                     self.x1 = *x0;
